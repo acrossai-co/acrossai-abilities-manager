@@ -2,21 +2,21 @@
 /**
  * Edit screen rendering and actions.
  *
- * @package Abilities_Editor
+ * @package Abilities_Manager
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Editor\Admin;
+namespace Abilities_Manager\Admin;
 
-use Abilities_Editor\Database\Repository;
+use Abilities_Manager\Database\Repository;
 
 defined( 'ABSPATH' ) || exit;
 
 class Edit_Screen {
 	public static function handle_actions(): void {
 		$page = isset( $_REQUEST['page'] ) ? sanitize_key( wp_unslash( $_REQUEST['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( 'abilities-editor' !== $page ) {
+		if ( 'abilities-manager' !== $page ) {
 			return;
 		}
 		$action = isset( $_REQUEST['abe_action'] ) ? sanitize_key( wp_unslash( $_REQUEST['abe_action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -26,21 +26,22 @@ class Edit_Screen {
 		if ( 'delete' === $action ) {
 			self::delete();
 		}
+		if ( 'toggle_allowed' === $action ) {
+			self::toggle_allowed();
+		}
 	}
 
 	public static function render( string $slug ): void {
-		$slug = sanitize_text_field( $slug );
-		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : 'edit'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$ability = function_exists( 'wp_get_ability' ) ? wp_get_ability( $slug ) : null;
+		$slug     = sanitize_text_field( $slug );
+		$ability  = function_exists( 'wp_get_ability' ) ? wp_get_ability( $slug ) : null;
 		$override = Repository::get_by_slug( $slug );
 		if ( ! $ability && ! $override ) {
-			echo '<div class="notice notice-error"><p>' . esc_html__( 'Ability not found.', 'abilities-editor' ) . '</p></div>';
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'Ability not found.', 'abilities-manager' ) . '</p></div>';
 			return;
 		}
 		$provider      = is_array( $override ) && ! empty( $override['provider'] ) ? (string) $override['provider'] : self::detect_provider( $slug );
 		$category_slug = $ability instanceof \WP_Ability ? $ability->get_category() : '';
 		$category      = self::ability_category_label( $category_slug );
-		$view_only     = 'view' === $action;
 		$values        = self::resolved_values( $override, $ability );
 
 		if ( is_array( $override ) && $ability instanceof \WP_Ability && array() === self::build_override_values( $values, $ability ) ) {
@@ -52,41 +53,49 @@ class Edit_Screen {
 			$values        = self::resolved_values( null, $ability );
 		}
 
-		$back_url = admin_url( 'tools.php?page=abilities-editor' );
-		$edit_url = add_query_arg( array( 'page' => 'abilities-editor', 'action' => 'edit', 'slug' => $slug ), admin_url( 'tools.php' ) );
+		$back_url = admin_url( 'tools.php?page=abilities-manager' );
 		?>
 		<p>
-			<a href="<?php echo esc_url( $back_url ); ?>" class="button"><?php esc_html_e( 'Back to List', 'abilities-editor' ); ?></a>
-			<?php if ( $view_only ) : ?>
-				<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-primary"><?php esc_html_e( 'Edit Override', 'abilities-editor' ); ?></a>
-			<?php endif; ?>
+			<a href="<?php echo esc_url( $back_url ); ?>" class="button"><?php esc_html_e( 'Back to List', 'abilities-manager' ); ?></a>
 		</p>
-		<form method="post" action="<?php echo esc_url( admin_url( 'tools.php?page=abilities-editor' ) ); ?>">
-			<input type="hidden" name="page" value="abilities-editor" />
+		<form method="post" action="<?php echo esc_url( admin_url( 'tools.php?page=abilities-manager' ) ); ?>">
+			<input type="hidden" name="page" value="abilities-manager" />
 			<input type="hidden" name="abe_action" value="save" />
 			<input type="hidden" name="slug" value="<?php echo esc_attr( $slug ); ?>" />
 			<?php wp_nonce_field( 'abe_save_meta_' . $slug, 'abe_meta_nonce' ); ?>
 			<table class="form-table" role="presentation"><tbody>
-			<tr><th scope="row"><?php esc_html_e( 'Ability Slug', 'abilities-editor' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $slug ); ?>" readonly /></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Provider', 'abilities-editor' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $provider ); ?>" readonly /></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Category', 'abilities-editor' ); ?></th><td><?php echo wp_kses_post( self::render_category_value( $category, $category_slug ) ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Readonly', 'abilities-editor' ); ?></th><td><?php self::select( 'readonly', $values['readonly'], $view_only ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Destructive', 'abilities-editor' ); ?></th><td><?php self::select( 'destructive', $values['destructive'], $view_only ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Idempotent', 'abilities-editor' ); ?></th><td><?php self::select( 'idempotent', $values['idempotent'], $view_only ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Show in REST', 'abilities-editor' ); ?></th><td><label><input type="checkbox" name="show_in_rest" value="1" <?php checked( (bool) $values['show_in_rest'] ); ?> <?php disabled( $view_only ); ?> /> <?php esc_html_e( 'Expose in REST.', 'abilities-editor' ); ?></label></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'MCP Public', 'abilities-editor' ); ?></th><td><label><input type="checkbox" id="abe-mcp-public" name="mcp_public" value="1" <?php checked( (bool) $values['mcp_public'] ); ?> <?php disabled( $view_only ); ?> /> <?php esc_html_e( 'Expose publicly to MCP clients.', 'abilities-editor' ); ?></label></td></tr>
-			<tr id="abe-mcp-type-row"><th scope="row"><?php esc_html_e( 'MCP Type', 'abilities-editor' ); ?></th><td><?php self::mcp_type_select( (string) $values['mcp_type'], $view_only ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Ability Slug', 'abilities-manager' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $slug ); ?>" readonly /></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Provider', 'abilities-manager' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $provider ); ?>" readonly /></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Category', 'abilities-manager' ); ?></th><td><?php echo wp_kses_post( self::render_category_value( $category, $category_slug ) ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Allowed on Site', 'abilities-manager' ); ?></th><td><label><input type="checkbox" name="site_allowed" value="1" <?php checked( (bool) $values['site_allowed'] ); ?> /> <?php esc_html_e( 'Allow this ability to run on this site.', 'abilities-manager' ); ?></label></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Readonly', 'abilities-manager' ); ?></th><td><?php self::select( 'readonly', $values['readonly'], false ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Destructive', 'abilities-manager' ); ?></th><td><?php self::select( 'destructive', $values['destructive'], false ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Idempotent', 'abilities-manager' ); ?></th><td><?php self::select( 'idempotent', $values['idempotent'], false ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Show in REST', 'abilities-manager' ); ?></th><td><label><input type="checkbox" name="show_in_rest" value="1" <?php checked( (bool) $values['show_in_rest'] ); ?> /> <?php esc_html_e( 'Expose in REST.', 'abilities-manager' ); ?></label></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'MCP Public', 'abilities-manager' ); ?></th><td><label><input type="checkbox" id="abe-mcp-public" name="mcp_public" value="1" <?php checked( (bool) $values['mcp_public'] ); ?> /> <?php esc_html_e( 'Expose publicly to MCP clients.', 'abilities-manager' ); ?></label></td></tr>
+			<tr id="abe-mcp-type-row"><th scope="row"><?php esc_html_e( 'MCP Type', 'abilities-manager' ); ?></th><td><?php self::mcp_type_select( (string) $values['mcp_type'], false ); ?></td></tr>
 			</tbody></table>
-			<?php if ( ! $view_only ) : ?>
-				<p class="submit">
-					<button type="submit" name="abe_save_target" value="stay" class="button button-primary"><?php esc_html_e( 'Save', 'abilities-editor' ); ?></button>
-					<button type="submit" name="abe_save_target" value="exit" class="button"><?php esc_html_e( 'Save and Exit', 'abilities-editor' ); ?></button>
+			<p class="submit">
+					<button type="submit" name="abe_save_target" value="stay" class="button button-primary"><?php esc_html_e( 'Save', 'abilities-manager' ); ?></button>
+					<button type="submit" name="abe_save_target" value="exit" class="button"><?php esc_html_e( 'Save and Exit', 'abilities-manager' ); ?></button>
 					<?php if ( is_array( $override ) ) : ?>
-						<?php $delete_url = wp_nonce_url( add_query_arg( array( 'page' => 'abilities-editor', 'abe_action' => 'delete', 'slug' => $slug ), admin_url( 'tools.php' ) ), 'abe_delete_meta_' . $slug, 'abe_delete_nonce' ); ?>
-						<a href="<?php echo esc_url( $delete_url ); ?>" class="button" onclick="return window.confirm(<?php echo esc_attr( wp_json_encode( __( 'Reset this override?', 'abilities-editor' ) ) ); ?>);"><?php esc_html_e( 'Reset Override', 'abilities-editor' ); ?></a>
+						<?php
+						$delete_url = wp_nonce_url(
+							add_query_arg(
+								array(
+									'page'       => 'abilities-manager',
+									'abe_action' => 'delete',
+									'slug'       => $slug,
+								),
+								admin_url( 'tools.php' )
+							),
+							'abe_delete_meta_' . $slug,
+							'abe_delete_nonce'
+						);
+						?>
+						<a href="<?php echo esc_url( $delete_url ); ?>" class="button" onclick="return window.confirm(<?php echo esc_attr( wp_json_encode( __( 'Reset this override?', 'abilities-manager' ) ) ); ?>);"><?php esc_html_e( 'Reset Override', 'abilities-manager' ); ?></a>
 					<?php endif; ?>
 				</p>
-			<?php endif; ?>
 		</form>
 		<script>
 		document.addEventListener( 'DOMContentLoaded', function() {
@@ -110,7 +119,7 @@ class Edit_Screen {
 
 	public static function save(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You are not allowed to edit overrides.', 'abilities-editor' ) );
+			wp_die( esc_html__( 'You are not allowed to edit overrides.', 'abilities-manager' ) );
 		}
 
 		$slug = isset( $_POST['slug'] ) ? sanitize_text_field( wp_unslash( $_POST['slug'] ) ) : '';
@@ -140,15 +149,63 @@ class Edit_Screen {
 
 	public static function delete(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You are not allowed to reset overrides.', 'abilities-editor' ) );
+			wp_die( esc_html__( 'You are not allowed to reset overrides.', 'abilities-manager' ) );
 		}
 		$slug = isset( $_GET['slug'] ) ? sanitize_text_field( wp_unslash( $_GET['slug'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		check_admin_referer( 'abe_delete_meta_' . $slug, 'abe_delete_nonce' );
 		$deleted = Repository::delete( $slug );
-		wp_safe_redirect( add_query_arg( array( 'page' => 'abilities-editor', 'abe_notice' => $deleted ? 'deleted' : 'error' ), admin_url( 'tools.php' ) ) );
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'       => 'abilities-manager',
+					'abe_notice' => $deleted ? 'deleted' : 'error',
+				),
+				admin_url( 'tools.php' )
+			)
+		);
 		exit;
 	}
 
+	public static function toggle_allowed(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to change ability availability.', 'abilities-manager' ) );
+		}
+
+		$slug  = isset( $_GET['slug'] ) ? sanitize_text_field( wp_unslash( $_GET['slug'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$allow = isset( $_GET['site_allowed'] ) && '1' === sanitize_key( wp_unslash( $_GET['site_allowed'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		check_admin_referer( 'abe_toggle_allowed_' . $slug, 'abe_toggle_allowed_nonce' );
+
+		$ability                   = function_exists( 'wp_get_ability' ) ? wp_get_ability( $slug ) : null;
+		$existing_override         = Repository::get_by_slug( $slug );
+		$submitted                 = self::resolved_values( $existing_override, $ability );
+		$submitted['site_allowed'] = $allow;
+		$override                  = self::build_override_values( $submitted, $ability );
+		$override                  = self::prepare_override_for_save( $override, $existing_override );
+
+		if ( array() === $override ) {
+			if ( is_array( $existing_override ) ) {
+				Repository::delete( $slug );
+			}
+
+			self::redirect_to_list( $allow ? 'allowed' : 'disallowed' );
+		}
+
+		$result = Repository::upsert( $slug, $override );
+		self::redirect_to_list( $result ? ( $allow ? 'allowed' : 'disallowed' ) : 'error' );
+	}
+
+	private static function redirect_to_list( string $notice ): void {
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'       => 'abilities-manager',
+					'abe_notice' => $notice,
+				),
+				admin_url( 'tools.php' )
+			)
+		);
+		exit;
+	}
 
 	/**
 	 * Returns the save button target selected by the user.
@@ -171,7 +228,7 @@ class Edit_Screen {
 	 */
 	private static function redirect_after_save( string $slug, string $notice, string $save_target ): void {
 		$args = array(
-			'page'       => 'abilities-editor',
+			'page'       => 'abilities-manager',
 			'abe_notice' => $notice,
 		);
 
@@ -186,7 +243,7 @@ class Edit_Screen {
 
 	private static function select( string $name, ?bool $value, bool $disabled ): void {
 		printf(
-			'<select name="%1$s" %2$s><option value="null" %3$s>null</option><option value="1" %4$s>true</option><option value="0" %5$s>false</option></select>',
+			'<select name="%1$s" %2$s><option value="null" esc_attr( self::selected_option( null, $value ) )>null</option><option value="1" esc_attr( self::selected_option( true, $value ) )>true</option><option value="0" esc_attr( self::selected_option( false, $value ) )>false</option></select>',
 			esc_attr( $name ),
 			disabled( $disabled, true, false ),
 			self::selected_option( null, $value ),
@@ -198,9 +255,9 @@ class Edit_Screen {
 
 	private static function mcp_type_select( string $value, bool $disabled ): void {
 		$options = array(
-			'tools'     => __( 'Tools', 'abilities-editor' ),
-			'resources' => __( 'Resources', 'abilities-editor' ),
-			'prompts'   => __( 'Prompts', 'abilities-editor' ),
+			'tools'     => __( 'Tools', 'abilities-manager' ),
+			'resources' => __( 'Resources', 'abilities-manager' ),
+			'prompts'   => __( 'Prompts', 'abilities-manager' ),
 		);
 
 		$value = self::sanitize_mcp_type( $value );
@@ -215,6 +272,7 @@ class Edit_Screen {
 
 	private static function submitted_values(): array {
 		return array(
+			'site_allowed' => isset( $_POST['site_allowed'] ),
 			'readonly'     => self::normalize_nullable_bool( isset( $_POST['readonly'] ) ? wp_unslash( $_POST['readonly'] ) : null ),
 			'destructive'  => self::normalize_nullable_bool( isset( $_POST['destructive'] ) ? wp_unslash( $_POST['destructive'] ) : null ),
 			'idempotent'   => self::normalize_nullable_bool( isset( $_POST['idempotent'] ) ? wp_unslash( $_POST['idempotent'] ) : null ),
@@ -230,6 +288,7 @@ class Edit_Screen {
 		$annotations = is_array( $meta['annotations'] ?? null ) ? $meta['annotations'] : array();
 
 		return array(
+			'site_allowed' => self::coalesce( $override['site_allowed'] ?? null, true ),
 			'readonly'     => self::coalesce( $override['readonly'] ?? null, $annotations['readonly'] ?? null ),
 			'destructive'  => self::coalesce( $override['destructive'] ?? null, $annotations['destructive'] ?? null ),
 			'idempotent'   => self::coalesce( $override['idempotent'] ?? null, $annotations['idempotent'] ?? null ),
@@ -244,9 +303,9 @@ class Edit_Screen {
 			return $submitted;
 		}
 
-		$defaults    = self::default_values( $ability );
-		$overrides   = array();
-		$fields      = array( 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public', 'mcp_type' );
+		$defaults  = self::default_values( $ability );
+		$overrides = array();
+		$fields    = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public', 'mcp_type' );
 
 		foreach ( $fields as $field ) {
 			if ( $submitted[ $field ] !== $defaults[ $field ] ) {
@@ -274,7 +333,7 @@ class Edit_Screen {
 			return $override;
 		}
 
-		foreach ( array( 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public', 'mcp_type' ) as $field ) {
+		foreach ( array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public', 'mcp_type' ) as $field ) {
 			if ( array_key_exists( $field, $override ) ) {
 				continue;
 			}
@@ -312,6 +371,7 @@ class Edit_Screen {
 		$annotations = is_array( $meta['annotations'] ?? null ) ? $meta['annotations'] : array();
 
 		return array(
+			'site_allowed' => true,
 			'readonly'     => self::normalize_nullable_bool( $annotations['readonly'] ?? null ),
 			'destructive'  => self::normalize_nullable_bool( $annotations['destructive'] ?? null ),
 			'idempotent'   => self::normalize_nullable_bool( $annotations['idempotent'] ?? null ),
@@ -417,7 +477,7 @@ class Edit_Screen {
 			return 'core';
 		}
 		$stylesheet = sanitize_key( (string) get_stylesheet() );
-		$template = sanitize_key( (string) get_template() );
+		$template   = sanitize_key( (string) get_template() );
 		if ( in_array( $namespace, array( $stylesheet, $template ), true ) ) {
 			return 'theme:' . $namespace;
 		}

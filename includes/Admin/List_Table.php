@@ -2,14 +2,14 @@
 /**
  * Abilities list table.
  *
- * @package Abilities_Editor
+ * @package Abilities_Manager
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Editor\Admin;
+namespace Abilities_Manager\Admin;
 
-use Abilities_Editor\Database\Repository;
+use Abilities_Manager\Database\Repository;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -18,9 +18,9 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 }
 
 class List_Table extends \WP_List_Table {
-	private array $abilities = array();
-	private array $overrides = array();
-	private array $categories = array();
+	private array $abilities       = array();
+	private array $overrides       = array();
+	private array $categories      = array();
 	private array $provider_counts = array(
 		'core'   => 0,
 		'plugin' => 0,
@@ -33,23 +33,24 @@ class List_Table extends \WP_List_Table {
 				'singular' => 'ability-override',
 				'plural'   => 'ability-overrides',
 				'ajax'     => false,
-				'screen'   => 'tools_page_abilities-editor',
+				'screen'   => 'tools_page_abilities-manager',
 			)
 		);
 	}
 
 	public function get_columns(): array {
 		return array(
-			'name'         => __( 'Name', 'abilities-editor' ),
-			'slug'         => __( 'Slug', 'abilities-editor' ),
-			'provider'     => __( 'Provider', 'abilities-editor' ),
-			'category'     => __( 'Category', 'abilities-editor' ),
-			'readonly'     => __( 'Readonly', 'abilities-editor' ),
-			'destructive'  => __( 'Destructive', 'abilities-editor' ),
-			'idempotent'   => __( 'Idempotent', 'abilities-editor' ),
-			'show_in_rest' => __( 'Show in REST', 'abilities-editor' ),
-			'mcp_public'   => __( 'MCP Public', 'abilities-editor' ),
-			'actions'      => __( 'Actions', 'abilities-editor' ),
+			'name'         => __( 'Name', 'abilities-manager' ),
+			'slug'         => __( 'Slug', 'abilities-manager' ),
+			'provider'     => __( 'Provider', 'abilities-manager' ),
+			'category'     => __( 'Category', 'abilities-manager' ),
+			'site_allowed' => __( 'Allowed', 'abilities-manager' ),
+			'readonly'     => __( 'Readonly', 'abilities-manager' ),
+			'destructive'  => __( 'Destructive', 'abilities-manager' ),
+			'idempotent'   => __( 'Idempotent', 'abilities-manager' ),
+			'show_in_rest' => __( 'Show in REST', 'abilities-manager' ),
+			'mcp_public'   => __( 'MCP Public', 'abilities-manager' ),
+			'actions'      => __( 'Actions', 'abilities-manager' ),
 		);
 	}
 
@@ -59,6 +60,7 @@ class List_Table extends \WP_List_Table {
 			'slug'         => array( 'slug', false ),
 			'provider'     => array( 'provider', false ),
 			'category'     => array( 'category', false ),
+			'site_allowed' => array( 'site_allowed', false ),
 			'readonly'     => array( 'readonly', false ),
 			'destructive'  => array( 'destructive', false ),
 			'idempotent'   => array( 'idempotent', false ),
@@ -71,7 +73,7 @@ class List_Table extends \WP_List_Table {
 		$this->abilities  = function_exists( 'wp_get_abilities' ) ? wp_get_abilities() : array();
 		$this->categories = function_exists( 'wp_get_ability_categories' ) ? wp_get_ability_categories() : array();
 		$result           = Repository::get_all( array( 'per_page' => 0 ) );
-		$this->overrides = array();
+		$this->overrides  = array();
 
 		foreach ( $result['items'] as $override ) {
 			$this->overrides[ $override['ability_slug'] ] = $override;
@@ -84,7 +86,7 @@ class List_Table extends \WP_List_Table {
 		usort( $items, array( $this, 'sort_items' ) );
 		$this->_column_headers = array( $this->get_columns(), $hidden, $this->get_sortable_columns() );
 
-		$per_page = $this->get_items_per_page( 'abilities_editor_per_page', 20 );
+		$per_page = $this->get_items_per_page( 'abilities_manager_per_page', 20 );
 		$page     = $this->get_pagenum();
 		$total    = count( $items );
 
@@ -104,7 +106,14 @@ class List_Table extends \WP_List_Table {
 	}
 
 	public function column_name( $item ): string {
-		$url  = add_query_arg( array( 'page' => 'abilities-editor', 'action' => 'view', 'slug' => $item['slug'] ), admin_url( 'tools.php' ) );
+		$url  = add_query_arg(
+			array(
+				'page'   => 'abilities-manager',
+				'action' => 'edit',
+				'slug'   => $item['slug'],
+			),
+			admin_url( 'tools.php' )
+		);
 		$text = '<strong><a href="' . esc_url( $url ) . '">' . esc_html( $item['name'] ) . '</a></strong>';
 
 		if ( ! empty( $item['description'] ) ) {
@@ -112,7 +121,11 @@ class List_Table extends \WP_List_Table {
 		}
 
 		if ( ! empty( $item['has_override'] ) ) {
-			$text .= '<p><span class="dashicons dashicons-saved" aria-hidden="true"></span> ' . esc_html__( 'Override saved', 'abilities-editor' ) . '</p>';
+			$text .= '<p><span class="dashicons dashicons-saved" aria-hidden="true"></span> ' . esc_html__( 'Override saved', 'abilities-manager' ) . '</p>';
+		}
+
+		if ( false === $item['site_allowed'] ) {
+			$text .= '<p><span class="dashicons dashicons-lock" aria-hidden="true"></span> ' . esc_html__( 'Disallowed on this site', 'abilities-manager' ) . '</p>';
 		}
 
 		return $text;
@@ -138,6 +151,10 @@ class List_Table extends \WP_List_Table {
 		}
 
 		return $value;
+	}
+
+	public function column_site_allowed( $item ): string {
+		return $this->render_bool_value( $item['site_allowed'] );
 	}
 
 	public function column_readonly( $item ): string {
@@ -167,16 +184,50 @@ class List_Table extends \WP_List_Table {
 	}
 
 	public function column_actions( $item ): string {
-		$view    = add_query_arg( array( 'page' => 'abilities-editor', 'action' => 'view', 'slug' => $item['slug'] ), admin_url( 'tools.php' ) );
-		$edit    = add_query_arg( array( 'page' => 'abilities-editor', 'action' => 'edit', 'slug' => $item['slug'] ), admin_url( 'tools.php' ) );
-		$actions = array(
-			'<a class="button button-small" href="' . esc_url( $view ) . '">' . esc_html__( 'View', 'abilities-editor' ) . '</a>',
-			'<a class="button button-small button-primary" href="' . esc_url( $edit ) . '">' . esc_html__( 'Edit', 'abilities-editor' ) . '</a>',
+		$edit           = add_query_arg(
+			array(
+				'page'   => 'abilities-manager',
+				'action' => 'edit',
+				'slug'   => $item['slug'],
+			),
+			admin_url( 'tools.php' )
+		);
+		$toggle_url     = wp_nonce_url(
+			add_query_arg(
+				array(
+					'page'         => 'abilities-manager',
+					'abe_action'   => 'toggle_allowed',
+					'slug'         => $item['slug'],
+					'site_allowed' => $item['site_allowed'] ? '0' : '1',
+				),
+				admin_url( 'tools.php' )
+			),
+			'abe_toggle_allowed_' . $item['slug'],
+			'abe_toggle_allowed_nonce'
+		);
+		$toggle_text    = $item['site_allowed'] ? __( 'Disallow', 'abilities-manager' ) : __( 'Allow', 'abilities-manager' );
+		$toggle_confirm = $item['site_allowed']
+			? ' onclick="return window.confirm(' . esc_js( wp_json_encode( __( 'Disallow this ability on the site?', 'abilities-manager' ) ) ) . ');"'
+			: '';
+		$actions        = array(
+			'<a class="button button-small button-primary" href="' . esc_url( $edit ) . '">' . esc_html__( 'Edit', 'abilities-manager' ) . '</a>',
+			'<a class="button button-small" href="' . esc_url( $toggle_url ) . '"' . $toggle_confirm . '>' . esc_html( $toggle_text ) . '</a>',
 		);
 
 		if ( ! empty( $item['has_override'] ) ) {
-			$delete    = wp_nonce_url( add_query_arg( array( 'page' => 'abilities-editor', 'abe_action' => 'delete', 'slug' => $item['slug'] ), admin_url( 'tools.php' ) ), 'abe_delete_meta_' . $item['slug'], 'abe_delete_nonce' );
-			$actions[] = '<a class="button button-small" href="' . esc_url( $delete ) . '" onclick="return window.confirm(' . esc_js( wp_json_encode( __( 'Reset this override?', 'abilities-editor' ) ) ) . ');">' . esc_html__( 'Reset', 'abilities-editor' ) . '</a>';
+			$delete    = wp_nonce_url(
+				add_query_arg(
+					array(
+						'page'       => 'abilities-manager',
+						'abe_action' => 'delete',
+						'slug'       => $item['slug'],
+					),
+					admin_url( 'tools.php' )
+				),
+				'abe_delete_meta_' . $item['slug'],
+				'abe_delete_nonce'
+			);
+			$actions[] = '<a class="button button-small" href="' . esc_url( $delete ) . '" onclick="return window.confirm(' . esc_js( wp_json_encode( __( 'Reset this override?', 'abilities-manager' ) ) ) . ');">' . esc_html__( 'Reset', 'abilities-manager' ) . '</a>';
 		}
 
 		return implode( ' ', $actions );
@@ -191,24 +242,25 @@ class List_Table extends \WP_List_Table {
 		$order   = isset( $_REQUEST['order'] ) ? sanitize_key( wp_unslash( $_REQUEST['order'] ) ) : 'asc'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		?>
 		<div class="alignleft actions">
-			<label class="screen-reader-text" for="abilities-editor-orderby"><?php esc_html_e( 'Sort by', 'abilities-editor' ); ?></label>
-			<select name="orderby" id="abilities-editor-orderby">
-				<option value="name" <?php selected( $orderby, 'name' ); ?>><?php esc_html_e( 'Name', 'abilities-editor' ); ?></option>
-				<option value="slug" <?php selected( $orderby, 'slug' ); ?>><?php esc_html_e( 'Slug', 'abilities-editor' ); ?></option>
-				<option value="provider" <?php selected( $orderby, 'provider' ); ?>><?php esc_html_e( 'Provider', 'abilities-editor' ); ?></option>
-				<option value="category" <?php selected( $orderby, 'category' ); ?>><?php esc_html_e( 'Category', 'abilities-editor' ); ?></option>
-				<option value="readonly" <?php selected( $orderby, 'readonly' ); ?>><?php esc_html_e( 'Readonly', 'abilities-editor' ); ?></option>
-				<option value="destructive" <?php selected( $orderby, 'destructive' ); ?>><?php esc_html_e( 'Destructive', 'abilities-editor' ); ?></option>
-				<option value="idempotent" <?php selected( $orderby, 'idempotent' ); ?>><?php esc_html_e( 'Idempotent', 'abilities-editor' ); ?></option>
-				<option value="show_in_rest" <?php selected( $orderby, 'show_in_rest' ); ?>><?php esc_html_e( 'Show in REST', 'abilities-editor' ); ?></option>
-				<option value="mcp_public" <?php selected( $orderby, 'mcp_public' ); ?>><?php esc_html_e( 'MCP Public', 'abilities-editor' ); ?></option>
+			<label class="screen-reader-text" for="abilities-manager-orderby"><?php esc_html_e( 'Sort by', 'abilities-manager' ); ?></label>
+			<select name="orderby" id="abilities-manager-orderby">
+				<option value="name" <?php selected( $orderby, 'name' ); ?>><?php esc_html_e( 'Name', 'abilities-manager' ); ?></option>
+				<option value="slug" <?php selected( $orderby, 'slug' ); ?>><?php esc_html_e( 'Slug', 'abilities-manager' ); ?></option>
+				<option value="provider" <?php selected( $orderby, 'provider' ); ?>><?php esc_html_e( 'Provider', 'abilities-manager' ); ?></option>
+				<option value="category" <?php selected( $orderby, 'category' ); ?>><?php esc_html_e( 'Category', 'abilities-manager' ); ?></option>
+				<option value="site_allowed" <?php selected( $orderby, 'site_allowed' ); ?>><?php esc_html_e( 'Allowed', 'abilities-manager' ); ?></option>
+				<option value="readonly" <?php selected( $orderby, 'readonly' ); ?>><?php esc_html_e( 'Readonly', 'abilities-manager' ); ?></option>
+				<option value="destructive" <?php selected( $orderby, 'destructive' ); ?>><?php esc_html_e( 'Destructive', 'abilities-manager' ); ?></option>
+				<option value="idempotent" <?php selected( $orderby, 'idempotent' ); ?>><?php esc_html_e( 'Idempotent', 'abilities-manager' ); ?></option>
+				<option value="show_in_rest" <?php selected( $orderby, 'show_in_rest' ); ?>><?php esc_html_e( 'Show in REST', 'abilities-manager' ); ?></option>
+				<option value="mcp_public" <?php selected( $orderby, 'mcp_public' ); ?>><?php esc_html_e( 'MCP Public', 'abilities-manager' ); ?></option>
 			</select>
-			<label class="screen-reader-text" for="abilities-editor-order"><?php esc_html_e( 'Order', 'abilities-editor' ); ?></label>
-			<select name="order" id="abilities-editor-order">
-				<option value="asc" <?php selected( $order, 'asc' ); ?>><?php esc_html_e( 'Ascending', 'abilities-editor' ); ?></option>
-				<option value="desc" <?php selected( $order, 'desc' ); ?>><?php esc_html_e( 'Descending', 'abilities-editor' ); ?></option>
+			<label class="screen-reader-text" for="abilities-manager-order"><?php esc_html_e( 'Order', 'abilities-manager' ); ?></label>
+			<select name="order" id="abilities-manager-order">
+				<option value="asc" <?php selected( $order, 'asc' ); ?>><?php esc_html_e( 'Ascending', 'abilities-manager' ); ?></option>
+				<option value="desc" <?php selected( $order, 'desc' ); ?>><?php esc_html_e( 'Descending', 'abilities-manager' ); ?></option>
 			</select>
-			<?php submit_button( __( 'Sort', 'abilities-editor' ), 'secondary', 'abilities_editor_sort', false ); ?>
+			<?php submit_button( __( 'Sort', 'abilities-manager' ), 'secondary', 'abilities_manager_sort', false ); ?>
 		</div>
 		<?php
 	}
@@ -217,19 +269,19 @@ class List_Table extends \WP_List_Table {
 		$current = isset( $_REQUEST['provider'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['provider'] ) ) : 'all'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$tabs    = array(
 			'all'    => array(
-				'label' => __( 'All', 'abilities-editor' ),
+				'label' => __( 'All', 'abilities-manager' ),
 				'count' => array_sum( $this->provider_counts ),
 			),
 			'core'   => array(
-				'label' => __( 'Core', 'abilities-editor' ),
+				'label' => __( 'Core', 'abilities-manager' ),
 				'count' => $this->provider_counts['core'],
 			),
 			'plugin' => array(
-				'label' => __( 'Plugins', 'abilities-editor' ),
+				'label' => __( 'Plugins', 'abilities-manager' ),
 				'count' => $this->provider_counts['plugin'],
 			),
 			'theme'  => array(
-				'label' => __( 'Themes', 'abilities-editor' ),
+				'label' => __( 'Themes', 'abilities-manager' ),
 				'count' => $this->provider_counts['theme'],
 			),
 		);
@@ -288,20 +340,21 @@ class List_Table extends \WP_List_Table {
 		}
 
 		return array(
-			'name'         => $ability instanceof \WP_Ability ? (string) $ability->get_label() : $slug,
-			'slug'         => $slug,
-			'description'  => $ability instanceof \WP_Ability ? (string) $ability->get_description() : __( 'Registered override with no currently loaded ability.', 'abilities-editor' ),
-			'provider'     => $provider,
-			'category'     => $category,
-			'category_slug'=> $category_slug,
-			'provider_kind'=> $kind,
-			'readonly'     => $this->coalesce_bool( $override['readonly'] ?? null, $annotations['readonly'] ?? null ),
-			'destructive'  => $this->coalesce_bool( $override['destructive'] ?? null, $annotations['destructive'] ?? null ),
-			'idempotent'   => $this->coalesce_bool( $override['idempotent'] ?? null, $annotations['idempotent'] ?? null ),
-			'show_in_rest' => $this->coalesce_bool( $override['show_in_rest'] ?? null, $meta['show_in_rest'] ?? null ),
-			'mcp_public'   => $this->coalesce_bool( $override['mcp_public'] ?? null, $meta['mcp']['public'] ?? null ),
-			'mcp_type'     => $this->coalesce_text( $override['mcp_type'] ?? '', $meta['mcp']['type'] ?? '' ),
-			'has_override' => is_array( $override ),
+			'name'          => $ability instanceof \WP_Ability ? (string) $ability->get_label() : $slug,
+			'slug'          => $slug,
+			'description'   => $ability instanceof \WP_Ability ? (string) $ability->get_description() : __( 'Registered override with no currently loaded ability.', 'abilities-manager' ),
+			'provider'      => $provider,
+			'category'      => $category,
+			'category_slug' => $category_slug,
+			'provider_kind' => $kind,
+			'site_allowed'  => $this->coalesce_bool( $override['site_allowed'] ?? null, true ),
+			'readonly'      => $this->coalesce_bool( $override['readonly'] ?? null, $annotations['readonly'] ?? null ),
+			'destructive'   => $this->coalesce_bool( $override['destructive'] ?? null, $annotations['destructive'] ?? null ),
+			'idempotent'    => $this->coalesce_bool( $override['idempotent'] ?? null, $annotations['idempotent'] ?? null ),
+			'show_in_rest'  => $this->coalesce_bool( $override['show_in_rest'] ?? null, $meta['show_in_rest'] ?? null ),
+			'mcp_public'    => $this->coalesce_bool( $override['mcp_public'] ?? null, $meta['mcp']['public'] ?? null ),
+			'mcp_type'      => $this->coalesce_text( $override['mcp_type'] ?? '', $meta['mcp']['type'] ?? '' ),
+			'has_override'  => is_array( $override ),
 		);
 	}
 
@@ -335,9 +388,9 @@ class List_Table extends \WP_List_Table {
 	}
 
 	private function sort_items( array $left, array $right ): int {
-		$orderby = isset( $_REQUEST['orderby'] ) ? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ) : 'name'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$order   = isset( $_REQUEST['order'] ) ? sanitize_key( wp_unslash( $_REQUEST['order'] ) ) : 'asc'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$bool_columns = array( 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public' );
+		$orderby      = isset( $_REQUEST['orderby'] ) ? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ) : 'name'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$order        = isset( $_REQUEST['order'] ) ? sanitize_key( wp_unslash( $_REQUEST['order'] ) ) : 'asc'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$bool_columns = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public' );
 
 		if ( in_array( $orderby, $bool_columns, true ) ) {
 			$value_a = $this->sort_bool_value( $left[ $orderby ] ?? null );
@@ -357,7 +410,7 @@ class List_Table extends \WP_List_Table {
 			return '&mdash;';
 		}
 
-		return $value ? esc_html__( 'Yes', 'abilities-editor' ) : esc_html__( 'No', 'abilities-editor' );
+		return $value ? esc_html__( 'Yes', 'abilities-manager' ) : esc_html__( 'No', 'abilities-manager' );
 	}
 
 
@@ -426,23 +479,25 @@ class List_Table extends \WP_List_Table {
 
 	private function provider_label( string $provider ): string {
 		if ( 'core' === $provider ) {
-			return __( 'Core', 'abilities-editor' );
+			return __( 'Core', 'abilities-manager' );
 		}
 
 		if ( 0 === strpos( $provider, 'theme:' ) ) {
-			return sprintf( __( 'Theme: %s', 'abilities-editor' ), substr( $provider, 6 ) );
+			// translators: %s is the theme name.
+			return sprintf( __( 'Theme: %s', 'abilities-manager' ), substr( $provider, 6 ) );
 		}
 
 		if ( '' === $provider || 'unknown' === $provider ) {
-			return __( 'Unknown', 'abilities-editor' );
+			return __( 'Unknown', 'abilities-manager' );
 		}
 
-		return sprintf( __( 'Plugin: %s', 'abilities-editor' ), $provider );
+		// translators: %s is the plugin name.
+		return sprintf( __( 'Plugin: %s', 'abilities-manager' ), $provider );
 	}
 
 	private function provider_tab_url( string $provider ): string {
 		$args = array(
-			'page'     => 'abilities-editor',
+			'page'     => 'abilities-manager',
 			'provider' => $provider,
 		);
 		if ( isset( $_REQUEST['orderby'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended

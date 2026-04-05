@@ -2,17 +2,17 @@
 /**
  * Admin menu registration.
  *
- * @package Abilities_Editor
+ * @package Abilities_Manager
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Editor\Admin;
+namespace Abilities_Manager\Admin;
 
 defined( 'ABSPATH' ) || exit;
 
 class Menu {
-	private const SCREEN_ID = 'tools_page_abilities-editor';
+	private const SCREEN_ID = 'tools_page_abilities-manager';
 
 	public static function register(): void {
 		add_filter( 'default_hidden_columns', array( __CLASS__, 'default_hidden_columns' ), 10, 2 );
@@ -21,10 +21,10 @@ class Menu {
 
 		$hook_suffix = add_submenu_page(
 			'tools.php',
-			esc_html__( 'Ability Overrides', 'abilities-editor' ),
-			esc_html__( 'Ability Overrides', 'abilities-editor' ),
+			esc_html__( 'Ability Overrides', 'abilities-manager' ),
+			esc_html__( 'Ability Overrides', 'abilities-manager' ),
 			'manage_options',
-			'abilities-editor',
+			'abilities-manager',
 			array( __CLASS__, 'render_page' )
 		);
 
@@ -37,15 +37,15 @@ class Menu {
 		add_screen_option(
 			'per_page',
 			array(
-				'label'   => __( 'Abilities per page', 'abilities-editor' ),
+				'label'   => __( 'Abilities per page', 'abilities-manager' ),
 				'default' => 20,
-				'option'  => 'abilities_editor_per_page',
+				'option'  => 'abilities_manager_per_page',
 			)
 		);
 	}
 
 	public static function set_screen_option( $status, string $option, $value ) {
-		if ( 'abilities_editor_per_page' !== $option ) {
+		if ( 'abilities_manager_per_page' !== $option ) {
 			return $status;
 		}
 
@@ -64,7 +64,7 @@ class Menu {
 			return $links;
 		}
 
-		$settings_link = '<a href="' . esc_url( admin_url( 'tools.php?page=abilities-editor' ) ) . '">' . esc_html__( 'Settings', 'abilities-editor' ) . '</a>';
+		$settings_link = '<a href="' . esc_url( admin_url( 'tools.php?page=abilities-manager' ) ) . '">' . esc_html__( 'Settings', 'abilities-manager' ) . '</a>';
 
 		array_unshift( $links, $settings_link );
 
@@ -84,13 +84,13 @@ class Menu {
 
 	public static function render_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'abilities-editor' ) );
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'abilities-manager' ) );
 		}
 		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : 'list'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$slug = isset( $_GET['slug'] ) ? sanitize_text_field( wp_unslash( $_GET['slug'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		echo '<div class="wrap"><h1>' . esc_html__( 'Ability Overrides', 'abilities-editor' ) . '</h1>';
+		$slug   = isset( $_GET['slug'] ) ? sanitize_text_field( wp_unslash( $_GET['slug'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		echo '<div class="wrap"><h1>' . esc_html__( 'Ability Overrides', 'abilities-manager' ) . '</h1>';
 		self::render_notice();
-		if ( in_array( $action, array( 'edit', 'view' ), true ) && '' !== $slug ) {
+		if ( 'edit' === $action && '' !== $slug ) {
 			Edit_Screen::render( $slug );
 		} else {
 			$table = new List_Table();
@@ -98,12 +98,12 @@ class Menu {
 			$table->render_stats_bar();
 			?>
 			<form method="get">
-				<input type="hidden" name="page" value="abilities-editor" />
+				<input type="hidden" name="page" value="abilities-manager" />
 				<?php $provider = isset( $_GET['provider'] ) ? sanitize_text_field( wp_unslash( $_GET['provider'] ) ) : 'all'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<?php if ( 'all' !== $provider ) : ?>
 					<input type="hidden" name="provider" value="<?php echo esc_attr( $provider ); ?>" />
 				<?php endif; ?>
-				<?php $table->search_box( __( 'Search Abilities', 'abilities-editor' ), 'abilities-editor-search' ); ?>
+				<?php $table->search_box( __( 'Search Abilities', 'abilities-manager' ), 'abilities-manager-search' ); ?>
 				<?php $table->display(); ?>
 			</form>
 			<?php
@@ -113,12 +113,14 @@ class Menu {
 
 
 	private static function render_notice(): void {
-		$notice = isset( $_GET['abe_notice'] ) ? sanitize_key( wp_unslash( $_GET['abe_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$notice   = isset( $_GET['abe_notice'] ) ? sanitize_key( wp_unslash( $_GET['abe_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$messages = array(
-			'saved'   => array( 'success', __( 'Override saved.', 'abilities-editor' ) ),
-			'deleted' => array( 'success', __( 'Override reset.', 'abilities-editor' ) ),
-			'noop'    => array( 'info', __( 'No override was saved because the values already match the default ability.', 'abilities-editor' ) ),
-			'error'   => array( 'error', __( 'The requested action could not be completed.', 'abilities-editor' ) ),
+			'saved'      => array( 'success', __( 'Override saved.', 'abilities-manager' ) ),
+			'deleted'    => array( 'success', __( 'Override reset.', 'abilities-manager' ) ),
+			'allowed'    => array( 'success', __( 'Ability allowed on this site.', 'abilities-manager' ) ),
+			'disallowed' => array( 'success', __( 'Ability disallowed on this site.', 'abilities-manager' ) ),
+			'noop'       => array( 'info', __( 'No override was saved because the values already match the default ability.', 'abilities-manager' ) ),
+			'error'      => array( 'error', __( 'The requested action could not be completed.', 'abilities-manager' ) ),
 		);
 		if ( ! isset( $messages[ $notice ] ) ) {
 			return;

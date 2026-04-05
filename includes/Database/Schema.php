@@ -2,18 +2,18 @@
 /**
  * Database schema management.
  *
- * @package Abilities_Editor
+ * @package Abilities_Manager
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Editor\Database;
+namespace Abilities_Manager\Database;
 
 defined( 'ABSPATH' ) || exit;
 
 class Schema {
-	public const TABLE_NAME = 'abilities_editor_overrides';
-	private const SCHEMA_VERSION = '2';
+	public const TABLE_NAME             = 'abilities_manager_overrides';
+	private const SCHEMA_VERSION        = '3';
 	private const SCHEMA_VERSION_OPTION = 'abe_schema_version';
 
 	public static function get_table_name(): string {
@@ -34,12 +34,13 @@ class Schema {
 
 	public static function create_table(): void {
 		global $wpdb;
-		$table_name = self::get_table_name();
+		$table_name      = self::get_table_name();
 		$charset_collate = $wpdb->get_charset_collate();
-		$sql = "CREATE TABLE {$table_name} (
+		$sql             = "CREATE TABLE {$table_name} (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			ability_slug VARCHAR(255) NOT NULL,
 			provider VARCHAR(100) DEFAULT NULL,
+			site_allowed TINYINT(1) DEFAULT NULL,
 			readonly TINYINT(1) DEFAULT NULL,
 			destructive TINYINT(1) DEFAULT NULL,
 			idempotent TINYINT(1) DEFAULT NULL,
@@ -95,7 +96,7 @@ class Schema {
 	private static function table_exists(): bool {
 		global $wpdb;
 		$table_name = self::get_table_name();
-		$result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
+		$result     = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
 		return $result === $table_name;
 	}
 }

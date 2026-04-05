@@ -2,14 +2,14 @@
 /**
  * Runtime override application.
  *
- * @package Abilities_Editor
+ * @package Abilities_Manager
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Editor\Runtime;
+namespace Abilities_Manager\Runtime;
 
-use Abilities_Editor\Database\Repository;
+use Abilities_Manager\Database\Repository;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -63,10 +63,37 @@ class Override_Applier {
 			return;
 		}
 
+		// Site-level disallow behaves like an audit/governance pass: after abilities
+		// finish registering, the disabled ones are removed from the live registry.
+		add_action( 'wp_abilities_api_init', array( __CLASS__, 'unregister_disallowed' ), 999 );
+
 		// This is the key runtime hook. WordPress calls this filter before it
 		// instantiates each ability, which makes it the safest and cheapest place
 		// to inject saved metadata overrides.
 		add_filter( 'wp_register_ability_args', array( __CLASS__, 'apply' ), 10, 2 );
+	}
+
+	/**
+	 * Removes site-disallowed abilities from the live registry.
+	 *
+	 * This mirrors the working pattern used in the audit plugin: let providers
+	 * register their abilities first, then unregister any slugs that the site has
+	 * explicitly disabled.
+	 *
+	 * @return void
+	 */
+	public static function unregister_disallowed(): void {
+		if ( self::should_skip_request() || ! function_exists( 'wp_unregister_ability' ) || ! function_exists( 'wp_has_ability' ) ) {
+			return;
+		}
+
+		self::prime_overrides();
+
+		foreach ( self::$overrides as $slug => $override ) {
+			if ( false === ( $override['site_allowed'] ?? null ) && wp_has_ability( $slug ) ) {
+				wp_unregister_ability( $slug );
+			}
+		}
 	}
 
 	/**
@@ -108,7 +135,7 @@ class Override_Applier {
 	 *
 	 * The method currently looks for two conditions:
 	 * - whether the request is running in wp-admin
-	 * - whether the current `page` query parameter targets `abilities-editor`
+	 * - whether the current `page` query parameter targets `abilities-manager`
 	 *
 	 * When both are true, the plugin skips installing the runtime filter so the
 	 * editor screen can inspect and save data without mutating registrations in
@@ -126,7 +153,7 @@ class Override_Applier {
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		// This equality check is what identifies the plugin's own editor page.
-		return 'abilities-editor' === $page;
+		return 'abilities-manager' === $page;
 	}
 
 	/**
@@ -218,7 +245,7 @@ class Override_Applier {
 	/**
 	 * Emits an action when override application fails.
 	 *
-	 * The `abilities_editor_override_error` hook is an action instead of a filter
+	 * The `abilities_manager_override_error` hook is an action instead of a filter
 	 * because the plugin is announcing that a runtime failure occurred. Callers can
 	 * listen for this event to add logging, debugging, metrics, or notifications.
 	 *
@@ -227,6 +254,6 @@ class Override_Applier {
 	 * @return void
 	 */
 	private static function notify_failure( string $slug, string $message ): void {
-		do_action( 'abilities_editor_override_error', $slug, $message );
+		do_action( 'abilities_manager_override_error', $slug, $message );
 	}
 }

@@ -1,5 +1,5 @@
 === Abilities Editor ===
-Contributors: acrosswp
+Contributors: raftaar1191
 Tags: abilities, metadata, rest-api, admin-tools, mcp
 Requires at least: 7.0
 Tested up to: 7.0
@@ -8,35 +8,35 @@ Stable tag: 0.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A classic WordPress admin plugin for viewing, overriding, and managing WordPress Abilities metadata without editing code.
+A classic WordPress admin plugin for editing, filtering, and governing WordPress Abilities without patching provider code.
 
 == Description ==
 
-Abilities Editor is a standalone administrative plugin for sites that use the WordPress Abilities API. It gives site administrators a dedicated screen inside wp-admin to inspect registered abilities, compare current metadata, save selective overrides, and apply those overrides automatically at runtime.
+Abilities Editor is a standalone administrative plugin for sites that use the WordPress Abilities API. It gives site administrators a dedicated screen inside wp-admin to inspect registered abilities, save selective overrides, and apply those overrides automatically at runtime.
 
-The plugin is designed for teams that need to adjust ability behavior without editing the original provider code. Instead of patching core, plugins, or themes, you can store overrides in a dedicated database table and let Abilities Editor apply them during ability registration.
+The plugin is designed for teams that need operational control without editing the original provider code. Instead of patching core, plugins, or themes, you can store override rows in a dedicated database table and let Abilities Editor apply them during ability registration.
 
-This plugin focuses on operational control and observability-friendly behavior:
+This plugin uses a two-part runtime model:
 
-* It keeps overrides separate from source code.
-* It applies changes through a core registration filter instead of unregistering and re-registering abilities.
-* It stores only override values that differ from the live ability defaults.
-* It allows administrators to reset an override cleanly when the stored values are no longer needed.
-* It exposes a REST API for programmatic management.
+* Metadata overrides are applied through the core wp_register_ability_args filter.
+* Site disallow is enforced by unregistering the ability late in wp_abilities_api_init.
+
+This split is intentional. It keeps metadata mutation lightweight and makes site-level disallow behave like an explicit governance rule.
 
 = What the plugin manages =
 
-Abilities Editor currently lets administrators override these metadata fields for each registered ability:
+Abilities Editor currently lets administrators manage these override fields for each registered ability:
 
+* site_allowed
 * readonly
 * destructive
 * idempotent
 * show_in_rest
 * mcp.public
 * mcp.type
-* Additional custom meta through the REST API
+* custom_meta through the REST API
 
-The plugin does not replace the original ability registration. It layers stored metadata overrides on top of the ability arguments that WordPress receives during registration.
+The plugin does not replace the original ability registration. It layers stored metadata overrides on top of the arguments WordPress receives during registration, and it can remove a disallowed ability from the live registry when site policy requires it.
 
 = Key features =
 
@@ -44,17 +44,18 @@ The plugin does not replace the original ability registration. It layers stored 
 * Searchable and sortable list of registered abilities.
 * Provider tabs for quickly filtering core, plugin, and theme abilities.
 * Category display for each ability, including human-readable labels and slugs.
-* View and edit screens for individual abilities.
+* Edit screen for individual abilities.
 * Screen Options support and configurable items-per-page.
-* Reset action for removing a saved override and returning to live defaults.
+* List actions for Edit, Allow or Disallow, and Reset.
 * Save workflow with Save, Save and Exit, and Reset Override actions.
 * Diff-only persistence so default values are not stored unnecessarily.
 * Dedicated custom database table for overrides.
-* Runtime application through wp_register_ability_args.
+* Runtime metadata application through wp_register_ability_args.
+* Runtime site disallow through a late wp_unregister_ability() pass.
 * Request guard that avoids mutating registrations while the Abilities Editor admin screen itself is rendering.
 * REST API endpoints for listing, reading, saving, and deleting overrides.
 * Capability checks based on manage_options.
-* Nonce protection for admin save and reset operations.
+* Nonce protection for admin save, toggle, and reset operations.
 
 = Admin experience =
 
@@ -63,14 +64,16 @@ The main list screen gives administrators a practical operational view of all di
 * Ability name and description.
 * Slug and provider information.
 * Category label and category slug.
+* Allowed state for the site.
 * Readonly, destructive, idempotent, and REST visibility state.
 * MCP visibility state, with MCP type shown inline when relevant.
-* Quick links to view, edit, or reset overrides.
+* Quick actions to edit, allow or disallow, or reset overrides.
 * Provider counts displayed in filter tabs.
 
 The edit screen is designed for fast manual administration.
 
 * View the ability slug, provider, and category.
+* Toggle whether the ability is allowed on the current site.
 * Override tri-state booleans for readonly, destructive, and idempotent.
 * Toggle REST exposure.
 * Toggle MCP public visibility.
@@ -79,15 +82,18 @@ The edit screen is designed for fast manual administration.
 * Save and return to the main Ability Overrides list.
 * Reset the stored override from the same action area.
 
+There is no separate View mode. The plugin uses a list screen plus an edit screen only.
+
 = How overrides are stored =
 
-Overrides are saved in a dedicated custom table named using your WordPress database prefix plus abilities_editor_overrides.
+Overrides are saved in a dedicated custom table named using your WordPress database prefix plus abilities_manager_overrides.
 
 Stored data includes:
 
 * Ability slug
 * Provider
 * Nullable boolean override values
+* Site allow or disallow state
 * MCP visibility and MCP type
 * Custom meta payload
 * Created and updated timestamps
@@ -96,9 +102,14 @@ The plugin stores only override values that differ from the current live ability
 
 = Runtime behavior =
 
-Abilities Editor applies overrides during the Abilities API registration flow. It hooks into wp_abilities_api_init, primes a request-local cache of saved overrides, and then filters each ability through wp_register_ability_args.
+Abilities Editor applies overrides during the Abilities API registration flow.
 
-This approach keeps runtime application lightweight and avoids more fragile patterns such as unregistering and re-registering abilities after the fact.
+1. On wp_abilities_api_init, the plugin boots the runtime override layer.
+2. It loads saved override rows into a request-local cache keyed by ability slug.
+3. It attaches wp_register_ability_args to merge supported metadata fields into each ability registration.
+4. It unregisters any ability whose override row explicitly sets site_allowed to false by running a late wp_unregister_ability() pass in the same wp_abilities_api_init lifecycle.
+
+This is the authoritative site-disallow behavior. It is preferred over provider-specific feature filters because it operates at the abilities registry level.
 
 If a runtime merge fails for a specific ability, the plugin falls back to the original ability arguments and emits an action hook so the failure can be logged or observed.
 
@@ -106,19 +117,16 @@ If a runtime merge fails for a specific ability, the plugin falls back to the or
 
 The plugin exposes a REST namespace for programmatic override management:
 
-* GET /wp-json/abilities-editor/v1/overrides
-* GET /wp-json/abilities-editor/v1/overrides/{provider}/{name} via the combined slug route format used by the plugin
-* POST /wp-json/abilities-editor/v1/overrides/{provider}/{name}
-* DELETE /wp-json/abilities-editor/v1/overrides/{provider}/{name}
+* GET /wp-json/abilities-manager/v1/overrides
+* GET /wp-json/abilities-manager/v1/overrides/{slug}
+* POST /wp-json/abilities-manager/v1/overrides/{slug}
+* DELETE /wp-json/abilities-manager/v1/overrides/{slug}
 
 The route slug pattern is the full ability slug, such as ai/image-import.
 
-Example endpoint:
-
-/wp-json/abilities-editor/v1/overrides/ai/image-import
-
 Supported writable fields include:
 
+* site_allowed
 * readonly
 * destructive
 * idempotent
@@ -133,7 +141,7 @@ All REST routes require a user who can pass the plugin permission check, which c
 
 The plugin emits the following action when runtime application fails:
 
-* abilities_editor_override_error
+* abilities_manager_override_error
 
 Arguments passed to the hook:
 
@@ -142,23 +150,24 @@ Arguments passed to the hook:
 
 This can be used for logging, telemetry, metrics, or debugging integrations.
 
-= Intended use cases =
+= Guidance for maintainers =
 
-* Audit and review the metadata attached to registered abilities.
-* Change exposed ability metadata without patching the original provider.
-* Adjust MCP visibility for abilities in controlled environments.
-* Tune REST visibility for registered abilities.
-* Provide an internal admin tool for operations, QA, or product teams.
-* Script override management from external tooling through the REST API.
+When changing plugin behavior, keep these rules intact unless you are intentionally redesigning the runtime model:
+
+* Use wp_register_ability_args for metadata overrides.
+* Use site_allowed = false plus late unregister for site-level blocking.
+* Do not reintroduce provider-specific filters such as wpai_feature_*_enabled for behavior that belongs at the abilities registry layer.
+* Keep the admin flow list-plus-edit only unless a separate read-only screen is intentionally restored.
+* Update both readmes if runtime hooks, REST routes, or admin actions change.
 
 == Installation ==
 
-1. Upload the plugin to the /wp-content/plugins/abilities-editor/ directory, or install it with your preferred deployment workflow.
+1. Upload the plugin to the /wp-content/plugins/abilities-manager/ directory, or install it with your preferred deployment workflow.
 2. Activate the plugin through the Plugins screen in WordPress.
 3. Ensure your site is running a version of WordPress that includes the Abilities API.
 4. Log in as an administrator or another user with the manage_options capability.
 5. Go to Tools > Ability Overrides.
-6. Browse abilities, open an item, and save an override as needed.
+6. Browse abilities, open an item, and save or toggle an override as needed.
 
 == Frequently Asked Questions ==
 
@@ -169,6 +178,10 @@ Only users who pass the plugin capability check can manage overrides. The curren
 = Does this plugin edit the original ability registration code? =
 
 No. The plugin stores override metadata separately in the database and applies it at runtime while WordPress registers abilities.
+
+= What happens when I disallow an ability on the site? =
+
+The override row is stored with site_allowed set to false, and the plugin unregisters that ability late in wp_abilities_api_init so it no longer exists in the live abilities registry for that request.
 
 = What happens when I reset an override? =
 
@@ -192,20 +205,21 @@ Yes. The REST API accepts a custom_meta payload, which is merged into the normal
 
 == Screenshots ==
 
-1. The main Ability Overrides list screen with provider tabs, search, sorting, and saved override indicators.
-2. The edit screen with metadata controls, MCP settings, and save actions.
-3. The view screen for inspecting an existing ability override before editing.
+1. The main Ability Overrides list screen with provider tabs, search, sorting, allowed-state indicators, and saved override markers.
+2. The edit screen with metadata controls, allow or disallow controls, MCP settings, and save actions.
 
 == Changelog ==
 
 = 0.1.0 =
 
 * Initial release.
-* Added a classic admin UI for viewing and editing WordPress Abilities metadata overrides.
+* Added a classic admin UI for editing WordPress Abilities metadata overrides.
 * Added provider tabs, search, sorting, category display, and Screen Options support.
+* Added site allow and disallow controls in both the list screen and edit screen.
 * Added diff-only storage in a dedicated custom database table.
 * Added REST API endpoints for override CRUD operations.
-* Added runtime override application through wp_register_ability_args.
+* Added runtime metadata override application through wp_register_ability_args.
+* Added runtime site disallow through a late unregister pass.
 * Added reset actions and edit-screen save workflows.
 * Added MCP visibility and MCP type override support.
 * Added runtime failure notification hook for diagnostics.

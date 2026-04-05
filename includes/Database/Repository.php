@@ -2,60 +2,60 @@
 /**
  * Overrides repository.
  *
- * @package Abilities_Editor
+ * @package Abilities_Manager
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Editor\Database;
+namespace Abilities_Manager\Database;
 
 defined( 'ABSPATH' ) || exit;
 
 class Repository {
 	public static function get_all( array $args = array() ): array {
 		global $wpdb;
-		$args = wp_parse_args(
+		$args   = wp_parse_args(
 			$args,
 			array(
 				'provider' => '',
-				'search' => '',
-				'page' => 1,
+				'search'   => '',
+				'page'     => 1,
 				'per_page' => 20,
-				'orderby' => 'ability_slug',
-				'order' => 'ASC',
+				'orderby'  => 'ability_slug',
+				'order'    => 'ASC',
 			)
 		);
-		$table = Schema::get_table_name();
-		$where = array( '1 = %d' );
+		$table  = Schema::get_table_name();
+		$where  = array( '1 = %d' );
 		$params = array( 1 );
 		if ( '' !== $args['provider'] ) {
-			$where[] = 'provider = %s';
+			$where[]  = 'provider = %s';
 			$params[] = sanitize_text_field( (string) $args['provider'] );
 		}
 		if ( '' !== $args['search'] ) {
-			$where[] = 'ability_slug LIKE %s';
+			$where[]  = 'ability_slug LIKE %s';
 			$params[] = '%' . $wpdb->esc_like( sanitize_text_field( (string) $args['search'] ) ) . '%';
 		}
-		$orderby = in_array( $args['orderby'], array( 'ability_slug', 'provider', 'updated_at', 'created_at' ), true ) ? $args['orderby'] : 'ability_slug';
-		$order = 'DESC' === strtoupper( (string) $args['order'] ) ? 'DESC' : 'ASC';
-		$total_sql = "SELECT COUNT(*) FROM {$table} WHERE " . implode( ' AND ', $where );
-		$total = (int) $wpdb->get_var( $wpdb->prepare( $total_sql, $params ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$page = max( 1, (int) $args['page'] );
-		$per_page = max( 0, (int) $args['per_page'] );
-		$pages = $per_page > 0 ? (int) ceil( $total / $per_page ) : ( $total > 0 ? 1 : 0 );
-		$sql = "SELECT * FROM {$table} WHERE " . implode( ' AND ', $where ) . " ORDER BY {$orderby} {$order}";
+		$orderby      = in_array( $args['orderby'], array( 'ability_slug', 'provider', 'updated_at', 'created_at' ), true ) ? $args['orderby'] : 'ability_slug';
+		$order        = 'DESC' === strtoupper( (string) $args['order'] ) ? 'DESC' : 'ASC';
+		$total_sql    = "SELECT COUNT(*) FROM {$table} WHERE " . implode( ' AND ', $where );
+		$total        = (int) $wpdb->get_var( $wpdb->prepare( $total_sql, $params ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$page         = max( 1, (int) $args['page'] );
+		$per_page     = max( 0, (int) $args['per_page'] );
+		$pages        = $per_page > 0 ? (int) ceil( $total / $per_page ) : ( $total > 0 ? 1 : 0 );
+		$sql          = "SELECT * FROM {$table} WHERE " . implode( ' AND ', $where ) . " ORDER BY {$orderby} {$order}";
 		$query_params = $params;
 		if ( $per_page > 0 ) {
-			$sql .= ' LIMIT %d OFFSET %d';
+			$sql           .= ' LIMIT %d OFFSET %d';
 			$query_params[] = $per_page;
 			$query_params[] = ( $page - 1 ) * $per_page;
 		}
 		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $query_params ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		return array(
-			'items' => array_map( array( __CLASS__, 'prepare_row' ), is_array( $rows ) ? $rows : array() ),
-			'total' => $total,
-			'pages' => $pages,
-			'page' => $page,
+			'items'    => array_map( array( __CLASS__, 'prepare_row' ), is_array( $rows ) ? $rows : array() ),
+			'total'    => $total,
+			'pages'    => $pages,
+			'page'     => $page,
 			'per_page' => $per_page,
 		);
 	}
@@ -66,14 +66,19 @@ class Repository {
 	}
 
 	public static function get_by_provider( string $provider ): array {
-		$result = self::get_all( array( 'provider' => $provider, 'per_page' => 0 ) );
+		$result = self::get_all(
+			array(
+				'provider' => $provider,
+				'per_page' => 0,
+			)
+		);
 		return $result['items'];
 	}
 
 	public static function count_by_provider(): array {
 		global $wpdb;
-		$table = Schema::get_table_name();
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT provider, COUNT(*) AS count FROM {$table} WHERE 1 = %d GROUP BY provider", 1 ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$table  = Schema::get_table_name();
+		$rows   = $wpdb->get_results( $wpdb->prepare( "SELECT provider, COUNT(*) AS count FROM {$table} WHERE 1 = %d GROUP BY provider", 1 ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$counts = array();
 		foreach ( (array) $rows as $row ) {
 			$counts[ (string) $row['provider'] ] = (int) $row['count'];
@@ -83,9 +88,9 @@ class Repository {
 
 	public static function upsert( string $slug, array $data ): ?array {
 		global $wpdb;
-		$slug = sanitize_text_field( $slug );
+		$slug     = sanitize_text_field( $slug );
 		$existing = self::get_raw_by_slug( $slug );
-		$record = self::build_record( $slug, $data, $existing );
+		$record   = self::build_record( $slug, $data, $existing );
 		if ( is_array( $existing ) ) {
 			$result = $wpdb->update( Schema::get_table_name(), $record, array( 'ability_slug' => $slug ), self::formats( $record ), array( '%s' ) );
 		} else {
@@ -118,18 +123,19 @@ class Repository {
 
 	private static function prepare_row( array $row ): array {
 		return array(
-			'id' => isset( $row['id'] ) ? (int) $row['id'] : 0,
+			'id'           => isset( $row['id'] ) ? (int) $row['id'] : 0,
 			'ability_slug' => (string) ( $row['ability_slug'] ?? '' ),
-			'provider' => (string) ( $row['provider'] ?? '' ),
-			'readonly' => self::to_bool( $row['readonly'] ?? null ),
-			'destructive' => self::to_bool( $row['destructive'] ?? null ),
-			'idempotent' => self::to_bool( $row['idempotent'] ?? null ),
+			'provider'     => (string) ( $row['provider'] ?? '' ),
+			'site_allowed' => self::to_bool( $row['site_allowed'] ?? null ),
+			'readonly'     => self::to_bool( $row['readonly'] ?? null ),
+			'destructive'  => self::to_bool( $row['destructive'] ?? null ),
+			'idempotent'   => self::to_bool( $row['idempotent'] ?? null ),
 			'show_in_rest' => self::to_bool( $row['show_in_rest'] ?? null ),
-			'mcp_public' => self::to_bool( $row['mcp_public'] ?? null ),
-			'mcp_type' => (string) ( $row['mcp_type'] ?? '' ),
-			'custom_meta' => self::decode_meta( $row['custom_meta'] ?? null ),
-			'created_at' => (string) ( $row['created_at'] ?? '' ),
-			'updated_at' => (string) ( $row['updated_at'] ?? '' ),
+			'mcp_public'   => self::to_bool( $row['mcp_public'] ?? null ),
+			'mcp_type'     => (string) ( $row['mcp_type'] ?? '' ),
+			'custom_meta'  => self::decode_meta( $row['custom_meta'] ?? null ),
+			'created_at'   => (string) ( $row['created_at'] ?? '' ),
+			'updated_at'   => (string) ( $row['updated_at'] ?? '' ),
 		);
 	}
 
@@ -140,15 +146,16 @@ class Repository {
 		$timestamp   = current_time( 'mysql' );
 		$record      = array(
 			'ability_slug' => $slug,
-			'provider' => $provider,
-			'readonly' => self::from_bool( self::incoming_value( $data, $existing, 'readonly' ) ),
-			'destructive' => self::from_bool( self::incoming_value( $data, $existing, 'destructive' ) ),
-			'idempotent' => self::from_bool( self::incoming_value( $data, $existing, 'idempotent' ) ),
+			'provider'     => $provider,
+			'site_allowed' => self::from_bool( self::incoming_value( $data, $existing, 'site_allowed' ) ),
+			'readonly'     => self::from_bool( self::incoming_value( $data, $existing, 'readonly' ) ),
+			'destructive'  => self::from_bool( self::incoming_value( $data, $existing, 'destructive' ) ),
+			'idempotent'   => self::from_bool( self::incoming_value( $data, $existing, 'idempotent' ) ),
 			'show_in_rest' => self::from_bool( self::incoming_value( $data, $existing, 'show_in_rest' ) ),
-			'mcp_public' => self::from_bool( self::incoming_value( $data, $existing, 'mcp_public' ) ),
-			'mcp_type' => self::nullable_string( self::incoming_value( $data, $existing, 'mcp_type' ) ),
-			'custom_meta' => $custom_meta,
-			'updated_at' => $timestamp,
+			'mcp_public'   => self::from_bool( self::incoming_value( $data, $existing, 'mcp_public' ) ),
+			'mcp_type'     => self::nullable_string( self::incoming_value( $data, $existing, 'mcp_type' ) ),
+			'custom_meta'  => $custom_meta,
+			'updated_at'   => $timestamp,
 		);
 
 		if ( ! is_array( $existing ) ) {
@@ -179,7 +186,12 @@ class Repository {
 	}
 
 	private static function formats( array $record ): array {
-		return array_map( static function ( $value ): string { return is_int( $value ) ? '%d' : '%s'; }, $record );
+		return array_map(
+			static function ( $value ): string {
+				return is_int( $value ) ? '%d' : '%s';
+			},
+			$record
+		);
 	}
 
 	private static function from_bool( $value ): ?int {
@@ -247,7 +259,7 @@ class Repository {
 			return 'core';
 		}
 		$stylesheet = sanitize_key( (string) get_stylesheet() );
-		$template = sanitize_key( (string) get_template() );
+		$template   = sanitize_key( (string) get_template() );
 		if ( in_array( $namespace, array( $stylesheet, $template ), true ) ) {
 			return 'theme:' . $namespace;
 		}
