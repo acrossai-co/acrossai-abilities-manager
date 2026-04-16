@@ -1,5 +1,5 @@
 {
-  "name": "wordpress/abilities-manager",
+  "name": "wordpress/abilities-hub",
   "description": "Override WordPress Abilities metadata from wp-admin.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
@@ -17,12 +17,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Abilities_Manager\": "includes/"
+      "Abilities_Hub\": "includes/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Abilities_Manager\Tests\": "tests/"
+      "Abilities_Hub\Tests\": "tests/"
     }
   },
   "scripts": {

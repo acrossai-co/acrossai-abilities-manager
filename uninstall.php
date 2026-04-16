@@ -2,11 +2,11 @@
 /**
  * Uninstall routine.
  *
- * @package Abilities_Manager
+ * @package Abilities_Hub
  */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
-require_once plugin_dir_path( __FILE__ ) . 'abilities-manager.php';
+require_once plugin_dir_path( __FILE__ ) . 'abilities-hub.php';
 
-Abilities_Manager\Database\Schema::drop_table();
+Abilities_Hub\Database\Schema::drop_table();

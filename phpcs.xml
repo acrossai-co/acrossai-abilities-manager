@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <ruleset name="Abilities Editor">
 	<description>PHPCS configuration for the Abilities Editor plugin.</description>
-	<file>abilities-manager.php</file>
+	<file>abilities-hub.php</file>
 	<file>includes</file>
 	<file>uninstall.php</file>
 	<file>tests</file>

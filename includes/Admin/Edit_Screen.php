@@ -2,21 +2,21 @@
 /**
  * Edit screen rendering and actions.
  *
- * @package Abilities_Manager
+ * @package Abilities_Hub
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Manager\Admin;
+namespace Abilities_Hub\Admin;
 
-use Abilities_Manager\Database\Repository;
+use Abilities_Hub\Database\Repository;
 
 defined( 'ABSPATH' ) || exit;
 
 class Edit_Screen {
 	public static function handle_actions(): void {
 		$page = isset( $_REQUEST['page'] ) ? sanitize_key( wp_unslash( $_REQUEST['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( 'abilities-manager' !== $page ) {
+		if ( 'abilities-hub' !== $page ) {
 			return;
 		}
 		$action = isset( $_REQUEST['abe_action'] ) ? sanitize_key( wp_unslash( $_REQUEST['abe_action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -36,7 +36,7 @@ class Edit_Screen {
 		$ability  = function_exists( 'wp_get_ability' ) ? wp_get_ability( $slug ) : null;
 		$override = Repository::get_by_slug( $slug );
 		if ( ! $ability && ! $override ) {
-			echo '<div class="notice notice-error"><p>' . esc_html__( 'Ability not found.', 'abilities-manager' ) . '</p></div>';
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'Ability not found.', 'abilities-hub' ) . '</p></div>';
 			return;
 		}
 		$provider      = is_array( $override ) && ! empty( $override['provider'] ) ? (string) $override['provider'] : self::detect_provider( $slug );
@@ -53,37 +53,37 @@ class Edit_Screen {
 			$values        = self::resolved_values( null, $ability );
 		}
 
-		$back_url = admin_url( 'tools.php?page=abilities-manager' );
+		$back_url = admin_url( 'tools.php?page=abilities-hub' );
 		?>
 		<p>
-			<a href="<?php echo esc_url( $back_url ); ?>" class="button"><?php esc_html_e( 'Back to List', 'abilities-manager' ); ?></a>
+			<a href="<?php echo esc_url( $back_url ); ?>" class="button"><?php esc_html_e( 'Back to List', 'abilities-hub' ); ?></a>
 		</p>
-		<form method="post" action="<?php echo esc_url( admin_url( 'tools.php?page=abilities-manager' ) ); ?>">
-			<input type="hidden" name="page" value="abilities-manager" />
+		<form method="post" action="<?php echo esc_url( admin_url( 'tools.php?page=abilities-hub' ) ); ?>">
+			<input type="hidden" name="page" value="abilities-hub" />
 			<input type="hidden" name="abe_action" value="save" />
 			<input type="hidden" name="slug" value="<?php echo esc_attr( $slug ); ?>" />
 			<?php wp_nonce_field( 'abe_save_meta_' . $slug, 'abe_meta_nonce' ); ?>
 			<table class="form-table" role="presentation"><tbody>
-			<tr><th scope="row"><?php esc_html_e( 'Ability Slug', 'abilities-manager' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $slug ); ?>" readonly /></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Provider', 'abilities-manager' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $provider ); ?>" readonly /></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Category', 'abilities-manager' ); ?></th><td><?php echo wp_kses_post( self::render_category_value( $category, $category_slug ) ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Allowed on Site', 'abilities-manager' ); ?></th><td><label><input type="checkbox" name="site_allowed" value="1" <?php checked( (bool) $values['site_allowed'] ); ?> /> <?php esc_html_e( 'Allow this ability to run on this site.', 'abilities-manager' ); ?></label></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Readonly', 'abilities-manager' ); ?></th><td><?php self::select( 'readonly', $values['readonly'], false ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Destructive', 'abilities-manager' ); ?></th><td><?php self::select( 'destructive', $values['destructive'], false ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Idempotent', 'abilities-manager' ); ?></th><td><?php self::select( 'idempotent', $values['idempotent'], false ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Show in REST', 'abilities-manager' ); ?></th><td><label><input type="checkbox" name="show_in_rest" value="1" <?php checked( (bool) $values['show_in_rest'] ); ?> /> <?php esc_html_e( 'Expose in REST.', 'abilities-manager' ); ?></label></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'MCP Public', 'abilities-manager' ); ?></th><td><label><input type="checkbox" id="abe-mcp-public" name="mcp_public" value="1" <?php checked( (bool) $values['mcp_public'] ); ?> /> <?php esc_html_e( 'Expose publicly to MCP clients.', 'abilities-manager' ); ?></label></td></tr>
-			<tr id="abe-mcp-type-row"><th scope="row"><?php esc_html_e( 'MCP Type', 'abilities-manager' ); ?></th><td><?php self::mcp_type_select( (string) $values['mcp_type'], false ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Ability Slug', 'abilities-hub' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $slug ); ?>" readonly /></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Provider', 'abilities-hub' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $provider ); ?>" readonly /></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Category', 'abilities-hub' ); ?></th><td><?php echo wp_kses_post( self::render_category_value( $category, $category_slug ) ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Allowed on Site', 'abilities-hub' ); ?></th><td><label><input type="checkbox" name="site_allowed" value="1" <?php checked( (bool) $values['site_allowed'] ); ?> /> <?php esc_html_e( 'Allow this ability to run on this site.', 'abilities-hub' ); ?></label></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Readonly', 'abilities-hub' ); ?></th><td><?php self::select( 'readonly', $values['readonly'], false ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Destructive', 'abilities-hub' ); ?></th><td><?php self::select( 'destructive', $values['destructive'], false ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Idempotent', 'abilities-hub' ); ?></th><td><?php self::select( 'idempotent', $values['idempotent'], false ); ?></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'Show in REST', 'abilities-hub' ); ?></th><td><label><input type="checkbox" name="show_in_rest" value="1" <?php checked( (bool) $values['show_in_rest'] ); ?> /> <?php esc_html_e( 'Expose in REST.', 'abilities-hub' ); ?></label></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'MCP Public', 'abilities-hub' ); ?></th><td><label><input type="checkbox" id="abe-mcp-public" name="mcp_public" value="1" <?php checked( (bool) $values['mcp_public'] ); ?> /> <?php esc_html_e( 'Expose publicly to MCP clients.', 'abilities-hub' ); ?></label></td></tr>
+			<tr id="abe-mcp-type-row"><th scope="row"><?php esc_html_e( 'MCP Type', 'abilities-hub' ); ?></th><td><?php self::mcp_type_select( (string) $values['mcp_type'], false ); ?></td></tr>
 			</tbody></table>
 			<p class="submit">
-					<button type="submit" name="abe_save_target" value="stay" class="button button-primary"><?php esc_html_e( 'Save', 'abilities-manager' ); ?></button>
-					<button type="submit" name="abe_save_target" value="exit" class="button"><?php esc_html_e( 'Save and Exit', 'abilities-manager' ); ?></button>
+					<button type="submit" name="abe_save_target" value="stay" class="button button-primary"><?php esc_html_e( 'Save', 'abilities-hub' ); ?></button>
+					<button type="submit" name="abe_save_target" value="exit" class="button"><?php esc_html_e( 'Save and Exit', 'abilities-hub' ); ?></button>
 					<?php if ( is_array( $override ) ) : ?>
 						<?php
 						$delete_url = wp_nonce_url(
 							add_query_arg(
 								array(
-									'page'       => 'abilities-manager',
+									'page'       => 'abilities-hub',
 									'abe_action' => 'delete',
 									'slug'       => $slug,
 								),
@@ -93,7 +93,7 @@ class Edit_Screen {
 							'abe_delete_nonce'
 						);
 						?>
-						<a href="<?php echo esc_url( $delete_url ); ?>" class="button" onclick="return window.confirm(<?php echo esc_attr( wp_json_encode( __( 'Reset this override?', 'abilities-manager' ) ) ); ?>);"><?php esc_html_e( 'Reset Override', 'abilities-manager' ); ?></a>
+						<a href="<?php echo esc_url( $delete_url ); ?>" class="button" onclick="return window.confirm(<?php echo esc_attr( wp_json_encode( __( 'Reset this override?', 'abilities-hub' ) ) ); ?>);"><?php esc_html_e( 'Reset Override', 'abilities-hub' ); ?></a>
 					<?php endif; ?>
 				</p>
 		</form>
@@ -119,7 +119,7 @@ class Edit_Screen {
 
 	public static function save(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You are not allowed to edit overrides.', 'abilities-manager' ) );
+			wp_die( esc_html__( 'You are not allowed to edit overrides.', 'abilities-hub' ) );
 		}
 
 		$slug = isset( $_POST['slug'] ) ? sanitize_text_field( wp_unslash( $_POST['slug'] ) ) : '';
@@ -149,7 +149,7 @@ class Edit_Screen {
 
 	public static function delete(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You are not allowed to reset overrides.', 'abilities-manager' ) );
+			wp_die( esc_html__( 'You are not allowed to reset overrides.', 'abilities-hub' ) );
 		}
 		$slug = isset( $_GET['slug'] ) ? sanitize_text_field( wp_unslash( $_GET['slug'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		check_admin_referer( 'abe_delete_meta_' . $slug, 'abe_delete_nonce' );
@@ -157,7 +157,7 @@ class Edit_Screen {
 		wp_safe_redirect(
 			add_query_arg(
 				array(
-					'page'       => 'abilities-manager',
+					'page'       => 'abilities-hub',
 					'abe_notice' => $deleted ? 'deleted' : 'error',
 				),
 				admin_url( 'tools.php' )
@@ -168,7 +168,7 @@ class Edit_Screen {
 
 	public static function toggle_allowed(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You are not allowed to change ability availability.', 'abilities-manager' ) );
+			wp_die( esc_html__( 'You are not allowed to change ability availability.', 'abilities-hub' ) );
 		}
 
 		$slug  = isset( $_GET['slug'] ) ? sanitize_text_field( wp_unslash( $_GET['slug'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -198,7 +198,7 @@ class Edit_Screen {
 		wp_safe_redirect(
 			add_query_arg(
 				array(
-					'page'       => 'abilities-manager',
+					'page'       => 'abilities-hub',
 					'abe_notice' => $notice,
 				),
 				admin_url( 'tools.php' )
@@ -228,7 +228,7 @@ class Edit_Screen {
 	 */
 	private static function redirect_after_save( string $slug, string $notice, string $save_target ): void {
 		$args = array(
-			'page'       => 'abilities-manager',
+			'page'       => 'abilities-hub',
 			'abe_notice' => $notice,
 		);
 
@@ -255,9 +255,9 @@ class Edit_Screen {
 
 	private static function mcp_type_select( string $value, bool $disabled ): void {
 		$options = array(
-			'tools'     => __( 'Tools', 'abilities-manager' ),
-			'resources' => __( 'Resources', 'abilities-manager' ),
-			'prompts'   => __( 'Prompts', 'abilities-manager' ),
+			'tools'     => __( 'Tools', 'abilities-hub' ),
+			'resources' => __( 'Resources', 'abilities-hub' ),
+			'prompts'   => __( 'Prompts', 'abilities-hub' ),
 		);
 
 		$value = self::sanitize_mcp_type( $value );

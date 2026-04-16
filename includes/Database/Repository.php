@@ -2,12 +2,12 @@
 /**
  * Overrides repository.
  *
- * @package Abilities_Manager
+ * @package Abilities_Hub
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Manager\Database;
+namespace Abilities_Hub\Database;
 
 defined( 'ABSPATH' ) || exit;
 

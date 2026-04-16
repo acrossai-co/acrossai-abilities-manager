@@ -2,14 +2,14 @@
 /**
  * Runtime override application.
  *
- * @package Abilities_Manager
+ * @package Abilities_Hub
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Manager\Runtime;
+namespace Abilities_Hub\Runtime;
 
-use Abilities_Manager\Database\Repository;
+use Abilities_Hub\Database\Repository;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -135,7 +135,7 @@ class Override_Applier {
 	 *
 	 * The method currently looks for two conditions:
 	 * - whether the request is running in wp-admin
-	 * - whether the current `page` query parameter targets `abilities-manager`
+	 * - whether the current `page` query parameter targets `abilities-hub`
 	 *
 	 * When both are true, the plugin skips installing the runtime filter so the
 	 * editor screen can inspect and save data without mutating registrations in
@@ -153,7 +153,7 @@ class Override_Applier {
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		// This equality check is what identifies the plugin's own editor page.
-		return 'abilities-manager' === $page;
+		return 'abilities-hub' === $page;
 	}
 
 	/**
@@ -245,7 +245,7 @@ class Override_Applier {
 	/**
 	 * Emits an action when override application fails.
 	 *
-	 * The `abilities_manager_override_error` hook is an action instead of a filter
+	 * The `abilities_hub_override_error` hook is an action instead of a filter
 	 * because the plugin is announcing that a runtime failure occurred. Callers can
 	 * listen for this event to add logging, debugging, metrics, or notifications.
 	 *
@@ -254,6 +254,6 @@ class Override_Applier {
 	 * @return void
 	 */
 	private static function notify_failure( string $slug, string $message ): void {
-		do_action( 'abilities_manager_override_error', $slug, $message );
+		do_action( 'abilities_hub_override_error', $slug, $message );
 	}
 }

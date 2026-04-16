@@ -35,10 +35,10 @@ The repository stores only values that differ from the current live ability stat
 
 ## REST API
 
-- GET /wp-json/abilities-manager/v1/overrides
-- GET /wp-json/abilities-manager/v1/overrides/{slug}
-- POST /wp-json/abilities-manager/v1/overrides/{slug}
-- DELETE /wp-json/abilities-manager/v1/overrides/{slug}
+- GET /wp-json/abilities-hub/v1/overrides
+- GET /wp-json/abilities-hub/v1/overrides/{slug}
+- POST /wp-json/abilities-hub/v1/overrides/{slug}
+- DELETE /wp-json/abilities-hub/v1/overrides/{slug}
 
 Supported writable fields include site_allowed, readonly, destructive, idempotent, show_in_rest, mcp_public, mcp_type, and custom_meta.
 
@@ -52,6 +52,6 @@ Supported writable fields include site_allowed, readonly, destructive, idempoten
 
 ## Installation
 
-1. Copy the plugin into wp-content/plugins/abilities-manager.
+1. Copy the plugin into wp-content/plugins/abilities-hub.
 2. Activate Abilities Editor.
 3. Visit Tools -> Ability Overrides as an administrator.

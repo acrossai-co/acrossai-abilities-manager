@@ -2,17 +2,17 @@
 /**
  * Database schema management.
  *
- * @package Abilities_Manager
+ * @package Abilities_Hub
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Manager\Database;
+namespace Abilities_Hub\Database;
 
 defined( 'ABSPATH' ) || exit;
 
 class Schema {
-	public const TABLE_NAME             = 'abilities_manager_overrides';
+	public const TABLE_NAME             = 'abilities_hub_overrides';
 	private const SCHEMA_VERSION        = '3';
 	private const SCHEMA_VERSION_OPTION = 'abe_schema_version';
 

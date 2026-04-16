@@ -34,7 +34,7 @@ These instructions apply to all work in this plugin repository.
 
 ## REST contract
 
-- Namespace: abilities-manager/v1
+- Namespace: abilities-hub/v1
 - Routes: GET and POST and DELETE operate on /overrides and /overrides/{slug}.
 - Writable fields include site_allowed, readonly, destructive, idempotent, show_in_rest, mcp_public, mcp_type, and custom_meta.
 - When documentation changes, keep the route examples aligned with the real controller.

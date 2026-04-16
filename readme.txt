@@ -1,8 +1,8 @@
 === Abilities Editor ===
-Contributors: raftaar1191
-Tags: abilities, metadata, rest-api, admin-tools, mcp
-Requires at least: 7.0
-Tested up to: 7.0
+Contributors: acrosswp
+Tags: abilities, metadata, rest-api, admin-tools, ui
+Requires at least: 6.9
+Tested up to: 6.9
 Requires PHP: 7.4
 Stable tag: 0.1.0
 License: GPLv2 or later
@@ -86,7 +86,7 @@ There is no separate View mode. The plugin uses a list screen plus an edit scree
 
 = How overrides are stored =
 
-Overrides are saved in a dedicated custom table named using your WordPress database prefix plus abilities_manager_overrides.
+Overrides are saved in a dedicated custom table named using your WordPress database prefix plus abilities_hub_overrides.
 
 Stored data includes:
 
@@ -117,10 +117,10 @@ If a runtime merge fails for a specific ability, the plugin falls back to the or
 
 The plugin exposes a REST namespace for programmatic override management:
 
-* GET /wp-json/abilities-manager/v1/overrides
-* GET /wp-json/abilities-manager/v1/overrides/{slug}
-* POST /wp-json/abilities-manager/v1/overrides/{slug}
-* DELETE /wp-json/abilities-manager/v1/overrides/{slug}
+* GET /wp-json/abilities-hub/v1/overrides
+* GET /wp-json/abilities-hub/v1/overrides/{slug}
+* POST /wp-json/abilities-hub/v1/overrides/{slug}
+* DELETE /wp-json/abilities-hub/v1/overrides/{slug}
 
 The route slug pattern is the full ability slug, such as ai/image-import.
 
@@ -141,7 +141,7 @@ All REST routes require a user who can pass the plugin permission check, which c
 
 The plugin emits the following action when runtime application fails:
 
-* abilities_manager_override_error
+* abilities_hub_override_error
 
 Arguments passed to the hook:
 
@@ -162,7 +162,7 @@ When changing plugin behavior, keep these rules intact unless you are intentiona
 
 == Installation ==
 
-1. Upload the plugin to the /wp-content/plugins/abilities-manager/ directory, or install it with your preferred deployment workflow.
+1. Upload the plugin to the /wp-content/plugins/abilities-hub/ directory, or install it with your preferred deployment workflow.
 2. Activate the plugin through the Plugins screen in WordPress.
 3. Ensure your site is running a version of WordPress that includes the Abilities API.
 4. Log in as an administrator or another user with the manage_options capability.
