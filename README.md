@@ -1,6 +1,6 @@
-# Abilities Editor
+# AcrossAI Abilities Manager
 
-Abilities Editor is a standalone WordPress plugin for reviewing and overriding WordPress Abilities metadata from a classic wp-admin screen.
+AcrossAI Abilities Manager is a standalone WordPress plugin for reviewing and overriding WordPress Abilities metadata from a classic wp-admin screen.
 
 ## Runtime model
 
@@ -13,7 +13,7 @@ That split is intentional. Metadata changes stay lightweight, while site-level d
 
 ## Admin workflow
 
-- Tools -> Ability Overrides shows the searchable and sortable list screen.
+- Tools -> Ability Manager shows the searchable and sortable list screen.
 - Ability names link directly to the edit screen.
 - Row actions are Edit, Allow or Disallow, and Reset when an override exists.
 - There is no separate view-only screen.
@@ -35,10 +35,10 @@ The repository stores only values that differ from the current live ability stat
 
 ## REST API
 
-- GET /wp-json/abilities-hub/v1/overrides
-- GET /wp-json/abilities-hub/v1/overrides/{slug}
-- POST /wp-json/abilities-hub/v1/overrides/{slug}
-- DELETE /wp-json/abilities-hub/v1/overrides/{slug}
+- GET /wp-json/acrossai-abilities-manager/v1/overrides
+- GET /wp-json/acrossai-abilities-manager/v1/overrides/{slug}
+- POST /wp-json/acrossai-abilities-manager/v1/overrides/{slug}
+- DELETE /wp-json/acrossai-abilities-manager/v1/overrides/{slug}
 
 Supported writable fields include site_allowed, readonly, destructive, idempotent, show_in_rest, mcp_public, mcp_type, and custom_meta.
 
@@ -46,12 +46,12 @@ Supported writable fields include site_allowed, readonly, destructive, idempoten
 
 - Use wp_register_ability_args for metadata overrides.
 - Use site_allowed = false plus late wp_unregister_ability() for site-level blocking.
-- Do not reintroduce provider-specific filters such as wpai_feature_*_enabled for behavior that belongs at the abilities registry level.
+- Do not reintroduce provider-specific filters such as wpai_feature_*_enabled for behavior that belongs at the abilities registry layer.
 - Keep the admin flow list-plus-edit only unless the product intentionally adds another screen.
 - Update both readmes whenever hooks, routes, or row actions change.
 
 ## Installation
 
-1. Copy the plugin into wp-content/plugins/abilities-hub.
-2. Activate Abilities Editor.
-3. Visit Tools -> Ability Overrides as an administrator.
+1. Copy the plugin into wp-content/plugins/acrossai-abilities-manager.
+2. Activate AcrossAI Abilities Manager.
+3. Visit Tools -> Ability Manager as an administrator.

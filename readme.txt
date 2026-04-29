@@ -1,8 +1,8 @@
-=== Abilities Editor ===
+=== AcrossAI Abilities Manager ===
 Contributors: acrosswp
 Tags: abilities, metadata, rest-api, admin-tools, ui
-Requires at least: 6.9
-Tested up to: 6.9
+Requires at least: 7.0
+Tested up to: 7.0
 Requires PHP: 7.4
 Stable tag: 0.1.0
 License: GPLv2 or later
@@ -12,9 +12,9 @@ A classic WordPress admin plugin for editing, filtering, and governing WordPress
 
 == Description ==
 
-Abilities Editor is a standalone administrative plugin for sites that use the WordPress Abilities API. It gives site administrators a dedicated screen inside wp-admin to inspect registered abilities, save selective overrides, and apply those overrides automatically at runtime.
+AcrossAI Abilities Manager is a standalone administrative plugin for sites that use the WordPress Abilities API. It gives site administrators a dedicated screen inside wp-admin to inspect registered abilities, save selective overrides, and apply those overrides automatically at runtime.
 
-The plugin is designed for teams that need operational control without editing the original provider code. Instead of patching core, plugins, or themes, you can store override rows in a dedicated database table and let Abilities Editor apply them during ability registration.
+The plugin is designed for teams that need operational control without editing the original provider code. Instead of patching core, plugins, or themes, you can store override rows in a dedicated database table and let AcrossAI Abilities Manager apply them during ability registration.
 
 This plugin uses a two-part runtime model:
 
@@ -25,7 +25,7 @@ This split is intentional. It keeps metadata mutation lightweight and makes site
 
 = What the plugin manages =
 
-Abilities Editor currently lets administrators manage these override fields for each registered ability:
+AcrossAI Abilities Manager currently lets administrators manage these override fields for each registered ability:
 
 * site_allowed
 * readonly
@@ -40,7 +40,7 @@ The plugin does not replace the original ability registration. It layers stored 
 
 = Key features =
 
-* Classic wp-admin interface under Tools > Ability Overrides.
+* Classic wp-admin interface under Tools > Ability Manager.
 * Searchable and sortable list of registered abilities.
 * Provider tabs for quickly filtering core, plugin, and theme abilities.
 * Category display for each ability, including human-readable labels and slugs.
@@ -52,7 +52,7 @@ The plugin does not replace the original ability registration. It layers stored 
 * Dedicated custom database table for overrides.
 * Runtime metadata application through wp_register_ability_args.
 * Runtime site disallow through a late wp_unregister_ability() pass.
-* Request guard that avoids mutating registrations while the Abilities Editor admin screen itself is rendering.
+* Request guard that avoids mutating registrations while the AcrossAI Abilities Manager admin screen itself is rendering.
 * REST API endpoints for listing, reading, saving, and deleting overrides.
 * Capability checks based on manage_options.
 * Nonce protection for admin save, toggle, and reset operations.
@@ -79,14 +79,14 @@ The edit screen is designed for fast manual administration.
 * Toggle MCP public visibility.
 * Select the MCP type from supported values.
 * Save and stay on the same screen.
-* Save and return to the main Ability Overrides list.
+* Save and return to the main Ability Manager list.
 * Reset the stored override from the same action area.
 
 There is no separate View mode. The plugin uses a list screen plus an edit screen only.
 
 = How overrides are stored =
 
-Overrides are saved in a dedicated custom table named using your WordPress database prefix plus abilities_hub_overrides.
+Manager are saved in a dedicated custom table named using your WordPress database prefix plus acrossai_abilities_manager.
 
 Stored data includes:
 
@@ -102,7 +102,7 @@ The plugin stores only override values that differ from the current live ability
 
 = Runtime behavior =
 
-Abilities Editor applies overrides during the Abilities API registration flow.
+AcrossAI Abilities Manager applies overrides during the Abilities API registration flow.
 
 1. On wp_abilities_api_init, the plugin boots the runtime override layer.
 2. It loads saved override rows into a request-local cache keyed by ability slug.
@@ -117,10 +117,10 @@ If a runtime merge fails for a specific ability, the plugin falls back to the or
 
 The plugin exposes a REST namespace for programmatic override management:
 
-* GET /wp-json/abilities-hub/v1/overrides
-* GET /wp-json/abilities-hub/v1/overrides/{slug}
-* POST /wp-json/abilities-hub/v1/overrides/{slug}
-* DELETE /wp-json/abilities-hub/v1/overrides/{slug}
+* GET /wp-json/acrossai-abilities-manager/v1/overrides
+* GET /wp-json/acrossai-abilities-manager/v1/overrides/{slug}
+* POST /wp-json/acrossai-abilities-manager/v1/overrides/{slug}
+* DELETE /wp-json/acrossai-abilities-manager/v1/overrides/{slug}
 
 The route slug pattern is the full ability slug, such as ai/image-import.
 
@@ -141,7 +141,7 @@ All REST routes require a user who can pass the plugin permission check, which c
 
 The plugin emits the following action when runtime application fails:
 
-* abilities_hub_override_error
+* acrossai_abilities_manager_override_error
 
 Arguments passed to the hook:
 
@@ -162,11 +162,11 @@ When changing plugin behavior, keep these rules intact unless you are intentiona
 
 == Installation ==
 
-1. Upload the plugin to the /wp-content/plugins/abilities-hub/ directory, or install it with your preferred deployment workflow.
+1. Upload the plugin to the /wp-content/plugins/acrossai-abilities-manager/ directory, or install it with your preferred deployment workflow.
 2. Activate the plugin through the Plugins screen in WordPress.
 3. Ensure your site is running a version of WordPress that includes the Abilities API.
 4. Log in as an administrator or another user with the manage_options capability.
-5. Go to Tools > Ability Overrides.
+5. Go to Tools > Ability Manager.
 6. Browse abilities, open an item, and save or toggle an override as needed.
 
 == Frequently Asked Questions ==
@@ -205,7 +205,7 @@ Yes. The REST API accepts a custom_meta payload, which is merged into the normal
 
 == Screenshots ==
 
-1. The main Ability Overrides list screen with provider tabs, search, sorting, allowed-state indicators, and saved override markers.
+1. The main Ability Manager list screen with provider tabs, search, sorting, allowed-state indicators, and saved override markers.
 2. The edit screen with metadata controls, allow or disallow controls, MCP settings, and save actions.
 
 == Changelog ==
@@ -228,4 +228,4 @@ Yes. The REST API accepts a custom_meta payload, which is merged into the normal
 
 = 0.1.0 =
 
-Initial release of Abilities Editor.
+Initial release of AcrossAI Abilities Manager.

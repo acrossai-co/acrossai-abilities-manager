@@ -2,14 +2,14 @@
 /**
  * Runtime override application.
  *
- * @package Abilities_Hub
+ * @package AcrossAI_Abilities_Manager
  */
 
 declare( strict_types=1 );
 
-namespace Abilities_Hub\Runtime;
+namespace AcrossAI_Abilities_Manager\Runtime;
 
-use Abilities_Hub\Database\Repository;
+use AcrossAI_Abilities_Manager\Database\Repository;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -49,7 +49,7 @@ class Override_Applier {
 		// This condition looks for either of two reasons to exit immediately:
 		// 1. bootstrap already ran in this request
 		// 2. the current request is the Abilities Editor screen, where runtime
-		//    overrides should not mutate abilities while the UI is rendering
+		// overrides should not mutate abilities while the UI is rendering.
 		if ( self::$bootstrapped || self::should_skip_request() ) {
 			return;
 		}
@@ -66,6 +66,12 @@ class Override_Applier {
 		// Site-level disallow behaves like an audit/governance pass: after abilities
 		// finish registering, the disabled ones are removed from the live registry.
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'unregister_disallowed' ), 999 );
+
+		// Some abilities use `ability_class` whose constructor ignores `meta` passed
+		// in registration args, calling their own meta() method instead. The action
+		// below runs after all abilities are registered and patches the meta property
+		// of those ability objects directly, ensuring mcp_public overrides take effect.
+		add_action( 'wp_abilities_api_init', array( __CLASS__, 'patch_mcp_overrides' ), 1000 );
 
 		// This is the key runtime hook. WordPress calls this filter before it
 		// instantiates each ability, which makes it the safest and cheapest place
@@ -135,7 +141,7 @@ class Override_Applier {
 	 *
 	 * The method currently looks for two conditions:
 	 * - whether the request is running in wp-admin
-	 * - whether the current `page` query parameter targets `abilities-hub`
+	 * - whether the current `page` query parameter targets `acrossai-abilities-manager`
 	 *
 	 * When both are true, the plugin skips installing the runtime filter so the
 	 * editor screen can inspect and save data without mutating registrations in
@@ -153,7 +159,7 @@ class Override_Applier {
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		// This equality check is what identifies the plugin's own editor page.
-		return 'abilities-hub' === $page;
+		return 'acrossai-abilities-manager' === $page;
 	}
 
 	/**
@@ -243,9 +249,70 @@ class Override_Applier {
 	}
 
 	/**
+	 * Patches MCP public visibility on registered abilities after all registration is complete.
+	 *
+	 * Some ability classes (e.g. those extending Abstract_Ability from the WordPress AI plugin)
+	 * build their own args array inside their constructor and call their own meta() method,
+	 * completely ignoring any `meta` key present in the registration $args. Because of this,
+	 * the `wp_register_ability_args` filter applied in apply() has no effect on the meta
+	 * stored by such abilities.
+	 *
+	 * This method runs at priority 1000 on `wp_abilities_api_init`, after all abilities have
+	 * been registered and after unregister_disallowed() has already removed site-disabled
+	 * abilities. For each override that explicitly sets mcp_public, it uses a bound Closure
+	 * to write directly to the protected `meta` property of the WP_Ability object, ensuring
+	 * that the MCP adapter's is_ability_mcp_public() check returns the correct value.
+	 *
+	 * @return void
+	 */
+	public static function patch_mcp_overrides(): void {
+		if ( self::should_skip_request() || ! function_exists( 'wp_has_ability' ) || ! function_exists( 'wp_get_ability' ) ) {
+			return;
+		}
+
+		self::prime_overrides();
+
+		foreach ( self::$overrides as $slug => $override ) {
+			// Only patch when the override row has an explicit non-null mcp_public value.
+			if ( ! array_key_exists( 'mcp_public', $override ) || null === $override['mcp_public'] ) {
+				continue;
+			}
+
+			// Skip abilities that were already removed by unregister_disallowed().
+			if ( ! wp_has_ability( $slug ) ) {
+				continue;
+			}
+
+			$ability = wp_get_ability( $slug );
+			if ( ! $ability instanceof \WP_Ability ) {
+				continue;
+			}
+
+			try {
+				$mcp_public_val = (bool) $override['mcp_public'];
+
+				// Use ReflectionProperty to directly modify the protected $meta property
+				// of the WP_Ability object, since no public setter exists.
+				$reflection = new \ReflectionProperty( \WP_Ability::class, 'meta' );
+				$reflection->setAccessible( true );
+				$current_meta = (array) $reflection->getValue( $ability );
+
+				if ( ! isset( $current_meta['mcp'] ) || ! is_array( $current_meta['mcp'] ) ) {
+					$current_meta['mcp'] = array();
+				}
+				$current_meta['mcp']['public'] = $mcp_public_val;
+
+				$reflection->setValue( $ability, $current_meta );
+			} catch ( \Throwable $throwable ) {
+				self::notify_failure( $slug, $throwable->getMessage() );
+			}
+		}
+	}
+
+	/**
 	 * Emits an action when override application fails.
 	 *
-	 * The `abilities_hub_override_error` hook is an action instead of a filter
+	 * The `acrossai_abilities_manager_override_error` hook is an action instead of a filter
 	 * because the plugin is announcing that a runtime failure occurred. Callers can
 	 * listen for this event to add logging, debugging, metrics, or notifications.
 	 *
@@ -254,6 +321,6 @@ class Override_Applier {
 	 * @return void
 	 */
 	private static function notify_failure( string $slug, string $message ): void {
-		do_action( 'abilities_hub_override_error', $slug, $message );
+		do_action( 'acrossai_abilities_manager_override_error', $slug, $message );
 	}
 }

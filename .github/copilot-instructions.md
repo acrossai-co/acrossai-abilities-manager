@@ -1,10 +1,10 @@
-# Abilities Editor Workspace Instructions
+# AcrossAI Abilities Manager Workspace Instructions
 
 These instructions apply to all work in this plugin repository.
 
 ## Project identity
 
-- This repository is the standalone Abilities Editor WordPress plugin.
+- This repository is the standalone AcrossAI Abilities Manager WordPress plugin.
 - The plugin is an admin and governance layer for the WordPress Abilities API.
 - Keep this plugin separate from WordPress/ai and other provider repos.
 - Prefer changes that work at the abilities registry layer instead of provider-specific feature gates.
@@ -34,7 +34,7 @@ These instructions apply to all work in this plugin repository.
 
 ## REST contract
 
-- Namespace: abilities-hub/v1
+- Namespace: acrossai-abilities-manager/v1
 - Routes: GET and POST and DELETE operate on /overrides and /overrides/{slug}.
 - Writable fields include site_allowed, readonly, destructive, idempotent, show_in_rest, mcp_public, mcp_type, and custom_meta.
 - When documentation changes, keep the route examples aligned with the real controller.

@@ -1,12 +1,12 @@
 ---
-description: "Use when maintaining the Abilities Editor WordPress plugin, especially for runtime override logic, site allow or disallow behavior, admin list filters, REST override routes, or documentation updates."
+description: "Use when maintaining the AcrossAI Abilities Manager WordPress plugin, especially for runtime override logic, site allow or disallow behavior, admin list filters, REST override routes, or documentation updates."
 mode: primary
 model: GPT-5.4
 ---
 
-# Abilities Editor Agent
+# AcrossAI Abilities Manager Agent
 
-You are working on the Abilities Editor plugin for WordPress.
+You are working on the AcrossAI Abilities Manager plugin for WordPress.
 
 ## Use this agent when
 

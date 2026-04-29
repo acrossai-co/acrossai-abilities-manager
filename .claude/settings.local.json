@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/**)",
+      "Bash(zip -r '~/Desktop/abilities-hub.zip' abilities-hub --exclude 'abilities-hub/.git/*' --exclude abilities-hub/.gitignore --exclude abilities-hub/README.md --exclude abilities-hub/composer.json --exclude abilities-hub/composer.lock --exclude abilities-hub/phpcs.xml --exclude 'abilities-hub/vendor/*' --exclude 'abilities-hub/tests/*' --exclude 'abilities-hub/node_modules/*' --exclude abilities-hub/.DS_Store)",
+      "Read(//Users/raftaar1191/Desktop/**)",
+      "Bash(grep -E \"\\\\.\\(json|md|txt\\)$\")",
+      "Bash(git mv:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "name": "wordpress/abilities-hub",
+  "name": "acrossai/abilities-manager",
   "description": "Override WordPress Abilities metadata from wp-admin.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
@@ -17,17 +17,22 @@
   },
   "autoload": {
     "psr-4": {
-      "Abilities_Hub\": "includes/"
+      "AcrossAI_Abilities_Manager\\": "includes/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Abilities_Hub\Tests\": "tests/"
+      "AcrossAI_Abilities_Manager\\Tests\\": "tests/"
     }
   },
   "scripts": {
     "format": "phpcbf --standard=phpcs.xml",
     "lint": "phpcs --standard=phpcs.xml",
     "test": "phpunit"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   }
 }
