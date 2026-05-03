@@ -622,4 +622,268 @@ class Repository {
 		// Fall back to the raw namespace, or 'unknown' if the slug has no namespace segment.
 		return '' !== $namespace ? $namespace : 'unknown';
 	}
+
+	/**
+	 * Retrieves a custom ability by slug.
+	 *
+	 * @global \wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $slug Custom ability slug.
+	 * @return array<string, mixed>|null Normalized custom ability row, or null if not found.
+	 */
+	public static function get_custom_ability( string $slug ): ?array {
+		$row = self::get_raw_custom_ability( $slug );
+		return is_array( $row ) ? self::normalize_custom_ability( $row ) : null;
+	}
+
+	/**
+	 * Retrieves all custom abilities with optional filtering and pagination.
+	 *
+	 * @global \wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param array<string, mixed> $args {
+	 *     Optional query arguments.
+	 *     @type string $status     Filter by status (active/draft/archived). Default ''.
+	 *     @type string $category   Filter by category. Default ''.
+	 *     @type string $search     LIKE filter against ability_slug or label. Default ''.
+	 *     @type int    $page       1-based page number. Default 1.
+	 *     @type int    $per_page   Rows per page; 0 disables pagination. Default 20.
+	 *     @type string $orderby    Column to sort by (whitelisted). Default 'ability_slug'.
+	 *     @type string $order      Sort direction: 'ASC' or 'DESC'. Default 'ASC'.
+	 * }
+	 * @return array{items: array<int, array<string, mixed>>, total: int, pages: int, page: int, per_page: int}
+	 */
+	public static function get_all_custom_abilities( array $args = array() ): array {
+		global $wpdb;
+		$args = wp_parse_args(
+			$args,
+			array(
+				'status'   => '',
+				'category' => '',
+				'search'   => '',
+				'page'     => 1,
+				'per_page' => 20,
+				'orderby'  => 'ability_slug',
+				'order'    => 'ASC',
+			)
+		);
+
+		$table      = Schema::get_custom_abilities_table_name();
+		$per_page   = max( 0, (int) $args['per_page'] );
+		$page       = max( 1, (int) $args['page'] );
+		$offset     = ( $page - 1 ) * $per_page;
+		$orderby    = sanitize_key( $args['orderby'] );
+		$order      = 'DESC' === strtoupper( $args['order'] ) ? 'DESC' : 'ASC';
+
+		// Whitelist allowed orderby columns.
+		$allowed_orderby = array( 'ability_slug', 'label', 'created_at', 'status', 'category' );
+		if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
+			$orderby = 'ability_slug';
+		}
+
+		$where_clauses = array( '1 = 1' );
+
+		// Filter by status.
+		if ( ! empty( $args['status'] ) ) {
+			$status            = sanitize_text_field( $args['status'] );
+			$where_clauses[]   = $wpdb->prepare( 'status = %s', $status );
+		}
+
+		// Filter by category.
+		if ( ! empty( $args['category'] ) ) {
+			$category          = sanitize_text_field( $args['category'] );
+			$where_clauses[]   = $wpdb->prepare( 'category = %s', $category );
+		}
+
+		// Search in ability_slug and label.
+		if ( ! empty( $args['search'] ) ) {
+			$search            = sanitize_text_field( $args['search'] );
+			$search_sql        = '%' . $wpdb->esc_like( $search ) . '%';
+			$where_clauses[]   = $wpdb->prepare( '(ability_slug LIKE %s OR label LIKE %s)', $search_sql, $search_sql );
+		}
+
+		$where = implode( ' AND ', $where_clauses );
+
+		// Get total count.
+		$total = $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE {$where}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		// Build main query with pagination.
+		$query = "SELECT * FROM {$table} WHERE {$where} ORDER BY {$orderby} {$order}"; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		if ( $per_page > 0 ) {
+			$query .= $wpdb->prepare( ' LIMIT %d OFFSET %d', $per_page, $offset );
+		}
+
+		$rows = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		// Normalize each row.
+		$items = array_map( array( self::class, 'normalize_custom_ability' ), (array) $rows );
+
+		// Calculate pagination.
+		$pages = $per_page > 0 ? (int) ceil( $total / $per_page ) : 1;
+
+		return array(
+			'items'    => $items,
+			'total'    => (int) $total,
+			'pages'    => $pages,
+			'page'     => $page,
+			'per_page' => $per_page,
+		);
+	}
+
+	/**
+	 * Inserts or updates a custom ability.
+	 *
+	 * @global \wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string               $slug Custom ability slug.
+	 * @param array<string, mixed> $data Custom ability data.
+	 * @return array<string, mixed>|null Fresh normalized row after the write, or null on DB failure.
+	 */
+	public static function upsert_custom_ability( string $slug, array $data ): ?array {
+		global $wpdb;
+		$slug     = sanitize_text_field( $slug );
+		$existing = self::get_raw_custom_ability( $slug );
+		$record   = self::build_custom_ability_record( $slug, $data, $existing );
+
+		// Update or insert.
+		if ( is_array( $existing ) ) {
+			$result = $wpdb->update(
+				Schema::get_custom_abilities_table_name(),
+				$record,
+				array( 'ability_slug' => $slug ),
+				self::formats( $record ),
+				array( '%s' )
+			); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		} else {
+			$result = $wpdb->insert(
+				Schema::get_custom_abilities_table_name(),
+				$record,
+				self::formats( $record )
+			); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		}
+
+		if ( false === $result ) {
+			return null;
+		}
+
+		return self::get_custom_ability( $slug );
+	}
+
+	/**
+	 * Deletes a custom ability by slug.
+	 *
+	 * @global \wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $slug Custom ability slug.
+	 * @return bool True on successful deletion, false otherwise.
+	 */
+	public static function delete_custom_ability( string $slug ): bool {
+		global $wpdb;
+		$slug    = sanitize_text_field( $slug );
+		$deleted = $wpdb->delete(
+			Schema::get_custom_abilities_table_name(),
+			array( 'ability_slug' => $slug ),
+			array( '%s' )
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return false !== $deleted;
+	}
+
+	/**
+	 * Retrieves raw custom ability data from the database by slug.
+	 *
+	 * @global \wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $slug Custom ability slug.
+	 * @return array<string, mixed>|null Raw database row, or null if not found.
+	 */
+	private static function get_raw_custom_ability( string $slug ): ?array {
+		global $wpdb;
+		$slug = sanitize_text_field( $slug );
+		$row  = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM ' . Schema::get_custom_abilities_table_name() . ' WHERE ability_slug = %s',
+				$slug
+			),
+			ARRAY_A
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		return is_array( $row ) ? $row : null;
+	}
+
+	/**
+	 * Normalizes a custom ability row from the database.
+	 *
+	 * Converts string types to their proper PHP types (JSON to arrays, etc.).
+	 *
+	 * @param array<string, mixed> $row Raw database row.
+	 * @return array<string, mixed> Normalized row.
+	 */
+	private static function normalize_custom_ability( array $row ): array {
+		return array(
+			'id'                  => (int) $row['id'],
+			'ability_slug'        => (string) $row['ability_slug'],
+			'label'               => (string) $row['label'],
+			'description'         => isset( $row['description'] ) ? (string) $row['description'] : '',
+			'category'            => isset( $row['category'] ) ? (string) $row['category'] : '',
+			'status'              => isset( $row['status'] ) ? (string) $row['status'] : 'active',
+			'input_schema'        => isset( $row['input_schema'] ) ? (array) json_decode( $row['input_schema'], true ) : array(),
+			'output_schema'       => isset( $row['output_schema'] ) ? (array) json_decode( $row['output_schema'], true ) : array(),
+			'execute_callback'    => isset( $row['execute_callback'] ) ? (string) $row['execute_callback'] : '',
+			'permission_callback' => isset( $row['permission_callback'] ) ? (string) $row['permission_callback'] : '',
+			'readonly'            => isset( $row['readonly'] ) ? (int) $row['readonly'] : null,
+			'destructive'         => isset( $row['destructive'] ) ? (int) $row['destructive'] : null,
+			'idempotent'          => isset( $row['idempotent'] ) ? (int) $row['idempotent'] : null,
+			'show_in_rest'        => isset( $row['show_in_rest'] ) ? (int) $row['show_in_rest'] : null,
+			'mcp_public'          => isset( $row['mcp_public'] ) ? (int) $row['mcp_public'] : null,
+			'mcp_type'            => isset( $row['mcp_type'] ) ? (string) $row['mcp_type'] : '',
+			'custom_meta'         => isset( $row['custom_meta'] ) ? (array) json_decode( $row['custom_meta'], true ) : array(),
+			'created_by'          => isset( $row['created_by'] ) ? (int) $row['created_by'] : null,
+			'version'             => isset( $row['version'] ) ? (string) $row['version'] : '1.0',
+			'deprecated_at'       => isset( $row['deprecated_at'] ) ? (string) $row['deprecated_at'] : null,
+			'created_at'          => isset( $row['created_at'] ) ? (string) $row['created_at'] : '',
+			'updated_at'          => isset( $row['updated_at'] ) ? (string) $row['updated_at'] : '',
+		);
+	}
+
+	/**
+	 * Builds a custom ability record for insertion or update.
+	 *
+	 * @param string               $slug     Custom ability slug.
+	 * @param array<string, mixed> $data     Incoming data.
+	 * @param array<string, mixed>|null $existing Existing row if updating.
+	 * @return array<string, mixed> Database record to insert/update.
+	 */
+	private static function build_custom_ability_record( string $slug, array $data, ?array $existing ): array {
+		$record = array(
+			'ability_slug'        => sanitize_text_field( $slug ),
+			'label'               => sanitize_text_field( $data['label'] ?? '' ),
+			'description'         => isset( $data['description'] ) ? wp_kses_post( $data['description'] ) : '',
+			'category'            => sanitize_text_field( $data['category'] ?? '' ),
+			'status'              => in_array( $data['status'] ?? 'active', array( 'active', 'draft', 'archived' ), true ) ? sanitize_text_field( $data['status'] ) : 'active',
+			'input_schema'        => isset( $data['input_schema'] ) ? wp_json_encode( (array) $data['input_schema'] ) : null,
+			'output_schema'       => isset( $data['output_schema'] ) ? wp_json_encode( (array) $data['output_schema'] ) : null,
+			'execute_callback'    => isset( $data['execute_callback'] ) ? sanitize_text_field( $data['execute_callback'] ) : '',
+			'permission_callback' => isset( $data['permission_callback'] ) ? sanitize_text_field( $data['permission_callback'] ) : '',
+			'readonly'            => isset( $data['readonly'] ) ? (int) (bool) $data['readonly'] : null,
+			'destructive'         => isset( $data['destructive'] ) ? (int) (bool) $data['destructive'] : null,
+			'idempotent'          => isset( $data['idempotent'] ) ? (int) (bool) $data['idempotent'] : null,
+			'show_in_rest'        => isset( $data['show_in_rest'] ) ? (int) (bool) $data['show_in_rest'] : null,
+			'mcp_public'          => isset( $data['mcp_public'] ) ? (int) (bool) $data['mcp_public'] : null,
+			'mcp_type'            => isset( $data['mcp_type'] ) ? sanitize_text_field( $data['mcp_type'] ) : null,
+			'custom_meta'         => isset( $data['custom_meta'] ) ? wp_json_encode( (array) $data['custom_meta'] ) : null,
+			'created_by'          => isset( $data['created_by'] ) ? (int) $data['created_by'] : get_current_user_id(),
+			'version'             => isset( $data['version'] ) ? sanitize_text_field( $data['version'] ) : '1.0',
+			'deprecated_at'       => isset( $data['deprecated_at'] ) ? sanitize_text_field( $data['deprecated_at'] ) : null,
+		);
+
+		// Preserve created_by on updates.
+		if ( is_array( $existing ) ) {
+			unset( $record['created_by'] );
+		}
+
+		return array_filter( $record, static function ( $value ) {
+			return null !== $value;
+		} );
+	}
 }
