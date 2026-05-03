@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<phpunit
+	bootstrap="vendor/wp-phpunit/wp-phpunit/includes/bootstrap.php"
+	beStrictAboutCoversAnnotatedCodeUnitsThatAreNotUsed="false"
+	beStrictAboutOutputDuringTests="true"
+	beStrictAboutTestsThatDoNotTestAnything="false"
+	beStrictAboutTodoTestedCode="true"
+	failOnRisky="true"
+	failOnWarning="true"
+	colors="true"
+	verbose="true"
+	cacheResultFile=".phpunit.cache"
+>
+	<testsuites>
+		<testsuite name="AcrossAI Abilities Manager">
+			<directory>tests</directory>
+		</testsuite>
+	</testsuites>
+
+	<coverage processUncoveredFiles="true">
+		<include>
+			<directory suffix=".php">./includes</directory>
+		</include>
+		<exclude>
+			<directory suffix=".php">./vendor</directory>
+		</exclude>
+	</coverage>
+
+	<php>
+		<ini name="display_errors" value="on"/>
+		<ini name="error_reporting" value="-1"/>
+		<const name="WP_TESTS_DOMAIN" value="acrossai-abilities-manager"/>
+		<const name="WP_PHP_BINARY" value="php"/>
+		<env name="WP_TESTS_DIR" value="/tmp/wordpress-tests-lib" force="true"/>
+		<env name="WP_CORE_DIR" value="/tmp/wordpress" force="true"/>
+		<env name="DB_NAME" value="wordpress_test" force="true"/>
+		<env name="DB_USER" value="root" force="true"/>
+		<env name="DB_PASSWORD" value="" force="true"/>
+		<env name="DB_HOST" value="localhost" force="true"/>
+	</php>
+</phpunit>

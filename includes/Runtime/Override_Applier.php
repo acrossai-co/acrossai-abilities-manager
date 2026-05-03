@@ -329,6 +329,44 @@ class Override_Applier {
 	}
 
 	/**
+	 * Checks whether an ability should be exposed to a specific MCP server.
+	 *
+	 * Uses the stored mcp_public and mcp_servers values from an override to determine
+	 * visibility. This method is useful for MCP adapters to filter abilities based on
+	 * the current server context.
+	 *
+	 * @param string $slug      Ability slug to check.
+	 * @param string $server_id MCP server ID to check visibility for.
+	 * @return bool True if ability should be exposed to server, false otherwise.
+	 */
+	public static function should_expose_to_mcp_server( string $slug, string $server_id ): bool {
+		self::prime_overrides();
+
+		$override = self::$overrides[ $slug ] ?? null;
+
+		// If no override exists, use the default (not exposed).
+		if ( ! is_array( $override ) ) {
+			return false;
+		}
+
+		$mcp_public  = $override['mcp_public'] ?? null;
+		$mcp_servers = $override['mcp_servers'] ?? null;
+
+		// If mcp_public is true, expose to all servers.
+		if ( true === $mcp_public ) {
+			return true;
+		}
+
+		// If mcp_public is false/null and servers list is empty/null, don't expose.
+		if ( ! is_array( $mcp_servers ) || empty( $mcp_servers ) ) {
+			return false;
+		}
+
+		// Expose if the current server is in the allowed list.
+		return in_array( sanitize_text_field( $server_id ), array_map( 'sanitize_text_field', $mcp_servers ), true );
+	}
+
+	/**
 	 * Registers all active custom abilities defined by site admins.
 	 *
 	 * This method is called at priority 5 on `wp_abilities_api_init` (before provider
@@ -342,7 +380,12 @@ class Override_Applier {
 			return;
 		}
 
-		$result = Repository::get_all_custom_abilities( array( 'status' => 'active', 'per_page' => 0 ) );
+		$result = Repository::get_all_custom_abilities(
+			array(
+				'status'   => 'active',
+				'per_page' => 0,
+			)
+		);
 
 		foreach ( $result['items'] as $custom_ability ) {
 			try {
@@ -459,8 +502,8 @@ class Override_Applier {
 		// Check if it's a static method (ClassName::method_name).
 		if ( strpos( $callback_string, '::' ) !== false ) {
 			list( $class, $method ) = explode( '::', $callback_string, 2 );
-			$class = trim( $class );
-			$method = trim( $method );
+			$class                  = trim( $class );
+			$method                 = trim( $method );
 
 			if ( class_exists( $class ) && method_exists( $class, $method ) ) {
 				return array( $class, $method );

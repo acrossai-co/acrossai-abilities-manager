@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace AcrossAI_Abilities_Manager\Database;
 
+use AcrossAI_Abilities_Manager\Validation\Ability_Validator;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -373,6 +375,7 @@ class Repository {
 			'idempotent'   => self::to_bool( $row['idempotent'] ?? null ),
 			'show_in_rest' => self::to_bool( $row['show_in_rest'] ?? null ),
 			'mcp_public'   => self::to_bool( $row['mcp_public'] ?? null ),
+			'mcp_servers'  => self::decode_server_list( $row['mcp_servers'] ?? null ),
 			'mcp_type'     => (string) ( $row['mcp_type'] ?? '' ),
 			'custom_meta'  => self::decode_meta( $row['custom_meta'] ?? null ),
 			'created_at'   => (string) ( $row['created_at'] ?? '' ),
@@ -396,6 +399,7 @@ class Repository {
 	private static function build_record( string $slug, array $data, ?array $existing ): array {
 		$provider    = isset( $data['provider'] ) ? sanitize_text_field( (string) $data['provider'] ) : (string) ( $existing['provider'] ?? self::detect_provider( $slug ) );
 		$custom_meta = array_key_exists( 'custom_meta', $data ) ? self::encode_meta( $data['custom_meta'] ) : ( $existing['custom_meta'] ?? null );
+		$mcp_servers = array_key_exists( 'mcp_servers', $data ) ? self::encode_server_list( $data['mcp_servers'] ) : ( $existing['mcp_servers'] ?? null );
 		$timestamp   = current_time( 'mysql' );
 		$record      = array(
 			'ability_slug' => $slug,
@@ -406,6 +410,7 @@ class Repository {
 			'idempotent'   => self::from_bool( self::incoming_value( $data, $existing, 'idempotent' ) ),
 			'show_in_rest' => self::from_bool( self::incoming_value( $data, $existing, 'show_in_rest' ) ),
 			'mcp_public'   => self::from_bool( self::incoming_value( $data, $existing, 'mcp_public' ) ),
+			'mcp_servers'  => $mcp_servers,
 			'mcp_type'     => self::nullable_string( self::incoming_value( $data, $existing, 'mcp_type' ) ),
 			'custom_meta'  => $custom_meta,
 			'updated_at'   => $timestamp,
@@ -593,6 +598,53 @@ class Repository {
 	}
 
 	/**
+	 * JSON-encodes the mcp_servers column value for storage.
+	 *
+	 * Stores MCP server IDs as a JSON array. Returns null for empty/null values.
+	 *
+	 * @param mixed $value Array of server IDs or JSON string to encode.
+	 * @return string|null Encoded JSON array or null.
+	 */
+	private static function encode_server_list( $value ): ?string {
+		// Treat null and empty array/string as "no servers" rather than encoding them.
+		if ( null === $value || '' === $value || ( is_array( $value ) && empty( $value ) ) ) {
+			return null;
+		}
+
+		// If the value is already a JSON string, decode and re-encode to normalise it.
+		if ( is_string( $value ) ) {
+			$decoded = json_decode( $value, true );
+			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+				return wp_json_encode( array_map( 'sanitize_text_field', $decoded ) );
+			}
+		}
+
+		// If it's an array, sanitize each server ID and encode.
+		if ( is_array( $value ) ) {
+			return wp_json_encode( array_map( 'sanitize_text_field', $value ) );
+		}
+
+		return null;
+	}
+
+	/**
+	 * JSON-decodes the mcp_servers column value from storage.
+	 *
+	 * Returns an array of server IDs when valid, or null when empty/invalid.
+	 *
+	 * @param mixed $value Raw database value to decode.
+	 * @return array<int, string>|null Decoded server ID array, or null on failure.
+	 */
+	private static function decode_server_list( $value ) {
+		if ( null === $value || '' === $value ) {
+			return null;
+		}
+		$decoded = json_decode( (string) $value, true );
+		// Return null if JSON is malformed or not an array.
+		return JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ? $decoded : null;
+	}
+
+	/**
 	 * Infers the provider identifier from an ability's namespace segment.
 	 *
 	 * The namespace is the first path segment of the ability slug before the
@@ -668,12 +720,12 @@ class Repository {
 			)
 		);
 
-		$table      = Schema::get_custom_abilities_table_name();
-		$per_page   = max( 0, (int) $args['per_page'] );
-		$page       = max( 1, (int) $args['page'] );
-		$offset     = ( $page - 1 ) * $per_page;
-		$orderby    = sanitize_key( $args['orderby'] );
-		$order      = 'DESC' === strtoupper( $args['order'] ) ? 'DESC' : 'ASC';
+		$table    = Schema::get_custom_abilities_table_name();
+		$per_page = max( 0, (int) $args['per_page'] );
+		$page     = max( 1, (int) $args['page'] );
+		$offset   = ( $page - 1 ) * $per_page;
+		$orderby  = sanitize_key( $args['orderby'] );
+		$order    = 'DESC' === strtoupper( $args['order'] ) ? 'DESC' : 'ASC';
 
 		// Whitelist allowed orderby columns.
 		$allowed_orderby = array( 'ability_slug', 'label', 'created_at', 'status', 'category' );
@@ -685,21 +737,21 @@ class Repository {
 
 		// Filter by status.
 		if ( ! empty( $args['status'] ) ) {
-			$status            = sanitize_text_field( $args['status'] );
-			$where_clauses[]   = $wpdb->prepare( 'status = %s', $status );
+			$status          = sanitize_text_field( $args['status'] );
+			$where_clauses[] = $wpdb->prepare( 'status = %s', $status );
 		}
 
 		// Filter by category.
 		if ( ! empty( $args['category'] ) ) {
-			$category          = sanitize_text_field( $args['category'] );
-			$where_clauses[]   = $wpdb->prepare( 'category = %s', $category );
+			$category        = sanitize_text_field( $args['category'] );
+			$where_clauses[] = $wpdb->prepare( 'category = %s', $category );
 		}
 
 		// Search in ability_slug and label.
 		if ( ! empty( $args['search'] ) ) {
-			$search            = sanitize_text_field( $args['search'] );
-			$search_sql        = '%' . $wpdb->esc_like( $search ) . '%';
-			$where_clauses[]   = $wpdb->prepare( '(ability_slug LIKE %s OR label LIKE %s)', $search_sql, $search_sql );
+			$search          = sanitize_text_field( $args['search'] );
+			$search_sql      = '%' . $wpdb->esc_like( $search ) . '%';
+			$where_clauses[] = $wpdb->prepare( '(ability_slug LIKE %s OR label LIKE %s)', $search_sql, $search_sql );
 		}
 
 		$where = implode( ' AND ', $where_clauses );
@@ -743,7 +795,19 @@ class Repository {
 		global $wpdb;
 		$slug     = sanitize_text_field( $slug );
 		$existing = self::get_raw_custom_ability( $slug );
-		$record   = self::build_custom_ability_record( $slug, $data, $existing );
+
+		// Prepare validation data with slug.
+		$validation_data = array_merge( $data, array( 'ability_slug' => $slug ) );
+
+		// Validate the ability data before persisting.
+		$validation_result = Ability_Validator::validate_ability( $validation_data );
+		if ( ! $validation_result['valid'] ) {
+			// Log validation errors via action hook.
+			do_action( 'acrossai_abilities_manager_validation_error', $validation_result['errors'], $slug );
+			return null;
+		}
+
+		$record = self::build_custom_ability_record( $slug, $data, $existing );
 
 		// Update or insert.
 		if ( is_array( $existing ) ) {
@@ -849,8 +913,8 @@ class Repository {
 	/**
 	 * Builds a custom ability record for insertion or update.
 	 *
-	 * @param string               $slug     Custom ability slug.
-	 * @param array<string, mixed> $data     Incoming data.
+	 * @param string                    $slug     Custom ability slug.
+	 * @param array<string, mixed>      $data     Incoming data.
 	 * @param array<string, mixed>|null $existing Existing row if updating.
 	 * @return array<string, mixed> Database record to insert/update.
 	 */
@@ -882,8 +946,11 @@ class Repository {
 			unset( $record['created_by'] );
 		}
 
-		return array_filter( $record, static function ( $value ) {
-			return null !== $value;
-		} );
+		return array_filter(
+			$record,
+			static function ( $value ) {
+				return null !== $value;
+			}
+		);
 	}
 }

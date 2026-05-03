@@ -24,14 +24,14 @@ defined( 'ABSPATH' ) || exit;
 class Schema {
 
 	/**
-	 * Unprefixed table name. Always prepend $wpdb->prefix before issuing queries.
+	 * Unprefixed table name for ability overrides. Always prepend $wpdb->prefix before issuing queries.
 	 */
-	public const TABLE_NAME = 'acrossai_abilities';
+	public const TABLE_NAME = 'acrossai_abilities_overwrite';
 
 	/**
-	 * Unprefixed custom abilities table name.
+	 * Unprefixed table name for user-defined abilities.
 	 */
-	public const CUSTOM_ABILITIES_TABLE_NAME = 'acrossai_custom_abilities';
+	public const CUSTOM_ABILITIES_TABLE_NAME = 'acrossai_abilities';
 
 	/**
 	 * Current schema version identifier.
@@ -39,7 +39,7 @@ class Schema {
 	 * Increment this constant whenever the table structure changes so that
 	 * maybe_upgrade_table() triggers a dbDelta run for existing installations.
 	 */
-	private const SCHEMA_VERSION = '4';
+	private const SCHEMA_VERSION = '6';
 
 	/**
 	 * WordPress option key used to persist the currently applied schema version.
@@ -50,10 +50,10 @@ class Schema {
 	private const SCHEMA_VERSION_OPTION = 'acrossai_abilities_schema_version';
 
 	/**
-	 * Returns the fully prefixed table name for the current WordPress installation.
+	 * Returns the fully prefixed table name for ability overrides.
 	 *
 	 * @global \wpdb $wpdb WordPress database abstraction object.
-	 * @return string Prefixed table name, e.g. `wp_acrossai_abilities`.
+	 * @return string Prefixed table name, e.g. `wp_acrossai_abilities_overwrite`.
 	 */
 	public static function get_table_name(): string {
 		global $wpdb;
@@ -61,10 +61,10 @@ class Schema {
 	}
 
 	/**
-	 * Returns the fully prefixed custom abilities table name.
+	 * Returns the fully prefixed table name for user-defined abilities.
 	 *
 	 * @global \wpdb $wpdb WordPress database abstraction object.
-	 * @return string Prefixed table name, e.g. `wp_acrossai_custom_abilities`.
+	 * @return string Prefixed table name, e.g. `wp_acrossai_abilities`.
 	 */
 	public static function get_custom_abilities_table_name(): string {
 		global $wpdb;
@@ -96,7 +96,9 @@ class Schema {
 	}
 
 	/**
-	 * Creates the abilities override table via WordPress's dbDelta() utility.
+	 * Creates the abilities override table (wp_acrossai_abilities_overwrite) via WordPress's dbDelta() utility.
+	 *
+	 * Stores thin metadata overrides for provider-defined abilities.
 	 *
 	 * Column overview:
 	 * - `ability_slug`              — unique slug identifying the ability (e.g. `wordpress/list-users`).
@@ -105,6 +107,7 @@ class Schema {
 	 * - `readonly/destructive/idempotent` — nullable annotation overrides (tri-state: true/false/null).
 	 * - `show_in_rest`              — nullable bool controlling REST API exposure.
 	 * - `mcp_public`                — nullable bool controlling MCP client visibility.
+	 * - `mcp_servers`               — JSON array of allowed MCP server IDs for granular per-server visibility.
 	 * - `mcp_type`                  — MCP endpoint type: `tools`, `resources`, or `prompts`.
 	 * - `custom_meta`               — JSON blob for arbitrary additional metadata fields.
 	 *
@@ -128,6 +131,7 @@ class Schema {
 			idempotent TINYINT(1) DEFAULT NULL,
 			show_in_rest TINYINT(1) DEFAULT NULL,
 			mcp_public TINYINT(1) DEFAULT NULL,
+			mcp_servers LONGTEXT DEFAULT NULL,
 			mcp_type VARCHAR(100) DEFAULT NULL,
 			custom_meta LONGTEXT DEFAULT NULL,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -146,12 +150,12 @@ class Schema {
 	}
 
 	/**
-	 * Creates the custom abilities table.
+	 * Creates the abilities table (wp_acrossai_abilities).
 	 *
 	 * Stores user-defined abilities with full definitions including schemas and logic.
 	 *
 	 * Column overview:
-	 * - `ability_slug`         — unique slug for the custom ability (e.g. `my-site/custom-processor`).
+	 * - `ability_slug`         — unique slug for the ability (e.g. `my-site/custom-processor`).
 	 * - `label`                — human-readable display name.
 	 * - `description`          — full description of the ability.
 	 * - `category`             — ability category slug for organization.
@@ -218,15 +222,15 @@ class Schema {
 	 */
 	public static function drop_table(): void {
 		global $wpdb;
-		$table_name      = self::get_table_name();
-		$custom_table    = self::get_custom_abilities_table_name();
+		$table_name   = self::get_table_name();
+		$custom_table = self::get_custom_abilities_table_name();
 
-		// Drop overrides table if it exists.
+		// Drop overrides table (wp_acrossai_abilities_overwrite) if it exists.
 		if ( self::table_exists() ) {
 			$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter
 		}
 
-		// Drop custom abilities table if it exists.
+		// Drop abilities table (wp_acrossai_abilities) if it exists.
 		if ( self::custom_abilities_table_exists() ) {
 			$wpdb->query( "DROP TABLE IF EXISTS {$custom_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter
 		}
@@ -272,7 +276,7 @@ class Schema {
 	}
 
 	/**
-	 * Checks whether the plugin's custom table currently exists in the database.
+	 * Checks whether the plugin's override table (wp_acrossai_abilities_overwrite) currently exists.
 	 *
 	 * Uses `SHOW TABLES LIKE` rather than querying `information_schema` for
 	 * compatibility with managed hosting environments that restrict schema
@@ -289,7 +293,7 @@ class Schema {
 	}
 
 	/**
-	 * Checks whether the plugin's custom abilities table currently exists.
+	 * Checks whether the plugin's abilities table (wp_acrossai_abilities) currently exists.
 	 *
 	 * @global \wpdb $wpdb WordPress database abstraction object.
 	 * @return bool True when the table exists, false otherwise.

@@ -57,6 +57,15 @@ class Edit_Screen {
 		if ( 'toggle_allowed' === $action ) {
 			self::toggle_allowed();
 		}
+
+		// Custom ability actions.
+		if ( 'delete_custom' === $action ) {
+			self::delete_custom();
+		}
+
+		if ( 'duplicate_custom' === $action ) {
+			self::duplicate_custom();
+		}
 	}
 
 	/**
@@ -118,7 +127,7 @@ class Edit_Screen {
 			<tr><th scope="row"><?php esc_html_e( 'Destructive', 'acrossai-abilities-manager' ); ?></th><td><?php self::select( 'destructive', $values['destructive'], false ); ?></td></tr>
 			<tr><th scope="row"><?php esc_html_e( 'Idempotent', 'acrossai-abilities-manager' ); ?></th><td><?php self::select( 'idempotent', $values['idempotent'], false ); ?></td></tr>
 			<tr><th scope="row"><?php esc_html_e( 'Show in REST', 'acrossai-abilities-manager' ); ?></th><td><label><input type="checkbox" name="show_in_rest" value="1" <?php checked( (bool) $values['show_in_rest'] ); ?> /> <?php esc_html_e( 'Expose in REST.', 'acrossai-abilities-manager' ); ?></label></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'MCP Public', 'acrossai-abilities-manager' ); ?></th><td><label><input type="checkbox" id="aam-mcp-public" name="mcp_public" value="1" <?php checked( (bool) $values['mcp_public'] ); ?> /> <?php esc_html_e( 'Expose publicly to MCP clients.', 'acrossai-abilities-manager' ); ?></label></td></tr>
+			<tr><th scope="row"><?php esc_html_e( 'MCP Visibility', 'acrossai-abilities-manager' ); ?></th><td><?php self::render_mcp_visibility( $values['mcp_public'], $values['mcp_servers'] ?? null, false ); ?></td></tr>
 			<tr id="aam-mcp-type-row"><th scope="row"><?php esc_html_e( 'MCP Type', 'acrossai-abilities-manager' ); ?></th><td><?php self::mcp_type_select( (string) $values['mcp_type'], false ); ?></td></tr>
 			</tbody></table>
 			<p class="submit">
@@ -146,23 +155,35 @@ class Edit_Screen {
 		</form>
 		<script>
 		document.addEventListener( 'DOMContentLoaded', function() {
-			var mcpPublic = document.getElementById( 'aam-mcp-public' );
+			var mcpVisibilityMode = document.getElementsByName( 'mcp_visibility_mode' );
+			var mcpServersContainer = document.getElementById( 'aam-mcp-servers-container' );
 			var mcpTypeRow = document.getElementById( 'aam-mcp-type-row' );
 
-			// Guard: both elements must exist before attaching the visibility logic.
-			if ( ! mcpPublic || ! mcpTypeRow ) {
+			// Guard: elements must exist before attaching logic.
+			if ( mcpVisibilityMode.length === 0 ) {
 				return;
 			}
 
-			// Show the MCP Type row only when the MCP Public checkbox is checked,
-			// since the type setting is meaningless when the ability is not public.
-			function syncMcpTypeVisibility() {
-				mcpTypeRow.style.display = mcpPublic.checked ? '' : 'none';
+			function syncMcpUI() {
+				var mode = Array.from( mcpVisibilityMode ).find( r => r.checked )?.value || 'none';
+				
+				// Show/hide servers container based on 'specific' mode.
+				if ( mcpServersContainer ) {
+					mcpServersContainer.style.display = 'specific' === mode ? 'block' : 'none';
+				}
+				
+				// Show/hide MCP Type row based on whether MCP is enabled.
+				if ( mcpTypeRow ) {
+					mcpTypeRow.style.display = 'none' !== mode ? '' : 'none';
+				}
 			}
 
-			mcpPublic.addEventListener( 'change', syncMcpTypeVisibility );
-			// Run once on load to match the initial checkbox state.
-			syncMcpTypeVisibility();
+			mcpVisibilityMode.forEach( radio => {
+				radio.addEventListener( 'change', syncMcpUI );
+			} );
+			
+			// Run once on load to match the initial state.
+			syncMcpUI();
 		} );
 		</script>
 		<?php
@@ -406,28 +427,113 @@ class Edit_Screen {
 		echo '</select>';
 	}
 
+	/**
+	 * Gets available MCP servers via the discovery action hook.
+	 *
+	 * @return array<int, array{id: string, label: string}> Array of available servers.
+	 */
+	private static function get_available_mcp_servers(): array {
+		$servers = array();
+		do_action_ref_array( 'acrossai_abilities_manager_get_mcp_servers', array( &$servers ) );
+		return is_array( $servers ) ? $servers : array();
+	}
+
+	/**
+	 * Renders the MCP server visibility control with radio buttons and conditional server selector.
+	 *
+	 * @param bool|null               $mcp_public     Current mcp_public value.
+	 * @param array<int, string>|null $mcp_servers    Current mcp_servers list.
+	 * @param bool                    $disabled       Whether the control should be disabled.
+	 * @return void
+	 */
+	private static function render_mcp_visibility( $mcp_public, $mcp_servers, bool $disabled ): void {
+		$servers          = self::get_available_mcp_servers();
+		$current_mode     = null === $mcp_public ? 'none' : ( $mcp_public ? 'all' : ( ! empty( $mcp_servers ) ? 'specific' : 'none' ) );
+		$selected_servers = is_array( $mcp_servers ) ? $mcp_servers : array();
+
+		?>
+		<div class="mcp-visibility-control">
+			<p style="margin-top: 0;">
+				<label style="display: block; margin-bottom: 8px;">
+					<input type="radio" name="mcp_visibility_mode" value="none" <?php checked( $current_mode, 'none' ); ?> <?php disabled( $disabled ); ?> />
+					<?php esc_html_e( 'Disable for MCP', 'acrossai-abilities-manager' ); ?>
+				</label>
+				<label style="display: block; margin-bottom: 8px;">
+					<input type="radio" name="mcp_visibility_mode" value="all" <?php checked( $current_mode, 'all' ); ?> <?php disabled( $disabled ); ?> />
+					<?php esc_html_e( 'Allow in all MCP servers', 'acrossai-abilities-manager' ); ?>
+				</label>
+				<label style="display: block;">
+					<input type="radio" id="aam-mcp-visibility-specific" name="mcp_visibility_mode" value="specific" <?php checked( $current_mode, 'specific' ); ?> <?php disabled( $disabled ); ?> />
+					<?php esc_html_e( 'Allow in specific MCP servers', 'acrossai-abilities-manager' ); ?>
+				</label>
+			</p>
+
+			<?php if ( ! empty( $servers ) ) : ?>
+				<div id="aam-mcp-servers-container" style="margin-top: 8px; margin-left: 24px; display: <?php echo 'specific' === $current_mode ? 'block' : 'none'; ?>;">
+					<fieldset>
+						<legend><?php esc_html_e( 'Select servers:', 'acrossai-abilities-manager' ); ?></legend>
+						<?php foreach ( $servers as $server ) : ?>
+							<?php $server_id = isset( $server['id'] ) ? sanitize_text_field( (string) $server['id'] ) : ''; ?>
+							<?php $server_label = isset( $server['label'] ) ? sanitize_text_field( (string) $server['label'] ) : $server_id; ?>
+							<label style="display: block; margin-bottom: 4px;">
+								<input type="checkbox" name="mcp_servers[]" value="<?php echo esc_attr( $server_id ); ?>" <?php checked( in_array( $server_id, $selected_servers, true ) ); ?> <?php disabled( $disabled ); ?> />
+								<?php echo esc_html( $server_label ); ?>
+							</label>
+						<?php endforeach; ?>
+					</fieldset>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
 
 	/**
 	 * Extracts and normalizes all relevant field values from a POST submission.
 	 *
-	 * Checkbox fields (`site_allowed`, `show_in_rest`, `mcp_public`) are read
-	 * as booleans via `isset()` since an unchecked checkbox sends no value.
+	 * Converts mcp_visibility_mode radio button selection to mcp_public and mcp_servers.
+	 * Other checkbox fields are read as booleans via `isset()` since unchecked checkboxes send no value.
 	 * Tri-state select fields are normalized through normalize_nullable_bool().
 	 *
 	 * @return array<string, mixed> Normalized submitted values keyed by field name.
 	 */
 	private static function submitted_values(): array {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- nonce is checked in save() before this helper is called.
-		return array(
+
+		// Parse MCP visibility mode and convert to mcp_public/mcp_servers.
+		$mcp_mode    = isset( $_POST['mcp_visibility_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['mcp_visibility_mode'] ) ) : 'none';
+		$mcp_public  = null;
+		$mcp_servers = null;
+
+		switch ( $mcp_mode ) {
+			case 'all':
+				$mcp_public  = true;
+				$mcp_servers = null;
+				break;
+			case 'specific':
+				$mcp_public  = false;
+				$mcp_servers = isset( $_POST['mcp_servers'] ) ? array_map( 'sanitize_text_field', wp_unslash( (array) $_POST['mcp_servers'] ) ) : array();
+				break;
+			case 'none':
+			default:
+				$mcp_public  = null;
+				$mcp_servers = null;
+				break;
+		}
+
+		$values = array(
 			'site_allowed' => isset( $_POST['site_allowed'] ),
 			'readonly'     => self::normalize_nullable_bool( isset( $_POST['readonly'] ) ? sanitize_text_field( wp_unslash( $_POST['readonly'] ) ) : null ),
 			'destructive'  => self::normalize_nullable_bool( isset( $_POST['destructive'] ) ? sanitize_text_field( wp_unslash( $_POST['destructive'] ) ) : null ),
 			'idempotent'   => self::normalize_nullable_bool( isset( $_POST['idempotent'] ) ? sanitize_text_field( wp_unslash( $_POST['idempotent'] ) ) : null ),
 			'show_in_rest' => isset( $_POST['show_in_rest'] ),
-			'mcp_public'   => isset( $_POST['mcp_public'] ),
+			'mcp_public'   => $mcp_public,
+			'mcp_servers'  => $mcp_servers,
 			'mcp_type'     => self::sanitize_mcp_type( isset( $_POST['mcp_type'] ) ? sanitize_text_field( wp_unslash( $_POST['mcp_type'] ) ) : '' ),
 		);
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		return $values;
 	}
 
 
@@ -454,6 +560,7 @@ class Edit_Screen {
 			'idempotent'   => self::coalesce( $override['idempotent'] ?? null, $annotations['idempotent'] ?? null ),
 			'show_in_rest' => self::coalesce( $override['show_in_rest'] ?? null, $meta['show_in_rest'] ?? false ),
 			'mcp_public'   => self::coalesce( $override['mcp_public'] ?? null, $meta['mcp']['public'] ?? false ),
+			'mcp_servers'  => $override['mcp_servers'] ?? null,
 			'mcp_type'     => self::sanitize_mcp_type( self::coalesce( $override['mcp_type'] ?? '', $meta['mcp']['type'] ?? 'tools' ) ),
 		);
 	}
@@ -481,7 +588,7 @@ class Edit_Screen {
 
 		$defaults  = self::default_values( $ability );
 		$overrides = array();
-		$fields    = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public', 'mcp_type' );
+		$fields    = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public', 'mcp_servers', 'mcp_type' );
 
 		foreach ( $fields as $field ) {
 			// Include the field only when it diverges from the live default value.
@@ -511,7 +618,7 @@ class Edit_Screen {
 			return $override;
 		}
 
-		foreach ( array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public', 'mcp_type' ) as $field ) {
+		foreach ( array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'mcp_public', 'mcp_servers', 'mcp_type' ) as $field ) {
 			// Skip fields that are already included in the current diff payload.
 			if ( array_key_exists( $field, $override ) ) {
 				continue;
@@ -770,5 +877,104 @@ class Edit_Screen {
 
 		// Fall back to the raw namespace, or 'unknown' when the slug has no namespace segment.
 		return '' !== $namespace ? $namespace : 'unknown';
+	}
+
+	/**
+	 * Deletes a custom ability and redirects back to the list with a success message.
+	 *
+	 * Verifies the user capability and nonce before deleting the custom ability.
+	 *
+	 * @return void
+	 */
+	public static function delete_custom(): void {
+		if ( ! current_user_can( 'acrossai-abilities-manager-admin' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to perform this action.', 'acrossai-abilities-manager' ) );
+		}
+
+		$slug  = isset( $_REQUEST['slug'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['slug'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$nonce = isset( $_REQUEST['aam_delete_custom_nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['aam_delete_custom_nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		if ( ! wp_verify_nonce( $nonce, 'aam_delete_custom_' . $slug ) ) {
+			wp_die( esc_html__( 'Invalid nonce. Please try again.', 'acrossai-abilities-manager' ) );
+		}
+
+		if ( '' === $slug ) {
+			wp_die( esc_html__( 'No custom ability specified for deletion.', 'acrossai-abilities-manager' ) );
+		}
+
+		// Delete the custom ability from the database.
+		if ( Repository::delete_custom_ability( $slug ) ) {
+			$redirect_url = add_query_arg( 'aam_message', 'deleted', admin_url( 'tools.php?page=acrossai-abilities-manager' ) );
+		} else {
+			$redirect_url = add_query_arg( 'aam_message', 'error', admin_url( 'tools.php?page=acrossai-abilities-manager' ) );
+		}
+
+		wp_safe_remote_head( $redirect_url );
+		wp_redirect( $redirect_url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+		exit;
+	}
+
+	/**
+	 * Duplicates a custom ability and redirects to the new ability's edit page.
+	 *
+	 * Creates a copy of the custom ability with a new slug based on the original slug.
+	 * Verifies the user capability and nonce before proceeding.
+	 *
+	 * @return void
+	 */
+	public static function duplicate_custom(): void {
+		if ( ! current_user_can( 'acrossai-abilities-manager-admin' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to perform this action.', 'acrossai-abilities-manager' ) );
+		}
+
+		$slug  = isset( $_REQUEST['slug'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['slug'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$nonce = isset( $_REQUEST['aam_duplicate_custom_nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['aam_duplicate_custom_nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		if ( ! wp_verify_nonce( $nonce, 'aam_duplicate_custom_' . $slug ) ) {
+			wp_die( esc_html__( 'Invalid nonce. Please try again.', 'acrossai-abilities-manager' ) );
+		}
+
+		if ( '' === $slug ) {
+			wp_die( esc_html__( 'No custom ability specified for duplication.', 'acrossai-abilities-manager' ) );
+		}
+
+		// Get the custom ability to duplicate.
+		$original = Repository::get_custom_ability( $slug );
+		if ( ! $original ) {
+			wp_die( esc_html__( 'Custom ability not found.', 'acrossai-abilities-manager' ) );
+		}
+
+		// Generate a new slug by appending '-copy' to the original slug.
+		$new_slug = $slug . '-copy';
+		$counter  = 1;
+
+		// If the slug already exists, append a number until we get a unique slug.
+		while ( Repository::get_custom_ability( $new_slug ) ) {
+			$new_slug = $slug . '-copy-' . $counter;
+			++$counter;
+		}
+
+		// Prepare data for the new custom ability (copy the original but change the slug).
+		$new_data = $original;
+		unset( $new_data['id'], $new_data['created_at'], $new_data['updated_at'] );
+
+		// Create the duplicate custom ability.
+		$result = Repository::upsert_custom_ability( $new_slug, $new_data );
+
+		if ( $result ) {
+			$redirect_url = add_query_arg(
+				array(
+					'page' => 'acrossai-add-ability',
+					'slug' => $new_slug,
+				),
+				admin_url( 'admin.php' )
+			);
+		} else {
+			$redirect_url = add_query_arg( 'aam_message', 'error', admin_url( 'tools.php?page=acrossai-abilities-manager' ) );
+		}
+
+		wp_safe_remote_head( $redirect_url );
+		wp_redirect( $redirect_url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+		exit;
 	}
 }

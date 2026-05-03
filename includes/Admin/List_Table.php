@@ -18,12 +18,12 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 }
 
 /**
- * Custom WP_List_Table for browsing all registered abilities and their overrides.
+ * Custom WP_List_Table for browsing all registered abilities, their overrides, and custom abilities.
  *
  * Merges live WP_Ability objects (from wp_get_abilities()) with stored
- * override rows from the database. Abilities that appear in one source
- * but not the other are still shown, giving a unified view of both
- * registered and overridden abilities.
+ * override rows and custom user-defined abilities from the database.
+ * Abilities that appear in any source are shown in a unified view,
+ * with a Type column distinguishing between provider abilities and custom abilities.
  *
  * @since   0.1.0
  * @package AcrossAI_Abilities_Manager
@@ -46,6 +46,13 @@ class List_Table extends \WP_List_Table {
 	private array $overrides = array();
 
 	/**
+	 * Custom user-defined abilities from the database, keyed by ability slug.
+	 *
+	 * @var array<string, array<string, mixed>>
+	 */
+	private array $custom_abilities = array();
+
+	/**
 	 * All registered WP_Ability_Category objects keyed by slug.
 	 *
 	 * @var array<string, \WP_Ability_Category>
@@ -64,6 +71,7 @@ class List_Table extends \WP_List_Table {
 		'core'   => 0,
 		'plugin' => 0,
 		'theme'  => 0,
+		'custom' => 0,
 	);
 
 	/**
@@ -95,8 +103,11 @@ class List_Table extends \WP_List_Table {
 		return array(
 			'name'         => __( 'Name', 'acrossai-abilities-manager' ),
 			'slug'         => __( 'Slug', 'acrossai-abilities-manager' ),
+			'type'         => __( 'Type', 'acrossai-abilities-manager' ),
+			'label'        => __( 'Label', 'acrossai-abilities-manager' ),
 			'provider'     => __( 'Provider', 'acrossai-abilities-manager' ),
 			'category'     => __( 'Category', 'acrossai-abilities-manager' ),
+			'status'       => __( 'Status', 'acrossai-abilities-manager' ),
 			'site_allowed' => __( 'Allowed', 'acrossai-abilities-manager' ),
 			'readonly'     => __( 'Readonly', 'acrossai-abilities-manager' ),
 			'destructive'  => __( 'Destructive', 'acrossai-abilities-manager' ),
@@ -120,8 +131,11 @@ class List_Table extends \WP_List_Table {
 		return array(
 			'name'         => array( 'name', false ),
 			'slug'         => array( 'slug', false ),
+			'type'         => array( 'type', false ),
+			'label'        => array( 'label', false ),
 			'provider'     => array( 'provider', false ),
 			'category'     => array( 'category', false ),
+			'status'       => array( 'status', false ),
 			'site_allowed' => array( 'site_allowed', false ),
 			'readonly'     => array( 'readonly', false ),
 			'destructive'  => array( 'destructive', false ),
@@ -134,28 +148,34 @@ class List_Table extends \WP_List_Table {
 	/**
 	 * Loads data, sorts, filters, and paginates the item list.
 	 *
-	 * Pulls all registered abilities and all stored overrides, merges them
-	 * into a unified item array, applies search/provider filters, sorts in
-	 * PHP (because the merged list lives in memory), and finally slices the
+	 * Pulls all registered abilities, all stored overrides, and all custom abilities,
+	 * merges them into a unified item array, applies search/provider filters, sorts
+	 * in PHP (because the merged list lives in memory), and finally slices the
 	 * result to the current page.
 	 *
 	 * @return void
 	 */
 	public function prepare_items(): void {
-		$this->abilities  = function_exists( 'wp_get_abilities' ) ? wp_get_abilities() : array();
-		$this->categories = function_exists( 'wp_get_ability_categories' ) ? wp_get_ability_categories() : array();
-		$result           = Repository::get_all( array( 'per_page' => 0 ) );
-		$this->overrides  = array();
+		$this->abilities        = function_exists( 'wp_get_abilities' ) ? wp_get_abilities() : array();
+		$this->categories       = function_exists( 'wp_get_ability_categories' ) ? wp_get_ability_categories() : array();
+		$override_result        = Repository::get_all( array( 'per_page' => 0 ) );
+		$this->overrides        = array();
+		$custom_result          = Repository::get_all_custom_abilities( array( 'per_page' => 0 ) );
+		$this->custom_abilities = array();
 
-		foreach ( $result['items'] as $override ) {
+		foreach ( $override_result['items'] as $override ) {
 			$this->overrides[ $override['ability_slug'] ] = $override;
+		}
+
+		foreach ( $custom_result['items'] as $custom ) {
+			$this->custom_abilities[ $custom['ability_slug'] ] = $custom;
 		}
 
 		$items  = $this->filter_items( $this->build_items() );
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
 		// Fall back to a hard-coded default when get_current_screen() is unavailable.
-		$hidden = $screen ? get_hidden_columns( $screen ) : array( 'destructive', 'idempotent' );
+		$hidden = $screen ? get_hidden_columns( $screen ) : array( 'destructive', 'idempotent', 'label', 'status' );
 
 		usort( $items, array( $this, 'sort_items' ) );
 		$this->_column_headers = array( $this->get_columns(), $hidden, $this->get_sortable_columns() );
@@ -199,19 +219,29 @@ class List_Table extends \WP_List_Table {
 	 * @return string HTML for the Name cell.
 	 */
 	public function column_name( $item ): string {
-		$edit_args = array(
-			'page'   => 'acrossai-abilities-manager',
-			'action' => 'edit',
-		);
-
-		// Prefer the database row ID in the URL so the link survives slug renames.
-		if ( $item['id'] > 0 ) {
-			$edit_args['id'] = $item['id'];
+		// Edit link differs based on whether this is a custom ability or an override.
+		if ( 'custom' === $item['type'] ) {
+			$edit_args = array(
+				'page' => 'acrossai-add-ability',
+				'slug' => $item['slug'],
+			);
+			$url       = add_query_arg( $edit_args, admin_url( 'admin.php' ) );
 		} else {
-			$edit_args['slug'] = $item['slug'];
+			$edit_args = array(
+				'page'   => 'acrossai-abilities-manager',
+				'action' => 'edit',
+			);
+
+			// Prefer the database row ID in the URL so the link survives slug renames.
+			if ( $item['id'] > 0 ) {
+				$edit_args['id'] = $item['id'];
+			} else {
+				$edit_args['slug'] = $item['slug'];
+			}
+
+			$url = add_query_arg( $edit_args, admin_url( 'tools.php' ) );
 		}
 
-		$url  = add_query_arg( $edit_args, admin_url( 'tools.php' ) );
 		$text = '<strong><a href="' . esc_url( $url ) . '">' . esc_html( $item['name'] ) . '</a></strong>';
 
 		// Show the ability description as a small paragraph when available.
@@ -240,6 +270,45 @@ class List_Table extends \WP_List_Table {
 	 */
 	public function column_slug( $item ): string {
 		return '<code>' . esc_html( $item['slug'] ) . '</code>';
+	}
+
+	/**
+	 * Renders the Type column to distinguish override from custom abilities.
+	 *
+	 * @param array<string, mixed> $item Current row's data array.
+	 * @return string Translated 'Override' or 'Custom'.
+	 */
+	public function column_type( $item ): string {
+		if ( 'custom' === $item['type'] ) {
+			return esc_html__( 'Custom', 'acrossai-abilities-manager' );
+		}
+		return esc_html__( 'Override', 'acrossai-abilities-manager' );
+	}
+
+	/**
+	 * Renders the Label column showing the ability label (for custom abilities).
+	 *
+	 * @param array<string, mixed> $item Current row's data array.
+	 * @return string HTML for the Label cell.
+	 */
+	public function column_label( $item ): string {
+		if ( 'custom' !== $item['type'] ) {
+			return '&mdash;';
+		}
+		return esc_html( $item['label'] ?? '' );
+	}
+
+	/**
+	 * Renders the Status column (for custom abilities).
+	 *
+	 * @param array<string, mixed> $item Current row's data array.
+	 * @return string HTML for the Status cell.
+	 */
+	public function column_status( $item ): string {
+		if ( 'custom' !== $item['type'] ) {
+			return '&mdash;';
+		}
+		return esc_html( $item['status'] ?? 'active' );
 	}
 
 	/**
@@ -348,15 +417,28 @@ class List_Table extends \WP_List_Table {
 	}
 
 	/**
-	 * Renders the Actions column with Edit, Allow/Disallow, and optionally Reset buttons.
+	 * Renders the Actions column with context-specific buttons.
 	 *
-	 * The Reset button is shown only when a stored override exists for this ability,
-	 * since resetting a row that does not exist would be a no-op.
+	 * For override abilities:
+	 *   - Edit: Opens the override edit form
+	 *   - Allow/Disallow: Toggles site_allowed
+	 *   - Reset: Deletes the override row (shown only when an override exists)
+	 *
+	 * For custom abilities:
+	 *   - Edit: Opens the custom ability edit form
+	 *   - Duplicate: Creates a copy with a new slug
+	 *   - Delete: Removes the custom ability
 	 *
 	 * @param array<string, mixed> $item Current row's data array.
 	 * @return string HTML for the Actions cell.
 	 */
 	public function column_actions( $item ): string {
+		// Custom abilities have a different set of actions than provider overrides.
+		if ( 'custom' === $item['type'] ) {
+			return $this->column_actions_custom( $item );
+		}
+
+		// Provider override actions.
 		$edit_args = array(
 			'page'   => 'acrossai-abilities-manager',
 			'action' => 'edit',
@@ -417,6 +499,61 @@ class List_Table extends \WP_List_Table {
 	}
 
 	/**
+	 * Renders the Actions column for custom abilities.
+	 *
+	 * Shows Edit, Duplicate, and Delete actions.
+	 *
+	 * @param array<string, mixed> $item Current row's data array.
+	 * @return string HTML for the Actions cell.
+	 */
+	private function column_actions_custom( $item ): string {
+		// Edit link points to the custom ability edit page.
+		$edit_url = add_query_arg(
+			array(
+				'page' => 'acrossai-add-ability',
+				'slug' => $item['slug'],
+			),
+			admin_url( 'admin.php' )
+		);
+
+		// Duplicate action triggers a copy of the custom ability.
+		$duplicate_url = wp_nonce_url(
+			add_query_arg(
+				array(
+					'page'       => 'acrossai-abilities-manager',
+					'aam_action' => 'duplicate_custom',
+					'slug'       => $item['slug'],
+				),
+				admin_url( 'tools.php' )
+			),
+			'aam_duplicate_custom_' . $item['slug'],
+			'aam_duplicate_custom_nonce'
+		);
+
+		// Delete action removes the custom ability.
+		$delete_url = wp_nonce_url(
+			add_query_arg(
+				array(
+					'page'       => 'acrossai-abilities-manager',
+					'aam_action' => 'delete_custom',
+					'slug'       => $item['slug'],
+				),
+				admin_url( 'tools.php' )
+			),
+			'aam_delete_custom_' . $item['slug'],
+			'aam_delete_custom_nonce'
+		);
+
+		$actions = array(
+			'<a class="button button-small button-primary" href="' . esc_url( $edit_url ) . '">' . esc_html__( 'Edit', 'acrossai-abilities-manager' ) . '</a>',
+			'<a class="button button-small" href="' . esc_url( $duplicate_url ) . '">' . esc_html__( 'Duplicate', 'acrossai-abilities-manager' ) . '</a>',
+			'<a class="button button-small" href="' . esc_url( $delete_url ) . '" onclick="return window.confirm(' . esc_js( wp_json_encode( __( 'Delete this custom ability?', 'acrossai-abilities-manager' ) ) ) . ');">' . esc_html__( 'Delete', 'acrossai-abilities-manager' ) . '</a>',
+		);
+
+		return implode( ' ', $actions );
+	}
+
+	/**
 	 * Renders additional navigation controls above the table (Sort By dropdowns).
 	 *
 	 * WordPress calls this method for both 'top' and 'bottom' positions.
@@ -440,8 +577,11 @@ class List_Table extends \WP_List_Table {
 			<select name="orderby" id="acrossai-abilities-manager-orderby">
 				<option value="name" <?php selected( $orderby, 'name' ); ?>><?php esc_html_e( 'Name', 'acrossai-abilities-manager' ); ?></option>
 				<option value="slug" <?php selected( $orderby, 'slug' ); ?>><?php esc_html_e( 'Slug', 'acrossai-abilities-manager' ); ?></option>
+				<option value="type" <?php selected( $orderby, 'type' ); ?>><?php esc_html_e( 'Type', 'acrossai-abilities-manager' ); ?></option>
+				<option value="label" <?php selected( $orderby, 'label' ); ?>><?php esc_html_e( 'Label', 'acrossai-abilities-manager' ); ?></option>
 				<option value="provider" <?php selected( $orderby, 'provider' ); ?>><?php esc_html_e( 'Provider', 'acrossai-abilities-manager' ); ?></option>
 				<option value="category" <?php selected( $orderby, 'category' ); ?>><?php esc_html_e( 'Category', 'acrossai-abilities-manager' ); ?></option>
+				<option value="status" <?php selected( $orderby, 'status' ); ?>><?php esc_html_e( 'Status', 'acrossai-abilities-manager' ); ?></option>
 				<option value="site_allowed" <?php selected( $orderby, 'site_allowed' ); ?>><?php esc_html_e( 'Allowed', 'acrossai-abilities-manager' ); ?></option>
 				<option value="readonly" <?php selected( $orderby, 'readonly' ); ?>><?php esc_html_e( 'Readonly', 'acrossai-abilities-manager' ); ?></option>
 				<option value="destructive" <?php selected( $orderby, 'destructive' ); ?>><?php esc_html_e( 'Destructive', 'acrossai-abilities-manager' ); ?></option>
@@ -463,9 +603,8 @@ class List_Table extends \WP_List_Table {
 	 * Renders the provider filter tab bar above the list table.
 	 *
 	 * Outputs an unordered list styled as WordPress's `subsubsub` navigation,
-	 * with one tab per provider kind (All, Core, Plugins, Themes) and a count
-	 * badge next to each label. The currently active tab is rendered as a <span>
-	 * instead of an <a> to avoid a self-referential link.
+	 * with tabs for provider kinds (All, Core, Plugins, Themes, Custom) and count
+	 * badges. The currently active tab is rendered as a <span> instead of an <a>.
 	 *
 	 * Must be called after prepare_items() so that provider_counts is populated.
 	 *
@@ -489,6 +628,10 @@ class List_Table extends \WP_List_Table {
 			'theme'  => array(
 				'label' => __( 'Themes', 'acrossai-abilities-manager' ),
 				'count' => $this->provider_counts['theme'],
+			),
+			'custom' => array(
+				'label' => __( 'Custom', 'acrossai-abilities-manager' ),
+				'count' => $this->provider_counts['custom'],
 			),
 		);
 
@@ -520,11 +663,11 @@ class List_Table extends \WP_List_Table {
 	}
 
 	/**
-	 * Builds the full merged item list from live abilities and stored overrides.
+	 * Builds the full merged item list from live abilities, stored overrides, and custom abilities.
 	 *
 	 * First iterates registered abilities; then iterates stored overrides to
-	 * include any slug that has an override but is no longer registered (i.e.
-	 * the plugin that registered the ability was deactivated).
+	 * include any slug that has an override but is no longer registered; finally
+	 * iterates custom abilities to include user-defined abilities.
 	 *
 	 * @return array<int, array<string, mixed>> Flat list of item arrays.
 	 */
@@ -544,11 +687,16 @@ class List_Table extends \WP_List_Table {
 			$items[] = $this->build_item( (string) $slug, null, $override );
 		}
 
+		foreach ( $this->custom_abilities as $slug => $custom ) {
+			// Add custom ability rows.
+			$items[] = $this->build_custom_item( (string) $slug, $custom );
+		}
+
 		return $items;
 	}
 
 	/**
-	 * Builds the data array for a single table row.
+	 * Builds the data array for a single provider ability row.
 	 *
 	 * Merges the live WP_Ability metadata with any stored override, resolves
 	 * the display-ready values, detects the provider, looks up the category
@@ -574,9 +722,12 @@ class List_Table extends \WP_List_Table {
 
 		return array(
 			'id'            => is_array( $override ) && ! empty( $override['id'] ) ? (int) $override['id'] : 0,
+			'type'          => 'override',
 			'name'          => $ability instanceof \WP_Ability ? (string) $ability->get_label() : $slug,
 			'slug'          => $slug,
 			'description'   => $ability instanceof \WP_Ability ? (string) $ability->get_description() : __( 'Registered override with no currently loaded ability.', 'acrossai-abilities-manager' ),
+			'label'         => '',
+			'status'        => '',
 			'provider'      => $provider,
 			'category'      => $category,
 			'category_slug' => $category_slug,
@@ -589,6 +740,42 @@ class List_Table extends \WP_List_Table {
 			'mcp_public'    => $this->coalesce_bool( $override['mcp_public'] ?? null, $meta['mcp']['public'] ?? null ),
 			'mcp_type'      => $this->coalesce_text( $override['mcp_type'] ?? '', $meta['mcp']['type'] ?? '' ),
 			'has_override'  => is_array( $override ),
+		);
+	}
+
+	/**
+	 * Builds the data array for a single custom ability row.
+	 *
+	 * Extracts custom ability data from the database and formats it for display.
+	 * Increments the custom ability counter for the stats bar.
+	 *
+	 * @param string               $slug   Custom ability slug.
+	 * @param array<string, mixed> $custom Custom ability data from database.
+	 * @return array<string, mixed> Flat item array ready for column_*() methods.
+	 */
+	private function build_custom_item( string $slug, array $custom ): array {
+		++$this->provider_counts['custom'];
+
+		return array(
+			'id'            => (int) ( $custom['id'] ?? 0 ),
+			'type'          => 'custom',
+			'name'          => $custom['label'] ?? $slug,
+			'slug'          => $slug,
+			'description'   => $custom['description'] ?? '',
+			'label'         => $custom['label'] ?? '',
+			'status'        => $custom['status'] ?? 'active',
+			'provider'      => 'custom',
+			'category'      => $custom['category'] ?? '',
+			'category_slug' => $custom['category'] ?? '',
+			'provider_kind' => 'custom',
+			'site_allowed'  => true,
+			'readonly'      => false,
+			'destructive'   => false,
+			'idempotent'    => false,
+			'show_in_rest'  => false,
+			'mcp_public'    => false,
+			'mcp_type'      => '',
+			'has_override'  => false,
 		);
 	}
 

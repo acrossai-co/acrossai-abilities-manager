@@ -82,6 +82,7 @@ function acrossai_abilities_manager_bootstrap(): void {
 		add_action( 'admin_menu', array( 'AcrossAI_Abilities_Manager\Admin\Menu', 'register' ) );
 		add_action( 'admin_init', array( 'AcrossAI_Abilities_Manager\Database\Schema', 'maybe_upgrade_table' ) );
 		add_action( 'admin_init', array( 'AcrossAI_Abilities_Manager\Admin\Edit_Screen', 'handle_actions' ) );
+		add_action( 'admin_init', array( 'AcrossAI_Abilities_Manager\Admin\Add_Ability_Page', 'register' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE ), array( 'AcrossAI_Abilities_Manager\Admin\Menu', 'plugin_action_links' ) );
 	}
 	add_action( 'wp_abilities_api_init', array( 'AcrossAI_Abilities_Manager\Runtime\Override_Applier', 'bootstrap' ), 0 );

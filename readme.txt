@@ -32,8 +32,9 @@ AcrossAI Abilities Manager currently lets administrators manage these override f
 * destructive
 * idempotent
 * show_in_rest
-* mcp.public
-* mcp.type
+* mcp_public
+* mcp_servers (for per-MCP-server visibility control)
+* mcp_type
 * custom_meta through the REST API
 
 The plugin does not replace the original ability registration. It layers stored metadata overrides on top of the arguments WordPress receives during registration, and it can remove a disallowed ability from the live registry when site policy requires it.
@@ -41,21 +42,29 @@ The plugin does not replace the original ability registration. It layers stored 
 = Key features =
 
 * Classic wp-admin interface under Tools > Ability Manager.
-* Searchable and sortable list of registered abilities.
-* Provider tabs for quickly filtering core, plugin, and theme abilities.
+* Unified searchable and sortable list of registered abilities, overrides, and custom abilities.
+* Type column distinguishing between provider overrides and custom user-defined abilities.
+* Provider and Type filters for quickly filtering by origin and ability type.
 * Category display for each ability, including human-readable labels and slugs.
-* Edit screen for individual abilities.
+* Status column for custom abilities (active, draft, archived).
+* Edit screen for individual abilities and custom abilities.
 * Screen Options support and configurable items-per-page.
-* List actions for Edit, Allow or Disallow, and Reset.
+* Context-specific row actions:
+  - For provider abilities: Edit, Allow or Disallow, and Reset override.
+  - For custom abilities: Edit, Duplicate, and Delete.
 * Save workflow with Save, Save and Exit, and Reset Override actions.
 * Diff-only persistence so default values are not stored unnecessarily.
-* Dedicated custom database table for overrides.
+* Dedicated custom database tables for overrides and custom abilities.
 * Runtime metadata application through wp_register_ability_args.
 * Runtime site disallow through a late wp_unregister_ability() pass.
 * Request guard that avoids mutating registrations while the AcrossAI Abilities Manager admin screen itself is rendering.
-* REST API endpoints for listing, reading, saving, and deleting overrides.
+* REST API endpoints for listing, reading, saving, and deleting overrides and custom abilities.
 * Capability checks based on manage_options.
-* Nonce protection for admin save, toggle, and reset operations.
+* Nonce protection for admin save, toggle, reset, duplicate, and delete operations.
+* Custom abilities creation screen under Tools > Add New Ability.
+* Full-featured form for creating and managing custom abilities with validation.
+* JSON schema editors for input/output definitions.
+* REST API endpoints for custom abilities CRUD operations.
 
 = Admin experience =
 
@@ -76,19 +85,39 @@ The edit screen is designed for fast manual administration.
 * Toggle whether the ability is allowed on the current site.
 * Override tri-state booleans for readonly, destructive, and idempotent.
 * Toggle REST exposure.
-* Toggle MCP public visibility.
+* Control MCP visibility with granular per-server options:
+  - Disable for MCP (no server exposure)
+  - Allow in all MCP servers
+  - Allow in specific MCP servers (with conditional server selector)
 * Select the MCP type from supported values.
 * Save and stay on the same screen.
 * Save and return to the main Ability Manager list.
 * Reset the stored override from the same action area.
 
-There is no separate View mode. The plugin uses a list screen plus an edit screen only.
+The add/edit custom ability screen allows administrators to create and maintain custom abilities.
 
-= How overrides are stored =
+* Enter a unique ability slug in namespace/name format.
+* Set the label, description, and category for the ability.
+* Define input and output JSON schemas for documentation and validation.
+* Specify execution and permission callback functions or methods.
+* Configure metadata flags: readonly, destructive, idempotent, show_in_rest, mcp_public.
+* Select optional MCP type: tools, resources, or prompts.
+* Add custom JSON metadata as needed.
+* Set the ability status: active, draft, or archived.
+* Save the ability and remain on the form or exit to the list.
 
-Manager are saved in a dedicated custom table named using your WordPress database prefix plus acrossai_abilities_manager.
+There is no separate View mode. The plugin uses a list screen, an edit screen for overrides, and an add/edit screen for custom abilities only.
 
-Stored data includes:
+= How data is stored =
+
+The plugin uses two dedicated custom tables in your WordPress database:
+
+1. **Overrides table** (`wp_acrossai_abilities_overwrite`): Stores thin metadata overrides for provider-defined abilities.
+2. **Abilities table** (`wp_acrossai_abilities`): Stores user-defined custom abilities with full definitions.
+
+== Overrides storage ==
+
+Overrides are saved in the `wp_acrossai_abilities_overwrite` table and include:
 
 * Ability slug
 * Provider
@@ -99,6 +128,18 @@ Stored data includes:
 * Created and updated timestamps
 
 The plugin stores only override values that differ from the current live ability metadata. If the saved values match the live defaults again, the plugin can remove the stale override row instead of keeping redundant data.
+
+== Custom abilities storage ==
+
+User-defined abilities are saved in the `wp_acrossai_abilities` table with full definitions:
+
+* Ability slug and metadata (label, description, category)
+* Input and output JSON schemas
+* Execute and permission callback functions
+* Status (active/draft/archived)
+* Annotations (readonly, destructive, idempotent)
+* API configuration (show_in_rest, MCP settings)
+* Custom metadata and version tracking
 
 = Runtime behavior =
 
@@ -134,8 +175,14 @@ Supported writable fields include:
 * idempotent
 * show_in_rest
 * mcp_public
+* mcp_servers (array of server IDs for per-server MCP visibility)
 * mcp_type
 * custom_meta
+
+When using mcp_servers:
+- Set mcp_public: true with empty mcp_servers to expose to all servers
+- Set mcp_public: false with mcp_servers array to restrict to specific servers
+- Set mcp_public: null to disable MCP exposure entirely
 
 == Custom Abilities Endpoints ==
 
@@ -260,7 +307,9 @@ Yes. The REST API accepts a custom_meta payload, which is merged into the normal
 * Added runtime metadata override application through wp_register_ability_args.
 * Added runtime site disallow through a late unregister pass.
 * Added reset actions and edit-screen save workflows.
-* Added MCP visibility and MCP type override support.
+* Added granular MCP server visibility control with radio button UI (all servers, none, or specific servers).
+* Added runtime helper method to check ability exposure to specific MCP servers.
+* Added discovery hook for MCP server integration: acrossai_abilities_manager_get_mcp_servers.
 * Added runtime failure notification hook for diagnostics.
 
 == Upgrade Notice ==
