@@ -35,13 +35,13 @@ class Override_Applier {
 	 * Initializes the runtime override layer for the current request.
 	 *
 	 * This method is intended to run from the `wp_abilities_api_init` action.
-	 * It decides whether the plugin should attach the core
-	 * `wp_register_ability_args` filter for this request.
+	 * It handles both metadata overrides for provider abilities and registration
+	 * of user-defined custom abilities.
 	 *
 	 * The method checks three things in order:
 	 * - whether bootstrap already ran in this request
 	 * - whether the current request should skip runtime overrides entirely
-	 * - whether any saved override rows exist to apply
+	 * - whether any saved override rows or custom abilities exist to apply/register
 	 *
 	 * @return void
 	 */
@@ -77,6 +77,10 @@ class Override_Applier {
 		// instantiates each ability, which makes it the safest and cheapest place
 		// to inject saved metadata overrides.
 		add_filter( 'wp_register_ability_args', array( __CLASS__, 'apply' ), 10, 2 );
+
+		// Register custom abilities defined by site admins. This runs at high priority
+		// on wp_abilities_api_init so custom abilities are available alongside provider abilities.
+		add_action( 'wp_abilities_api_init', array( __CLASS__, 'register_custom_abilities' ), 5 );
 	}
 
 	/**
@@ -322,5 +326,148 @@ class Override_Applier {
 	 */
 	private static function notify_failure( string $slug, string $message ): void {
 		do_action( 'acrossai_abilities_manager_override_error', $slug, $message );
+	}
+
+	/**
+	 * Registers all active custom abilities defined by site admins.
+	 *
+	 * This method is called at priority 5 on `wp_abilities_api_init` (before provider
+	 * registrations are processed by the filter at priority 10) to register custom abilities.
+	 * Only custom abilities with status='active' are registered.
+	 *
+	 * @return void
+	 */
+	public static function register_custom_abilities(): void {
+		if ( self::should_skip_request() || ! function_exists( 'wp_register_ability' ) ) {
+			return;
+		}
+
+		$result = Repository::get_all_custom_abilities( array( 'status' => 'active', 'per_page' => 0 ) );
+
+		foreach ( $result['items'] as $custom_ability ) {
+			try {
+				self::register_custom_ability( $custom_ability );
+			} catch ( \Throwable $throwable ) {
+				self::notify_failure( $custom_ability['ability_slug'], 'Custom ability registration failed: ' . $throwable->getMessage() );
+			}
+		}
+	}
+
+	/**
+	 * Registers a single custom ability with WordPress.
+	 *
+	 * Converts custom ability database record to WordPress Abilities API format,
+	 * including converting stored callback strings to callable functions when possible.
+	 *
+	 * @param array<string, mixed> $custom_ability Normalized custom ability record from Repository.
+	 * @return void
+	 */
+	private static function register_custom_ability( array $custom_ability ): void {
+		$slug = (string) $custom_ability['ability_slug'];
+		$args = array(
+			'label'       => (string) $custom_ability['label'],
+			'description' => (string) $custom_ability['description'],
+			'category'    => ! empty( $custom_ability['category'] ) ? (string) $custom_ability['category'] : 'general',
+		);
+
+		// Include input_schema if present.
+		if ( ! empty( $custom_ability['input_schema'] ) && is_array( $custom_ability['input_schema'] ) ) {
+			$args['input_schema'] = $custom_ability['input_schema'];
+		}
+
+		// Include output_schema if present.
+		if ( ! empty( $custom_ability['output_schema'] ) && is_array( $custom_ability['output_schema'] ) ) {
+			$args['output_schema'] = $custom_ability['output_schema'];
+		}
+
+		// Convert execute_callback string to callable.
+		if ( ! empty( $custom_ability['execute_callback'] ) ) {
+			$args['execute_callback'] = self::get_callable_from_string(
+				(string) $custom_ability['execute_callback']
+			);
+		}
+
+		// Convert permission_callback string to callable.
+		if ( ! empty( $custom_ability['permission_callback'] ) ) {
+			$args['permission_callback'] = self::get_callable_from_string(
+				(string) $custom_ability['permission_callback']
+			);
+		}
+
+		// Build metadata flags and visibility settings.
+		$args['meta'] = array(
+			'annotations' => array(),
+			'mcp'         => array(),
+		);
+
+		// Apply tri-state metadata flags (true/false/null).
+		foreach ( array( 'readonly', 'destructive', 'idempotent' ) as $flag ) {
+			if ( isset( $custom_ability[ $flag ] ) && null !== $custom_ability[ $flag ] ) {
+				$args['meta']['annotations'][ $flag ] = (bool) $custom_ability[ $flag ];
+			}
+		}
+
+		// Apply REST visibility.
+		if ( isset( $custom_ability['show_in_rest'] ) && null !== $custom_ability['show_in_rest'] ) {
+			$args['meta']['show_in_rest'] = (bool) $custom_ability['show_in_rest'];
+		}
+
+		// Apply MCP visibility.
+		if ( isset( $custom_ability['mcp_public'] ) && null !== $custom_ability['mcp_public'] ) {
+			$args['meta']['mcp']['public'] = (bool) $custom_ability['mcp_public'];
+		}
+
+		// Apply MCP type if present.
+		if ( ! empty( $custom_ability['mcp_type'] ) ) {
+			$args['meta']['mcp']['type'] = sanitize_text_field( (string) $custom_ability['mcp_type'] );
+		}
+
+		// Merge custom metadata if present.
+		if ( ! empty( $custom_ability['custom_meta'] ) && is_array( $custom_ability['custom_meta'] ) ) {
+			$args['meta'] = array_replace_recursive( $args['meta'], $custom_ability['custom_meta'] );
+		}
+
+		wp_register_ability( $slug, $args );
+	}
+
+	/**
+	 * Converts a callback string (function name or class::method) to a callable.
+	 *
+	 * This helper is needed because custom abilities store callbacks as strings in the database.
+	 * It attempts to resolve the string to a PHP callable function or method.
+	 *
+	 * Supports formats:
+	 * - 'function_name' → callable function
+	 * - 'ClassName::method_name' → static method
+	 * - '__invoke()' → callable object (if stored as 'ClassName::__invoke')
+	 *
+	 * @param string $callback_string Callback string to resolve.
+	 * @return callable|null Callable if found, null otherwise.
+	 */
+	private static function get_callable_from_string( string $callback_string ): ?callable {
+		$callback_string = trim( (string) $callback_string );
+
+		if ( empty( $callback_string ) ) {
+			return null;
+		}
+
+		// Check if it's a simple function name.
+		if ( function_exists( $callback_string ) ) {
+			return $callback_string;
+		}
+
+		// Check if it's a static method (ClassName::method_name).
+		if ( strpos( $callback_string, '::' ) !== false ) {
+			list( $class, $method ) = explode( '::', $callback_string, 2 );
+			$class = trim( $class );
+			$method = trim( $method );
+
+			if ( class_exists( $class ) && method_exists( $class, $method ) ) {
+				return array( $class, $method );
+			}
+		}
+
+		// If the string doesn't resolve, return null and log the error at registration time.
+		return null;
 	}
 }
