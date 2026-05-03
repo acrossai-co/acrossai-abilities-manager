@@ -115,16 +115,32 @@ Called to discover available MCP servers for the admin interface.
 **Parameters:**
 - `$servers` (array, passed by reference) — Array to populate with available servers
 
+**Server Array Format:**
+Each server entry must contain:
+- `id` (string) — Unique server identifier
+- `label` (string) — Human-readable server name for the admin UI
+
 **Example Usage (from mcp-adapter or similar):**
 
 ```php
 add_action( 'acrossai_abilities_manager_get_mcp_servers', function( &$servers ) {
-	$servers[] = array(
-		'id'    => 'my-mcp-server',
-		'label' => 'My Custom MCP Server',
-	);
+	// Discover your MCP servers and populate the array
+	$available_servers = get_available_mcp_servers(); // Your discovery method
+	
+	foreach ( $available_servers as $server ) {
+		$servers[] = array(
+			'id'    => $server['id'],
+			'label' => $server['name'],
+		);
+	}
 } );
 ```
+
+**Important Notes:**
+- The servers array is passed by reference, so modifications persist for the caller
+- Hook into this action early (priority <= 10) to ensure servers are available for the admin form
+- Server IDs will be sanitized with `sanitize_text_field()` before storage
+- If this hook is not implemented by any plugin, the "Allow in specific MCP servers" option will display a helpful message indicating no servers are available
 
 ### acrossai_abilities_manager_override_error
 

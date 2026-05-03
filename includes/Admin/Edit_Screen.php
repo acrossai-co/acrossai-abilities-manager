@@ -468,8 +468,8 @@ class Edit_Screen {
 				</label>
 			</p>
 
-			<?php if ( ! empty( $servers ) ) : ?>
-				<div id="aam-mcp-servers-container" style="margin-top: 8px; margin-left: 24px; display: <?php echo 'specific' === $current_mode ? 'block' : 'none'; ?>;">
+			<div id="aam-mcp-servers-container" style="margin-top: 8px; margin-left: 24px; display: <?php echo 'specific' === $current_mode ? 'block' : 'none'; ?>;">
+				<?php if ( ! empty( $servers ) ) : ?>
 					<fieldset>
 						<legend><?php esc_html_e( 'Select servers:', 'acrossai-abilities-manager' ); ?></legend>
 						<?php foreach ( $servers as $server ) : ?>
@@ -481,8 +481,12 @@ class Edit_Screen {
 							</label>
 						<?php endforeach; ?>
 					</fieldset>
-				</div>
-			<?php endif; ?>
+				<?php else : ?>
+					<p style="margin: 8px 0; color: #666; font-size: 13px; font-style: italic;">
+						<?php esc_html_e( 'No MCP servers available. Ensure an MCP adapter plugin is installed and activated.', 'acrossai-abilities-manager' ); ?>
+					</p>
+				<?php endif; ?>
+			</div>
 		</div>
 		<?php
 	}
