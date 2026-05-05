@@ -39,6 +39,13 @@ if ( ! defined( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL' ) ) {
 	define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 }
 
+// Load the Composer-generated autoloader so that vendor classes (e.g.
+// WPBoilerplate\AccessControl\*) are always available, regardless of
+// whether another plugin happens to include the same library.
+if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor/autoload.php';
+}
+
 /**
  * PSR-4-style autoloader for the AcrossAI_Abilities_Manager namespace.
  *
@@ -77,6 +84,14 @@ spl_autoload_register(
  * @return void
  */
 function acrossai_abilities_manager_bootstrap(): void {
+	// Register AccessControlUI AJAX handlers early so they are available on
+	// both normal admin requests and admin-ajax.php requests. Per the library
+	// docs, the shared bootstrap must not be deferred to admin_enqueue_scripts
+	// or a page-specific callback.
+	if ( class_exists( 'WPBoilerplate\AccessControl\Admin\AccessControlUI' ) ) {
+		\WPBoilerplate\AccessControl\Admin\AccessControlUI::bootstrap();
+	}
+
 	// Admin hooks are skipped on front-end requests to reduce overhead.
 	if ( is_admin() ) {
 		add_action( 'admin_menu', array( 'AcrossAI_Abilities_Manager\Admin\Menu', 'register' ) );

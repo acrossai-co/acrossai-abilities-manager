@@ -153,6 +153,11 @@ class Edit_Screen {
 			</a>
 		</nav>
 
+		<?php if ( 'access-control' === $active_tab ) : ?>
+			<div class="aam-tab-panel">
+				<?php AccessControlManager::render( $slug ); ?>
+			</div>
+		<?php else : ?>
 		<form method="post" action="<?php echo esc_url( add_query_arg( array( 'tab' => $active_tab ), admin_url( 'admin.php?page=acrossai-abilities-manager' ) ) ); ?>">
 			<input type="hidden" name="page" value="acrossai-abilities-manager" />
 			<input type="hidden" name="aam_action" value="save" />
@@ -183,14 +188,6 @@ class Edit_Screen {
 				</div>
 			<?php endif; ?>
 
-		<?php if ( 'access-control' === $active_tab ) : ?>
-			<div class="aam-tab-panel">
-				<?php AccessControlManager::render( $slug ); ?>
-			</div>
-		<?php endif; ?>
-
-		<!-- Only show submit buttons for general and mcp tabs; access-control tab has its own save mechanism via AccessControlManager. -->
-		<?php if ( 'access-control' !== $active_tab ) : ?>
 			<p class="submit">
 					<button type="submit" name="aam_save_target" value="stay" class="button button-primary"><?php esc_html_e( 'Save', 'acrossai-abilities-manager' ); ?></button>
 					<button type="submit" name="aam_save_target" value="exit" class="button"><?php esc_html_e( 'Save and Exit', 'acrossai-abilities-manager' ); ?></button>
@@ -213,8 +210,8 @@ class Edit_Screen {
 						<a href="<?php echo esc_url( $delete_url ); ?>" class="button" onclick="return window.confirm(<?php echo esc_attr( wp_json_encode( __( 'Reset this override?', 'acrossai-abilities-manager' ) ) ); ?>);"><?php esc_html_e( 'Reset Override', 'acrossai-abilities-manager' ); ?></a>
 					<?php endif; ?>
 			</p>
-		<?php endif; ?>
 		</form>
+		<?php endif; ?>
 		<script>
 		document.addEventListener( 'DOMContentLoaded', function() {
 			// MCP Visibility show/hide logic (only relevant on the MCP tab).
