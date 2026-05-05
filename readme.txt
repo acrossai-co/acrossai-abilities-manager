@@ -58,7 +58,7 @@ The plugin does not replace the original ability registration. It layers stored 
 * Dedicated custom database tables for overrides and custom abilities.
 * Runtime metadata application through wp_register_ability_args.
 * Runtime site disallow through a late wp_unregister_ability() pass.
-* Runtime role-based access control that restricts ability access to specific WordPress roles.
+* Runtime role-based access control that restricts ability access to specific WordPress roles by wrapping the permission_callback at registration time, so the access check runs after full authentication.
 * Request guard that avoids mutating registrations while the AcrossAI Abilities Manager admin screen itself is rendering.
 * REST API endpoints for listing, reading, saving, and deleting overrides and custom abilities.
 * Capability checks based on manage_options.

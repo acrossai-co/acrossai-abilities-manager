@@ -66,7 +66,8 @@ The plugin supports role-based access control to restrict ability use to specifi
 - **Restrict to specific roles**: Select which WordPress roles can use the ability. Administrators (users with `manage_options`) always have access regardless of settings.
 
 Access control rules are managed via a dedicated table (`wpb_access_control`) and are enforced at runtime:
-- Abilities the current user doesn't have access to are automatically unregistered from the WordPress Abilities API for that request
+- When an ability has a role restriction, its `permission_callback` is wrapped at registration time so the access check runs when the ability is actually executed (after full authentication), not during plugin initialization
+- This ensures correct behavior for REST API requests that use Application Passwords or token-based authentication, where the user identity is resolved lazily
 - Role-based access control is separate from metadata overrides and site-level disallow
 
 Administrators can configure access control on the "Access Control" tab of the ability edit screen.
