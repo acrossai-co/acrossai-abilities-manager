@@ -16,6 +16,7 @@ namespace AcrossAI_Abilities_Manager\Access_Control;
 use WPBoilerplate\AccessControl\AccessControlManager;
 use WPBoilerplate\AccessControl\Admin\AccessControlUI;
 use WPBoilerplate\AccessControl\WpRoleProvider;
+use WPBoilerplate\AccessControl\WpUserProvider;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -61,6 +62,7 @@ class Manager {
 				'acrossai_abilities_manager_access_control_providers',
 				static function ( array $providers ): array {
 					$providers[] = new WpRoleProvider();
+					$providers[] = new WpUserProvider();
 					return $providers;
 				}
 			);
