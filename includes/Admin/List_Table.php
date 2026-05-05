@@ -86,7 +86,7 @@ class List_Table extends \WP_List_Table {
 				'singular' => 'ability-override',
 				'plural'   => 'ability-overrides',
 				'ajax'     => false,
-				'screen'   => 'tools_page_acrossai-abilities-manager',
+				'screen'   => 'toplevel_page_acrossai-abilities-manager',
 			)
 		);
 	}
@@ -175,7 +175,7 @@ class List_Table extends \WP_List_Table {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
 		// Fall back to a hard-coded default when get_current_screen() is unavailable.
-		$hidden = $screen ? get_hidden_columns( $screen ) : array( 'destructive', 'idempotent', 'label', 'status' );
+		$hidden = $screen ? get_hidden_columns( $screen ) : array( 'type', 'label', 'status', 'readonly', 'destructive', 'idempotent' );
 
 		usort( $items, array( $this, 'sort_items' ) );
 		$this->_column_headers = array( $this->get_columns(), $hidden, $this->get_sortable_columns() );
@@ -239,7 +239,7 @@ class List_Table extends \WP_List_Table {
 				$edit_args['slug'] = $item['slug'];
 			}
 
-			$url = add_query_arg( $edit_args, admin_url( 'tools.php' ) );
+			$url = add_query_arg( $edit_args, admin_url( 'admin.php' ) );
 		}
 
 		$text = '<strong><a href="' . esc_url( $url ) . '">' . esc_html( $item['name'] ) . '</a></strong>';
@@ -451,7 +451,7 @@ class List_Table extends \WP_List_Table {
 			$edit_args['slug'] = $item['slug'];
 		}
 
-		$edit        = add_query_arg( $edit_args, admin_url( 'tools.php' ) );
+		$edit        = add_query_arg( $edit_args, admin_url( 'admin.php' ) );
 		$toggle_url  = wp_nonce_url(
 			add_query_arg(
 				array(
@@ -461,7 +461,7 @@ class List_Table extends \WP_List_Table {
 					// Send the opposite of the current state so the toggle flips the value.
 					'site_allowed' => $item['site_allowed'] ? '0' : '1',
 				),
-				admin_url( 'tools.php' )
+				admin_url( 'admin.php' )
 			),
 			'aam_toggle_allowed_' . $item['slug'],
 			'aam_toggle_allowed_nonce'
@@ -487,7 +487,7 @@ class List_Table extends \WP_List_Table {
 						'aam_action' => 'delete',
 						'slug'       => $item['slug'],
 					),
-					admin_url( 'tools.php' )
+					admin_url( 'admin.php' )
 				),
 				'aam_delete_meta_' . $item['slug'],
 				'aam_delete_nonce'
@@ -524,7 +524,7 @@ class List_Table extends \WP_List_Table {
 					'aam_action' => 'duplicate_custom',
 					'slug'       => $item['slug'],
 				),
-				admin_url( 'tools.php' )
+				admin_url( 'admin.php' )
 			),
 			'aam_duplicate_custom_' . $item['slug'],
 			'aam_duplicate_custom_nonce'
@@ -538,7 +538,7 @@ class List_Table extends \WP_List_Table {
 					'aam_action' => 'delete_custom',
 					'slug'       => $item['slug'],
 				),
-				admin_url( 'tools.php' )
+				admin_url( 'admin.php' )
 			),
 			'aam_delete_custom_' . $item['slug'],
 			'aam_delete_custom_nonce'
@@ -683,8 +683,9 @@ class List_Table extends \WP_List_Table {
 			if ( isset( $this->abilities[ $slug ] ) ) {
 				continue;
 			}
-			// Add override-only rows for abilities that are no longer registered.
-			$items[] = $this->build_item( (string) $slug, null, $override );
+			// Skip overrides for abilities that are no longer registered (their plugins are deactivated).
+			// The override row is preserved in the database for potential reactivation.
+			continue;
 		}
 
 		foreach ( $this->custom_abilities as $slug => $custom ) {
@@ -1057,6 +1058,6 @@ class List_Table extends \WP_List_Table {
 			$args['order'] = sanitize_key( wp_unslash( $_REQUEST['order'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		}
 
-		return add_query_arg( $args, admin_url( 'tools.php' ) );
+		return add_query_arg( $args, admin_url( 'admin.php' ) );
 	}
 }

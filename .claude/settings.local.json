@@ -16,7 +16,8 @@
       "Bash(git push:*)",
       "Bash(mkdir -p /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/assets/css)",
       "Bash(mkdir -p /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/assets/js)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(composer require *)"
     ]
   }
 }

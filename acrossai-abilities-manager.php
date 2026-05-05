@@ -83,12 +83,50 @@ function acrossai_abilities_manager_bootstrap(): void {
 		add_action( 'admin_init', array( 'AcrossAI_Abilities_Manager\Database\Schema', 'maybe_upgrade_table' ) );
 		add_action( 'admin_init', array( 'AcrossAI_Abilities_Manager\Admin\Edit_Screen', 'handle_actions' ) );
 		add_action( 'admin_init', array( 'AcrossAI_Abilities_Manager\Admin\Add_Ability_Page', 'register' ) );
+		add_action( 'admin_init', array( 'AcrossAI_Abilities_Manager\Access_Control\Manager', 'init' ) );
+		add_action( 'admin_enqueue_scripts', array( 'AcrossAI_Abilities_Manager\Admin\Edit_Screen', 'enqueue_assets' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE ), array( 'AcrossAI_Abilities_Manager\Admin\Menu', 'plugin_action_links' ) );
 	}
 	add_action( 'wp_abilities_api_init', array( 'AcrossAI_Abilities_Manager\Runtime\Override_Applier', 'bootstrap' ), 0 );
 	add_action( 'rest_api_init', array( 'AcrossAI_Abilities_Manager\REST\Custom_Abilities_Controller', 'register_rest_routes' ) );
+	add_action( 'rest_api_init', array( 'AcrossAI_Abilities_Manager\Runtime\Mcp_Server_Filter', 'register' ), 5 );
+
+	// Cache MCP server list after the adapter finishes initializing (fires on rest_api_init
+	// during REST requests). Priority 999 ensures all servers — including the default server
+	// created at priority 10 — are already registered before we read the list.
+	add_action( 'mcp_adapter_init', 'acrossai_abilities_manager_cache_mcp_servers', 999 );
 }
 add_action( 'plugins_loaded', 'acrossai_abilities_manager_bootstrap' );
+
+/**
+ * Caches the list of registered MCP servers in a transient so the admin UI
+ * can display them without having to trigger MCP adapter initialization.
+ *
+ * @param mixed $adapter McpAdapter instance passed by the mcp_adapter_init action.
+ * @return void
+ */
+function acrossai_abilities_manager_cache_mcp_servers( $adapter ): void {
+	if ( ! method_exists( $adapter, 'get_servers' ) ) {
+		return;
+	}
+
+	$servers = array();
+	foreach ( $adapter->get_servers() as $server ) {
+		$id    = method_exists( $server, 'get_server_id' ) ? $server->get_server_id() : ( method_exists( $server, 'get_id' ) ? $server->get_id() : '' );
+		$label = method_exists( $server, 'get_server_name' ) ? $server->get_server_name() : ( method_exists( $server, 'get_name' ) ? $server->get_name() : $id );
+
+		if ( '' !== $id ) {
+			$servers[] = array(
+				'id'    => $id,
+				'label' => $label,
+			);
+		}
+	}
+
+	if ( ! empty( $servers ) ) {
+		set_transient( 'aam_mcp_servers', $servers, HOUR_IN_SECONDS );
+	}
+}
 
 /**
  * Activation hook: ensures the custom database table exists immediately after activation.

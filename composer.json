@@ -5,7 +5,8 @@
   "license": "GPL-2.0-or-later",
   "require": {
     "ext-json": "*",
-    "php": ">=7.4"
+    "wpboilerplate/wpb-access-control": "dev-main",
+    "php": ">=8.0"
   },
   "require-dev": {
     "automattic/vipwpcs": "^3.0",

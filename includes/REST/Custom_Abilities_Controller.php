@@ -52,7 +52,7 @@ class Custom_Abilities_Controller extends \WP_REST_Controller {
 	 *
 	 * @return void
 	 */
-	private function register_routes(): void {
+	public function register_routes(): void {
 		// GET /custom-abilities — List custom abilities with filters.
 		register_rest_route(
 			$this->namespace,

@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace AcrossAI_Abilities_Manager\Runtime;
 
 use AcrossAI_Abilities_Manager\Database\Repository;
+use AcrossAI_Abilities_Manager\Access_Control\Manager as AccessControlManager;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -67,6 +68,10 @@ class Override_Applier {
 		// finish registering, the disabled ones are removed from the live registry.
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'unregister_disallowed' ), 999 );
 
+		// Role-based access control: after site-level disallow, check if the current
+		// user has access to each ability. If not, unregister it for this user's request.
+		add_action( 'wp_abilities_api_init', array( __CLASS__, 'enforce_access_control' ), 998 );
+
 		// Some abilities use `ability_class` whose constructor ignores `meta` passed
 		// in registration args, calling their own meta() method instead. The action
 		// below runs after all abilities are registered and patches the meta property
@@ -101,6 +106,33 @@ class Override_Applier {
 
 		foreach ( self::$overrides as $slug => $override ) {
 			if ( false === ( $override['site_allowed'] ?? null ) && wp_has_ability( $slug ) ) {
+				wp_unregister_ability( $slug );
+			}
+		}
+	}
+
+	/**
+	 * Enforces role-based access control on registered abilities.
+	 *
+	 * After abilities are registered, checks each ability's access control rules.
+	 * If the current user does not have access, the ability is unregistered for
+	 * this request. Administrators (manage_options) always have access.
+	 *
+	 * @return void
+	 */
+	public static function enforce_access_control(): void {
+		if ( self::should_skip_request() || ! function_exists( 'wp_unregister_ability' ) || ! function_exists( 'wp_has_ability' ) ) {
+			return;
+		}
+
+		$user_id = get_current_user_id();
+		self::prime_overrides();
+
+		foreach ( self::$overrides as $slug => $override ) {
+			// Check if this ability has access control configured.
+			// Access control is stored in the wpb_access_control table via the AccessControlManager.
+			// We use the Manager's user_has_access() method to determine if the current user can access this ability.
+			if ( wp_has_ability( $slug ) && ! AccessControlManager::user_has_access( $user_id, $slug ) ) {
 				wp_unregister_ability( $slug );
 			}
 		}
@@ -234,8 +266,13 @@ class Override_Applier {
 		}
 
 		// Apply MCP public visibility only when the override row explicitly defines it.
+		// When mcp_public is false but mcp_servers is non-empty the user chose
+		// "specific servers" mode — the ability must still be marked public so the
+		// MCP adapter registers it as a tool on every server. Mcp_Server_Filter then
+		// removes it from servers not in the allowlist at request time.
 		if ( array_key_exists( 'mcp_public', $override ) && null !== $override['mcp_public'] ) {
-			$args['meta']['mcp']['public'] = (bool) $override['mcp_public'];
+			$has_specific_servers          = is_array( $override['mcp_servers'] ?? null ) && ! empty( $override['mcp_servers'] );
+			$args['meta']['mcp']['public'] = (bool) $override['mcp_public'] || $has_specific_servers;
 		}
 
 		// MCP type is applied only when the stored override contains a non-empty value.
@@ -293,7 +330,12 @@ class Override_Applier {
 			}
 
 			try {
-				$mcp_public_val = (bool) $override['mcp_public'];
+				// "Specific servers" mode stores mcp_public=false with a non-empty
+				// mcp_servers list. The ability must still be globally registered as a
+				// tool (mcp.public=true) so the MCP adapter includes it on all servers;
+				// Mcp_Server_Filter removes it from non-allowed servers at request time.
+				$has_specific_servers = is_array( $override['mcp_servers'] ?? null ) && ! empty( $override['mcp_servers'] );
+				$mcp_public_val       = (bool) $override['mcp_public'] || $has_specific_servers;
 
 				// Use ReflectionProperty to directly modify the protected $meta property
 				// of the WP_Ability object, since no public setter exists.
@@ -329,11 +371,38 @@ class Override_Applier {
 	}
 
 	/**
+	 * Returns true when an ability is configured for "specific servers" mode.
+	 *
+	 * An ability has a server restriction when its override row stores mcp_public=false
+	 * (or null) with a non-empty mcp_servers list. In all other cases (no override, or
+	 * mcp_public=true) there is no per-server restriction and the ability passes through
+	 * MCP list filters untouched.
+	 *
+	 * @param string $slug Ability slug to check.
+	 * @return bool True when a server allowlist is active for this ability.
+	 */
+	public static function has_server_restriction( string $slug ): bool {
+		self::prime_overrides();
+
+		$override = self::$overrides[ $slug ] ?? null;
+
+		if ( ! is_array( $override ) ) {
+			return false;
+		}
+
+		$mcp_public  = $override['mcp_public'] ?? null;
+		$mcp_servers = $override['mcp_servers'] ?? null;
+
+		return ( true !== $mcp_public ) && is_array( $mcp_servers ) && ! empty( $mcp_servers );
+	}
+
+	/**
 	 * Checks whether an ability should be exposed to a specific MCP server.
 	 *
 	 * Uses the stored mcp_public and mcp_servers values from an override to determine
-	 * visibility. This method is useful for MCP adapters to filter abilities based on
-	 * the current server context.
+	 * visibility. Returns false when no override row exists. Callers that want
+	 * "pass-through on no override" should call has_server_restriction() first and
+	 * skip this method when it returns false.
 	 *
 	 * @param string $slug      Ability slug to check.
 	 * @param string $server_id MCP server ID to check visibility for.

@@ -224,6 +224,10 @@ class Menu {
 			}
 		}
 
+		// Set the global page title so WordPress renders it properly in admin-header.php.
+		global $title;
+		$title = __( 'Ability Manager', 'acrossai-abilities-manager' ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+
 		echo '<div class="wrap"><h1>' . esc_html__( 'Ability Manager', 'acrossai-abilities-manager' ) . '</h1>';
 		self::render_notice();
 

@@ -3,7 +3,7 @@
         'name' => 'acrossai/abilities-manager',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '197c72718dacad1528b0e007b89ca5c3069c8520',
+        'reference' => '547f6bea6a0570b06231c9e8e6d6f0b72da96aa8',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'acrossai/abilities-manager' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '197c72718dacad1528b0e007b89ca5c3069c8520',
+            'reference' => '547f6bea6a0570b06231c9e8e6d6f0b72da96aa8',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -342,6 +342,17 @@
             'install_path' => __DIR__ . '/../wp-phpunit/wp-phpunit',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'wpboilerplate/wpb-access-control' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '95165efe3feadb07cc3b85c8686343a10050a1bf',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../wpboilerplate/wpb-access-control',
+            'aliases' => array(
+                0 => '9999999-dev',
+            ),
+            'dev_requirement' => false,
         ),
         'yoast/phpunit-polyfills' => array(
             'pretty_version' => '4.0.0',

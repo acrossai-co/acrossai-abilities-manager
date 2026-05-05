@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace AcrossAI_Abilities_Manager\Admin;
 
 use AcrossAI_Abilities_Manager\Database\Repository;
+use AcrossAI_Abilities_Manager\Access_Control\Manager as AccessControlManager;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -69,6 +70,26 @@ class Edit_Screen {
 	}
 
 	/**
+	 * Enqueues the necessary scripts and styles for the edit screen.
+	 *
+	 * Called on admin_enqueue_scripts to load AccessControlUI assets on the
+	 * abilities edit screen.
+	 *
+	 * @return void
+	 */
+	public static function enqueue_assets(): void {
+		$screen = get_current_screen();
+		if ( ! $screen || 'toplevel_page_acrossai-abilities-manager' !== $screen->id ) {
+			return;
+		}
+
+		// Enqueue AccessControlUI assets if on edit screen.
+		if ( isset( $_GET['action'] ) && 'edit' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			AccessControlManager::enqueue_assets();
+		}
+	}
+
+	/**
 	 * Renders the ability override edit form.
 	 *
 	 * Loads the WP_Ability object (if registered) and the stored override row
@@ -108,28 +129,68 @@ class Edit_Screen {
 			$values        = self::resolved_values( null, $ability );
 		}
 
-		$back_url = admin_url( 'tools.php?page=acrossai-abilities-manager' );
+		$valid_tabs = array( 'general', 'mcp', 'access-control' );
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! in_array( $active_tab, $valid_tabs, true ) ) {
+			$active_tab = 'general';
+		}
+
+		$back_url = admin_url( 'admin.php?page=acrossai-abilities-manager' );
 		?>
 		<p>
 			<a href="<?php echo esc_url( $back_url ); ?>" class="button"><?php esc_html_e( 'Back to List', 'acrossai-abilities-manager' ); ?></a>
 		</p>
-		<form method="post" action="<?php echo esc_url( admin_url( 'tools.php?page=acrossai-abilities-manager' ) ); ?>">
+
+		<nav class="nav-tab-wrapper">
+			<a href="<?php echo esc_url( add_query_arg( array( 'tab' => 'general' ), admin_url( 'admin.php?page=acrossai-abilities-manager&action=edit&slug=' . $slug ) ) ); ?>" class="nav-tab <?php echo 'general' === $active_tab ? 'nav-tab-active' : ''; ?>">
+				<?php esc_html_e( 'General', 'acrossai-abilities-manager' ); ?>
+			</a>
+			<a href="<?php echo esc_url( add_query_arg( array( 'tab' => 'mcp' ), admin_url( 'admin.php?page=acrossai-abilities-manager&action=edit&slug=' . $slug ) ) ); ?>" class="nav-tab <?php echo 'mcp' === $active_tab ? 'nav-tab-active' : ''; ?>">
+				<?php esc_html_e( 'MCP', 'acrossai-abilities-manager' ); ?>
+			</a>
+			<a href="<?php echo esc_url( add_query_arg( array( 'tab' => 'access-control' ), admin_url( 'admin.php?page=acrossai-abilities-manager&action=edit&slug=' . $slug ) ) ); ?>" class="nav-tab <?php echo 'access-control' === $active_tab ? 'nav-tab-active' : ''; ?>">
+				<?php esc_html_e( 'Access Control', 'acrossai-abilities-manager' ); ?>
+			</a>
+		</nav>
+
+		<form method="post" action="<?php echo esc_url( add_query_arg( array( 'tab' => $active_tab ), admin_url( 'admin.php?page=acrossai-abilities-manager' ) ) ); ?>">
 			<input type="hidden" name="page" value="acrossai-abilities-manager" />
 			<input type="hidden" name="aam_action" value="save" />
 			<input type="hidden" name="slug" value="<?php echo esc_attr( $slug ); ?>" />
 			<?php wp_nonce_field( 'aam_save_meta_' . $slug, 'aam_meta_nonce' ); ?>
-			<table class="form-table" role="presentation"><tbody>
-			<tr><th scope="row"><?php esc_html_e( 'Ability Slug', 'acrossai-abilities-manager' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $slug ); ?>" readonly /></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Provider', 'acrossai-abilities-manager' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $provider ); ?>" readonly /></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Category', 'acrossai-abilities-manager' ); ?></th><td><?php echo wp_kses_post( self::render_category_value( $category, $category_slug ) ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Allowed on Site', 'acrossai-abilities-manager' ); ?></th><td><label><input type="checkbox" name="site_allowed" value="1" <?php checked( (bool) $values['site_allowed'] ); ?> /> <?php esc_html_e( 'Allow this ability to run on this site.', 'acrossai-abilities-manager' ); ?></label></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Readonly', 'acrossai-abilities-manager' ); ?></th><td><?php self::select( 'readonly', $values['readonly'], false ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Destructive', 'acrossai-abilities-manager' ); ?></th><td><?php self::select( 'destructive', $values['destructive'], false ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Idempotent', 'acrossai-abilities-manager' ); ?></th><td><?php self::select( 'idempotent', $values['idempotent'], false ); ?></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'Show in REST', 'acrossai-abilities-manager' ); ?></th><td><label><input type="checkbox" name="show_in_rest" value="1" <?php checked( (bool) $values['show_in_rest'] ); ?> /> <?php esc_html_e( 'Expose in REST.', 'acrossai-abilities-manager' ); ?></label></td></tr>
-			<tr><th scope="row"><?php esc_html_e( 'MCP Visibility', 'acrossai-abilities-manager' ); ?></th><td><?php self::render_mcp_visibility( $values['mcp_public'], $values['mcp_servers'] ?? null, false ); ?></td></tr>
-			<tr id="aam-mcp-type-row"><th scope="row"><?php esc_html_e( 'MCP Type', 'acrossai-abilities-manager' ); ?></th><td><?php self::mcp_type_select( (string) $values['mcp_type'], false ); ?></td></tr>
-			</tbody></table>
+
+			<?php if ( 'general' === $active_tab ) : ?>
+				<div class="aam-tab-panel">
+					<table class="form-table" role="presentation"><tbody>
+					<tr><th scope="row"><?php esc_html_e( 'Ability Slug', 'acrossai-abilities-manager' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $slug ); ?>" readonly /></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Provider', 'acrossai-abilities-manager' ); ?></th><td><input type="text" class="regular-text" value="<?php echo esc_attr( $provider ); ?>" readonly /></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Category', 'acrossai-abilities-manager' ); ?></th><td><?php echo wp_kses_post( self::render_category_value( $category, $category_slug ) ); ?></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Allowed on Site', 'acrossai-abilities-manager' ); ?></th><td><label><input type="checkbox" name="site_allowed" value="1" <?php checked( (bool) $values['site_allowed'] ); ?> /> <?php esc_html_e( 'Allow this ability to run on this site.', 'acrossai-abilities-manager' ); ?></label></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Readonly', 'acrossai-abilities-manager' ); ?></th><td><?php self::select( 'readonly', $values['readonly'], false ); ?></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Destructive', 'acrossai-abilities-manager' ); ?></th><td><?php self::select( 'destructive', $values['destructive'], false ); ?></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Idempotent', 'acrossai-abilities-manager' ); ?></th><td><?php self::select( 'idempotent', $values['idempotent'], false ); ?></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'Show in REST', 'acrossai-abilities-manager' ); ?></th><td><label><input type="checkbox" name="show_in_rest" value="1" <?php checked( (bool) $values['show_in_rest'] ); ?> /> <?php esc_html_e( 'Expose in REST.', 'acrossai-abilities-manager' ); ?></label></td></tr>
+					</tbody></table>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( 'mcp' === $active_tab ) : ?>
+				<div class="aam-tab-panel">
+					<table class="form-table" role="presentation"><tbody>
+					<tr><th scope="row"><?php esc_html_e( 'MCP Visibility', 'acrossai-abilities-manager' ); ?></th><td><?php self::render_mcp_visibility( $values['mcp_public'], $values['mcp_servers'] ?? null, false ); ?></td></tr>
+					<tr id="aam-mcp-type-row"><th scope="row"><?php esc_html_e( 'MCP Type', 'acrossai-abilities-manager' ); ?></th><td><?php self::mcp_type_select( (string) $values['mcp_type'], false ); ?></td></tr>
+					</tbody></table>
+				</div>
+			<?php endif; ?>
+
+		<?php if ( 'access-control' === $active_tab ) : ?>
+			<div class="aam-tab-panel">
+				<?php AccessControlManager::render( $slug ); ?>
+			</div>
+		<?php endif; ?>
+
+		<!-- Only show submit buttons for general and mcp tabs; access-control tab has its own save mechanism via AccessControlManager. -->
+		<?php if ( 'access-control' !== $active_tab ) : ?>
 			<p class="submit">
 					<button type="submit" name="aam_save_target" value="stay" class="button button-primary"><?php esc_html_e( 'Save', 'acrossai-abilities-manager' ); ?></button>
 					<button type="submit" name="aam_save_target" value="exit" class="button"><?php esc_html_e( 'Save and Exit', 'acrossai-abilities-manager' ); ?></button>
@@ -143,7 +204,7 @@ class Edit_Screen {
 									'aam_action' => 'delete',
 									'slug'       => $slug,
 								),
-								admin_url( 'tools.php' )
+								admin_url( 'admin.php' )
 							),
 							'aam_delete_meta_' . $slug,
 							'aam_delete_nonce'
@@ -151,39 +212,35 @@ class Edit_Screen {
 						?>
 						<a href="<?php echo esc_url( $delete_url ); ?>" class="button" onclick="return window.confirm(<?php echo esc_attr( wp_json_encode( __( 'Reset this override?', 'acrossai-abilities-manager' ) ) ); ?>);"><?php esc_html_e( 'Reset Override', 'acrossai-abilities-manager' ); ?></a>
 					<?php endif; ?>
-				</p>
+			</p>
+		<?php endif; ?>
 		</form>
 		<script>
 		document.addEventListener( 'DOMContentLoaded', function() {
-			var mcpVisibilityMode = document.getElementsByName( 'mcp_visibility_mode' );
+			// MCP Visibility show/hide logic (only relevant on the MCP tab).
+			var mcpVisibilityMode   = document.getElementsByName( 'mcp_visibility_mode' );
 			var mcpServersContainer = document.getElementById( 'aam-mcp-servers-container' );
-			var mcpTypeRow = document.getElementById( 'aam-mcp-type-row' );
+			var mcpTypeRow          = document.getElementById( 'aam-mcp-type-row' );
 
-			// Guard: elements must exist before attaching logic.
-			if ( mcpVisibilityMode.length === 0 ) {
-				return;
-			}
+			if ( mcpVisibilityMode.length > 0 ) {
+				function syncMcpUI() {
+					var mode = Array.from( mcpVisibilityMode ).find( r => r.checked )?.value || 'none';
 
-			function syncMcpUI() {
-				var mode = Array.from( mcpVisibilityMode ).find( r => r.checked )?.value || 'none';
-				
-				// Show/hide servers container based on 'specific' mode.
-				if ( mcpServersContainer ) {
-					mcpServersContainer.style.display = 'specific' === mode ? 'block' : 'none';
+					if ( mcpServersContainer ) {
+						mcpServersContainer.style.display = 'specific' === mode ? 'block' : 'none';
+					}
+
+					if ( mcpTypeRow ) {
+						mcpTypeRow.style.display = 'none' !== mode ? '' : 'none';
+					}
 				}
-				
-				// Show/hide MCP Type row based on whether MCP is enabled.
-				if ( mcpTypeRow ) {
-					mcpTypeRow.style.display = 'none' !== mode ? '' : 'none';
-				}
-			}
 
-			mcpVisibilityMode.forEach( radio => {
-				radio.addEventListener( 'change', syncMcpUI );
-			} );
-			
-			// Run once on load to match the initial state.
-			syncMcpUI();
+				mcpVisibilityMode.forEach( radio => {
+					radio.addEventListener( 'change', syncMcpUI );
+				} );
+
+				syncMcpUI();
+			}
 		} );
 		</script>
 		<?php
@@ -208,11 +265,31 @@ class Edit_Screen {
 		$slug = isset( $_POST['slug'] ) ? sanitize_text_field( wp_unslash( $_POST['slug'] ) ) : '';
 		check_admin_referer( 'aam_save_meta_' . $slug, 'aam_meta_nonce' );
 
+		$valid_tabs = array( 'general', 'mcp', 'access-control' );
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! in_array( $active_tab, $valid_tabs, true ) ) {
+			$active_tab = 'general';
+		}
+
 		$ability           = function_exists( 'wp_get_ability' ) ? wp_get_ability( $slug ) : null;
 		$existing_override = Repository::get_by_slug( $slug );
 		$existing_row      = is_array( $existing_override );
 		$save_target       = self::save_target();
 		$submitted         = self::submitted_values();
+
+		// Only update fields belonging to the active tab. For fields on other tabs,
+		// substitute the currently resolved values so they are diffed against defaults
+		// unchanged and do not produce spurious overrides on this save.
+		$tab_fields = self::tab_fields( $active_tab );
+		if ( ! empty( $tab_fields ) ) {
+			$resolved = self::resolved_values( $existing_override, $ability );
+			foreach ( array_keys( $submitted ) as $field ) {
+				if ( ! in_array( $field, $tab_fields, true ) ) {
+					$submitted[ $field ] = $resolved[ $field ] ?? null;
+				}
+			}
+		}
+
 		$override          = self::build_override_values( $submitted, $ability );
 		$override          = self::prepare_override_for_save( $override, $existing_override );
 
@@ -221,15 +298,15 @@ class Edit_Screen {
 			// If a stale override row already exists, clean it up now.
 			if ( $existing_row ) {
 				Repository::delete( $slug );
-				self::redirect_after_save( $slug, 'deleted', $save_target );
+				self::redirect_after_save( $slug, 'deleted', $save_target, $active_tab );
 			}
 
 			// Redirect with a "no change" notice rather than writing an empty row.
-			self::redirect_after_save( $slug, 'noop', $save_target );
+			self::redirect_after_save( $slug, 'noop', $save_target, $active_tab );
 		}
 
 		$result = Repository::upsert( $slug, $override );
-		self::redirect_after_save( $slug, $result ? 'saved' : 'error', $save_target );
+		self::redirect_after_save( $slug, $result ? 'saved' : 'error', $save_target, $active_tab );
 	}
 
 
@@ -255,7 +332,7 @@ class Edit_Screen {
 					'page'       => 'acrossai-abilities-manager',
 					'aam_notice' => $deleted ? 'deleted' : 'error',
 				),
-				admin_url( 'tools.php' )
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -318,7 +395,7 @@ class Edit_Screen {
 					'page'       => 'acrossai-abilities-manager',
 					'aam_notice' => $notice,
 				),
-				admin_url( 'tools.php' )
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -353,7 +430,7 @@ class Edit_Screen {
 	 * @param string $save_target Selected save behavior ('stay' or 'exit').
 	 * @return void
 	 */
-	private static function redirect_after_save( string $slug, string $notice, string $save_target ): void {
+	private static function redirect_after_save( string $slug, string $notice, string $save_target, string $tab = 'general' ): void {
 		$args = array(
 			'page'       => 'acrossai-abilities-manager',
 			'aam_notice' => $notice,
@@ -362,6 +439,7 @@ class Edit_Screen {
 		// 'stay' means: go back to the edit form, not the list view.
 		if ( 'exit' !== $save_target ) {
 			$args['action'] = 'edit';
+			$args['tab']    = $tab;
 			$override       = Repository::get_by_slug( $slug );
 			// Prefer the database row ID in the URL so the page survives slug renames.
 			if ( is_array( $override ) && ! empty( $override['id'] ) ) {
@@ -371,7 +449,7 @@ class Edit_Screen {
 			}
 		}
 
-		wp_safe_redirect( add_query_arg( $args, admin_url( 'tools.php' ) ) );
+		wp_safe_redirect( add_query_arg( $args, admin_url( 'admin.php' ) ) );
 		exit;
 	}
 
@@ -428,14 +506,45 @@ class Edit_Screen {
 	}
 
 	/**
-	 * Gets available MCP servers via the discovery action hook.
+	 * Returns the field names that belong to each edit tab.
+	 *
+	 * Used by save() to limit a tab-scoped form submission to only the fields
+	 * visible on that tab, preventing accidental overwrites of other tabs' settings.
+	 *
+	 * @param string $tab Active tab slug.
+	 * @return string[] Field names owned by this tab.
+	 */
+	private static function tab_fields( string $tab ): array {
+		$map = array(
+			'general' => array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest' ),
+			'mcp'     => array( 'mcp_public', 'mcp_servers', 'mcp_type' ),
+		);
+		return $map[ $tab ] ?? array();
+	}
+
+	/**
+	 * Gets available MCP servers via the discovery action hook, with a built-in
+	 * fallback that reads a transient populated by the mcp_adapter_init hook.
+	 *
+	 * The MCP Adapter initializes on rest_api_init; calling its init() directly
+	 * on an admin page would fire before default abilities are registered, causing
+	 * "not found" notices. The transient is refreshed on every REST request via
+	 * acrossai_abilities_manager_cache_mcp_servers() in the main plugin file.
 	 *
 	 * @return array<int, array{id: string, label: string}> Array of available servers.
 	 */
 	private static function get_available_mcp_servers(): array {
 		$servers = array();
 		do_action_ref_array( 'acrossai_abilities_manager_get_mcp_servers', array( &$servers ) );
-		return is_array( $servers ) ? $servers : array();
+
+		if ( empty( $servers ) ) {
+			$cached = get_transient( 'aam_mcp_servers' );
+			if ( is_array( $cached ) ) {
+				$servers = $cached;
+			}
+		}
+
+		return $servers;
 	}
 
 	/**
@@ -684,6 +793,7 @@ class Edit_Screen {
 			'idempotent'   => self::normalize_nullable_bool( $annotations['idempotent'] ?? null ),
 			'show_in_rest' => (bool) ( $meta['show_in_rest'] ?? false ),
 			'mcp_public'   => (bool) ( $meta['mcp']['public'] ?? false ),
+			'mcp_servers'  => null,
 			'mcp_type'     => self::default_mcp_type( $meta ),
 		);
 	}
@@ -908,9 +1018,9 @@ class Edit_Screen {
 
 		// Delete the custom ability from the database.
 		if ( Repository::delete_custom_ability( $slug ) ) {
-			$redirect_url = add_query_arg( 'aam_message', 'deleted', admin_url( 'tools.php?page=acrossai-abilities-manager' ) );
+			$redirect_url = add_query_arg( 'aam_message', 'deleted', admin_url( 'admin.php?page=acrossai-abilities-manager' ) );
 		} else {
-			$redirect_url = add_query_arg( 'aam_message', 'error', admin_url( 'tools.php?page=acrossai-abilities-manager' ) );
+			$redirect_url = add_query_arg( 'aam_message', 'error', admin_url( 'admin.php?page=acrossai-abilities-manager' ) );
 		}
 
 		wp_safe_remote_head( $redirect_url );
@@ -974,7 +1084,7 @@ class Edit_Screen {
 				admin_url( 'admin.php' )
 			);
 		} else {
-			$redirect_url = add_query_arg( 'aam_message', 'error', admin_url( 'tools.php?page=acrossai-abilities-manager' ) );
+			$redirect_url = add_query_arg( 'aam_message', 'error', admin_url( 'admin.php?page=acrossai-abilities-manager' ) );
 		}
 
 		wp_safe_remote_head( $redirect_url );

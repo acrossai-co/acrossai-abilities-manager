@@ -56,7 +56,7 @@ class Add_Ability_Page {
 	 */
 	public static function add_admin_menu(): void {
 		add_submenu_page(
-			'tools.php',
+			'admin.php',
 			esc_html__( 'Add New Ability', 'acrossai-abilities-manager' ),
 			esc_html__( 'Add New Ability', 'acrossai-abilities-manager' ),
 			'manage_options',
