@@ -340,7 +340,6 @@ class Override_Applier {
 				// Use ReflectionProperty to directly modify the protected $meta property
 				// of the WP_Ability object, since no public setter exists.
 				$reflection = new \ReflectionProperty( \WP_Ability::class, 'meta' );
-				$reflection->setAccessible( true );
 				$current_meta = (array) $reflection->getValue( $ability );
 
 				if ( ! isset( $current_meta['mcp'] ) || ! is_array( $current_meta['mcp'] ) ) {
