@@ -26,6 +26,15 @@ class Override_Applier {
 	private static ?array $overrides = null;
 
 	/**
+	 * Ability slugs that have a non-empty, non-'everyone' access control rule
+	 * stored in the wpb_access_control table under this plugin's namespace.
+	 * Populated lazily by prime_ac_slugs(). Null = not yet loaded.
+	 *
+	 * @var array<int, string>|null
+	 */
+	private static ?array $ac_slugs = null;
+
+	/**
 	 * Tracks whether runtime bootstrap has already completed for the request.
 	 *
 	 * @var bool
@@ -57,20 +66,17 @@ class Override_Applier {
 
 		self::$bootstrapped = true;
 		self::prime_overrides();
+		self::prime_ac_slugs();
 
-		// If the cache is empty, there is nothing to apply, so the plugin avoids
-		// registering the filter and leaves the core registration path untouched.
-		if ( array() === self::$overrides ) {
+		// If both caches are empty there is nothing to apply; leave the core
+		// registration path untouched.
+		if ( array() === self::$overrides && array() === self::$ac_slugs ) {
 			return;
 		}
 
 		// Site-level disallow behaves like an audit/governance pass: after abilities
 		// finish registering, the disabled ones are removed from the live registry.
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'unregister_disallowed' ), 999 );
-
-		// Role-based access control: after site-level disallow, check if the current
-		// user has access to each ability. If not, unregister it for this user's request.
-		add_action( 'wp_abilities_api_init', array( __CLASS__, 'enforce_access_control' ), 998 );
 
 		// Some abilities use `ability_class` whose constructor ignores `meta` passed
 		// in registration args, calling their own meta() method instead. The action
@@ -112,33 +118,6 @@ class Override_Applier {
 	}
 
 	/**
-	 * Enforces role-based access control on registered abilities.
-	 *
-	 * After abilities are registered, checks each ability's access control rules.
-	 * If the current user does not have access, the ability is unregistered for
-	 * this request. Administrators (manage_options) always have access.
-	 *
-	 * @return void
-	 */
-	public static function enforce_access_control(): void {
-		if ( self::should_skip_request() || ! function_exists( 'wp_unregister_ability' ) || ! function_exists( 'wp_has_ability' ) ) {
-			return;
-		}
-
-		$user_id = get_current_user_id();
-		self::prime_overrides();
-
-		foreach ( self::$overrides as $slug => $override ) {
-			// Check if this ability has access control configured.
-			// Access control is stored in the wpb_access_control table via the AccessControlManager.
-			// We use the Manager's user_has_access() method to determine if the current user can access this ability.
-			if ( wp_has_ability( $slug ) && ! AccessControlManager::user_has_access( $user_id, $slug ) ) {
-				wp_unregister_ability( $slug );
-			}
-		}
-	}
-
-	/**
 	 * Filters ability registration arguments for a single ability slug.
 	 *
 	 * Core passes the original ability args and slug into this callback through
@@ -156,20 +135,37 @@ class Override_Applier {
 		$override = self::$overrides[ $slug ] ?? null;
 
 		// This condition checks the slug-keyed cache. If no override row exists
-		// for the current ability, the original args are returned unchanged.
-		if ( null === $override ) {
-			return $args;
+		// for the current ability, skip metadata merging but still apply any
+		// access-control permission wrapping below.
+		if ( null !== $override ) {
+			try {
+				// Merge only the supported override fields into the original args.
+				$args = self::merge_override( $args, $override );
+			} catch ( \Throwable $throwable ) {
+				// On any runtime failure, emit the diagnostic hook and fall back to the
+				// original args so registration can continue safely.
+				self::notify_failure( $slug, $throwable->getMessage() );
+			}
 		}
 
-		try {
-			// Merge only the supported override fields into the original args.
-			return self::merge_override( $args, $override );
-		} catch ( \Throwable $throwable ) {
-			// On any runtime failure, emit the diagnostic hook and fall back to the
-			// original args so registration can continue safely.
-			self::notify_failure( $slug, $throwable->getMessage() );
-			return $args;
+		// Access-control enforcement: wrap the permission_callback so the check
+		// runs at execution time (when the user is authenticated), not at the
+		// init-time when wp_abilities_api_init fires and get_current_user_id()
+		// may still return 0 for REST API requests.
+		if ( in_array( $slug, self::$ac_slugs ?? array(), true ) ) {
+			$original_callback = $args['permission_callback'] ?? null;
+			$args['permission_callback'] = static function () use ( $original_callback, $slug ) {
+				if ( ! AccessControlManager::user_has_access( get_current_user_id(), $slug ) ) {
+					return false;
+				}
+				if ( null === $original_callback ) {
+					return true;
+				}
+				return (bool) call_user_func( $original_callback );
+			};
 		}
+
+		return $args;
 	}
 
 	/**
@@ -222,6 +218,48 @@ class Override_Applier {
 				self::$overrides[ (string) $override['ability_slug'] ] = $override;
 			}
 		}
+	}
+
+	/**
+	 * Loads ability slugs that have an active (non-empty, non-'everyone') access
+	 * control rule in the wpb_access_control table for this plugin's namespace.
+	 *
+	 * These slugs are used by apply() to wrap the permission_callback so the
+	 * access check runs at ability-execution time — when the current user is
+	 * fully authenticated — rather than at wp_abilities_api_init time where
+	 * get_current_user_id() may still return 0 for REST API requests.
+	 *
+	 * @return void
+	 */
+	private static function prime_ac_slugs(): void {
+		if ( null !== self::$ac_slugs ) {
+			return;
+		}
+
+		self::$ac_slugs = array();
+
+		if ( ! class_exists( '\WPBoilerplate\AccessControl\AccessControlTable' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$table = \WPBoilerplate\AccessControl\AccessControlTable::get_table_name();
+		$ns    = 'acrossai-abilities-manager';
+
+		// Retrieve only slugs whose rule is set to something specific (not empty
+		// and not 'everyone'), so we only wrap permission callbacks that actually
+		// restrict access. Abilities set to '' or 'everyone' allow all users and
+		// do not need a wrapper.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT `key` FROM `{$table}` WHERE namespace = %s AND access_control_key != '' AND access_control_key != 'everyone'", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$ns
+			)
+		);
+
+		self::$ac_slugs = is_array( $rows ) ? array_values( $rows ) : array();
 	}
 
 	/**
