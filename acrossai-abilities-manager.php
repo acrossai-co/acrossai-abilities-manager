@@ -91,6 +91,12 @@ function acrossai_abilities_manager_bootstrap(): void {
 	add_action( 'rest_api_init', array( 'AcrossAI_Abilities_Manager\REST\Custom_Abilities_Controller', 'register_rest_routes' ) );
 	add_action( 'rest_api_init', array( 'AcrossAI_Abilities_Manager\Runtime\Mcp_Server_Filter', 'register' ), 5 );
 
+	// Assign abilities to the default MCP server at initialization time via
+	// the mcp_adapter_default_server_config filter (fires inside mcp_adapter_init
+	// at priority 10 when DefaultServerFactory runs). Must be registered before
+	// rest_api_init so the filter is in place when the adapter initializes.
+	\AcrossAI_Abilities_Manager\Runtime\Mcp_Server_Assigner::register();
+
 	// Cache MCP server list after the adapter finishes initializing (fires on rest_api_init
 	// during REST requests). Priority 999 ensures all servers — including the default server
 	// created at priority 10 — are already registered before we read the list.
