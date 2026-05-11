@@ -138,3 +138,53 @@ Never modify files inside:
 unless explicitly requested.
 
 These repositories are external dependencies and must remain isolated from plugin implementation.
+
+---
+
+# Code Organization & Module Structure
+
+When implementing the AcrossAI Abilities Manager plugin, follow this reusable component structure:
+
+## Shared Utilities Directory
+- Create a `includes/utilities/` directory for all reusable components
+- All modules must reference shared utilities rather than duplicate code
+- Never implement the same functionality twice across modules
+
+## Base Classes and Inheritance
+- Create base classes in `includes/base/` that all features extend from
+- Extract common logic into abstract classes
+- Use inheritance to prevent code duplication
+
+## Reusable Components to Create
+- Common form builders for standard input types (checkboxes, toggles, dropdowns, etc.)
+- Common view generators for standard display types (lists, matrices, tables, etc.)
+- Shared validation and sanitization functions
+- Common data transformation utilities
+- Shared API response formatters
+- Shared permission checking utilities
+
+## DataForms & DataViews Implementation
+- Use WordPress DataForms for all form handling and data input
+- Use WordPress DataViews for all data display and listing
+- Create reusable DataForm components that other modules can use
+- Create reusable DataView components that other modules can use
+- DataForms must handle: form validation, error display, submission
+- DataViews must provide: searchable lists, sorting, pagination, filtering
+
+## When Implementing Features
+1. Check if similar functionality exists in shared utilities first
+2. Reuse existing base classes and utilities
+3. Extract new common patterns into shared utilities
+4. Never duplicate code from other modules
+5. DRY principle: Don't Repeat Yourself - if code exists elsewhere, reuse it
+
+## Code Review Checklist for Reusability
+- [ ] No duplicate code between modules
+- [ ] All common logic extracted to shared utilities
+- [ ] Each module extends appropriate base classes
+- [ ] Form patterns use shared form builders
+- [ ] View patterns use shared view generators
+- [ ] Validation uses shared validation functions
+- [ ] Sanitization uses shared sanitization utilities
+- [ ] DataForms used for all form implementations
+- [ ] DataViews used for all data display implementations

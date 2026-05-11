@@ -1,78 +1,50 @@
-# Constitution
+# [PROJECT_NAME] Constitution
+<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
 
-All standards, rules, and requirements are defined in AGENTS.md (source of truth).
+## Core Principles
 
-Claude Code and team members should read AGENTS.md for the complete specification.
+### [PRINCIPLE_1_NAME]
+<!-- Example: I. Library-First -->
+[PRINCIPLE_1_DESCRIPTION]
+<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
 
-## Quick Reference (See AGENTS.md for details)
+### [PRINCIPLE_2_NAME]
+<!-- Example: II. CLI Interface -->
+[PRINCIPLE_2_DESCRIPTION]
+<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
 
-### Environment
-- PHP: 7.4+
-- WordPress: 6.9+
-- Node: 18.0+
-- npm: 9.0+
-- Composer: 2.0+
+### [PRINCIPLE_3_NAME]
+<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
+[PRINCIPLE_3_DESCRIPTION]
+<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
 
-### Standards
-- Naming prefix: `agency_`
-- Coding: WPCS strict
-- Analysis: PHPStan level 8
-- Linting: ESLint
+### [PRINCIPLE_4_NAME]
+<!-- Example: IV. Integration Testing -->
+[PRINCIPLE_4_DESCRIPTION]
+<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
 
-### Security (Non-negotiable)
-- Nonces on all forms/AJAX
-- Capability checks on admin actions
-- Sanitize input at entry
-- Escape output at display
-- Use $wpdb->prepare() for SQL
-- File upload validation required
-- No deprecated WordPress functions
+### [PRINCIPLE_5_NAME]
+<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
+[PRINCIPLE_5_DESCRIPTION]
+<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
 
-### Code Quality
-- PHPCS must pass
-- PHPStan level 8 must pass
-- ESLint must pass
-- Unit tests required
+## [SECTION_2_NAME]
+<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
 
-### Workflow
-1. Read AGENTS.md
-2. Read feature spec
-3. Plan → Execute → Validate → Test
-4. Update memory with learnings
-5. Mark complete
+[SECTION_2_CONTENT]
+<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
 
-### Package Strategy
-- Use @wordpress/* packages first
-- Then npm packages
-- Never duplicate React/Vue
-- Run: npm run validate-packages
+## [SECTION_3_NAME]
+<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
 
-### WordPress Rules
-- Escape output
-- Sanitize input
-- Nonce validation
-- Capability checks
-- Use wp_remote_get() / wp_remote_post()
-- Prefer Action Scheduler
-- Avoid direct SQL
+[SECTION_3_CONTENT]
+<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
 
-### WooCommerce Rules (if applicable)
-- HPOS compatible
-- Use CRUD objects
-- Use wc_get_orders()
+## Governance
+<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-### Testing Rules
-Feature complete only with:
-- PHPCS validation
-- Security review
-- Unit tests
+[GOVERNANCE_RULES]
+<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
 
-### Submodule Rules
-Never modify `.agents/tools/` (external dependencies)
-
----
-
-**IMPORTANT**: If you need to update standards (PHP version, rules, etc.):
-- Edit AGENTS.md (single source of truth)
-- Then update this file to match
-- One commit: `git commit -m "chore: update standards"`
+**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
+<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
