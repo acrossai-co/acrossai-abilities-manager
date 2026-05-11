@@ -62,6 +62,7 @@ npm run build
 
 Built assets output to:
 - `build/js/sitewide.js`
+- `build/js/sitewide.asset.php` ← loaded by `SitewideAbilityPage::enqueue_assets()`; never hardcode deps or version
 - `build/css/sitewide.css`
 
 The webpack entry point is `src/js/sitewide/index.js`.
@@ -80,8 +81,8 @@ module.exports = {
   ...defaultConfig,
   entry: {
     ...defaultConfig.entry,
-    'sitewide': './src/js/sitewide/index.js',
-    'sitewide-style': './src/scss/sitewide/admin.scss',
+    'js/sitewide': './src/js/sitewide/index.js',
+    'css/sitewide': './src/scss/sitewide/admin.scss',
   },
 };
 ```
@@ -120,10 +121,10 @@ The React app mounts on `<div id="acrossai-abilities-manager-root"></div>`.
 
 ```bash
 # PHPCS
-vendor/bin/phpcs --standard=WordPress includes/modules/sitewide/ includes/utilities/ includes/base/
+vendor/bin/phpcs --standard=WordPress includes/Modules/Sitewide/ includes/Utilities/ includes/Base/
 
 # PHPStan (level 8)
-vendor/bin/phpstan analyse --level=8 includes/modules/sitewide/ includes/utilities/ includes/base/
+vendor/bin/phpstan analyse --level=8 includes/Modules/Sitewide/ includes/Utilities/ includes/Base/
 
 # PHPUnit
 vendor/bin/phpunit --testdox --filter SitewideTest
@@ -169,12 +170,13 @@ wp db query "SELECT ability_slug, site_allowed, show_in_mcp FROM {prefix}acrossa
 
 | File | Purpose |
 |---|---|
-| `includes/base/AcrossAI_Module_Base.php` | Abstract base all modules extend |
-| `includes/modules/sitewide/AcrossAI_Sitewide_Module.php` | Module boot, REST + admin hooks |
-| `includes/modules/sitewide/AcrossAI_Sitewide_Rest_Controller.php` | 7 REST endpoints |
-| `includes/modules/sitewide/database/AcrossAI_Sitewide_Query.php` | BerlinDB Query (CRUD) |
-| `includes/utilities/AcrossAI_Ability_Merger.php` | Registry + override merge logic |
-| `admin/Partials/Menu.php` | Admin menu registration + asset enqueue |
+| `includes/Base/AcrossAI_Module_Base.php` | Abstract base all modules extend |
+| `includes/Modules/Sitewide/AcrossAI_Sitewide_Module.php` | Context-neutral: REST + DB hooks only |
+| `includes/Modules/Sitewide/AcrossAI_Sitewide_Rest_Controller.php` | 7 REST endpoints |
+| `includes/Modules/Sitewide/Database/AcrossAI_Sitewide_Query.php` | BerlinDB Query (CRUD) |
+| `includes/Utilities/AcrossAI_Ability_Merger.php` | Registry + override merge logic |
+| `admin/Partials/Menu.php` | Admin menu registration (`add_menu_page`) |
+| `admin/Partials/SitewideAbilityPage.php` | Admin asset enqueue (scoped) + page render |
 | `src/js/sitewide/index.js` | React entry — `createRoot`, apiFetch setup |
 | `src/js/sitewide/store/index.js` | Redux store (`acrossai-abilities/sitewide`) |
 | `src/js/sitewide/components/AbilityTable.jsx` | DataViews table |

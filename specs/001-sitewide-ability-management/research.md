@@ -114,11 +114,11 @@ protected $item_shape   = AcrossAI_Sitewide_Row::class;    // CORRECT
 
 ## Decision 8: Directory Layout
 
-**Decision**: `includes/modules/sitewide/` (NOT `includes/features/sitewide/`)
+**Decision**: `includes/Modules/Sitewide/` (NOT `includes/features/sitewide/` or `includes/modules/sitewide/`)
 
 **Rationale**:
-- Constitution Architecture section defines `includes/modules/` as the canonical location
-- The user arguments proposed `includes/features/` — this is a constitution violation; corrected here
+- Constitution Architecture section defines `includes/Modules/` as the canonical location (PascalCase required — autoloader does a verbatim namespace→path conversion; lowercase dirs fail on case-sensitive Linux filesystems)
+- The user arguments proposed `includes/features/` — constitution violation; corrected to `includes/Modules/Sitewide/`
 
 ---
 
