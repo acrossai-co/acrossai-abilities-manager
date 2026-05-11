@@ -1,50 +1,190 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+SYNC IMPACT REPORT
+Version change: template (unset) → 1.0.0
+Modified principles: N/A — initial creation from template placeholders
+Added sections: Core Principles (I–VII), Code Quality & Workflow, Architecture & UI Standards, Governance
+Removed sections: All template placeholder tokens replaced; no prior sections removed
+Templates reviewed:
+  - .specify/templates/plan-template.md ✅ reviewed — no outdated references
+  - .specify/templates/spec-template.md ✅ reviewed — no outdated references
+  - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
+  - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
+Deferred TODOs: None — all placeholders resolved
+-->
+
+# AcrossAI Abilities Manager Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Modular Architecture
+Each feature MUST be implemented as a self-contained module with a clear, singular purpose.
+Modules MUST be independently testable, extensible, and replaceable without affecting sibling modules.
+Shared logic MUST be extracted to `includes/utilities/` or abstract base classes in `includes/base/`.
+No code duplication between modules is permitted under any circumstance.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+**Rationale**: Enables parallel development, isolated testing, and safe iteration on any single feature
+without risking regressions in others. The five feature areas (Sitewide Management, Per-User Access
+Control, MCP Server Management, Custom Ability Registration, WebMCP Integration) MUST each map to
+exactly one module.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. WordPress Standards Compliance
+All PHP code MUST conform to WordPress Coding Standards (WPCS strict profile).
+Static analysis MUST pass PHPStan at level 8 with zero errors.
+JavaScript MUST pass ESLint with zero errors or warnings.
+All output MUST be escaped using the most specific available WordPress escaping function.
+All input MUST be sanitized at system entry points.
+No deprecated WordPress functions are permitted.
+The plugin MUST be compatible with WordPress 6.9+ and PHP 7.4+.
+The plugin MUST be multisite-compatible unless a feature is explicitly scoped to single-site with
+documented justification.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**Rationale**: Compliance ensures plugin quality, security, and long-term maintainability within the
+WordPress ecosystem. Non-compliant code will not be merged.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. User-Centric Design (NON-NEGOTIABLE)
+All admin interfaces MUST prioritize site administrator experience above implementation convenience.
+All form handling and data input MUST use `@wordpress/dataforms` (WordPress DataForms).
+All data display and listing MUST use `@wordpress/dataviews` (WordPress DataViews).
+DataForms MUST handle: field-level validation, inline error display, and submission state feedback.
+DataViews MUST provide: searchable lists, column sorting, pagination, and contextual filtering.
+No custom form or table rendering that duplicates DataForms/DataViews functionality is permitted.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale**: Consistency with WordPress core UI patterns reduces the learning curve for
+administrators and ensures a coherent, familiar admin experience across all five feature areas.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Security First (NON-NEGOTIABLE)
+- All input MUST be sanitized at system boundaries using the most specific WordPress sanitization
+  function (e.g., `sanitize_text_field()`, `absint()`, `wp_kses_post()`)
+- All output MUST be escaped at the point of rendering (e.g., `esc_html()`, `esc_attr()`, `esc_url()`)
+- All forms and AJAX endpoints MUST verify a nonce before processing any data
+- All admin actions MUST enforce a capability check (`manage_options` minimum, or more granular)
+- All database queries MUST use `$wpdb->prepare()` — raw interpolated queries are forbidden
+- File upload operations MUST validate MIME type, extension, and file size before processing
+- No deprecated WordPress security functions are permitted
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**Rationale**: Security failures have irreversible real-world consequences. These rules are absolute
+and cannot be waived for velocity, deadlines, or any other reason.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Extensibility Without Core Modification
+New features and third-party integrations (WPBoilerplate Access Control, MCP servers, WebMCP)
+MUST be implemented via WordPress action/filter hooks, extension points, or new self-contained
+modules — never by modifying existing core plugin files.
+All integrations MUST be optional: the plugin MUST function correctly and degrade gracefully
+when an integrated plugin or service is absent.
+Auto-discovery of external services (e.g., MCP servers) MUST be implemented as a background
+process and MUST NOT block admin page rendering.
+
+**Rationale**: Prevents merge conflicts, preserves update safety, and enables ecosystem growth
+without introducing tight coupling between the core plugin and optional dependencies.
+
+### VI. Reusability & DRY Principle
+All common logic MUST be extracted to shared utilities (`includes/utilities/`) or abstract base
+classes (`includes/base/`) before it is used in a second location.
+Reusable components MUST be built and maintained for: form builders, view generators, input
+validation, output sanitization, API response formatters, and permission checks.
+If equivalent functionality already exists anywhere in the codebase, it MUST be reused — never
+duplicated. Before implementing any utility, the existing codebase MUST be checked.
+Use `@wordpress/*` packages first (Tier 1), then npm packages (Tier 2). Never introduce a
+dependency that duplicates React, ReactDOM, or other packages already bundled by WordPress.
+Run `npm run validate-packages` before every commit to enforce this hierarchy.
+
+**Rationale**: Duplication creates maintenance burden, divergence bugs, and contradictory behaviour.
+A single source of truth for every abstraction keeps the codebase consistent and auditable.
+
+### VII. Definition of Done
+A feature is ONLY considered complete when ALL of the following gates pass:
+
+- [ ] PHPCS validation: zero errors and zero warnings
+- [ ] PHPStan level 8: zero errors
+- [ ] ESLint: zero errors
+- [ ] Security review complete: sanitization, escaping, nonces, and capabilities verified at every boundary
+- [ ] Unit tests written and passing for all new logic
+- [ ] All data input uses DataForms (`@wordpress/dataforms`)
+- [ ] All data display uses DataViews (`@wordpress/dataviews`)
+- [ ] No code duplication or DRY violations exist in the changeset
+- [ ] All functions, hooks, and classes are prefixed with `agency_`
+- [ ] All standards in `AGENTS.md` are met
+- [ ] `npm run validate-packages` passes
+
+**Rationale**: Partial completion creates technical debt that compounds across features. This gate
+enforces consistent, shippable quality at every increment.
+
+## Code Quality & Workflow
+
+- All PHP functions, hooks, filters, and class names MUST be prefixed with `agency_`
+- All forms and AJAX handlers MUST verify nonces using `check_ajax_referer()` or `wp_verify_nonce()`
+- Capability checks MUST be enforced on all admin page renders and all data-mutation endpoints
+- Input MUST be sanitized immediately upon receipt; output MUST be escaped at the point of render
+- No deprecated WordPress functions are permitted — use the current replacement
+- Use `wp_remote_get()` / `wp_remote_post()` for all outbound HTTP requests; never call `curl` directly
+- Prefer Action Scheduler for all async, scheduled, or background operations
+- Use `@wordpress/*` packages (Tier 1), then npm packages (Tier 2); avoid Tier 3 external frameworks
+  that duplicate dependencies already bundled by WordPress
+- Run `npm run validate-packages` before every commit
+- Never modify files inside `.agents/tools/` — these are external submodule dependencies
+
+## Architecture & UI Standards
+
+**Directory Layout**:
+```
+includes/
+├── base/           # Abstract base classes extended by all feature modules
+├── utilities/      # Shared utility functions, helpers, formatters
+└── modules/        # One subdirectory per feature module (self-contained)
+    ├── sitewide/
+    ├── per-user/
+    ├── mcp-server/
+    ├── custom-ability/
+    └── webmcp/
+src/
+├── js/             # JavaScript/React source files
+└── css/            # Stylesheet source files
+tests/
+├── phpunit/        # PHP unit and integration tests
+└── jest/           # JavaScript unit tests
+```
+
+**Module Contract**: Every feature module MUST:
+1. Extend the appropriate abstract base class from `includes/base/`
+2. Register all WordPress hooks in a dedicated `register()` method
+3. Depend only on shared utilities from `includes/utilities/` — never on sibling modules directly
+4. Expose integration points exclusively via WordPress actions and filters
+
+**UI Contract**:
+- `@wordpress/dataforms` handles all admin form UIs: field validation, error display, submission state
+- `@wordpress/dataviews` handles all admin list/table UIs: search, sort, pagination, filter
+- No custom implementations of form or table patterns that duplicate DataForms/DataViews are permitted
+
+**Database**:
+- Direct SQL is permitted only with `$wpdb->prepare()`
+- Prefer WordPress options/meta APIs for simple key-value or per-object storage
+- Custom database tables are only permitted when the data model genuinely cannot fit existing APIs,
+  with documented justification in the feature plan
+
+**Integration Resilience**:
+- All calls to optional integrations (WPBoilerplate Access Control, MCP servers) MUST be wrapped in
+  availability checks and MUST NOT throw fatal errors or produce broken UIs when absent
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other development practices for the AcrossAI Abilities Manager plugin.
+In any conflict between this constitution and another document, this constitution takes precedence.
+`AGENTS.md` remains the source of truth for tooling standards; this constitution governs architecture
+and quality principles.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Amendment Procedure**:
+1. Propose the amendment in writing with clear rationale
+2. Increment version following semantic versioning:
+   - MAJOR: backward-incompatible removal or redefinition of a principle
+   - MINOR: new principle added or existing principle materially expanded
+   - PATCH: clarifications, wording fixes, or non-semantic refinements
+3. Update this file and propagate changes to all affected templates
+4. Record a sync impact report (in the HTML comment block at the top of this file)
+5. Commit with message: `docs: amend constitution to vX.Y.Z (<summary>)`
+
+**Compliance**: All pull requests and code reviews MUST verify compliance with every principle in this
+constitution. Any implementation that appears to violate a principle MUST either be refactored or
+include documented justification in the feature plan explaining why a compliant approach was not
+feasible.
+
+**Version**: 1.0.0 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-11
