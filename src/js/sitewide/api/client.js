@@ -8,18 +8,6 @@
 import apiFetch from '@wordpress/api-fetch';
 
 /**
- * Build the base REST URL from the global config.
- *
- * @return {string} Base URL ending with a slash.
- */
-function getBaseUrl() {
-	const config = window.acrossaiAbilitiesSitewide || {};
-	const restUrl = config.rest_url || '/wp-json/';
-	// Ensure trailing slash.
-	return restUrl.replace( /\/?$/, '/' );
-}
-
-/**
  * Fetch the paginated, filtered abilities list.
  *
  * @param {Object} params Query params (page, per_page, search, orderby, order, source, has_override).
@@ -37,7 +25,29 @@ export async function fetchAbilities( params = {} ) {
 	const path = `acrossai-abilities-manager/v1/sitewide/abilities${ queryString ? '?' + queryString : '' }`;
 
 	const response = await apiFetch( { path, parse: false } );
-	const data     = await response.json();
+
+	// Guard: apiFetch with parse:false bypasses automatic error handling.
+	// Check response.ok before parsing to produce a clear error instead of a
+	// SyntaxError when the server returns HTML (redirect, PHP error, etc.).
+	if ( ! response.ok ) {
+		let message = `Server error: ${ response.status } ${ response.statusText }`;
+		try {
+			const errData = await response.clone().json();
+			if ( errData && errData.message ) {
+				message = errData.message;
+			}
+		} catch ( _ ) {
+			// Non-JSON error body — keep the status message.
+		}
+		throw new Error( message );
+	}
+
+	const contentType = response.headers.get( 'Content-Type' ) || '';
+	if ( ! contentType.includes( 'application/json' ) ) {
+		throw new Error( `Expected JSON from REST API but received: ${ contentType }` );
+	}
+
+	const data = await response.json();
 
 	return {
 		abilities: Array.isArray( data ) ? data : [],
