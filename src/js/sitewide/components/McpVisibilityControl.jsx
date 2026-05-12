@@ -1,82 +1,149 @@
 /**
- * MCP Visibility Control — tri-state dropdown + optional server list.
+ * MCP Visibility Control — RadioControl with 4 options + conditional server list.
+ *
+ * Payload encoding (explicit — avoids "Invalid parameter(s)" from WP REST API):
+ *   option 1 "Keep as Default"          → show_in_mcp: null,  mcp_type: null, mcp_servers: null
+ *   option 2 "Disable for MCP"          → show_in_mcp: false, mcp_type: null, mcp_servers: null
+ *   option 3 "Allow in all MCP servers" → show_in_mcp: true,  mcp_type: <str|null>, mcp_servers: null
+ *   option 4 "Allow in specific servers"→ show_in_mcp: true,  mcp_type: <str|null>, mcp_servers: string[]
+ *
+ * mcp_type  MUST be 'tool'|'resource'|'prompt'|null — never the string "null" or undefined.
+ * mcp_servers MUST be string[]|null — never undefined or [] (send null when empty).
  *
  * @since 0.1.0
  */
-import { SelectControl, CheckboxControl } from '@wordpress/components';
+import { RadioControl, SelectControl, CheckboxControl, Notice } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { STORE_NAME } from '../store/index';
 
-const MCP_TYPE_OPTIONS = [
-	{ value: '',     label: __( '— (Inherit)', 'acrossai-abilities-manager' ) },
-	{ value: 'tool', label: __( 'Tool', 'acrossai-abilities-manager' ) },
-	{ value: 'resource', label: __( 'Resource', 'acrossai-abilities-manager' ) },
-	{ value: 'prompt', label: __( 'Prompt', 'acrossai-abilities-manager' ) },
+const RADIO_OPTION_DEFAULT  = 'default';
+const RADIO_OPTION_DISABLE  = 'disable';
+const RADIO_OPTION_ALL      = 'all';
+const RADIO_OPTION_SPECIFIC = 'specific';
+
+const RADIO_OPTIONS = [
+	{ value: RADIO_OPTION_DEFAULT,  label: __( 'Keep as Default', 'acrossai-abilities-manager' ) },
+	{ value: RADIO_OPTION_DISABLE,  label: __( 'Disable for MCP', 'acrossai-abilities-manager' ) },
+	{ value: RADIO_OPTION_ALL,      label: __( 'Allow in all MCP servers', 'acrossai-abilities-manager' ) },
+	{ value: RADIO_OPTION_SPECIFIC, label: __( 'Allow in specific MCP servers', 'acrossai-abilities-manager' ) },
 ];
+
+const MCP_TYPE_OPTIONS = [
+	{ value: '',         label: __( '— (Inherit)', 'acrossai-abilities-manager' ) },
+	{ value: 'tool',     label: __( 'Tool', 'acrossai-abilities-manager' ) },
+	{ value: 'resource', label: __( 'Resource', 'acrossai-abilities-manager' ) },
+	{ value: 'prompt',   label: __( 'Prompt', 'acrossai-abilities-manager' ) },
+];
+
+/**
+ * Derive which radio option is active given the three stored field values.
+ *
+ * @param {boolean|null} showInMcp
+ * @param {Array|null}   mcpServers
+ * @return {string} One of the RADIO_OPTION_* constants.
+ */
+function toRadioOption( showInMcp, mcpServers ) {
+	if ( null === showInMcp ) return RADIO_OPTION_DEFAULT;
+	if ( false === showInMcp ) return RADIO_OPTION_DISABLE;
+	// showInMcp === true
+	if ( Array.isArray( mcpServers ) && mcpServers.length > 0 ) return RADIO_OPTION_SPECIFIC;
+	return RADIO_OPTION_ALL;
+}
 
 /**
  * McpVisibilityControl component.
  *
- * @param {Object}   props
- * @param {boolean|null} props.showInMcp   Tri-state value.
+ * @param {Object}       props
+ * @param {boolean|null} props.showInMcp   Tri-state value for show_in_mcp.
  * @param {string|null}  props.mcpType     MCP type value.
- * @param {Array|null}   props.mcpServers  Currently selected server IDs.
- * @param {Function}     props.onChange    Called with { show_in_mcp, mcp_type, mcp_servers }.
+ * @param {Array|null}   props.mcpServers  Currently selected server IDs (string[]) or null.
+ * @param {Function}     props.onChange    Called with partial { show_in_mcp?, mcp_type?, mcp_servers? }.
  * @return {JSX.Element}
  */
 export default function McpVisibilityControl( { showInMcp, mcpType, mcpServers, onChange } ) {
 	const availableServers = useSelect( ( select ) => select( STORE_NAME ).getMcpServers(), [] );
 
-	const isEnabled = showInMcp !== false;
+	const radioValue = toRadioOption( showInMcp, mcpServers );
+
+	function handleRadioChange( newOption ) {
+		switch ( newOption ) {
+			case RADIO_OPTION_DEFAULT:
+				onChange( { show_in_mcp: null, mcp_type: null, mcp_servers: null } );
+				break;
+			case RADIO_OPTION_DISABLE:
+				onChange( { show_in_mcp: false, mcp_type: null, mcp_servers: null } );
+				break;
+			case RADIO_OPTION_ALL:
+				// Keep mcp_type selection, clear servers.
+				onChange( { show_in_mcp: true, mcp_type: mcpType ?? null, mcp_servers: null } );
+				break;
+			case RADIO_OPTION_SPECIFIC:
+				// Keep mcp_type selection; keep servers if already set, else leave null (user will pick).
+				onChange( {
+					show_in_mcp: true,
+					mcp_type:    mcpType ?? null,
+					mcp_servers: Array.isArray( mcpServers ) && mcpServers.length > 0 ? mcpServers : null,
+				} );
+				break;
+		}
+	}
+
+	const showTypeAndServers = true === showInMcp;
+	const showSpecificServers = RADIO_OPTION_SPECIFIC === radioValue;
 
 	return (
 		<div className="acrossai-mcp-visibility">
-			<SelectControl
-				label={ __( 'Show in MCP', 'acrossai-abilities-manager' ) }
-				value={ null === showInMcp ? '' : String( showInMcp ) }
-				options={ [
-					{ value: '', label: __( '— (Inherit)', 'acrossai-abilities-manager' ) },
-					{ value: 'true', label: __( 'Yes', 'acrossai-abilities-manager' ) },
-					{ value: 'false', label: __( 'No', 'acrossai-abilities-manager' ) },
-				] }
-				onChange={ ( value ) => {
-					let parsed = null;
-					if ( 'true' === value ) parsed = true;
-					else if ( 'false' === value ) parsed = false;
-					onChange( { show_in_mcp: parsed } );
-				} }
+			<RadioControl
+				label={ __( 'MCP Visibility', 'acrossai-abilities-manager' ) }
+				selected={ radioValue }
+				options={ RADIO_OPTIONS }
+				onChange={ handleRadioChange }
 			/>
 
-			{ isEnabled && (
+			{ showTypeAndServers && (
 				<>
 					<SelectControl
 						label={ __( 'MCP Type', 'acrossai-abilities-manager' ) }
 						value={ mcpType || '' }
 						options={ MCP_TYPE_OPTIONS }
-						onChange={ ( value ) => onChange( { mcp_type: value || null } ) }
+						onChange={ ( value ) => {
+							// '' means "inherit" → send null, never the string "null".
+							onChange( { mcp_type: value || null } );
+						} }
 					/>
 
-					{ availableServers.length > 0 && (
-						<fieldset>
-							<legend>{ __( 'MCP Servers', 'acrossai-abilities-manager' ) }</legend>
-							{ availableServers.map( ( server ) => {
-								const selectedIds = Array.isArray( mcpServers ) ? mcpServers : [];
-								return (
-									<CheckboxControl
-										key={ server.id }
-										label={ server.name || server.id }
-										checked={ selectedIds.includes( server.id ) }
-										onChange={ ( checked ) => {
-											const next = checked
-												? [ ...selectedIds, server.id ]
-												: selectedIds.filter( ( id ) => id !== server.id );
-											onChange( { mcp_servers: next.length ? next : null } );
-										} }
-									/>
-								);
-							} ) }
-						</fieldset>
+					{ showSpecificServers && (
+						<div className="acrossai-mcp-visibility__servers">
+							{ availableServers.length === 0 ? (
+								<Notice status="warning" isDismissible={ false }>
+									{ __( 'No MCP servers configured.', 'acrossai-abilities-manager' ) }
+								</Notice>
+							) : (
+								<fieldset>
+									<legend className="components-base-control__label">
+										{ __( 'MCP Servers', 'acrossai-abilities-manager' ) }
+									</legend>
+									{ availableServers.map( ( server ) => {
+										const selectedIds = Array.isArray( mcpServers ) ? mcpServers : [];
+										return (
+											<CheckboxControl
+												key={ server.id }
+												label={ server.name || server.id }
+												checked={ selectedIds.includes( server.id ) }
+												onChange={ ( checked ) => {
+													const next = checked
+														? [ ...selectedIds, server.id ]
+														: selectedIds.filter( ( id ) => id !== server.id );
+													// Send null when empty — never send [] to satisfy sanitize_mcp_servers_array.
+													onChange( { mcp_servers: next.length > 0 ? next : null } );
+												} }
+											/>
+										);
+									} ) }
+								</fieldset>
+							) }
+						</div>
 					) }
 				</>
 			) }

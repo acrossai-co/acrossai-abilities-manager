@@ -1,10 +1,17 @@
 /**
  * Slide-in edit panel for a single ability override.
  *
- * Uses createPortal from @wordpress/element to render outside the main app tree.
- * Tri-state fields (null/false/true) are rendered as RadioControl with string
- * values 'null'/'false'/'true' to avoid Boolean()/'!!' collapsing null and false
- * into the same falsy bucket.
+ * Per-tab save architecture:
+ * - Each tab manages independent local state.
+ * - Each tab has its own Save + Reset to Default footer buttons.
+ * - There is NO panel-level Save button — the header has only a close (✕) button.
+ * - The panel stays OPEN after a tab save so the user can edit other tabs.
+ * - Escape / backdrop / ✕ close: if any tab has unsaved draft changes a
+ *   browser confirm() prompt is shown before discarding.
+ *
+ * Tri-state encoding:
+ * - RadioControl string values 'true'/'false'/'null' ↔ JS true/false/null.
+ * - NEVER use Boolean() or !! — collapses null and false into the same falsy bucket.
  *
  * @since 0.1.0
  */
@@ -16,170 +23,250 @@ import { __ } from '@wordpress/i18n';
 import { STORE_NAME } from '../store/index';
 import McpVisibilityControl from './McpVisibilityControl';
 
+// ---------------------------------------------------------------------------
+// Tri-state helpers — strict, no Boolean() / !!
+// ---------------------------------------------------------------------------
+
 /**
- * Convert a PHP tri-state value (null|true|false) to a radio string value.
- *
- * NEVER use Boolean() or !! here — that collapses null and false into the same
- * falsy bucket, losing the distinction between "Inherit" and "explicit No".
- *
- * @param {*} value PHP-style tri-state: null, true, or false.
+ * PHP tri-state value → radio string.
+ * @param {*} v  null | true | false
  * @return {'null'|'true'|'false'}
  */
-function triStateToString( value ) {
-	if ( true === value ) return 'true';
-	if ( false === value ) return 'false';
-	return 'null'; // null or undefined → Inherit
+function ts2s( v ) {
+	if ( true === v ) return 'true';
+	if ( false === v ) return 'false';
+	return 'null';
 }
 
 /**
- * Convert a radio string value back to a PHP tri-state value.
- *
- * @param {'null'|'true'|'false'} str
+ * Radio string → PHP tri-state value.
+ * @param {'null'|'true'|'false'} s
  * @return {null|true|false}
  */
-function stringToTriState( str ) {
-	if ( 'true' === str ) return true;
-	if ( 'false' === str ) return false;
-	return null; // 'null' or anything else → Inherit
+function s2ts( s ) {
+	if ( 'true' === s ) return true;
+	if ( 'false' === s ) return false;
+	return null;
 }
 
-/** Shared RadioControl options for every tri-state field. */
 const TRI_STATE_OPTIONS = [
 	{ value: 'null',  label: __( 'Inherit (use ability default)', 'acrossai-abilities-manager' ) },
 	{ value: 'true',  label: __( 'Yes', 'acrossai-abilities-manager' ) },
 	{ value: 'false', label: __( 'No', 'acrossai-abilities-manager' ) },
 ];
 
-/**
- * TriStateControl renders a tri-state field as a RadioControl.
- *
- * @param {Object}   props
- * @param {string}   props.label         Control label.
- * @param {*}        props.value         null | true | false.
- * @param {*}        props.registryValue Registry default for this field (read-only hint).
- * @param {Function} props.onChange      Callback receives null | true | false.
- * @return {JSX.Element}
- */
-function TriStateControl( { label, value, registryValue, onChange } ) {
-	const defaultHint = triStateToString( registryValue );
-	const hintLabels = { 'null': __( 'Inherit', 'acrossai-abilities-manager' ), 'true': __( 'Yes', 'acrossai-abilities-manager' ), 'false': __( 'No', 'acrossai-abilities-manager' ) };
+const HINT_LABELS = { null: __( 'Inherit', 'acrossai-abilities-manager' ), 'true': __( 'Yes', 'acrossai-abilities-manager' ), 'false': __( 'No', 'acrossai-abilities-manager' ) };
 
+function TriStateControl( { label, value, registryValue, onChange } ) {
 	return (
 		<div className="acrossai-tri-state-control">
 			<RadioControl
 				label={ label }
-				selected={ triStateToString( value ) }
+				selected={ ts2s( value ) }
 				options={ TRI_STATE_OPTIONS }
-				onChange={ ( str ) => onChange( stringToTriState( str ) ) }
+				onChange={ ( s ) => onChange( s2ts( s ) ) }
 			/>
-			{ undefined !== registryValue && null !== registryValue && (
+			{ null !== registryValue && undefined !== registryValue && (
 				<p className="acrossai-tri-state-control__hint description">
 					{ __( 'Ability default:', 'acrossai-abilities-manager' ) }{ ' ' }
-					<strong>{ hintLabels[ defaultHint ] }</strong>
+					<strong>{ HINT_LABELS[ ts2s( registryValue ) ] }</strong>
 				</p>
 			) }
 		</div>
 	);
 }
 
+// ---------------------------------------------------------------------------
+// Tab initial state builders
+// ---------------------------------------------------------------------------
+
+function buildGeneralDraft( src ) {
+	return {
+		site_allowed: src?.site_allowed ?? null,
+		readonly:     src?.readonly     ?? null,
+		destructive:  src?.destructive  ?? null,
+		idempotent:   src?.idempotent   ?? null,
+		show_in_rest: src?.show_in_rest ?? null,
+	};
+}
+
+function buildMcpDraft( src ) {
+	return {
+		show_in_mcp: src?.show_in_mcp ?? null,
+		mcp_type:    src?.mcp_type    ?? null,
+		mcp_servers: src?.mcp_servers ?? null,
+	};
+}
+
+function draftsEqual( a, b ) {
+	return JSON.stringify( a ) === JSON.stringify( b );
+}
+
+// ---------------------------------------------------------------------------
+// TabFooter — Save + Reset buttons with inline notice
+// ---------------------------------------------------------------------------
+
+function TabFooter( { draft, savedDraft, onSave, onReset, isSaving, notice, onDismissNotice } ) {
+	return (
+		<div className="acrossai-ability-edit-panel__tab-footer">
+			{ notice && (
+				<Notice
+					status={ notice.status }
+					isDismissible
+					onRemove={ onDismissNotice }
+				>
+					{ notice.message }
+				</Notice>
+			) }
+			<div className="acrossai-ability-edit-panel__tab-footer-buttons">
+				<Button
+					variant="primary"
+					onClick={ onSave }
+					disabled={ isSaving }
+					isBusy={ isSaving }
+				>
+					{ isSaving
+						? __( 'Saving\u2026', 'acrossai-abilities-manager' )
+						: __( 'Save', 'acrossai-abilities-manager' ) }
+				</Button>
+				<Button
+					variant="tertiary"
+					onClick={ onReset }
+					disabled={ isSaving || draftsEqual( draft, savedDraft ) }
+				>
+					{ __( 'Reset to Default', 'acrossai-abilities-manager' ) }
+				</Button>
+			</div>
+		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
 /**
  * AbilityEditPanel — slide-in drawer component.
  *
  * @param {Object}   props
- * @param {string}   props.slug         Ability slug.
- * @param {Object}   props.ability      Merged ability data (may be null).
- * @param {Object}   props.registry     Raw registry ability data (for defaults display).
- * @param {Function} props.onClose      Close handler.
+ * @param {string}   props.slug      Ability slug.
+ * @param {Object}   props.ability   Merged ability data (may be null).
+ * @param {Object}   props.registry  Raw registry ability (for default hints).
+ * @param {Function} props.onClose   Close handler.
  * @return {JSX.Element|null}
  */
 export default function AbilityEditPanel( { slug, ability, registry, onClose } ) {
 	const dispatch = useDispatch( STORE_NAME );
 
-	const [ isSaving, setIsSaving ]   = useState( false );
-	const [ notice, setNotice ]       = useState( null ); // { status: 'success'|'error', message }
+	// General tab
+	const [ generalDraft,  setGeneralDraft  ] = useState( () => buildGeneralDraft( ability ) );
+	const [ generalSaved,  setGeneralSaved  ] = useState( () => buildGeneralDraft( ability ) );
+	const [ generalSaving, setGeneralSaving ] = useState( false );
+	const [ generalNotice, setGeneralNotice ] = useState( null );
 
-	// Local form state — seeded from ability, stored as PHP values (null/true/false).
-	const buildFormState = ( src ) => ( {
-		site_allowed:  src?.site_allowed  ?? null,
-		readonly:      src?.readonly      ?? null,
-		destructive:   src?.destructive   ?? null,
-		idempotent:    src?.idempotent    ?? null,
-		show_in_rest:  src?.show_in_rest  ?? null,
-		show_in_mcp:   src?.show_in_mcp  ?? null,
-		mcp_type:      src?.mcp_type      ?? null,
-		mcp_servers:   src?.mcp_servers   ?? null,
-	} );
+	// MCP tab
+	const [ mcpDraft,  setMcpDraft  ] = useState( () => buildMcpDraft( ability ) );
+	const [ mcpSaved,  setMcpSaved  ] = useState( () => buildMcpDraft( ability ) );
+	const [ mcpSaving, setMcpSaving ] = useState( false );
+	const [ mcpNotice, setMcpNotice ] = useState( null );
 
-	const [ formData, setFormData ] = useState( () => buildFormState( ability ) );
-
-	// Re-seed when ability prop changes (e.g. after external save).
+	// Re-seed both tabs when ability prop changes (external update).
 	useEffect( () => {
-		setFormData( buildFormState( ability ) );
+		setGeneralDraft( buildGeneralDraft( ability ) );
+		setGeneralSaved( buildGeneralDraft( ability ) );
+		setMcpDraft( buildMcpDraft( ability ) );
+		setMcpSaved( buildMcpDraft( ability ) );
 	}, [ ability ] ); // eslint-disable-line react-hooks/exhaustive-deps
 
-	// Close on Escape key.
-	useEffect( () => {
-		function handleKey( e ) {
-			if ( 'Escape' === e.key ) onClose();
-		}
-		document.addEventListener( 'keydown', handleKey );
-		return () => document.removeEventListener( 'keydown', handleKey );
-	}, [ onClose ] );
+	// Unsaved check
+	const hasUnsaved = ! draftsEqual( generalDraft, generalSaved ) || ! draftsEqual( mcpDraft, mcpSaved );
 
-	function setField( key, value ) {
-		setFormData( ( prev ) => ( { ...prev, [ key ]: value } ) );
-	}
-
-	const handleSave = useCallback( async () => {
-		setIsSaving( true );
-		setNotice( null );
-		try {
-			const result = await dispatch.saveOverride( slug, formData );
-			if ( result?.unchanged ) {
-				setNotice( { status: 'success', message: __( 'No changes made.', 'acrossai-abilities-manager' ) } );
-			} else {
-				setNotice( { status: 'success', message: __( 'Settings saved.', 'acrossai-abilities-manager' ) } );
+	const handleClose = useCallback( () => {
+		if ( hasUnsaved ) {
+			// eslint-disable-next-line no-alert
+			if ( ! window.confirm( __( 'You have unsaved changes. Close without saving?', 'acrossai-abilities-manager' ) ) ) {
+				return;
 			}
-		} catch ( err ) {
-			setNotice( { status: 'error', message: err.message || String( err ) } );
-		} finally {
-			setIsSaving( false );
 		}
-	}, [ dispatch, slug, formData ] );
+		onClose();
+	}, [ hasUnsaved, onClose ] );
+
+	// Escape key
+	useEffect( () => {
+		function onKey( e ) {
+			if ( 'Escape' === e.key ) handleClose();
+		}
+		document.addEventListener( 'keydown', onKey );
+		return () => document.removeEventListener( 'keydown', onKey );
+	}, [ handleClose ] );
+
+	// Save handlers
+	const saveGeneral = useCallback( async () => {
+		setGeneralSaving( true );
+		setGeneralNotice( null );
+		try {
+			const result = await dispatch.saveOverride( slug, generalDraft );
+			const msg = result?.unchanged
+				? __( 'No changes made.', 'acrossai-abilities-manager' )
+				: __( 'Settings saved.', 'acrossai-abilities-manager' );
+			setGeneralNotice( { status: 'success', message: msg } );
+			setGeneralSaved( { ...generalDraft } );
+		} catch ( err ) {
+			setGeneralNotice( { status: 'error', message: err.message || String( err ) } );
+		} finally {
+			setGeneralSaving( false );
+		}
+	}, [ dispatch, slug, generalDraft ] );
+
+	const saveMcp = useCallback( async () => {
+		setMcpSaving( true );
+		setMcpNotice( null );
+		try {
+			const result = await dispatch.saveOverride( slug, mcpDraft );
+			const msg = result?.unchanged
+				? __( 'No changes made.', 'acrossai-abilities-manager' )
+				: __( 'Settings saved.', 'acrossai-abilities-manager' );
+			setMcpNotice( { status: 'success', message: msg } );
+			setMcpSaved( { ...mcpDraft } );
+		} catch ( err ) {
+			setMcpNotice( { status: 'error', message: err.message || String( err ) } );
+		} finally {
+			setMcpSaving( false );
+		}
+	}, [ dispatch, slug, mcpDraft ] );
 
 	const regVal = ( field ) => registry?.[ field ] ?? null;
 
+	// ---------------------------------------------------------------------------
+	// Tab content
+	// ---------------------------------------------------------------------------
+
 	const generalTab = (
 		<div className="acrossai-ability-edit-panel__tab-content">
-			<TriStateControl
-				label={ __( 'Site Allowed', 'acrossai-abilities-manager' ) }
-				value={ formData.site_allowed }
-				registryValue={ regVal( 'site_allowed' ) }
-				onChange={ ( v ) => setField( 'site_allowed', v ) }
-			/>
-			<TriStateControl
-				label={ __( 'Read Only', 'acrossai-abilities-manager' ) }
-				value={ formData.readonly }
-				registryValue={ regVal( 'readonly' ) }
-				onChange={ ( v ) => setField( 'readonly', v ) }
-			/>
-			<TriStateControl
-				label={ __( 'Destructive', 'acrossai-abilities-manager' ) }
-				value={ formData.destructive }
-				registryValue={ regVal( 'destructive' ) }
-				onChange={ ( v ) => setField( 'destructive', v ) }
-			/>
-			<TriStateControl
-				label={ __( 'Idempotent', 'acrossai-abilities-manager' ) }
-				value={ formData.idempotent }
-				registryValue={ regVal( 'idempotent' ) }
-				onChange={ ( v ) => setField( 'idempotent', v ) }
-			/>
-			<TriStateControl
-				label={ __( 'Show in REST', 'acrossai-abilities-manager' ) }
-				value={ formData.show_in_rest }
-				registryValue={ regVal( 'show_in_rest' ) }
-				onChange={ ( v ) => setField( 'show_in_rest', v ) }
+			<TriStateControl label={ __( 'Site Allowed', 'acrossai-abilities-manager' ) }
+				value={ generalDraft.site_allowed } registryValue={ regVal( 'site_allowed' ) }
+				onChange={ ( v ) => setGeneralDraft( ( p ) => ( { ...p, site_allowed: v } ) ) } />
+			<TriStateControl label={ __( 'Read Only', 'acrossai-abilities-manager' ) }
+				value={ generalDraft.readonly } registryValue={ regVal( 'readonly' ) }
+				onChange={ ( v ) => setGeneralDraft( ( p ) => ( { ...p, readonly: v } ) ) } />
+			<TriStateControl label={ __( 'Destructive', 'acrossai-abilities-manager' ) }
+				value={ generalDraft.destructive } registryValue={ regVal( 'destructive' ) }
+				onChange={ ( v ) => setGeneralDraft( ( p ) => ( { ...p, destructive: v } ) ) } />
+			<TriStateControl label={ __( 'Idempotent', 'acrossai-abilities-manager' ) }
+				value={ generalDraft.idempotent } registryValue={ regVal( 'idempotent' ) }
+				onChange={ ( v ) => setGeneralDraft( ( p ) => ( { ...p, idempotent: v } ) ) } />
+			<TriStateControl label={ __( 'Show in REST', 'acrossai-abilities-manager' ) }
+				value={ generalDraft.show_in_rest } registryValue={ regVal( 'show_in_rest' ) }
+				onChange={ ( v ) => setGeneralDraft( ( p ) => ( { ...p, show_in_rest: v } ) ) } />
+
+			<TabFooter
+				draft={ generalDraft }
+				savedDraft={ generalSaved }
+				onSave={ saveGeneral }
+				onReset={ () => setGeneralDraft( buildGeneralDraft( ability ) ) }
+				isSaving={ generalSaving }
+				notice={ generalNotice }
+				onDismissNotice={ () => setGeneralNotice( null ) }
 			/>
 		</div>
 	);
@@ -187,21 +274,34 @@ export default function AbilityEditPanel( { slug, ability, registry, onClose } )
 	const mcpTab = (
 		<div className="acrossai-ability-edit-panel__tab-content">
 			<McpVisibilityControl
-				showInMcp={ formData.show_in_mcp }
-				mcpType={ formData.mcp_type }
-				mcpServers={ formData.mcp_servers }
-				onChange={ ( partial ) => setFormData( ( prev ) => ( { ...prev, ...partial } ) ) }
+				showInMcp={ mcpDraft.show_in_mcp }
+				mcpType={ mcpDraft.mcp_type }
+				mcpServers={ mcpDraft.mcp_servers }
+				onChange={ ( partial ) => setMcpDraft( ( p ) => ( { ...p, ...partial } ) ) }
+			/>
+
+			<TabFooter
+				draft={ mcpDraft }
+				savedDraft={ mcpSaved }
+				onSave={ saveMcp }
+				onReset={ () => setMcpDraft( buildMcpDraft( ability ) ) }
+				isSaving={ mcpSaving }
+				notice={ mcpNotice }
+				onDismissNotice={ () => setMcpNotice( null ) }
 			/>
 		</div>
 	);
 
+	// ---------------------------------------------------------------------------
+	// Render
+	// ---------------------------------------------------------------------------
+
 	const panel = (
 		<>
-			{ /* Backdrop — click closes without saving */ }
 			<div
 				className="acrossai-ability-edit-panel__backdrop"
 				role="presentation"
-				onClick={ onClose }
+				onClick={ handleClose }
 			/>
 			<div
 				className="acrossai-ability-edit-panel"
@@ -210,27 +310,19 @@ export default function AbilityEditPanel( { slug, ability, registry, onClose } )
 				aria-label={ __( 'Edit Ability Override', 'acrossai-abilities-manager' ) }
 			>
 				<div className="acrossai-ability-edit-panel__header">
-					<h2 className="acrossai-ability-edit-panel__title">
-						{ __( 'Edit Ability Override', 'acrossai-abilities-manager' ) }
-					</h2>
-					<p className="acrossai-ability-edit-panel__slug description">{ slug }</p>
+					<div className="acrossai-ability-edit-panel__header-text">
+						<h2 className="acrossai-ability-edit-panel__title">
+							{ __( 'Edit Ability Override', 'acrossai-abilities-manager' ) }
+						</h2>
+						<p className="acrossai-ability-edit-panel__slug description">{ slug }</p>
+					</div>
 					<Button
 						icon="no-alt"
 						label={ __( 'Close', 'acrossai-abilities-manager' ) }
 						className="acrossai-ability-edit-panel__close"
-						onClick={ onClose }
+						onClick={ handleClose }
 					/>
 				</div>
-
-				{ notice && (
-					<Notice
-						status={ notice.status }
-						isDismissible
-						onRemove={ () => setNotice( null ) }
-					>
-						{ notice.message }
-					</Notice>
-				) }
 
 				<TabPanel
 					className="acrossai-ability-edit-panel__tabs"
@@ -241,22 +333,6 @@ export default function AbilityEditPanel( { slug, ability, registry, onClose } )
 				>
 					{ ( tab ) => 'general' === tab.name ? generalTab : mcpTab }
 				</TabPanel>
-
-				<div className="acrossai-ability-edit-panel__footer">
-					<Button
-						variant="primary"
-						onClick={ handleSave }
-						disabled={ isSaving }
-						isBusy={ isSaving }
-					>
-						{ isSaving
-							? __( 'Saving\u2026', 'acrossai-abilities-manager' )
-							: __( 'Save Override', 'acrossai-abilities-manager' ) }
-					</Button>
-					<Button variant="secondary" onClick={ onClose } disabled={ isSaving }>
-						{ __( 'Cancel', 'acrossai-abilities-manager' ) }
-					</Button>
-				</div>
 			</div>
 		</>
 	);

@@ -185,34 +185,50 @@ class AcrossAI_Sitewide_Rest_Controller {
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
 						),
-						// Nullable booleans: JSON null = Inherit (no override), true = Yes, false = No.
-						// 'type' must be an array to accept both boolean and null from the JS client.
+						// All 8 overridable fields must be declared — missing args cause WP to reject
+						// the entire request with 'Invalid parameter(s)' before the callback runs.
 						'site_allowed' => array(
+							'required'          => false,
 							'type'              => array( 'boolean', 'null' ),
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_tri_state' ),
 						),
 						'readonly'     => array(
+							'required'          => false,
 							'type'              => array( 'boolean', 'null' ),
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_tri_state' ),
 						),
 						'destructive'  => array(
+							'required'          => false,
 							'type'              => array( 'boolean', 'null' ),
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_tri_state' ),
 						),
 						'idempotent'   => array(
+							'required'          => false,
 							'type'              => array( 'boolean', 'null' ),
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_tri_state' ),
 						),
 						'show_in_rest' => array(
+							'required'          => false,
 							'type'              => array( 'boolean', 'null' ),
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_tri_state' ),
 						),
 						'show_in_mcp'  => array(
+							'required'          => false,
 							'type'              => array( 'boolean', 'null' ),
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_tri_state' ),
 						),
-						'mcp_type'     => array( 'type' => 'string' ),
-						'mcp_servers'  => array( 'type' => 'array' ),
+						'mcp_type'     => array(
+							'required'          => false,
+							'type'              => array( 'string', 'null' ),
+							'enum'              => array( 'tool', 'resource', 'prompt', null ),
+							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_mcp_type' ),
+						),
+						'mcp_servers'  => array(
+							'required'          => false,
+							'type'              => array( 'array', 'null' ),
+							'items'             => array( 'type' => 'string' ),
+							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_mcp_servers_array' ),
+						),
 					),
 				),
 				array(
