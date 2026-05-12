@@ -25,6 +25,10 @@
 
         <!-- Allow short array syntax -->
         <exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+
+        <!-- Project uses PSR-4 PascalCase file naming, not WPCS kebab-case -->
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
     </rule>
 
     <!-- Let's also check that everything is properly documented. -->

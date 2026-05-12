@@ -64,7 +64,9 @@ class Menu {
 			__( 'Abilities Manager', 'acrossai-abilities-manager' ),
 			'manage_options',
 			'acrossai-abilities-manager',
-			array( $this, 'contents' )
+			array( $this, 'contents' ),
+			'dashicons-admin-tools',
+			99
 		);
 	}
 
@@ -72,9 +74,8 @@ class Menu {
 	 * About us for the plugins
 	 */
 	public function contents() {
-		?>
-		<div class="acrossai-abilities-manager-container"></div>
-		<?php
+		$page = new \AcrossAI_Abilities_Manager\Admin\Partials\SitewideAbilityPage();
+		$page->render_page();
 	}
 
 	/**

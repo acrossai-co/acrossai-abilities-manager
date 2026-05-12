@@ -1,18 +1,18 @@
 <?php
-namespace AcrossAI_Abilities_Manager\Includes;
-
-// Exit if accessed directly
-defined( 'ABSPATH' ) || exit;
-
 /**
- * Fired during plugin activation
- *
- * @link       https://github.com/WPBoilerplate/acrossai-abilities-manager
- * @since      0.0.1
+ * Fired during plugin activation.
  *
  * @package    AcrossAI_Abilities_Manager
  * @subpackage AcrossAI_Abilities_Manager/includes
+ * @since      0.0.1
  */
+
+namespace AcrossAI_Abilities_Manager\Includes;
+
+use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Table;
+
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Fired during plugin activation.
@@ -27,12 +27,14 @@ defined( 'ABSPATH' ) || exit;
 class Activator {
 
 	/**
-	 * Short Description. (use period)
+	 * Run activation tasks.
 	 *
-	 * Long Description.
+	 * Creates or upgrades the {prefix}acrossai_abilities_overwrite table.
 	 *
-	 * @since    0.0.1
+	 * @since  0.0.1
+	 * @return void
 	 */
-	public static function activate() {
+	public static function activate(): void {
+		( new AcrossAI_Sitewide_Table() )->maybe_upgrade();
 	}
 }

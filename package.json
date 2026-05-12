@@ -44,6 +44,7 @@
 		"webpack-remove-empty-scripts": "latest"
 	},
 	"dependencies": {
+		"@wordpress/dataviews": "^14.2.0",
 		"@wordpress/icons": "latest"
 	},
 	"prettier": "@wordpress/prettier-config",

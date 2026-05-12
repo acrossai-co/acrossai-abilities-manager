@@ -74,6 +74,12 @@ module.exports = {
 			'src/scss',
 			'backend.scss'
 		),
+		'js/sitewide': path.resolve( process.cwd(), 'src/js/sitewide', 'index.js' ),
+		'css/sitewide': path.resolve(
+			process.cwd(),
+			'src/scss/sitewide',
+			'admin.scss'
+		),
 	},
 	output: {
 		...defaultConfig.output,

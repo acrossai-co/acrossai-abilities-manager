@@ -7,9 +7,9 @@
 	"minimum-stability": "dev",
 	"require": {
 		"php": ">=7.4",
-		"coenjacobs/mozart": "^0.7",
 		"automattic/jetpack-autoloader": "^2",
-		"wpboilerplate/wpb-access-control": "dev-main"
+		"wpboilerplate/wpb-access-control": "dev-main",
+		"berlindb/core": "^2.0"
 	},
 	"keywords": [
 		"wordpress",
