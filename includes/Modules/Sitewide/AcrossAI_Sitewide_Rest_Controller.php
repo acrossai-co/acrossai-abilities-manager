@@ -109,6 +109,55 @@ class AcrossAI_Sitewide_Rest_Controller {
 			)
 		);
 
+		// US5: Bulk action.
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/sitewide/abilities/bulk',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'bulk_action' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'slugs'  => array(
+							'type'     => 'array',
+							'required' => true,
+							'items'    => array( 'type' => 'string' ),
+						),
+						'action' => array(
+							'type'     => 'string',
+							'required' => true,
+							'enum'     => array( 'allow', 'disallow', 'reset' ),
+						),
+					),
+				),
+			)
+		);
+
+		// US2: Toggle site_allowed.
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/sitewide/abilities/(?P<slug>[a-zA-Z0-9\-_\/]+)/toggle',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'toggle_ability' ),
+					'permission_callback' => array( $this, 'check_permission' ),
+					'args'                => array(
+						'slug'         => array(
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
+						),
+						'site_allowed' => array(
+							'type'     => 'boolean',
+							'required' => true,
+						),
+					),
+				),
+			)
+		);
+
 		// US1: Get single ability.
 		register_rest_route(
 			self::REST_NAMESPACE,
@@ -155,55 +204,6 @@ class AcrossAI_Sitewide_Rest_Controller {
 							'type'              => 'string',
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
-						),
-					),
-				),
-			)
-		);
-
-		// US2: Toggle site_allowed.
-		register_rest_route(
-			self::REST_NAMESPACE,
-			'/sitewide/abilities/(?P<slug>[a-zA-Z0-9\-_\/]+)/toggle',
-			array(
-				array(
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'toggle_ability' ),
-					'permission_callback' => array( $this, 'check_permission' ),
-					'args'                => array(
-						'slug'         => array(
-							'type'              => 'string',
-							'required'          => true,
-							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
-						),
-						'site_allowed' => array(
-							'type'     => 'boolean',
-							'required' => true,
-						),
-					),
-				),
-			)
-		);
-
-		// US5: Bulk action.
-		register_rest_route(
-			self::REST_NAMESPACE,
-			'/sitewide/abilities/bulk',
-			array(
-				array(
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'bulk_action' ),
-					'permission_callback' => array( $this, 'check_permission' ),
-					'args'                => array(
-						'slugs'  => array(
-							'type'     => 'array',
-							'required' => true,
-							'items'    => array( 'type' => 'string' ),
-						),
-						'action' => array(
-							'type'     => 'string',
-							'required' => true,
-							'enum'     => array( 'allow', 'disallow', 'reset' ),
 						),
 					),
 				),
