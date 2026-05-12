@@ -9,6 +9,8 @@ import { useDebounce } from '@wordpress/compose';
 import { __ } from '@wordpress/i18n';
 import { Button, Spinner } from '@wordpress/components';
 import { STORE_NAME } from '../store/index';
+import TriStateBadgeCell from './cells/TriStateBadgeCell';
+import McpServersCell from './cells/McpServersCell';
 
 /**
  * Status cell renderer — shows site_allowed with default indicator.
@@ -105,6 +107,89 @@ export default function AbilityTable( {
 			label:    __( 'Last Updated', 'acrossai-abilities-manager' ),
 			getValue: ( { item } ) => item.updated_at || '—',
 			enableSorting: true,
+			enableHiding:  true,
+		},
+		{
+			id:     'readonly',
+			label:  __( 'Readonly', 'acrossai-abilities-manager' ),
+			render: ( { item } ) => (
+				<TriStateBadgeCell
+					value={ item.readonly }
+					hasOverride={ item.has_override }
+					registryValue={ item._registry ? item._registry.readonly : null }
+				/>
+			),
+			enableHiding: true,
+		},
+		{
+			id:     'destructive',
+			label:  __( 'Destructive', 'acrossai-abilities-manager' ),
+			render: ( { item } ) => (
+				<TriStateBadgeCell
+					value={ item.destructive }
+					hasOverride={ item.has_override }
+					registryValue={ item._registry ? item._registry.destructive : null }
+				/>
+			),
+			enableHiding: true,
+		},
+		{
+			id:     'idempotent',
+			label:  __( 'Idempotent', 'acrossai-abilities-manager' ),
+			render: ( { item } ) => (
+				<TriStateBadgeCell
+					value={ item.idempotent }
+					hasOverride={ item.has_override }
+					registryValue={ item._registry ? item._registry.idempotent : null }
+				/>
+			),
+			enableHiding: true,
+		},
+		{
+			id:     'show_in_rest',
+			label:  __( 'Show in REST', 'acrossai-abilities-manager' ),
+			render: ( { item } ) => (
+				<TriStateBadgeCell
+					value={ item.show_in_rest }
+					hasOverride={ item.has_override }
+					registryValue={ item._registry ? item._registry.show_in_rest : null }
+				/>
+			),
+			enableHiding: true,
+		},
+		{
+			id:     'show_in_mcp',
+			label:  __( 'Show in MCP', 'acrossai-abilities-manager' ),
+			render: ( { item } ) => (
+				<TriStateBadgeCell
+					value={ item.show_in_mcp }
+					hasOverride={ item.has_override }
+					registryValue={ item._registry ? item._registry.show_in_mcp : null }
+				/>
+			),
+			enableHiding: true,
+		},
+		{
+			id:       'mcp_type',
+			label:    __( 'MCP Type', 'acrossai-abilities-manager' ),
+			getValue: ( { item } ) => item.mcp_type || '—',
+			elements: [
+				{ value: 'tool',     label: __( 'Tool', 'acrossai-abilities-manager' ) },
+				{ value: 'resource', label: __( 'Resource', 'acrossai-abilities-manager' ) },
+				{ value: 'prompt',   label: __( 'Prompt', 'acrossai-abilities-manager' ) },
+			],
+			enableHiding: true,
+		},
+		{
+			id:            'mcp_servers',
+			label:         __( 'MCP Servers', 'acrossai-abilities-manager' ),
+			render:        ( { item } ) => (
+				<McpServersCell
+					value={ item.mcp_servers }
+					showInMcp={ item.show_in_mcp }
+				/>
+			),
+			enableSorting: false,
 			enableHiding:  true,
 		},
 	];
