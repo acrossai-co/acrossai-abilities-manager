@@ -105,16 +105,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/WPBoilerplate/wpb-access-control.git",
-                "reference": "67706e1cfd81395ffe8ae80ec85e38608c7d97b6"
+                "reference": "8876bb52625e1f814b7341395f12304ca4cd006b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WPBoilerplate/wpb-access-control/zipball/67706e1cfd81395ffe8ae80ec85e38608c7d97b6",
-                "reference": "67706e1cfd81395ffe8ae80ec85e38608c7d97b6",
+                "url": "https://api.github.com/repos/WPBoilerplate/wpb-access-control/zipball/8876bb52625e1f814b7341395f12304ca4cd006b",
+                "reference": "8876bb52625e1f814b7341395f12304ca4cd006b",
                 "shasum": ""
             },
             "require": {
                 "automattic/jetpack-autoloader": "^2",
+                "berlindb/core": "^2.0",
                 "php": ">=7.4"
             },
             "require-dev": {
@@ -151,7 +152,7 @@
                 "issues": "https://github.com/WPBoilerplate/wpb-access-control/issues",
                 "source": "https://github.com/WPBoilerplate/wpb-access-control"
             },
-            "time": "2026-05-11T07:45:24+00:00"
+            "time": "2026-05-12T07:18:52+00:00"
         }
     ],
     "packages-dev": [
@@ -1061,12 +1062,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "68d5dbb4bc4e36f32c48d4f13c36edb3568db90f"
+                "reference": "53effd86f093738a554cdb6fa803b7b080bb695f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/68d5dbb4bc4e36f32c48d4f13c36edb3568db90f",
-                "reference": "68d5dbb4bc4e36f32c48d4f13c36edb3568db90f",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/53effd86f093738a554cdb6fa803b7b080bb695f",
+                "reference": "53effd86f093738a554cdb6fa803b7b080bb695f",
                 "shasum": ""
             },
             "require": {
@@ -1146,7 +1147,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-05-11T06:21:41+00:00"
+            "time": "2026-05-12T04:48:15+00:00"
         },
         {
             "name": "sebastian/cli-parser",
