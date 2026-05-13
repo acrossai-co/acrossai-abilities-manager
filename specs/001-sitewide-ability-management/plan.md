@@ -20,7 +20,7 @@ All endpoints are secured with `manage_options` + nonce verification.
 
 **Language/Version**: PHP 7.4+, JavaScript ESNext/JSX, WordPress 6.9+
 **Primary Dependencies**:
-- PHP: `berlindb/core ^2.0` (prefixed via Mozart to `AcrossAI_Abilities_Manager\\Vendor\\BerlinDB\\`), `automattic/jetpack-autoloader`
+- PHP: `berlindb/core ^2.0` (used directly at `BerlinDB\Database\*` — no Mozart prefixing), `automattic/jetpack-autoloader`
 - JS: `@wordpress/dataviews`, `@wordpress/data` (createReduxStore), `@wordpress/api-fetch`, `@wordpress/components`, `@wordpress/element`, `@wordpress/i18n`, `@wordpress/icons`, `@wordpress/compose`
 - Build: `@wordpress/scripts` (webpack)
 **Storage**: MySQL — `{prefix}acrossai_abilities_overwrite` via BerlinDB Table/Query/Row/Schema classes

@@ -21,21 +21,15 @@ Sitewide Ability Management feature in the AcrossAI Abilities Manager plugin.
 
 ## 1. PHP Dependencies
 
-Add `berlindb/core` (not yet in composer.json) and run Mozart to prefix it:
+`berlindb/core` is already in `composer.json`. Install it and regenerate the autoloader:
 
 ```bash
-# 1. Add berlindb to composer.json require
-composer require berlindb/core:^2.0
-
-# 2. Run Mozart to prefix BerlinDB into AcrossAI_Abilities_Manager\Vendor\
-composer exec mozart compose
-
-# 3. Run autoload dump (Jetpack autoloader)
+composer install
 composer dump-autoload
 ```
 
-After this, BerlinDB classes are available at:
-`AcrossAI_Abilities_Manager\Vendor\BerlinDB\Database\{Table,Query,Row,Schema}`
+BerlinDB classes are used directly (no Mozart namespace prefixing):
+`BerlinDB\Database\{Table,Query,Row,Schema}`
 
 ---
 

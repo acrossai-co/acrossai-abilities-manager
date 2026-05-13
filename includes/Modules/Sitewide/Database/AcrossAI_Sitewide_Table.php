@@ -9,7 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database;
 
-use AcrossAI_Abilities_Manager\Vendor\BerlinDB\Database\Table;
+use BerlinDB\Database\Table;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;

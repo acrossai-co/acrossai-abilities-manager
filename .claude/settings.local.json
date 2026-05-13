@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git *)",
       "Bash(npm run *)",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(php *)"
     ]
   }
 }
