@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+build/
+dist/
+*.min.js
+*.min.css
+
+# Test outputs
+tests/_output/
+coverage/
+
+# Environment
+.env
+.env.*
+
+# IDE and OS
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+
+# Package lock files (for reference, not to lint)
+package-lock.json
+composer.lock
+
+# WordPress files
+wp-content/
+wp-includes/

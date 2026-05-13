@@ -36,6 +36,26 @@ class AcrossAI_Sitewide_Rest_Controller {
 	const REST_NAMESPACE = 'acrossai-abilities-manager/v1';
 
 	/**
+	 * Singleton instance.
+	 *
+	 * @var AcrossAI_Sitewide_Rest_Controller|null
+	 */
+	protected static $_instance = null;
+
+	/**
+	 * Retrieve the singleton instance.
+	 *
+	 * @since  0.1.0
+	 * @return AcrossAI_Sitewide_Rest_Controller
+	 */
+	public static function instance(): self {
+		if ( null === self::$_instance ) {
+			self::$_instance = new self();
+		}
+		return self::$_instance;
+	}
+
+	/**
 	 * BerlinDB query instance.
 	 *
 	 * @var AcrossAI_Sitewide_Query
@@ -46,10 +66,9 @@ class AcrossAI_Sitewide_Rest_Controller {
 	 * Constructor.
 	 *
 	 * @since  0.1.0
-	 * @param  AcrossAI_Sitewide_Query $db_query BerlinDB query instance.
 	 */
-	public function __construct( AcrossAI_Sitewide_Query $db_query ) {
-		$this->db_query = $db_query;
+	private function __construct() {
+		$this->db_query = AcrossAI_Sitewide_Query::instance();
 	}
 
 	/**

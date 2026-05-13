@@ -170,10 +170,10 @@ wp db query "SELECT ability_slug, site_allowed, show_in_mcp FROM {prefix}acrossa
 
 | File | Purpose |
 |---|---|
-| `includes/Base/AcrossAI_Module_Base.php` | Abstract base all modules extend |
-| `includes/Modules/Sitewide/AcrossAI_Sitewide_Module.php` | Context-neutral: REST + DB hooks only |
-| `includes/Modules/Sitewide/AcrossAI_Sitewide_Rest_Controller.php` | 7 REST endpoints |
-| `includes/Modules/Sitewide/Database/AcrossAI_Sitewide_Query.php` | BerlinDB Query (CRUD) |
+| `includes/Main.php` | Single source of all hook registration — `define_admin_hooks()` wires every hook via Loader |
+| `includes/Modules/Sitewide/AcrossAI_Sitewide_Rest_Controller.php` | Singleton; 7 REST endpoints; uses `AcrossAI_Sitewide_Query::instance()` internally |
+| `includes/Modules/Sitewide/Database/AcrossAI_Sitewide_Query.php` | Singleton; BerlinDB Query (CRUD) |
+| `includes/Modules/Sitewide/Database/AcrossAI_Sitewide_Table.php` | Singleton; BerlinDB Table (`maybe_upgrade`) |
 | `includes/Utilities/AcrossAI_Ability_Merger.php` | Registry + override merge logic |
 | `admin/Main.php` | Asset enqueue (scoped via `$hook_suffix` guard; manifest loaded in constructor) |
 | `admin/Partials/Menu.php` | Menu registration (`add_menu_page`) + page render (`contents()` outputs React root) |

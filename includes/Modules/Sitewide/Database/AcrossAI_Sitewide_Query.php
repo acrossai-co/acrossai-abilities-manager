@@ -9,7 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database;
 
-use BerlinDB\Database\Query;
+use AcrossAI_Abilities_Manager\Vendor\BerlinDB\Database\Query;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -41,6 +41,26 @@ class AcrossAI_Sitewide_Query extends Query {
 	 * @var string
 	 */
 	protected $table_name = 'acrossai_abilities_overwrite';
+
+	/**
+	 * Singleton instance.
+	 *
+	 * @var AcrossAI_Sitewide_Query|null
+	 */
+	protected static $_instance = null;
+
+	/**
+	 * Get the singleton instance of this query.
+	 *
+	 * @since  0.1.0
+	 * @return AcrossAI_Sitewide_Query
+	 */
+	public static function instance(): self {
+		if ( null === self::$_instance ) {
+			self::$_instance = new self();
+		}
+		return self::$_instance;
+	}
 
 	/**
 	 * Retrieve an override row by ability slug.

@@ -9,7 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database;
 
-use BerlinDB\Database\Table;
+use AcrossAI_Abilities_Manager\Vendor\BerlinDB\Database\Table;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -36,31 +36,44 @@ class AcrossAI_Sitewide_Table extends Table {
 	protected $version = '1.0.0';
 
 	/**
-	 * Set the SQL schema for the abilities overwrite table.
+	 * Singleton instance.
+	 *
+	 * @var AcrossAI_Sitewide_Table|null
+	 */
+	protected static $_instance = null;
+
+	/**
+	 * Get the singleton instance of this table.
+	 *
+	 * @since  0.1.0
+	 * @return AcrossAI_Sitewide_Table
+	 */
+	public static function instance(): self {
+		if ( null === self::$_instance ) {
+			self::$_instance = new self();
+		}
+		return self::$_instance;
+	}
+
+	/**
+	 * Set the schema for the abilities overwrite table.
+	 *
+	 * Uses BerlinDB Schema class for column definitions.
 	 *
 	 * @since  0.1.0
 	 * @return void
 	 */
 	protected function set_schema() {
-		$this->schema = "
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			ability_slug varchar(255) NOT NULL DEFAULT '',
-			provider varchar(100) DEFAULT NULL,
-			source varchar(50) DEFAULT NULL,
-			site_allowed tinyint(1) DEFAULT NULL,
-			readonly tinyint(1) DEFAULT NULL,
-			destructive tinyint(1) DEFAULT NULL,
-			idempotent tinyint(1) DEFAULT NULL,
-			show_in_rest tinyint(1) DEFAULT NULL,
-			show_in_mcp tinyint(1) DEFAULT NULL,
-			mcp_type varchar(100) DEFAULT NULL,
-			mcp_servers longtext DEFAULT NULL,
-			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			created_by bigint(20) unsigned DEFAULT NULL,
-			updated_by bigint(20) unsigned DEFAULT NULL,
-			PRIMARY KEY (id),
-			KEY ability_slug (ability_slug)
-		";
+		$this->schema = AcrossAI_Sitewide_Schema::class;
+	}
+
+	/**
+	 * Create or upgrade the table if needed.
+	 *
+	 * @since  0.1.0
+	 * @return void
+	 */
+	public function maybe_upgrade() {
+		parent::maybe_upgrade();
 	}
 }

@@ -261,9 +261,16 @@ final class Main {
 		$this->loader->add_action( 'admin_menu', $main_menu, 'main_menu' );
 		$this->loader->add_action( 'plugin_action_links', $main_menu, 'plugin_action_links', 1000, 2 );
 
-		// Sitewide Ability Manager — register REST routes and module hooks.
-		$sitewide_module = new \AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Module();
-		$sitewide_module->register_hooks( $this->loader );
+		// Sitewide Ability Manager — DB table setup and REST routes via singleton pattern.
+		// Table instance call makes the class available; BerlinDB hooks maybe_upgrade() to admin_init.
+		\AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Table::instance();
+
+		// Register REST routes on rest_api_init.
+		$this->loader->add_action(
+			'rest_api_init',
+			\AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Rest_Controller::instance(),
+			'register_routes'
+		);
 	}
 
 	/**

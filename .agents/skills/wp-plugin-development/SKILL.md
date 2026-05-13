@@ -80,11 +80,14 @@ See: `references/structure.md`
   `define($name, $value)` guard. Never define constants elsewhere.
 - **`includes/Main.php` is the single and only place where hooks enter WordPress.**
   `define_admin_hooks()` and `define_public_hooks()` are the only methods that call
-  `$this->loader->add_action()` / `$this->loader->add_filter()`, whether directly or by
-  delegating to a module's `register_hooks( Loader $loader )` method.
-- Feature modules may expose a `register_hooks( Loader $loader )` method, but they must
-  **never** call `Loader::instance()` themselves. `includes/Main.php` passes `$this->loader`
-  to them — the module does not reach for the Loader on its own.
+  `$this->loader->add_action()` / `$this->loader->add_filter()`. All hooks must trace
+  directly to those two methods — there is no module `register_hooks()` delegation.
+- **All feature classes use the singleton `instance()` pattern** (`protected static $_instance = null;`
+  + `public static function instance(): self`). `includes/Main.php` obtains instances via
+  `FeatureClass::instance()` and passes them to the Loader. Feature classes must **never**
+  call `Loader::instance()` themselves.
+- There is **no `Module_Base` abstract class** and no `register_hooks( Loader $loader )` convention.
+  Do not create these. Hooks go directly in `define_admin_hooks()` / `define_public_hooks()`.
 - `load_dependencies()` is for wiring up the Loader singleton and loading files only.
   **Never call `boot()`, `register_hooks()`, or any hook-registering method from `load_dependencies()`.**
 - The `apply_filters('wordpress-plugin-boilerplate-load', true)` gate in `load_hooks()` is the

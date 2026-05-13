@@ -38,8 +38,9 @@ All endpoints are secured with `manage_options` + nonce verification.
 *Gates MUST pass before implementation proceeds. Violations are flagged here.*
 
 ### ✅ PASS — I. Modular Architecture
-Module lives at `includes/Modules/Sitewide/`, extends `AcrossAI_Module_Base` from `includes/Base/`.
-Shared utilities in `includes/Utilities/`. Admin enqueue in `admin/Main.php`; page render (`contents()`) in `admin/Partials/Menu.php`. No separate `SitewideAbilityPage` class. No sibling-module dependencies.
+Module lives at `includes/Modules/Sitewide/`. No `AcrossAI_Module_Base` abstract class; no `register_hooks()` delegation — all hooks wired directly in `includes/Main.php::define_admin_hooks()` via the Loader singleton.
+Feature classes (`AcrossAI_Sitewide_Rest_Controller`, `AcrossAI_Sitewide_Table`, `AcrossAI_Sitewide_Query`) use the plugin-wide singleton `instance()` pattern.
+Shared utilities in `includes/Utilities/`. Admin enqueue in `admin/Main.php`; page render (`contents()`) in `admin/Partials/Menu.php`. No separate `SitewideAbilityPage` class. No `AcrossAI_Sitewide_Module` orchestrator. No sibling-module dependencies.
 
 ### ✅ PASS — II. WordPress Standards Compliance
 PHPCS strict + PHPStan L8 gates enforced in Definition of Done. WP 6.9+ / PHP 7.4+ targeted.
@@ -78,11 +79,12 @@ All gates listed in tasks.md. Feature is complete only when all 8 DoD gates pass
 5. `includes/modules/sitewide/` → corrected to `includes/Modules/Sitewide/` (PSR-4 autoloader: lowercase dirs fail on case-sensitive Linux filesystems)
 6. Admin enqueue + page template inside `AcrossAI_Sitewide_Module` → enqueue moved to `admin/Main.php::enqueue_styles()/enqueue_scripts()` (skill step 3–4: manifest loaded in constructor, scoped enqueue in the two methods); render moved to `admin/Partials/Menu.php::contents()` (the `add_menu_page` callback); `admin/Partials/SitewideAbilityPage.php` was created and then deleted — its responsibilities are split between `Admin\Main` and `Menu`
 7. Webpack entry + `sitewide.asset.php` manifest loading added explicitly (skill step 12 — dependency array and version must never be hardcoded)
-8. `boot()` call from `load_dependencies()` → clarified: `define_admin_hooks()` calls `register_hooks($this->loader)` on each module (skill step 2 + constitution boot flow rule)
+8. `boot()` call from `load_dependencies()` → clarified: `define_admin_hooks()` wires all hooks directly via `$this->loader->add_action()`; no module `register_hooks()` delegation
 9. **PHP bool-to-int cast in `save_override()`** — PHP `false` is not detected as an integer by `$wpdb` format auto-detection (`is_int(false) === false`), so `$wpdb` assigns `%s`, which produces `''` on `sprintf`. MySQL 8+ strict mode rejects `''` for a `tinyint` column silently. Fix: cast all PHP boolean tri-state values to `(int)` before passing to BerlinDB — `true → 1`, `false → 0`, `null` left as null. Applied in `AcrossAI_Sitewide_Query::save_override()`.
 10. **Partial-field save via `has_param()` in REST controller** — the per-tab save architecture (General tab / MCP tab each save independently) requires the PHP handler to only write fields that were explicitly sent. `$request->get_param()` returns `null` for absent optional params, so unconditional collection of all 8 fields overwrites the other tab's DB values with NULL silently. Fix: use `$request->has_param($field)` to gate collection; `has_param()` returns `true` even when the field is explicitly sent as `null` (user intends to clear it). Applied in `AcrossAI_Sitewide_Rest_Controller::save_override()`. Also: `is_all_default()` + I3 auto-delete MUST NOT apply to partial-tab saves — full-row cleanup belongs to the DELETE endpoint only.
 11. **`useEffect([slug])` dep in `AbilityEditPanel`** — using `[ability]` as the `useEffect` dep re-seeds the draft on every `UPDATE_ABILITY` dispatch (which fires after every save). Any timing gap where `ability._override` arrives as `null` before the component re-reads it silently resets the user's selection back to "Inherit". Fix: use `[slug]` as the dep so the draft only re-seeds when the panel opens for a different ability. Individual save handlers (`saveGeneral`, `saveMcp`) own updating `savedDraft` state via `setGeneralSaved({...generalDraft})` / `setMcpSaved({...mcpDraft})`.
 12. **`_override: nullOverride` in `deleteOverride` optimistic dispatch** — the `UPDATE_ABILITY` reducer does a shallow spread (`{ ...ability, ...action.ability }`). Without explicitly setting `_override` in the dispatch payload, the old stale `_override` survives in the store. When the edit panel opens (slug-change `useEffect`), it seeds draft state from the stale `_override` and shows Yes/No instead of Inherit after Reset Override. Fix: include `_override: { site_allowed: null, readonly: null, ... }` (all 8 fields null) in the `deleteOverride` optimistic dispatch.
+13. **Singleton pattern + hook centralization** — the original plan used an `AcrossAI_Module_Base` abstract class with `register_hooks( Loader $loader )` delegation. This is not the plugin-wide convention: WPBoilerplate requires all `$loader->add_action()` calls to originate directly in `includes/Main.php::define_admin_hooks()` / `define_public_hooks()`. The module base and module orchestrator classes (`AcrossAI_Module_Base`, `AcrossAI_Sitewide_Module`) are deleted (T004, T014). All feature classes instead use a `protected static $_instance = null` + `public static function instance(): self` singleton; `includes/Main.php` instantiates them via `::instance()` and wires their hooks directly through `$this->loader`. This keeps the hook registry centralized, auditable, and consistent with every other class in the plugin.
 
 ---
 
@@ -114,23 +116,20 @@ admin/
     └── Menu.php                           # UPDATE IN-PLACE: add icon, position; contents() renders React root directly
 
 includes/
-├── Base/
-│   └── AcrossAI_Module_Base.php           # CREATE: abstract module base class
 ├── Utilities/
 │   ├── AcrossAI_Sanitizer.php             # CREATE: sanitize_ability_slug(), sanitize_tri_state(), etc.
 │   └── AcrossAI_Ability_Merger.php        # CREATE: static merge(registry, override): array
 ├── Modules/
 │   └── Sitewide/
 │       ├── index.php                      # CREATE: directory sentinel
-│       ├── AcrossAI_Sitewide_Module.php   # CREATE: context-neutral; extends Module_Base; register_hooks() wires REST + DB only
-│       ├── AcrossAI_Sitewide_Rest_Controller.php  # CREATE: 7 REST endpoints
+│       ├── AcrossAI_Sitewide_Rest_Controller.php  # CREATE: singleton; 7 REST endpoints; obtains AcrossAI_Sitewide_Query::instance() internally
 │       └── Database/
 │           ├── AcrossAI_Sitewide_Schema.php  # CREATE: BerlinDB Schema (17 columns)
-│           ├── AcrossAI_Sitewide_Table.php   # CREATE: BerlinDB Table (maybe_upgrade)
+│           ├── AcrossAI_Sitewide_Table.php   # CREATE: BerlinDB Table (maybe_upgrade); singleton pattern
 │           ├── AcrossAI_Sitewide_Row.php     # CREATE: BerlinDB Row (typed properties)
-│           └── AcrossAI_Sitewide_Query.php   # CREATE: BerlinDB Query (CRUD methods)
-├── Activator.php                          # UPDATE: call table->maybe_upgrade() on activate
-└── Main.php                               # UPDATE: define_admin_hooks() wires Admin\Main enqueue_styles/enqueue_scripts + Menu (render) + AcrossAI_Sitewide_Module::register_hooks()
+│           └── AcrossAI_Sitewide_Query.php   # CREATE: BerlinDB Query (CRUD methods); singleton pattern
+├── Activator.php                          # UPDATE: call AcrossAI_Sitewide_Table::instance()->maybe_upgrade() on activate
+└── Main.php                               # UPDATE: define_admin_hooks() wires Admin\Main + Menu + loader->add_action('rest_api_init', AcrossAI_Sitewide_Rest_Controller::instance(), 'register_routes') — NO module orchestrator
 
 src/
 ├── js/

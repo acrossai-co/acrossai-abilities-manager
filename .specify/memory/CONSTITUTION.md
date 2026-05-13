@@ -1,15 +1,16 @@
 <!--
 SYNC IMPACT REPORT
-Version change: 1.1.0 → 1.2.0
-Modified principles: §I (directory casing corrected), §VI (directory casing corrected), Module Contract (method name aligned to skill, casing fixed)
-Added sections: Admin Partials Rule, Boot Flow Rule (Architecture & UI Standards)
-Removed sections: None
+Version change: 1.2.0 → 1.3.0
+Modified principles: §I (Base/ removed from required dirs), Boot Flow Rule (register_hooks delegation replaced with singleton + direct wiring), Module Contract (abstract base class + register_hooks requirements replaced with singleton pattern)
+Added sections: None
+Removed sections: includes/Base/ directory requirement
 Templates reviewed:
   - .specify/templates/plan-template.md ✅ reviewed — no outdated references
   - .specify/templates/spec-template.md ✅ reviewed — no outdated references
   - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
   - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
 Deferred TODOs: None
+Rationale: The AcrossAI_Module_Base abstract class and register_hooks() delegation pattern were eliminated. All feature classes now use the plugin-wide singleton instance() pattern and are wired directly in includes/Main.php::define_admin_hooks() / define_public_hooks(). This is consistent with every other class in the plugin and keeps the hook registry centralized and auditable.
 -->
 
 # AcrossAI Abilities Manager Constitution
@@ -19,7 +20,7 @@ Deferred TODOs: None
 ### I. Modular Architecture
 Each feature MUST be implemented as a self-contained module with a clear, singular purpose.
 Modules MUST be independently testable, extensible, and replaceable without affecting sibling modules.
-Shared logic MUST be extracted to `includes/Utilities/` or abstract base classes in `includes/Base/`.
+Shared logic MUST be extracted to `includes/Utilities/`.
 No code duplication between modules is permitted under any circumstance.
 
 **Rationale**: Enables parallel development, isolated testing, and safe iteration on any single feature
@@ -78,8 +79,7 @@ process and MUST NOT block admin page rendering.
 without introducing tight coupling between the core plugin and optional dependencies.
 
 ### VI. Reusability & DRY Principle
-All common logic MUST be extracted to shared utilities (`includes/Utilities/`) or abstract base
-classes (`includes/Base/`) before it is used in a second location.
+All common logic MUST be extracted to shared utilities (`includes/Utilities/`) before it is used in a second location.
 Reusable components MUST be built and maintained for: form builders, view generators, input
 validation, output sanitization, API response formatters, and permission checks.
 If equivalent functionality already exists anywhere in the codebase, it MUST be reused — never
@@ -130,7 +130,6 @@ enforces consistent, shippable quality at every increment.
 admin/
 └── Partials/       # All admin-facing classes: menu, page renderers, asset enqueues
 includes/
-├── Base/           # Abstract base classes extended by all feature modules
 ├── Utilities/      # Shared utility functions, helpers, formatters
 └── Modules/        # One subdirectory per feature module (self-contained)
     ├── Sitewide/
@@ -151,14 +150,20 @@ tests/
 with namespace `AcrossAI_Abilities_Manager\Admin\Partials`. Classes in `includes/` are
 context-neutral — they MUST NOT contain admin-specific logic.
 
-**Boot Flow Rule**: Feature modules MUST expose a `register_hooks( Loader $loader )` method.
-`includes/Main.php::define_admin_hooks()` or `define_public_hooks()` MUST instantiate each module
-and call `$module->register_hooks( $this->loader )`. Modules MUST NOT call `Loader::instance()`
-themselves. No hook-registering code MAY run inside `load_dependencies()`.
+**Boot Flow Rule**: `includes/Main.php` is the single source of all hook registration.
+`define_admin_hooks()` and `define_public_hooks()` are the ONLY methods that call
+`$this->loader->add_action()` / `$this->loader->add_filter()` — all hooks trace directly to
+one of these two methods with no intermediate delegation.
+All feature classes use the plugin-wide **singleton `instance()` pattern**:
+`protected static $_instance = null;` + `public static function instance(): self`.
+`includes/Main.php` obtains instances via `FeatureClass::instance()` and passes them to the Loader.
+Feature classes MUST NOT call `Loader::instance()` themselves.
+No `register_hooks()` delegation. No abstract module base class. No `includes/Base/` directory.
+No hook-registering code MAY run inside `load_dependencies()`.
 
-**Module Contract**: Every feature module MUST:
-1. Extend the appropriate abstract base class from `includes/Base/`
-2. Expose a `register_hooks( Loader $loader )` method — never self-register via `Loader::instance()`
+**Module Contract**: Every feature class MUST:
+1. Implement the singleton `instance()` pattern (`protected static $_instance = null;` + `public static function instance(): self`)
+2. Use a `private` constructor; dependencies are obtained via other classes' `::instance()` calls — never via constructor injection from outside
 3. Depend only on shared utilities from `includes/Utilities/` — never on sibling modules directly
 4. Expose integration points exclusively via WordPress actions and filters
 
@@ -199,4 +204,4 @@ constitution. Any implementation that appears to violate a principle MUST either
 include documented justification in the feature plan explaining why a compliant approach was not
 feasible.
 
-**Version**: 1.2.0 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-11
+**Version**: 1.3.0 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-13
