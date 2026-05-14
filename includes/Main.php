@@ -103,7 +103,7 @@ final class Main {
 	 *
 	 * @since    0.0.1
 	 */
-	public function __construct() {
+	private function __construct() {
 
 		$this->plugin_name = 'acrossai-abilities-manager';
 
@@ -266,11 +266,12 @@ final class Main {
 		\AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Table::instance();
 
 		// Register REST routes on rest_api_init.
-		$this->loader->add_action(
-			'rest_api_init',
-			\AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Rest_Controller::instance(),
-			'register_routes'
-		);
+		$rest_controller = \AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Rest_Controller::instance();
+		$this->loader->add_action( 'rest_api_init', $rest_controller, 'register_routes' );
+
+		// Collect MCP servers at priority 20, after McpAdapter initialises at priority 15.
+		$mcp_servers_list = \WPBoilerplate\McpServersList\McpServersList::instance();
+		$this->loader->add_action( 'rest_api_init', $mcp_servers_list, 'collect', 20 );
 	}
 
 	/**

@@ -12,16 +12,26 @@ plugin-root/
 │   ├── Activator.php    # static activate() stub
 │   ├── Deactivator.php  # static deactivate() stub
 │   ├── I18n.php         # do_load_textdomain() hooked on init
+│   ├── Utilities/       # shared, context-neutral helpers (sanitizers, mergers, etc.)
 │   └── Modules/
 │       └── MyFeature/
-│           ├── MyFeature_Module.php        # orchestrator: boot() calls register_hooks()
-│           ├── database/                   # DB schema/query/row classes (context-neutral)
-│           └── (no admin classes here — see admin/Partials/)
+│           ├── index.php                    # directory sentinel (silence is golden)
+│           ├── MyFeature_Rest_Controller.php # singleton: REST_NAMESPACE + register_routes() + check_permission()
+│           ├── Rest/                        # created when controller exceeds ~400 lines
+│           │   ├── index.php
+│           │   ├── MyFeature_Read_Controller.php   # GET handlers; singleton; delegates permission to orchestrator
+│           │   ├── MyFeature_Write_Controller.php  # POST/DELETE handlers; singleton; delegates permission
+│           │   └── MyFeature_Bulk_Controller.php   # bulk handlers; singleton; delegates permission
+│           └── Database/                    # BerlinDB schema/table/query/row classes (context-neutral)
+│               ├── MyFeature_Schema.php
+│               ├── MyFeature_Table.php      # singleton; BerlinDB hooks maybe_upgrade() on admin_init
+│               ├── MyFeature_Row.php
+│               └── MyFeature_Query.php      # singleton; CRUD methods
 ├── admin/
-│   ├── Main.php         # Admin\Main: enqueue backend CSS/JS
+│   ├── Main.php         # Admin\Main: enqueue backend CSS/JS (only place wp_enqueue_* is called)
 │   └── Partials/
 │       ├── Menu.php           # Admin\Partials\Menu: top-level add_menu_page + plugin_action_links
-│       └── MyFeaturePage.php  # Admin\Partials\MyFeaturePage: feature-specific menu + render
+│       └── MyFeaturePage.php  # Admin\Partials\MyFeaturePage: feature-specific menu + render (if needed)
 ├── public/
 │   ├── Main.php         # Public\Main: enqueue frontend CSS/JS
 │   └── partials/        # frontend template partials (placeholder)
@@ -43,18 +53,27 @@ plugin-root/
 └── uninstall.php
 ```
 
+> **⚠️ No `includes/Base/` directory, no abstract module base class, no `register_hooks()` delegation.**
+> See SKILL.md §2 and the plugin CONSTITUTION for the canonical rules.
+
 ### Where does feature module code live?
 
 | Code type | Correct location |
 |---|---|
-| Module orchestrator (`boot()`, `register_hooks()`) | `includes/Modules/MyFeature/` |
-| DB schema / query / row classes | `includes/Modules/MyFeature/database/` |
-| Admin menu, page renderer, admin asset enqueue | `admin/Partials/MyFeaturePage.php` |
+| REST controller (orchestrator + sub-controllers) | `includes/Modules/MyFeature/` + `includes/Modules/MyFeature/Rest/` |
+| DB schema / query / row classes | `includes/Modules/MyFeature/Database/` |
+| Admin menu, page renderer | `admin/Partials/MyFeaturePage.php` |
+| Admin asset enqueue | `admin/Main.php::enqueue_styles()/enqueue_scripts()` — nowhere else |
 | Frontend template output | `public/partials/` |
-| REST controller | `includes/Modules/MyFeature/` (context-neutral) |
+| Shared utilities (sanitizers, mergers, helpers) | `includes/Utilities/` |
 
 The key rule: **`includes/` is for shared, context-neutral code.** Anything that calls
 `add_menu_page()`, `wp_enqueue_style()` for admin, or renders admin HTML belongs in `admin/`.
+
+There is **no module orchestrator class** (`MyFeature_Module.php`), **no `boot()`**, and **no
+`register_hooks()` delegation**. All hooks are wired directly in `includes/Main.php::define_admin_hooks()`
+/ `define_public_hooks()`. Every feature class uses the singleton `instance()` pattern with a
+`private` constructor — see SKILL.md §2 for the canonical form.
 
 ## PSR-4 namespace map
 
