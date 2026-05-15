@@ -2,14 +2,36 @@
 
 /.git
 /.github
+/.gitmodules
+/.gitattributes
+/.gitignore
+
+/.agents
+/.specify
+/.claude
+/.vscode
 
 /node_modules
 
 /src
+/specs
+/docs
+/tests
+/scripts
 
-.gitattributes
 .distignore
-.gitignore
+.editorconfig
+.eslintrc
+.eslintignore
+.nvmrc
+.prettierignore
+.wp-env.json
+.travis.yml
+.DS_Store
+
+AGENTS.md
+README.md
+LICENSE.md
 
 composer.json
 composer.lock
@@ -17,8 +39,6 @@ composer.lock
 package.json
 package-lock.json
 
-README.md
-
 webpack.config.js
-
-.travis.yml
+phpcs.xml.dist
+phpstan.neon.dist

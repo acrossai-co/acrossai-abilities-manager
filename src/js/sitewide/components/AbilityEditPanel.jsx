@@ -283,6 +283,7 @@ export default function AbilityEditPanel( { slug, ability, registry, onClose } )
 	const mcpTab = (
 		<div className="acrossai-ability-edit-panel__tab-content">
 			<McpVisibilityControl
+				key={ slug }
 				showInMcp={ mcpDraft.show_in_mcp }
 				mcpType={ mcpDraft.mcp_type }
 				mcpServers={ mcpDraft.mcp_servers }

@@ -1,16 +1,24 @@
 <!--
 SYNC IMPACT REPORT
-Version change: 1.2.0 → 1.3.0
-Modified principles: §I (Base/ removed from required dirs), Boot Flow Rule (register_hooks delegation replaced with singleton + direct wiring), Module Contract (abstract base class + register_hooks requirements replaced with singleton pattern)
+Version change: 1.4.0 → 1.4.1
+Modified principles: Integration Resilience — added canonical pattern for MCP server listing via wpboilerplate/wpb-mcp-servers-list Composer package
 Added sections: None
-Removed sections: includes/Base/ directory requirement
+Removed sections: None
 Templates reviewed:
   - .specify/templates/plan-template.md ✅ reviewed — no outdated references
   - .specify/templates/spec-template.md ✅ reviewed — no outdated references
   - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
   - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
 Deferred TODOs: None
-Rationale: The AcrossAI_Module_Base abstract class and register_hooks() delegation pattern were eliminated. All feature classes now use the plugin-wide singleton instance() pattern and are wired directly in includes/Main.php::define_admin_hooks() / define_public_hooks(). This is consistent with every other class in the plugin and keeps the hook registry centralized and auditable.
+Rationale: Direct McpAdapter consumption required undocumented timing knowledge and manual getter mapping
+(McpServer objects have private properties). wpboilerplate/wpb-mcp-servers-list encapsulates both concerns;
+its collect() method is wired in Main.php at rest_api_init priority 20 via the Loader. Integration Resilience
+updated to name this as the canonical approach. Patch bump — clarification of existing principle, no new
+principle added.
+
+Previous sync impact (v1.3.0 → v1.4.0): Boot Flow Rule — variable-first instantiation requirement added;
+REST Controller Pattern subsection added under Architecture & UI Standards.
+Previous sync impact (v1.2.0 → v1.3.0): §I Base/ removed, Boot Flow Rule updated to singleton + direct wiring, Module Contract updated to replace abstract base class + register_hooks() with singleton pattern.
 -->
 
 # AcrossAI Abilities Manager Constitution
@@ -156,10 +164,30 @@ context-neutral — they MUST NOT contain admin-specific logic.
 one of these two methods with no intermediate delegation.
 All feature classes use the plugin-wide **singleton `instance()` pattern**:
 `protected static $_instance = null;` + `public static function instance(): self`.
-`includes/Main.php` obtains instances via `FeatureClass::instance()` and passes them to the Loader.
+`includes/Main.php` resolves each singleton to a **named variable** before passing it to the
+Loader — never inline. This is the canonical form:
+```php
+$rest_controller = FeatureClass::instance();
+$this->loader->add_action( 'rest_api_init', $rest_controller, 'register_routes' );
+```
+Passing `FeatureClass::instance()` directly as the second argument to `add_action` is
+**prohibited** — it couples instantiation to hook registration and makes the call harder to read.
 Feature classes MUST NOT call `Loader::instance()` themselves.
 No `register_hooks()` delegation. No abstract module base class. No `includes/Base/` directory.
 No hook-registering code MAY run inside `load_dependencies()`.
+
+**REST Controller Pattern**: A feature module's REST controller MUST be split into per-domain
+sub-controllers whenever it would otherwise exceed roughly 400 lines or own more than one user
+story's handlers. The split places sub-controllers in a `Rest/` subdirectory inside the module
+directory (e.g. `includes/Modules/Sitewide/Rest/`). The module's top-level controller becomes
+a thin **orchestrator** responsible for exactly three things: (a) the `REST_NAMESPACE` constant,
+(b) a `register_routes()` method that calls each sub-controller's `register_routes()`, and (c)
+the shared `check_permission()` callback. Sub-controllers MUST use the singleton pattern, MUST
+reference the orchestrator's `check_permission` as:
+`array( MyOrchestrator::instance(), 'check_permission' )`, and MUST NOT register any WordPress
+hooks themselves — only the orchestrator is wired in `Main.php` via the Loader. This is the
+canonical decomposition for the four planned sibling modules (`PerUser`, `McpServer`,
+`CustomAbility`, `Webmcp`). See `specs/002-rest-controller-modularization/` for reference.
 
 **Module Contract**: Every feature class MUST:
 1. Implement the singleton `instance()` pattern (`protected static $_instance = null;` + `public static function instance(): self`)
@@ -181,6 +209,14 @@ No hook-registering code MAY run inside `load_dependencies()`.
 **Integration Resilience**:
 - All calls to optional integrations (WPBoilerplate Access Control, MCP servers) MUST be wrapped in
   availability checks and MUST NOT throw fatal errors or produce broken UIs when absent
+- MCP server listing MUST use the `wpboilerplate/wpb-mcp-servers-list` Composer package — direct
+  `McpAdapter::instance()->get_servers()` calls are prohibited. The package handles McpAdapter timing
+  (collect at `rest_api_init` priority 20, after McpAdapter's priority 15) and returns `ServerData[]`
+  objects that implement `JsonSerializable`. Wire collect via the Loader in `Main::define_admin_hooks()`:
+  ```php
+  $mcp_servers_list = \WPBoilerplate\McpServersList\McpServersList::instance();
+  $this->loader->add_action( 'rest_api_init', $mcp_servers_list, 'collect', 20 );
+  ```
 
 ## Governance
 
@@ -204,4 +240,4 @@ constitution. Any implementation that appears to violate a principle MUST either
 include documented justification in the feature plan explaining why a compliant approach was not
 feasible.
 
-**Version**: 1.3.0 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-13
+**Version**: 1.4.1 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-15

@@ -1,31 +1,29 @@
 <?php
-
 /**
  * Fired when the plugin is uninstalled.
  *
- * When populating this file, consider the following flow
- * of control:
- *
- * - This method should be static
- * - Check if the $_REQUEST content actually is the plugin name
- * - Run an admin referrer check to make sure it goes through authentication
- * - Verify the output of $_GET makes sense
- * - Repeat with other user roles. Best directly by using the links/query string parameters.
- * - Repeat things for multisite. Once for a single site in the network, once sitewide.
- *
- * This file may be updated more in future version of the Boilerplate; however, this is the
- * general skeleton and outline for how the file should work.
- *
- * For more information, see the following discussion:
- * https://github.com/wpboilerplate/acrossai-abilities-manager
- *
- * @link       https://github.com/WPBoilerplate/acrossai-abilities-manager
- * @since      0.0.1
+ * Drops all custom database tables created by this plugin and removes
+ * all associated options. No data is preserved after uninstall.
  *
  * @package    AcrossAI_Abilities_Manager
+ * @since      0.0.1
  */
 
 // If uninstall not called from WordPress, then exit.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
+
+global $wpdb;
+
+// Drop the sitewide ability overrides table.
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.SchemaChange
+$wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}acrossai_abilities_overwrite`" );
+
+// Drop the WPBoilerplate Access Control rules table (created on activation via RuleTable).
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.SchemaChange
+$wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}wpb_access_control`" );
+
+// Remove BerlinDB db-version options so the tables are recreated on re-activation.
+delete_option( 'wpb_access_control_db_version' );
+delete_option( 'acrossai_abilities_overwrite_db_version' );

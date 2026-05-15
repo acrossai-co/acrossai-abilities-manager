@@ -105,9 +105,10 @@ final class Main {
 	 */
 	private function __construct() {
 
-		$this->plugin_name = 'acrossai-abilities-manager';
-
 		$this->define_constants();
+
+		$this->plugin_name = 'acrossai-abilities-manager';
+		$this->version = ACROSSAI_ABILITIES_MANAGER_VERSION;
 
 		// Load the autoloader class manually before registering it
 		$this->plugin_dir = ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH;
@@ -177,7 +178,7 @@ final class Main {
 		 *
 		 * @since    0.0.1
 		 */
-		if ( apply_filters( 'acrossai-abilities-manager-load', true ) ) {
+		if ( apply_filters( 'acrossai_abilities_manager_load', true ) ) {
 			$this->define_admin_hooks();
 			$this->define_public_hooks();
 		}

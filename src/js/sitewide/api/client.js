@@ -132,7 +132,8 @@ export async function bulkAction( slugs, action ) {
  * @return {Promise<Array>}
  */
 export async function fetchMcpServers() {
-	return apiFetch( {
+	const data = await apiFetch( {
 		path: 'acrossai-abilities-manager/v1/sitewide/mcp-servers',
 	} );
+	return Array.isArray( data ) ? data : [];
 }

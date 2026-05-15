@@ -24,8 +24,8 @@ namespace AcrossAI_Abilities_Manager;
  * Plugin URI:        https://github.com/WPBoilerplate/acrossai-abilities-manager
  * Description:       AcrossAI Abilities Manager by WPBoilerplate
  * Version:           0.0.1
+ * Requires PHP:	  7.4
  * Requires at least: 6.9
- * Requires PHP:	  8.0
  * Author:            WPBoilerplate
  * Author URI:        https://github.com/WPBoilerplate/acrossai-abilities-manager
  * License:           GPL-2.0+

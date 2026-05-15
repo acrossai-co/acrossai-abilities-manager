@@ -14,7 +14,7 @@
  */
 import { RadioControl, SelectControl, CheckboxControl, Notice } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
-import { useState, useEffect } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { STORE_NAME } from '../store/index';
 
@@ -63,18 +63,19 @@ function toRadioOption( showInMcp, mcpServers ) {
  * @return {JSX.Element}
  */
 export default function McpVisibilityControl( { showInMcp, mcpType, mcpServers, onChange } ) {
-	const availableServers = useSelect( ( select ) => select( STORE_NAME ).getMcpServers(), [] );
+	const availableServers = useSelect( ( select ) => {
+		const servers = select( STORE_NAME ).getMcpServers();
+		return Array.isArray( servers ) ? servers : [];
+	}, [] );
 
-	// T030 FIX: Use useState to maintain stable radio selection state.
-	// Prevents radio from snapping back when user selects "Allow in specific MCP servers"
-	// because onChange sends null for mcp_servers initially (no servers chosen yet).
+	// Local radio state — initialised once from props.
+	// Re-initialisation when a different ability opens is handled by the parent
+	// passing key={slug} on this component, which forces a remount and re-runs useState.
+	// A useEffect([showInMcp, mcpServers]) must NOT be used here — it fires immediately
+	// after the user clicks "Allow in specific MCP servers" because onChange updates
+	// mcpDraft.show_in_mcp → true and mcpDraft.mcp_servers stays null, so
+	// toRadioOption(true, null) returns 'all' and snaps the radio back.
 	const [ radioSelection, setRadioSelection ] = useState( () => toRadioOption( showInMcp, mcpServers ) );
-
-	// T030 FIX: useEffect watches for external changes (when panel opens for different ability)
-	// and re-syncs radioSelection to match the new ability's values.
-	useEffect( () => {
-		setRadioSelection( toRadioOption( showInMcp, mcpServers ) );
-	}, [ showInMcp, mcpServers ] );
 
 	function handleRadioChange( newOption ) {
 		// T030 FIX: Update local state BEFORE calling onChange so the radio doesn't snap back.

@@ -4,7 +4,7 @@ description: "Tasks for REST Controller Modularization (spec 002)"
 
 # Tasks: REST Controller Modularization
 
-**Input**: [plan.md](plan.md)
+**Input**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md) | **Research**: [research.md](research.md)
 **Branch**: `001-sitewide-ability-management`
 
 ---

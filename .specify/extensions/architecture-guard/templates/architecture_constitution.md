@@ -68,9 +68,20 @@ private function __construct() {
 
 - `admin_enqueue_scripts` → `Admin\Main::enqueue_styles()` and `enqueue_scripts()` (scoped via `$hook_suffix` guard, manifest loaded in constructor).
 - `admin_menu` → `Admin\Partials\Menu::main_menu()`.
-- `rest_api_init` → `AcrossAI_Sitewide_Rest_Controller::instance()->register_routes()` (wired in `define_admin_hooks()`).
+- `rest_api_init` (default priority) → `AcrossAI_Sitewide_Rest_Controller` resolved to `$rest_controller` variable, then `$this->loader->add_action( 'rest_api_init', $rest_controller, 'register_routes' )` (wired in `define_admin_hooks()`). **Never pass `::instance()` inline** as the hook object argument.
+- `rest_api_init` (priority 20) → `WPBoilerplate\McpServersList\McpServersList::collect()` resolved to `$mcp_servers_list` variable, then `$this->loader->add_action( 'rest_api_init', $mcp_servers_list, 'collect', 20 )` (wired in `define_admin_hooks()`). Priority 20 ensures McpAdapter has finished initialising at priority 15.
 - `Partials\*` classes own ONLY menu registration and HTML render — never `wp_enqueue_*()`.
 - Asset `*.asset.php` manifests loaded in `Admin\Main::__construct()`, never in Partials classes or module classes.
+
+## REST Controller Pattern
+
+A feature module's REST controller MUST be split into a thin **orchestrator** + per-domain sub-controllers when it would exceed ~400 lines or own more than one user story's handlers.
+
+- Sub-controllers live in `includes/Modules/<Feature>/Rest/`
+- The orchestrator owns: `REST_NAMESPACE` constant, `register_routes()` (delegates to sub-controllers), `check_permission()` (shared by all routes)
+- Sub-controllers use the singleton pattern and reference the orchestrator's permission callback as `array( Orchestrator::instance(), 'check_permission' )`
+- Sub-controllers MUST NOT register WordPress hooks themselves — only the orchestrator is wired in `Main.php`
+- Canonical reference: `specs/002-rest-controller-modularization/`
 
 ## JS Architecture Rules
 
@@ -96,6 +107,7 @@ private function __construct() {
 - P0: Any feature class using constructor injection instead of the singleton `instance()` pattern.
 - P0: Any BerlinDB boolean field passed as PHP `false` without `(int)` cast (causes silent MySQL strict mode failure).
 - P0: `$request->get_param()` used for optional REST params instead of `$request->has_param()` gated collection (partial-tab save overwrite bug).
+- P0: Direct `\WP\MCP\Core\McpAdapter::instance()->get_servers()` call anywhere in plugin code — MCP server listing MUST go through `wpboilerplate/wpb-mcp-servers-list` (`McpServersList::instance()->get_servers()`). Direct calls bypass timing guarantees and return unserializable `McpServer` objects.
 
 ## Accepted Architecture Deviations
 

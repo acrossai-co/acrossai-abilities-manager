@@ -59,7 +59,7 @@ function reducer( state = DEFAULT_STATE, action ) {
 			return { ...state, editingSlug: action.slug };
 
 		case SET_MCP_SERVERS:
-			return { ...state, mcpServers: action.servers };
+			return { ...state, mcpServers: Array.isArray( action.servers ) ? action.servers : [] };
 
 		case SAVE_UNCHANGED:
 			return { ...state, isLoading: false };

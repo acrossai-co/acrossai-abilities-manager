@@ -154,7 +154,18 @@ public static function instance(): self {
 private function __construct() { /* dependencies via OtherClass::instance() only */ }
 ```
 
-**Hook registration**: `includes/Main.php` is the ONLY file that calls `$this->loader->add_action()` / `$this->loader->add_filter()`. All hooks wire directly in `define_admin_hooks()` or `define_public_hooks()` using singleton instances — e.g. `$this->loader->add_action( 'rest_api_init', MyClass::instance(), 'register_routes' )`. There is NO `register_hooks( Loader $loader )` delegation pattern and NO module orchestrator class.
+**Hook registration**: `includes/Main.php` is the ONLY file that calls `$this->loader->add_action()` / `$this->loader->add_filter()`. All hooks wire directly in `define_admin_hooks()` or `define_public_hooks()`. Singleton instances MUST be resolved to a named variable before being passed to `add_action` — never inline:
+```php
+// Correct
+$rest_controller = MyClass::instance();
+$this->loader->add_action( 'rest_api_init', $rest_controller, 'register_routes' );
+
+// Wrong — inline ::instance() call
+$this->loader->add_action( 'rest_api_init', MyClass::instance(), 'register_routes' );
+```
+There is NO `register_hooks( Loader $loader )` delegation pattern and NO module orchestrator class.
+
+**REST controller split pattern**: When a REST controller exceeds ~400 lines or spans more than one user story, it MUST be decomposed into a **thin orchestrator** + per-domain sub-controllers. Sub-controllers live in `includes/Modules/<Feature>/Rest/` and each has exactly one handler group (e.g. read-only, overrides, bulk, MCP). The orchestrator keeps `REST_NAMESPACE`, `register_routes()` (delegates to sub-controllers), and `check_permission()` (shared permission callback). `Main.php` wires only the orchestrator. See `.specify/memory/CONSTITUTION.md` §REST Controller Pattern and `specs/002-rest-controller-modularization/` for the canonical reference implementation.
 
 **Admin Partials Rule**: Classes that call `add_menu_page()`, enqueue assets, or render HTML live in `admin/Partials/`. Asset enqueue (`wp_enqueue_script/style`) MUST be in `Admin\Main::enqueue_scripts()/enqueue_styles()` only — never in Partials page classes or module classes.
 

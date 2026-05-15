@@ -20,7 +20,7 @@ All endpoints are secured with `manage_options` + nonce verification.
 
 **Language/Version**: PHP 7.4+, JavaScript ESNext/JSX, WordPress 6.9+
 **Primary Dependencies**:
-- PHP: `berlindb/core ^2.0` (used directly at `BerlinDB\Database\*` — no Mozart prefixing), `automattic/jetpack-autoloader`
+- PHP: `berlindb/core ^2.0` (used directly at `BerlinDB\Database\*` — no Mozart prefixing), `automattic/jetpack-autoloader`, `wpboilerplate/wpb-mcp-servers-list` (MCP server listing — encapsulates McpAdapter timing and serialization)
 - JS: `@wordpress/dataviews`, `@wordpress/data` (createReduxStore), `@wordpress/api-fetch`, `@wordpress/components`, `@wordpress/element`, `@wordpress/i18n`, `@wordpress/icons`, `@wordpress/compose`
 - Build: `@wordpress/scripts` (webpack)
 **Storage**: MySQL — `{prefix}acrossai_abilities_overwrite` via BerlinDB Table/Query/Row/Schema classes
@@ -81,10 +81,11 @@ All gates listed in tasks.md. Feature is complete only when all 8 DoD gates pass
 7. Webpack entry + `sitewide.asset.php` manifest loading added explicitly (skill step 12 — dependency array and version must never be hardcoded)
 8. `boot()` call from `load_dependencies()` → clarified: `define_admin_hooks()` wires all hooks directly via `$this->loader->add_action()`; no module `register_hooks()` delegation
 9. **PHP bool-to-int cast in `save_override()`** — PHP `false` is not detected as an integer by `$wpdb` format auto-detection (`is_int(false) === false`), so `$wpdb` assigns `%s`, which produces `''` on `sprintf`. MySQL 8+ strict mode rejects `''` for a `tinyint` column silently. Fix: cast all PHP boolean tri-state values to `(int)` before passing to BerlinDB — `true → 1`, `false → 0`, `null` left as null. Applied in `AcrossAI_Sitewide_Query::save_override()`.
-10. **Partial-field save via `has_param()` in REST controller** — the per-tab save architecture (General tab / MCP tab each save independently) requires the PHP handler to only write fields that were explicitly sent. `$request->get_param()` returns `null` for absent optional params, so unconditional collection of all 8 fields overwrites the other tab's DB values with NULL silently. Fix: use `$request->has_param($field)` to gate collection; `has_param()` returns `true` even when the field is explicitly sent as `null` (user intends to clear it). Applied in `AcrossAI_Sitewide_Rest_Controller::save_override()`. Also: `is_all_default()` + I3 auto-delete MUST NOT apply to partial-tab saves — full-row cleanup belongs to the DELETE endpoint only.
+10. **Partial-field save via `has_param()` in REST controller** — the per-tab save architecture (General tab / MCP tab each save independently) requires the PHP handler to only write fields that were explicitly sent. `$request->get_param()` returns `null` for absent optional params, so unconditional collection of all 8 fields overwrites the other tab's DB values with NULL silently. Fix: use `$request->has_param($field)` to gate collection; `has_param()` returns `true` even when the field is explicitly sent as `null` (user intends to clear it). Applied in `AcrossAI_Sitewide_Rest_Controller::save_override()`. **`is_all_default()` guard must be gated on `!$existing`** — the original rule compared only against registry defaults, so if the DB had `show_in_mcp: true` and the user chose "Keep as Default" (sending null), `is_all_default()` returned true (null == registry null) and skipped the write, leaving the old value intact. Fix: only return `unchanged: true` when there is no existing DB row AND all submitted fields match registry defaults — `if ( ! $existing && AcrossAI_Ability_Merger::is_all_default( $fields, $registry ) )`. If a row already exists, always write so explicit nulls reach the DB. Full-row cleanup (deleting the row when appropriate) still belongs to the DELETE endpoint only.
 11. **`useEffect([slug])` dep in `AbilityEditPanel`** — using `[ability]` as the `useEffect` dep re-seeds the draft on every `UPDATE_ABILITY` dispatch (which fires after every save). Any timing gap where `ability._override` arrives as `null` before the component re-reads it silently resets the user's selection back to "Inherit". Fix: use `[slug]` as the dep so the draft only re-seeds when the panel opens for a different ability. Individual save handlers (`saveGeneral`, `saveMcp`) own updating `savedDraft` state via `setGeneralSaved({...generalDraft})` / `setMcpSaved({...mcpDraft})`.
 12. **`_override: nullOverride` in `deleteOverride` optimistic dispatch** — the `UPDATE_ABILITY` reducer does a shallow spread (`{ ...ability, ...action.ability }`). Without explicitly setting `_override` in the dispatch payload, the old stale `_override` survives in the store. When the edit panel opens (slug-change `useEffect`), it seeds draft state from the stale `_override` and shows Yes/No instead of Inherit after Reset Override. Fix: include `_override: { site_allowed: null, readonly: null, ... }` (all 8 fields null) in the `deleteOverride` optimistic dispatch.
 13. **Singleton pattern + hook centralization** — the original plan used an `AcrossAI_Module_Base` abstract class with `register_hooks( Loader $loader )` delegation. This is not the plugin-wide convention: WPBoilerplate requires all `$loader->add_action()` calls to originate directly in `includes/Main.php::define_admin_hooks()` / `define_public_hooks()`. The module base and module orchestrator classes (`AcrossAI_Module_Base`, `AcrossAI_Sitewide_Module`) are deleted (T004, T014). All feature classes instead use a `protected static $_instance = null` + `public static function instance(): self` singleton; `includes/Main.php` instantiates them via `::instance()` and wires their hooks directly through `$this->loader`. This keeps the hook registry centralized, auditable, and consistent with every other class in the plugin.
+14. **`McpVisibilityControl` radio snap-back + server list hidden** — a `useEffect([showInMcp, mcpServers])` was added to re-sync `radioSelection` when the panel opened for a different ability. It also fired immediately after the user clicked "Allow in specific MCP servers" because `onChange` updated `mcpDraft.show_in_mcp → true` while `mcpDraft.mcp_servers` stayed `null`, causing `toRadioOption(true, null)` to return `'all'` and overwrite the user's selection. Since `showSpecificServers` was derived from `radioSelection`, the server list never appeared. Fix: remove the `useEffect` from `McpVisibilityControl` entirely and instead pass `key={slug}` from `AbilityEditPanel` — React unmounts and remounts the component when the slug changes, re-running `useState` from fresh props, which is the correct re-init mechanism without the snap-back side effect.
 
 ---
 
@@ -118,18 +119,26 @@ admin/
 includes/
 ├── Utilities/
 │   ├── AcrossAI_Sanitizer.php             # CREATE: sanitize_ability_slug(), sanitize_tri_state(), etc.
-│   └── AcrossAI_Ability_Merger.php        # CREATE: static merge(registry, override): array
+│   ├── AcrossAI_Ability_Merger.php        # CREATE: static merge(registry, override): array
+│   ├── AcrossAI_Ability_Registry_Query.php # CREATE: filter/sort/paginate over wp_get_abilities()
+│   └── AcrossAI_Ability_Source_Detector.php # CREATE: source detection before save_override()
 ├── Modules/
 │   └── Sitewide/
 │       ├── index.php                      # CREATE: directory sentinel
-│       ├── AcrossAI_Sitewide_Rest_Controller.php  # CREATE: singleton; 7 REST endpoints; obtains AcrossAI_Sitewide_Query::instance() internally
+│       ├── AcrossAI_Sitewide_Rest_Controller.php  # UPDATED (spec 002): thin orchestrator; delegates routes to Rest/ sub-controllers; owns REST_NAMESPACE + check_permission()
+│       ├── Rest/                          # CREATED (spec 002): per-domain sub-controllers
+│       │   ├── index.php                 # directory sentinel
+│       │   ├── AcrossAI_Sitewide_Abilities_Controller.php  # GET /abilities, GET /abilities/{slug}
+│       │   ├── AcrossAI_Sitewide_Override_Controller.php   # POST/DELETE /abilities/{slug}, POST .../toggle
+│       │   ├── AcrossAI_Sitewide_Bulk_Controller.php       # POST /abilities/bulk
+│       │   └── AcrossAI_Sitewide_Mcp_Controller.php        # GET /mcp-servers (uses wpboilerplate/wpb-mcp-servers-list)
 │       └── Database/
-│           ├── AcrossAI_Sitewide_Schema.php  # CREATE: BerlinDB Schema (17 columns)
-│           ├── AcrossAI_Sitewide_Table.php   # CREATE: BerlinDB Table (maybe_upgrade); singleton pattern
+│           ├── AcrossAI_Sitewide_Schema.php  # CREATE: BerlinDB Schema (17 columns) — used by Query for column metadata only; NOT referenced in set_schema()
+│           ├── AcrossAI_Sitewide_Table.php   # CREATE: BerlinDB Table (set_schema = raw SQL string, not Schema::class); $db_version_key = 'acrossai_abilities_overwrite_db_version'; singleton pattern
 │           ├── AcrossAI_Sitewide_Row.php     # CREATE: BerlinDB Row (typed properties)
 │           └── AcrossAI_Sitewide_Query.php   # CREATE: BerlinDB Query (CRUD methods); singleton pattern
 ├── Activator.php                          # UPDATE: call AcrossAI_Sitewide_Table::instance()->maybe_upgrade() on activate
-└── Main.php                               # UPDATE: define_admin_hooks() wires Admin\Main + Menu + loader->add_action('rest_api_init', AcrossAI_Sitewide_Rest_Controller::instance(), 'register_routes') — NO module orchestrator
+└── Main.php                               # UPDATE: define_admin_hooks() wires Admin\Main + Menu + resolves $rest_controller = AcrossAI_Sitewide_Rest_Controller::instance(); $this->loader->add_action('rest_api_init', $rest_controller, 'register_routes'); also wires $mcp_servers_list = McpServersList::instance(); $this->loader->add_action('rest_api_init', $mcp_servers_list, 'collect', 20) — NO module orchestrator, NO inline ::instance() as hook object
 
 src/
 ├── js/
@@ -142,8 +151,8 @@ src/
 │       └── components/
 │           ├── AbilityManager.jsx         # CREATE: page root, view state, localStorage
 │           ├── AbilityTable.jsx           # CREATE: @wordpress/dataviews DataViews table (13 fields)
-│           ├── AbilityEditPanel.jsx       # CREATE: slide-in drawer via createPortal; per-tab save; useEffect([slug]) dep
-│           ├── McpVisibilityControl.jsx   # CREATE: MCP radio group + conditional server multi-select
+│           ├── AbilityEditPanel.jsx       # CREATE: slide-in drawer via createPortal; per-tab save; useEffect([slug]) dep; pass key={slug} to McpVisibilityControl so it remounts on ability change
+│           ├── McpVisibilityControl.jsx   # CREATE: MCP radio group + conditional server multi-select; useState for radio state (NO useEffect([showInMcp,mcpServers]) — fires after onChange and snaps radio back to 'all'); remounted via key={slug} from AbilityEditPanel
 │           ├── BulkActionToolbar.jsx      # CREATE: bulk allow/disallow/reset toolbar
 │           └── cells/
 │               ├── TriStateBadgeCell.jsx  # CREATE: Yes/No/— badge with (Default) suffix
@@ -167,7 +176,7 @@ tests/
 │       └── AbilityMergerTest.php          # CREATE: merge() + is_all_default()
 └── jest/
     └── sitewide/
-        └── AbilityManager.test.js         # CREATE: component + store unit tests
+        └── store.test.js                  # CREATE: component + store unit tests
 ```
 
 ---
