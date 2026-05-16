@@ -79,7 +79,7 @@ When an admin saves or resets an ability override through the Manager, the runti
 - What happens when the WP Abilities API (`wp_abilities_api_init`) is absent (older WP version)? — Override hooks are registered but never fire; no error is thrown.
 - What happens when a `wp_unregister_ability()` call is issued for a slug that does not exist in the registry? — WP core handles the graceful no-op; the processor does not check for existence first.
 - What happens if `$_SERVER['REQUEST_URI']` is missing (CLI context)? — `is_manager_rest_request()` checks for `WP_CLI` first; CLI always returns false before inspecting `$_SERVER`.
-- What happens when `mcp_servers` is stored as a JSON string in the DB? — `inject_override_args()` calls `json_decode()` when the value is a string before assigning to `$args['meta']`.
+- What happens when `mcp_servers` is stored as a JSON string in the DB? — `AcrossAI_Sitewide_Row::__construct()` decodes the JSON string to `array|null` on construction; by the time `inject_override_args()` reads `$row->mcp_servers`, it is already an array or null. The processor guards with `is_array()` and never calls `json_decode()`.
 - What happens if the transient is corrupted or contains unexpected data? — The cache is rebuilt from DB; corrupted transients are treated as a cache miss.
 
 ---
@@ -90,13 +90,13 @@ When an admin saves or resets an ability override through the Manager, the runti
 
 - **FR-001**: The processor MUST inject non-null DB override values into ability arguments before each ability is registered, for all non-Manager requests.
 - **FR-002**: The processor MUST completely remove abilities with `site_allowed = false` from the WP registry after all abilities are registered, for all non-Manager requests.
-- **FR-003**: The processor MUST skip all override injection and unregistration when the incoming request targets the Manager's own REST namespace (`acrossai-abilities/`).
+- **FR-003**: The processor MUST skip all override injection and unregistration when the incoming request targets the Manager's own REST namespace. The namespace is identified by the `ACROSSAI_MANAGER_REST_NAMESPACE` constant (default: `'acrossai-abilities-manager/v1'`, overridable via `wp-config.php` or the `acrossai_manager_rest_namespace` filter). Detection MUST match the full namespace string exactly — not a shorter prefix — to prevent false positives against third-party namespaces sharing a common prefix.
 - **FR-004**: The processor MUST load all DB override rows in a single query per request, cached in a transient with a 12-hour TTL.
 - **FR-005**: The cache MUST be cleared (both transient and in-memory) whenever any ability override is saved or reset via the Manager.
 - **FR-006**: A null DB override value MUST never overwrite a registration-time argument (Inherit semantics).
 - **FR-007**: The processor MUST NOT write to the database directly; all DB access MUST go through `AcrossAI_Sitewide_Query`.
 - **FR-008**: The Manager REST detection MUST NOT be used as an access control mechanism; it is a performance/registration optimisation only.
-- **FR-009**: The `mcp_servers` field MUST be JSON-decoded from string form (as stored in the DB) before being written into ability arguments.
+- **FR-009**: The `mcp_servers` field is decoded from JSON to `array|null` by `AcrossAI_Sitewide_Row::__construct()` at construction time. The processor MUST guard with `is_array()` before assigning to ability arguments; it MUST NOT call `json_decode()` on the field.
 - **FR-010**: The processor MUST be bootable from a single static `boot()` call at `plugins_loaded` priority 20.
 
 ### Key Entities
@@ -115,9 +115,10 @@ When an admin saves or resets an ability override through the Manager, the runti
 - **SC-001**: A DB override saved in the Manager takes effect on all non-Manager consumers within the same PHP request (zero propagation delay after cache bust).
 - **SC-002**: An ability with `site_allowed = false` is absent from `wp_get_abilities()` on all non-Manager requests within the same PHP request after the override is saved.
 - **SC-003**: The Manager admin page's `_registry` values are unaffected by override injection — the Manager always shows registration-time values for the `_registry` layer.
-- **SC-004**: The entire set of DB override rows is fetched in at most one DB query per request (cache hit rate: 100% after first request within TTL window).
+- **SC-004**: The entire set of DB override rows — regardless of count — is fetched in at most one DB query per request (cache hit rate: 100% after first request within TTL window). `get_all_overrides()` uses BerlinDB `number => 0` (no LIMIT) to ensure completeness.
 - **SC-005**: `bust_cache()` causes the next request to see updated override values without any manual intervention (zero stale-cache failures).
 - **SC-006**: No performance regression on non-ability pages (override boot fires only once; no per-request DB queries outside of cache misses).
+- **SC-007 (Deferred)**: Debug-level observability hooks (e.g. `do_action('acrossai_ability_override_applied', $slug, $args)`) are explicitly out of scope for this feature and deferred to a future observability pass.
 
 ---
 
@@ -125,7 +126,7 @@ When an admin saves or resets an ability override through the Manager, the runti
 
 - The WordPress Abilities API (`wp_register_ability_args` filter and `wp_abilities_api_init` action) is available in the target WordPress version (7.0+). If absent, the processor registers its hooks but they never fire — no error is produced.
 - `AcrossAI_Sitewide_Query` is available and initialized by `plugins_loaded` priority 10, before the processor boots at priority 20.
-- The Manager REST namespace is `acrossai-abilities-manager/v1`; detection targets the `acrossai-abilities/` path segment to remain stable if the version suffix changes.
+- The Manager REST namespace is `acrossai-abilities-manager/v1` (`AcrossAI_Sitewide_Rest_Controller::REST_NAMESPACE`). PATH A detection uses the `ACROSSAI_MANAGER_REST_NAMESPACE` constant (default `'acrossai-abilities-manager/v1'`), filterable via `acrossai_manager_rest_namespace`. The full namespace string is matched — not a short prefix — to avoid false positives. If the version changes, the constant or filter must be updated accordingly.
 - `rest_get_url_prefix()` and `home_url()` are available at `plugins_loaded` time (they are WordPress core functions present from `muplugins_loaded` onwards).
 - `wp_doing_ajax()`, `wp_doing_cron()` are available at `plugins_loaded` time (standard WordPress functions).
 - The WP Abilities API fires ability registrations inside `wp_abilities_api_init` at priorities 10–999; priority 100001 for unregistration is safely after all registrations.
@@ -133,3 +134,15 @@ When an admin saves or resets an ability override through the Manager, the runti
 - The existing `_registry` / `_override` / merged three-layer REST response shape produced by the Manager is correct and must not be altered by this feature.
 - Multisite support: the override table is per-site (uses `$wpdb->prefix`); no cross-site override bleeding.
 - The transient cache key `acrossai_ability_overrides_cache` is unique to this plugin and will not conflict with other plugins.
+- The 12-hour transient TTL is a hardcoded safe default. No filter is provided because `bust_cache()` fires on every Manager save and reset, making the TTL relevant only for cold starts and transient evictions — scenarios where a stale window of up to 12 hours is acceptable.
+---
+
+## Clarifications
+
+### Session 2026-05-16
+
+- Q: FR-009 and the `mcp_servers` edge case described `inject_override_args()` calling `json_decode()` on a string. Does the spec reflect actual Row behavior? → A: No. `AcrossAI_Sitewide_Row::__construct()` (lines 175–177) already decodes `mcp_servers` from JSON to `array|null`. FR-009 and the edge case entry have been corrected to reflect that decoding is the Row class's responsibility and the processor guards with `is_array()`.
+- Q: Should `get_all_overrides()` have a documented ceiling (e.g. 9,999) or fetch all rows unconditionally? → A: Fetch all unconditionally. `number => 9999` replaced with BerlinDB `number => 0` (no LIMIT). SC-004 updated to confirm completeness for any override count.
+- Q: PATH A detection used the broad prefix `acrossai-abilities/` — should it match the exact Manager namespace to prevent false positives? → A: Yes. Constant `ACROSSAI_MANAGER_REST_NAMESPACE` (default `'acrossai-abilities-manager/v1'`) introduced; filterable via `acrossai_manager_rest_namespace`. PATH A now matches the full namespace string. FR-003 and the Manager namespace Assumption updated.
+- Q: Should the 12-hour transient TTL be filterable? → A: No. `bust_cache()` fires on every Manager save and reset, so the TTL only matters for cold starts and transient evictions. 12 hours hardcoded is sufficient; no filter needed. TTL rationale added to Assumptions.
+- Q: Should the processor emit debug-level observability hooks when applying or skipping overrides? → A: No logging requirement for this feature. Debug action hooks (e.g. `acrossai_ability_override_applied`) deferred to a future observability pass. SC-007 added as a deferred item.

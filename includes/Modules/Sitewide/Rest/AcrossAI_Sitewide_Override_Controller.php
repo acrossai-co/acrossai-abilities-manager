@@ -9,6 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Rest;
 
+use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Ability_Override_Processor;
 use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Rest_Controller;
 use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Query;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer;
@@ -198,8 +199,8 @@ class AcrossAI_Sitewide_Override_Controller {
 		// overwrite the other tab's saved DB values with NULL on UPDATE.
 		// has_param() is true even when the field is explicitly null in the body
 		// (intentional "clear this field"), so only truly absent fields are skipped.
-		$fields      = array();
-		$tri_state   = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'show_in_mcp' );
+		$fields    = array();
+		$tri_state = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'show_in_mcp' );
 		foreach ( $tri_state as $field ) {
 			if ( $request->has_param( $field ) ) {
 				$fields[ $field ] = AcrossAI_Sanitizer::sanitize_tri_state( $request->get_param( $field ) );
@@ -287,6 +288,8 @@ class AcrossAI_Sitewide_Override_Controller {
 				)
 			);
 		}
+
+		AcrossAI_Ability_Override_Processor::bust_cache();
 
 		return rest_ensure_response(
 			array(

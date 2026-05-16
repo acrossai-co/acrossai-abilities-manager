@@ -9,6 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Rest;
 
+use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Ability_Override_Processor;
 use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Rest_Controller;
 use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Query;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer;
@@ -148,6 +149,7 @@ class AcrossAI_Sitewide_Bulk_Controller {
 				$ok = $this->db_query->delete_override_by_slug( $slug );
 				// delete returns false if no record; treat as success.
 				$ok = true;
+				AcrossAI_Ability_Override_Processor::bust_cache();
 			} else {
 				$site_allowed = 'allow' === $action;
 				$source       = AcrossAI_Ability_Source_Detector::detect( $registry );

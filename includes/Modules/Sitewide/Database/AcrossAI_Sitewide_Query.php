@@ -113,7 +113,7 @@ class AcrossAI_Sitewide_Query extends Query {
 		$tri_state_columns = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'show_in_mcp' );
 		foreach ( $tri_state_columns as $col ) {
 			if ( array_key_exists( $col, $fields ) && is_bool( $fields[ $col ] ) ) {
-				$fields[ $col ] = (int) $fields[ $col ]; // true → 1, false → 0
+				$fields[ $col ] = (int) $fields[ $col ]; // true → 1, false → 0.
 			}
 		}
 
@@ -159,5 +159,25 @@ class AcrossAI_Sitewide_Query extends Query {
 		}
 		$result = $this->delete_item( $existing->id );
 		return false !== $result;
+	}
+
+	/**
+	 * Retrieve all override rows indexed by ability_slug.
+	 *
+	 * Passes number => 0 to BerlinDB which signals no LIMIT clause (unlimited rows).
+	 * Returns an associative array keyed by ability_slug.
+	 *
+	 * @since  0.1.0
+	 * @return AcrossAI_Sitewide_Row[]  Indexed by ability_slug string.
+	 */
+	public function get_all_overrides(): array {
+		$results = $this->query( array( 'number' => 0 ) );
+		$indexed = array();
+		foreach ( $results as $row ) {
+			if ( $row instanceof AcrossAI_Sitewide_Row ) {
+				$indexed[ $row->ability_slug ] = $row;
+			}
+		}
+		return $indexed;
 	}
 }
