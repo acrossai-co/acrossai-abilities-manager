@@ -373,11 +373,11 @@ Tests live in `tests/phpunit/sitewide/OverrideProcessorTest.php` (new file).
 
 ## Complexity Tracking
 
-> **JUSTIFIED DEVIATION — Static-Only Class Pattern** (see Constitution Check §I above)
+> **RESOLVED DEVIATION — Singleton + Instance Wrapper Pattern** (SEC-PLAN-002; supersedes static-only plan)
 >
-> | Violation | Why Needed | Simpler Alternative Rejected Because |
+> | Decision | Reason | Alternative Rejected |
 > |---|---|---|
-> | No `instance()` singleton on `AcrossAI_Ability_Override_Processor` | All methods and state are static; instantiation adds zero value. Boot hook requires a callable: `array('ClassName', 'method')` is valid without an instance. | Adding `instance()` and a private constructor creates a singleton that wraps zero instance state — pure boilerplate noise with no benefit. Would obscure the intent that this class is a stateless hook-registration utility. |
+> | Singleton `instance()` + instance wrapper methods (`boot_hook()`, `bust_cache_hook()`) | `Loader::run()` passes `array($component, $callback)` to WordPress where `$component` must be an `object` (PHPDoc). Passing a class-name string would fail PHPStan L8. | Pure static-only class with string-based wiring: fails PHPStan L8 even though it works at PHP runtime. |
 
 ---
 
