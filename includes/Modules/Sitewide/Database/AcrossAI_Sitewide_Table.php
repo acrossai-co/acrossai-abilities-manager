@@ -44,6 +44,15 @@ class AcrossAI_Sitewide_Table extends Table {
 	protected $db_version_key = 'acrossai_abilities_overwrite_db_version';
 
 	/**
+	 * Use per-site table prefix ($wpdb->prefix), not the network base prefix.
+	 * Explicitly set to false so multisite intent is declared in code, not
+	 * inherited from BerlinDB library defaults (SAC-02 / Constitution §II).
+	 *
+	 * @var bool
+	 */
+	protected $global = false;
+
+	/**
 	 * Singleton instance.
 	 *
 	 * @var AcrossAI_Sitewide_Table|null

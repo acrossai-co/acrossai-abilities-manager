@@ -26,7 +26,12 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 ## Accepted Deviations
 | ID | Deviation | Scope | Expiry/Review | Source |
 |---|---|---|---|---|
+| ARCH-ADV-001 | `boot()` wires hooks directly (bypasses Boot Flow Rule) when PATH-A/B conditional loading is required | Sitewide/Override | Review if Boot Flow Rule gains conditional-load support | DECISIONS.md |
+| DEV1 | `McpVisibilityControl` uses compound-control pattern instead of DataForm for compound toggle | Sitewide/Admin | Review if DataForm gains compound-control support | memory-synthesis.md (001) |
 
 ## Security Constraints
 | ID | Constraint | Scope | Tags | Source |
 |---|---|---|---|---|
+| SEC-01 | `sanitize_ability_slug()` applied at every REST endpoint receiving a slug; max 255 chars enforced | All REST endpoints | slug, sanitize, length | security-constraints.md (001) |
+| SEC-02 | `before_save` hook fires on sanitized `$fields` only; `save_override()` re-applies bool→int cast before BerlinDB | Sitewide REST | hook, cast, berlinddb | security-constraints.md (001) |
+| SEC-03 | `AcrossAI_Sitewide_Table::$global = false` — per-site prefix; multisite table isolation is explicit | Sitewide/DB | multisite, berlinddb, table-prefix | security-constraints.md (001) |

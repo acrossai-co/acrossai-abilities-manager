@@ -282,9 +282,10 @@ final class Main {
 		$mcp_servers_list = \WPBoilerplate\McpServersList\McpServersList::instance();
 		$this->loader->add_action( 'rest_api_init', $mcp_servers_list, 'collect', 20 );
 
-		// Register Access Control REST routes.
+		// Register Access Control REST routes and admin notice for absent library (SAC-01).
 		$sitewide_ac = \AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Access_Control::instance();
 		$this->loader->add_action( 'rest_api_init', $sitewide_ac, 'register_rest_api' );
+		$this->loader->add_action( 'admin_notices', $sitewide_ac, 'maybe_show_library_notice' );
 	}
 
 	/**
