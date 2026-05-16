@@ -191,6 +191,18 @@ class AcrossAI_Sitewide_Abilities_Controller {
 		$override = $this->db_query->get_override_by_slug( $slug );
 		$merged   = AcrossAI_Ability_Merger::merge( $registry, $override );
 
+		/**
+		 * Filters the merged ability data before it is returned in the REST response.
+		 *
+		 * Consumers MUST NOT remove 'slug', 'has_override', or alter field types —
+		 * doing so will break client-side Redux store deserialization.
+		 *
+		 * @since 0.1.0
+		 * @param array  $merged Merged ability data (registry + override).
+		 * @param string $slug   Sanitized ability slug.
+		 */
+		$merged = (array) apply_filters( 'acrossai_abilities_sitewide_rest_response', $merged, $slug );
+
 		return rest_ensure_response( $merged );
 	}
 }

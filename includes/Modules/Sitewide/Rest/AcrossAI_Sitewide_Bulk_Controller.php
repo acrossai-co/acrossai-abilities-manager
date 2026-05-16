@@ -160,7 +160,21 @@ class AcrossAI_Sitewide_Bulk_Controller {
 				$ok           = $this->db_query->save_override( $slug, $fields );
 
 				if ( $ok ) {
-					do_action( 'acrossai_abilities_sitewide_after_save', $slug, $fields );
+					// Fetch the saved row so after_save receives the complete override
+					// state, not just the 2 fields sent by the bulk action (LOW-NEW-02).
+					$saved_row   = $this->db_query->get_override_by_slug( $slug );
+					$hook_fields = null !== $saved_row ? array(
+						'site_allowed' => $saved_row->site_allowed,
+						'readonly'     => $saved_row->readonly,
+						'destructive'  => $saved_row->destructive,
+						'idempotent'   => $saved_row->idempotent,
+						'show_in_rest' => $saved_row->show_in_rest,
+						'show_in_mcp'  => $saved_row->show_in_mcp,
+						'mcp_type'     => $saved_row->mcp_type,
+						'mcp_servers'  => $saved_row->mcp_servers,
+						'source'       => $saved_row->source,
+					) : $fields;
+					do_action( 'acrossai_abilities_sitewide_after_save', $slug, $hook_fields );
 				}
 			}
 
