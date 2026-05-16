@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
  * @package    AcrossAI_Abilities_Manager
  * @subpackage AcrossAI_Abilities_Manager/includes
  */
-class I18n {
+class AcrossAI_I18n {
 
 	/**
 	 * Actually load the plugin textdomain on `init`

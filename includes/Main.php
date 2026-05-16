@@ -228,7 +228,7 @@ final class Main {
 	 */
 	private function load_dependencies() {
 
-		$this->loader = Loader::instance();
+		$this->loader = AcrossAI_Loader::instance();
 	}
 
 	/**
@@ -241,7 +241,7 @@ final class Main {
 	 * @access   private
 	 */
 	private function set_locale() {
-		$i18n = new I18n();
+		$i18n = new AcrossAI_I18n();
 
 		// Now attach it to `init`, not `plugins_loaded`.
 		$this->loader->add_action( 'init', $i18n, 'do_load_textdomain' );
