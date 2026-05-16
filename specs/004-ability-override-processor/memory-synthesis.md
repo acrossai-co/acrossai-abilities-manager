@@ -7,11 +7,11 @@
 
 ## Key Architecture Constraints
 
-1. **Static-Only Class Pattern**: `AcrossAI_Ability_Override_Processor` is a justified deviation from the singleton instance() pattern (Constitution §I). All state is static. Boot hook wired via class-name string: `add_action('plugins_loaded', 'AcrossAI_Ability_Override_Processor', 'boot', 20)`. This deviation is scoped to this class only.
+1. **Singleton + Instance Wrapper Pattern** (SEC-PLAN-002 correction): `AcrossAI_Ability_Override_Processor` MUST implement `instance()` + private constructor. All logic remains static. Instance wrapper methods (`boot_hook()`, `bust_cache_hook()`) delegate to static implementations and satisfy the Loader's `object $component` type contract. `Main.php` wires via named variable: `$override_processor = AcrossAI_Ability_Override_Processor::instance(); $this->loader->add_action('plugins_loaded', $override_processor, 'boot_hook', 20)`. The earlier "static-only / string-class-name" wiring is superseded — it would fail PHPStan L8.
 
 2. **Boot Flow Rule**: `includes/Main.php` is the ONLY file that registers hooks. `define_public_hooks()` wires the two Loader hooks for this class. The class itself does NOT call the Loader.
 
-3. **No instance properties**: `$_overrides_cache` and `$_checked` must be `protected static` (or `private static`). No `new self()` or `instance()` needed.
+3. **No instance properties**: `$_overrides_cache` and `$_checked` must be `protected static` (or `private static`). The singleton instance carries NO state — it exists solely as a Loader-compatible hook target.
 
 4. **DB access via `AcrossAI_Sitewide_Query` only**: Class never uses `$wpdb` directly.
 

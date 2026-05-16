@@ -51,19 +51,33 @@ No dependencies on sibling modules; reads only from shared DB layer (`AcrossAI_S
 WordPress core. Shared utility reuse checked (no duplication of sanitization or merge logic needed
 for this class — it reads pre-validated DB rows and writes directly to WP registry).
 
-> **JUSTIFIED DEVIATION — Static-Only Class Pattern**
-> The Constitution's singleton `instance()` pattern (Principle I / Module Contract §1) assumes an
-> instantiable class. `AcrossAI_Ability_Override_Processor` is intentionally **stateless** — it holds
-> only static cache properties (`$_overrides_cache`, `$_checked`) and has no per-request mutable
-> instance state. Creating an instance would be meaningless: all methods are static, all state is
-> static, and `boot()` is called as a static callback via `add_action()`. The singleton `instance()`
-> method would just return `new self()` with zero properties — adding noise without benefit.
-> **Consequence**: `Main.php` wires the boot hook as:
-> `$this->loader->add_action( 'plugins_loaded', 'AcrossAI_Ability_Override_Processor', 'boot', 20 );`
-> using the class name string as the callback object (WordPress supports `array('ClassName', 'method')`
-> and bare string `'ClassName::method'` or `array('ClassName', 'method')`). This is not an inline
-> `::instance()` call and does not violate the Boot Flow Rule (no instantiation in the hook argument).
-> This deviation is scoped to this class only and must not be generalized.
+> **SUPERSEDED DEVIATION — Singleton + Instance Wrapper Pattern (SEC-PLAN-002)**
+> An earlier version of this plan proposed a static-only class without `instance()`. **This approach
+> is superseded** because `Loader::run()` passes `array($component, $callback)` to WordPress, where
+> `$component` is typed as `object` in the PHPDoc. Passing a class-name string would fail PHPStan L8.
+>
+> **Resolved pattern**: `AcrossAI_Ability_Override_Processor` MUST implement the singleton `instance()`
+> pattern. All logic remains static. Public instance wrapper methods delegate to the static
+> implementations and provide Loader-compatible object callbacks:
+> ```php
+> protected static $_instance = null;
+> public static function instance(): self {
+>     if ( null === self::$_instance ) { self::$_instance = new self(); }
+>     return self::$_instance;
+> }
+> private function __construct() {}
+> // Loader-compatible instance wrappers:
+> public function boot_hook(): void        { static::boot(); }
+> public function bust_cache_hook(): void  { static::bust_cache(); }
+> ```
+> `Main.php` wires via named variable (Boot Flow Rule — named variable before Loader call):
+> ```php
+> $override_processor = AcrossAI_Ability_Override_Processor::instance();
+> $this->loader->add_action( 'plugins_loaded', $override_processor, 'boot_hook', 20 );
+> $this->loader->add_action( 'acrossai_abilities_sitewide_after_save', $override_processor, 'bust_cache_hook' );
+> ```
+> All static methods (`boot()`, `inject_override_args()`, etc.) remain static and callable directly
+> (e.g., `bust_cache()` from REST controllers). The singleton is a Loader-compatibility shim only.
 
 ### ✅ PASS — II. WordPress Standards Compliance
 PHPCS strict + PHPStan L8 gates in DoD. WP 7.0+ / PHP 7.4+.
@@ -189,15 +203,22 @@ Transient key: `acrossai_ability_overrides_cache`. WordPress transients are per-
 (if set via `set_transient()` without network prefix). This is correct — overrides are per-site.
 TTL: `12 * HOUR_IN_SECONDS`. This matches the spec requirement.
 
-**Decision 3: `$_SERVER` detection safety**
-`is_manager_rest_request()` checks:
-1. `defined('WP_CLI') && WP_CLI` → false immediately (no `$_SERVER` in CLI)
-2. `wp_doing_cron()` → false immediately
-3. `wp_doing_ajax()` → false immediately
-4. `$_SERVER['REQUEST_METHOD'] !== 'GET'` for non-read requests may be Manager OR other REST
-5. Prefix path check: `rest_get_url_prefix()` + `/acrossai-abilities/` in `$_SERVER['REQUEST_URI']`
-Uses `isset()` guard before accessing `$_SERVER` keys. No sanitization required (boolean result only,
-value never echoed).
+**Decision 3: `$_SERVER` detection safety (amended — SEC-PLAN-001)**
+`is_manager_rest_request()` checks in order:
+1. `defined('WP_CLI') && WP_CLI` → `false` immediately (CLI has no `$_SERVER` request context)
+2. `wp_doing_cron()` → `false` immediately
+3. `wp_doing_ajax()` → `false` immediately
+4. URI path check: `strpos( $uri, '/' . rest_get_url_prefix() . '/acrossai-abilities/' ) !== false`
+   where `$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : ''`
+
+**SECURITY NOTE**: `REQUEST_METHOD` is NOT used as a gate. The URI path check applies to ALL
+HTTP methods — GET, POST, DELETE — equally. This is required so that Manager GET requests (e.g.
+`GET /wp-json/acrossai-abilities-manager/v1/sitewide/abilities`) are correctly classified as PATH A.
+Using `REQUEST_METHOD !== 'GET'` as a shortcut would incorrectly route Manager GET requests to PATH B,
+causing override injection to corrupt the `_registry` layer shown in the Manager UI.
+
+Uses `isset()` guard before accessing `$_SERVER['REQUEST_URI']`. No sanitization required (boolean
+result only — URI string is consumed by `strpos()` and never echoed or used in SQL).
 
 **Decision 4: `mcp_servers` JSON decode in `inject_override_args()`**
 DB stores `mcp_servers` as JSON string (`wp_json_encode()` in `save_override()`). The processor reads
@@ -248,15 +269,19 @@ AcrossAI_Ability_Override_Processor         (new)
 #### 1B. Hook Wiring (in `includes/Main.php::define_public_hooks()`)
 
 ```php
-// Boot the override processor at plugins_loaded P20.
-$this->loader->add_action( 'plugins_loaded', 'AcrossAI_Ability_Override_Processor', 'boot', 20 );
+// Resolve singleton before passing to Loader (Boot Flow Rule — named variable).
+$override_processor = AcrossAI_Ability_Override_Processor::instance();
+
+// Boot the override processor at plugins_loaded P20 (instance wrapper delegates to static::boot()).
+$this->loader->add_action( 'plugins_loaded', $override_processor, 'boot_hook', 20 );
 
 // Bust cache whenever an override is saved via the Manager REST API.
-$this->loader->add_action( 'acrossai_abilities_sitewide_after_save', 'AcrossAI_Ability_Override_Processor', 'bust_cache' );
+$this->loader->add_action( 'acrossai_abilities_sitewide_after_save', $override_processor, 'bust_cache_hook' );
 ```
 
 `boot()` internally registers the per-ability filter and the post-registration unregistration hook.
-`Main.php` only wires `boot()` and `bust_cache()` through the Loader.
+`Main.php` wires only `boot_hook()` and `bust_cache_hook()` (instance wrappers) through the Loader.
+Direct static calls (`bust_cache()`) from REST controllers remain unchanged.
 
 #### 1C. DB Layer Change (`AcrossAI_Sitewide_Query`)
 
