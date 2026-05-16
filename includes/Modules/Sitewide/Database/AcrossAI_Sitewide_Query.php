@@ -117,6 +117,27 @@ class AcrossAI_Sitewide_Query extends Query {
 			}
 		}
 
+		// ST-02 / LOW-03: Defense-in-depth re-validation at the BerlinDB boundary.
+		// PHP do_action() passes $fields by value so hook consumers cannot alter
+		// the caller's array, but this guard protects against unexpected future
+		// refactoring where call order might change.
+		if ( array_key_exists( 'mcp_type', $fields ) && null !== $fields['mcp_type'] ) {
+			if ( ! in_array( $fields['mcp_type'], array( 'tool', 'resource', 'prompt' ), true ) ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'acrossai: invalid mcp_type value blocked before DB write' );
+				unset( $fields['mcp_type'] );
+			}
+		}
+		// At this point mcp_servers is null, a JSON-encoded string (from the encoding
+		// step above), or an unexpected non-null non-string — the latter must be cleared.
+		if ( array_key_exists( 'mcp_servers', $fields ) && null !== $fields['mcp_servers'] ) {
+			if ( ! is_string( $fields['mcp_servers'] ) ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'acrossai: non-string mcp_servers blocked before DB write' );
+				$fields['mcp_servers'] = null;
+			}
+		}
+
 		$existing = $this->get_override_by_slug( $slug );
 		$now      = current_time( 'mysql', true );
 		$user_id  = get_current_user_id();

@@ -86,6 +86,7 @@ class AcrossAI_Sitewide_Override_Controller {
 							'type'              => 'string',
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
+							'validate_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'validate_ability_slug' ),
 						),
 						'site_allowed' => array(
 							'type'     => 'boolean',
@@ -110,6 +111,7 @@ class AcrossAI_Sitewide_Override_Controller {
 							'type'              => 'string',
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
+							'validate_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'validate_ability_slug' ),
 						),
 						// All 8 overridable fields must be declared — missing args cause WP to reject
 						// the entire request with 'Invalid parameter(s)' before the callback runs.
@@ -166,6 +168,7 @@ class AcrossAI_Sitewide_Override_Controller {
 							'type'              => 'string',
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
+							'validate_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'validate_ability_slug' ),
 						),
 					),
 				),

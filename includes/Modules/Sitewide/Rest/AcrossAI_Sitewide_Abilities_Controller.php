@@ -132,6 +132,7 @@ class AcrossAI_Sitewide_Abilities_Controller {
 							'type'              => 'string',
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
+							'validate_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'validate_ability_slug' ),
 						),
 					),
 				),

@@ -81,7 +81,10 @@ class AcrossAI_Sitewide_Bulk_Controller {
 						'slugs'  => array(
 							'type'     => 'array',
 							'required' => true,
-							'items'    => array( 'type' => 'string' ),
+							'items'    => array(
+								'type'      => 'string',
+								'maxLength' => 255,
+							),
 						),
 						'action' => array(
 							'type'     => 'string',
