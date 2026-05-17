@@ -106,6 +106,41 @@ Implementation checklist: for every hook listed in spec/plan extensibility secti
 
 ---
 
+### 2026-05-17 — `mcp_servers` is already decoded: never call json_decode() in the processor
+
+**Status**: Active
+
+**Symptoms**
+`mcp_servers` value received as a double-decoded empty array or `null` unexpectedly; server
+allowlist enforcement silently fails for all abilities.
+
+**Root Cause**
+`AcrossAI_Sitewide_Row::__construct()` already calls `json_decode()` on the raw DB `mcp_servers`
+column and stores the result as `array|null` on `$row->mcp_servers`. If a consumer calls
+`json_decode()` again on this value, it receives `null` (decoding an array) and the `is_array()`
+guard fails — the servers allowlist is treated as unset.
+
+**Future mistake prevented**
+In `AcrossAI_Ability_Override_Processor::inject_override_args()` and any future consumer of
+`$row->mcp_servers`: guard with `is_array( $row->mcp_servers )` only. Never call `json_decode()`
+on this value — the Row constructor already handles decoding. The same applies to any Row class
+field that decodes JSON in its constructor.
+
+**Evidence**
+Caught during T006 implementation (2026-05-16). `inject_override_args()` uses `is_array()` guard,
+confirmed in PHPCS/PHPStan pass on `AcrossAI_Ability_Override_Processor.php`. Noted in
+`memory-synthesis.md`: "mcp_servers already decoded — guard with is_array() only".
+
+**Prevention / Detection**
+Before writing any new field read from a BerlinDB Row object, grep `__construct()` of the Row
+class for `json_decode` to confirm whether the field is already decoded.
+
+**Where to look next**
+`includes/Modules/Sitewide/Database/AcrossAI_Sitewide_Row.php` (__construct, mcp_servers decode),
+`includes/Modules/Sitewide/AcrossAI_Ability_Override_Processor.php` (inject_override_args — is_array guard),
+`specs/004-ability-override-processor/spec.md` (FR-009 mcp_servers note).
+
+
 
 ## Template
 ### YYYY-MM-DD - Bug / Failure Pattern

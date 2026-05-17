@@ -84,7 +84,7 @@
 - [x] T012 Run PHPCS on all modified files: `includes/Modules/Sitewide/AcrossAI_Ability_Override_Processor.php`, `includes/Modules/Sitewide/Database/AcrossAI_Sitewide_Query.php`, `includes/Main.php`, `includes/Modules/Sitewide/Rest/AcrossAI_Sitewide_Override_Controller.php`, `includes/Modules/Sitewide/Rest/AcrossAI_Sitewide_Bulk_Controller.php`. **Result**: 0 errors, 0 warnings (pre-existing `$_instance` PSR2 warning excluded — tracked separately).
 - [x] T013 Run PHPStan level 8 on all modified files — verify no type error on Loader wiring (Loader `$component` is `object`, satisfied by singleton instance — SEC-PLAN-002). **Result**: exit 0.
 - [ ] T014 Run PHPUnit `tests/phpunit/sitewide/AbilityOverrideProcessorTest.php` — all test cases must pass. **⚠️ BLOCKED**: No WP test bootstrap configured in this project (pre-existing gap, not a feature-004 regression). Unblock by adding `phpunit.xml.dist` + WP bootstrap shim, or run against a local WP install via WP-CLI.
-- [ ] T015 Review implementation diff for durable memory candidates before marking the feature complete — propose updates to `docs/memory/ARCHITECTURE.md`, `docs/memory/DECISIONS.md`, and `docs/memory/BUGS.md` for: W-001 cache-bust on delete/reset resolution, singleton+wrapper pattern (SEC-PLAN-002), BerlinDB `number => 0` for unlimited (not `9999` or `-1`), `mcp_servers` pre-decoded in `AcrossAI_Sitewide_Row::__construct()`.
+- [x] T015 Review implementation diff for durable memory candidates before marking the feature complete — propose updates to `docs/memory/ARCHITECTURE.md`, `docs/memory/DECISIONS.md`, and `docs/memory/BUGS.md` for: W-001 cache-bust on delete/reset resolution, singleton+wrapper pattern (SEC-PLAN-002), BerlinDB `number => 0` for unlimited (not `9999` or `-1`), `mcp_servers` pre-decoded in `AcrossAI_Sitewide_Row::__construct()`.
 
 ---
 
@@ -131,4 +131,4 @@ US1 + US2 + US3 (T003–T009) deliver the complete feature value. US4 (T010–T0
 |---|---|---|
 | T014 — PHPUnit | ⚠️ BLOCKED | No WP test bootstrap in project (pre-existing) |
 | T016 — `mcp_adapter_expose_ability` filter | ✅ Done | — |
-| T015 — Memory review | ⬜ PENDING | Awaiting approval |
+| T015 — Memory review | ✅ Done | — |

@@ -71,7 +71,7 @@ Implemented in `includes/Modules/Sitewide/AcrossAI_Ability_Override_Processor.ph
 Any processor class that needs PATH A/B conditional hook wiring will face this same Boot Flow Rule tension. Documenting why direct `add_filter`/`add_action` is acceptable here prevents false violation flags.
 
 **Decision**
-`AcrossAI_Ability_Override_Processor::boot()` registers `wp_register_ability_args` and `wp_abilities_api_init` hooks via direct WordPress API calls (`add_filter`/`add_action`), not through the Loader. This is an accepted deviation from the Boot Flow Rule. The Loader only wires `plugins_loaded P20` (boot_hook) and `acrossai_abilities_sitewide_after_save` (bust_cache_hook). All downstream hooks are registered conditionally inside `boot()` because the Loader cannot express conditional registration (it always wires hooks).
+`AcrossAI_Ability_Override_Processor::boot()` registers `wp_register_ability_args`, `wp_abilities_api_init`, and `mcp_adapter_expose_ability` hooks via direct WordPress API calls (`add_filter`/`add_action`), not through the Loader. This is an accepted deviation from the Boot Flow Rule. The Loader only wires `plugins_loaded P20` (boot_hook) and `acrossai_abilities_sitewide_after_save` (bust_cache_hook). All downstream hooks are registered conditionally inside `boot()` because the Loader cannot express conditional registration (it always wires hooks).
 
 **Tradeoffs**
 Hooks in `boot()` are invisible to the Loader's hook inventory. Acceptable here because the hooks are simple, well-documented, and encapsulated within one class.
@@ -80,7 +80,7 @@ Hooks in `boot()` are invisible to the Loader's hook inventory. Acceptable here 
 Do not move `wp_register_ability_args` or `wp_abilities_api_init` registration into Main.php via the Loader — they would fire on PATH A (Manager REST) and corrupt the `_registry` layer shown in the Manager UI.
 
 **Evidence**
-`includes/Modules/Sitewide/AcrossAI_Ability_Override_Processor.php::boot()`. Reviewed in governed-plan session 2026-05-17.
+`includes/Modules/Sitewide/AcrossAI_Ability_Override_Processor.php::boot()`. Reviewed in governed-plan session 2026-05-17. `mcp_adapter_expose_ability` added in T016 (commit `2c9442e`, 2026-05-17).
 
 **Where to look next**
 `includes/Modules/Sitewide/AcrossAI_Ability_Override_Processor.php` (boot, is_manager_rest_request),
@@ -114,6 +114,59 @@ Do not add a new optional-library integration that fails open without also addin
 `specs/004-ability-override-processor/spec.md` (DEC-PERM-CB — the fail-open decision this notice complements).
 
 ---
+
+
+
+### 2026-05-17 — Cache-bust for write paths that skip acrossai_abilities_sitewide_after_save (W-001)
+
+**Status**: Active
+
+**Why this is durable**
+`AcrossAI_Ability_Override_Processor` caches overrides in a 12h transient. The `bust_cache_hook()` is wired to `acrossai_abilities_sitewide_after_save` — but delete and bulk-reset paths do not fire that hook. Any future REST endpoint that deletes or resets overrides without firing `after_save` must follow this same pattern.
+
+**Decision**
+REST controllers that perform delete or reset operations without triggering `acrossai_abilities_sitewide_after_save` MUST call `AcrossAI_Ability_Override_Processor::bust_cache()` directly after the write succeeds. Current call-sites: `AcrossAI_Sitewide_Override_Controller::delete_override()` (inside `if ( $deleted )`) and `AcrossAI_Sitewide_Bulk_Controller::bulk_action()` reset branch (after `delete_override_by_slug()` returns).
+
+**Tradeoffs**
+Direct static call couples the REST controller to the processor class. Acceptable because it is a thin, well-named cross-concern with no conditional logic.
+
+**Future mistake prevented**
+Do not add a new delete/reset path and assume `bust_cache_hook` will fire — it will not unless `acrossai_abilities_sitewide_after_save` is explicitly triggered. Grep for `delete_override` and `bulk_action` reset branches when adding new write paths.
+
+**Evidence**
+T010 + T011 (commits on `004-ability-override-processor` branch). `bust_cache()` added to `AcrossAI_Sitewide_Override_Controller::delete_override()` and `AcrossAI_Sitewide_Bulk_Controller::bulk_action()` reset branch.
+
+**Where to look next**
+`includes/Modules/Sitewide/Rest/AcrossAI_Sitewide_Override_Controller.php` (delete_override),
+`includes/Modules/Sitewide/Rest/AcrossAI_Sitewide_Bulk_Controller.php` (bulk_action reset branch),
+`includes/Modules/Sitewide/AcrossAI_Ability_Override_Processor.php` (bust_cache),
+`specs/004-ability-override-processor/spec.md` (W-001 note).
+
+---
+
+### 2026-05-17 — Static-only processor with Loader-compatible instance wrappers (SEC-PLAN-002)
+
+**Status**: Active
+
+**Why this is durable**
+The Loader requires an object instance as the callback target. Classes whose logic is entirely static (e.g., processor classes that share state across a request via static properties) must implement this wrapper pattern to remain Loader-compatible without converting all logic to instance methods.
+
+**Decision**
+Processor classes with all-static logic implement the singleton pattern and expose thin public instance wrapper methods (`boot_hook()` → `static::boot()`, `bust_cache_hook()` → `static::bust_cache()`). `Main.php` wires these instance wrappers via the Loader using a named variable (never inline `::instance()`). Direct static calls (`::bust_cache()`, `::boot()`) remain valid for cross-controller use. The singleton instance exists solely as a Loader-compatible hook target.
+
+**Tradeoffs**
+Adds wrapper boilerplate. Acceptable because it keeps all logic static (no instance state mutations during request processing), preserves Loader compatibility, and allows direct static calls from REST controllers without constructing a new instance.
+
+**Future mistake prevented**
+Do not convert static processor methods to instance methods to avoid wrappers — this introduces instance state mutation risk in classes designed to be stateless across a request. Do not pass `::instance()` inline to the Loader — always assign to a named variable first.
+
+**Evidence**
+`AcrossAI_Ability_Override_Processor::boot_hook()` and `bust_cache_hook()` added in T004 (feature 004). Wired in `includes/Main.php::define_public_hooks()` with named variable pattern. PHPStan L8 exit 0 confirms Loader `$component` (`object`) accepts the singleton instance.
+
+**Where to look next**
+`includes/Modules/Sitewide/AcrossAI_Ability_Override_Processor.php` (boot_hook, bust_cache_hook, instance),
+`includes/Main.php` (define_public_hooks — named variable wiring),
+`specs/004-ability-override-processor/plan.md` (SEC-PLAN-002 note).
 
 
 ## Template
