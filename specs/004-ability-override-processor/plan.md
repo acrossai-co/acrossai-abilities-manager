@@ -111,6 +111,10 @@ modified except:
 All changes are backward-compatible. If WP Abilities API is absent (WP < 7.0), hooks register but
 never fire — graceful degradation, no error.
 
+`mcp_servers` allowlist enforcement (T016) uses two existing mcp-adapter filter hooks
+(`mcp_adapter_tool_call_result`, `mcp_adapter_pre_tool_call`) — no mcp-adapter core modification.
+If mcp-adapter is absent, these hooks are never invoked — graceful degradation.
+
 ### ✅ PASS — VI. Reusability & DRY
 `inject_override_args()` reuses DB rows already read by `AcrossAI_Sitewide_Query`. No duplication
 of tri-state cast logic — `AcrossAI_Sitewide_Row` already casts tinyint to bool/null in constructor.
@@ -171,11 +175,19 @@ query, which it then indexes by slug in memory. This must be added to `AcrossAI_
 
 ### ARCH-ADV-001 (ADVISORY): `boot()` registers hooks via direct `add_filter()`/`add_action()`
 
-`boot()` registers `wp_register_ability_args` (P10) and `wp_abilities_api_init` (P100001) via direct
-WordPress API calls rather than through the Loader. This is an **accepted deviation from the Boot
-Flow Rule** necessitated by PATH A/B conditional wiring: the Loader always registers hooks, but these
-hooks must be skipped entirely on Manager REST requests. Conditional hook registration cannot be
-expressed through the Loader's `add_action`/`add_filter` API.
+`boot()` registers four hooks directly via WordPress API calls rather than through the Loader. This
+is an **accepted deviation from the Boot Flow Rule** necessitated by PATH A/B conditional wiring:
+the Loader always registers hooks, but these hooks must be skipped entirely on Manager REST requests.
+Conditional hook registration cannot be expressed through the Loader's `add_action`/`add_filter` API.
+
+The four hooks registered conditionally inside `boot()` (PATH B only):
+
+| Hook | Type | Priority | Accepted args | Method |
+|---|---|---|---|---|
+| `wp_register_ability_args` | filter | 100000 | 2 | `inject_override_args()` |
+| `wp_abilities_api_init` | action | 100001 | 1 | `unregister_blocked_abilities()` |
+| `mcp_adapter_tool_call_result` | filter | 10 | 5 | `filter_discover_abilities_result()` |
+| `mcp_adapter_pre_tool_call` | filter | 10 | 4 | `block_execute_ability_by_server()` |
 
 **Impact**: Only `plugins_loaded P20` (boot_hook) and `acrossai_abilities_sitewide_after_save`
 (bust_cache_hook) run through the Loader. All downstream hooks are registered conditionally inside
@@ -222,24 +234,30 @@ causing override injection to corrupt the `_registry` layer shown in the Manager
 Uses `isset()` guard before accessing `$_SERVER['REQUEST_URI']`. No sanitization required (boolean
 result only — URI string is consumed by `strpos()` and never echoed or used in SQL).
 
-**Decision 4: `mcp_servers` JSON decode in `inject_override_args()`**
+**Decision 4: `mcp_servers` handling — pre-decoded by Row class, enforced via mcp-adapter filters**
 
-> **SUPERSEDED** — `AcrossAI_Sitewide_Row::__construct()` (lines 175–177) already calls
-> `json_decode()` on `mcp_servers` at Row construction time, yielding `array|null`. The processor
-> MUST guard with `is_array()` only — never call `json_decode()` again. Correct write path is
-> `$args['meta']['mcp']['servers']` (not `$args['meta']['mcp_servers']` as below).
+`AcrossAI_Sitewide_Row::__construct()` (lines 175–177) calls `json_decode()` on `mcp_servers` at Row
+construction time, yielding `array|null`. The processor MUST guard with `is_array()` only — never call
+`json_decode()` again.
 
-DB stores `mcp_servers` as JSON string (`wp_json_encode()` in `save_override()`). The processor reads
-the raw row value (string) and must `json_decode()` before writing to `$args['meta']['mcp_servers']`.
-Pattern:
-```php
-if ( is_string( $row->mcp_servers ) ) {
-    $decoded = json_decode( $row->mcp_servers, true );
-    if ( is_array( $decoded ) ) {
-        $args['meta']['mcp_servers'] = $decoded;
-    }
-}
-```
+`inject_override_args()` writes `$row->mcp_servers` to `$args['meta']['mcp']['servers']` when
+`is_array($row->mcp_servers)` is true. This bakes the allowlist into the `WP_Ability` object at
+registration time.
+
+**Runtime enforcement** happens via two filters registered in `boot()`:
+- `mcp_adapter_tool_call_result` (P10, 5 args) → `filter_discover_abilities_result()`: removes
+  abilities from the `DiscoverAbilitiesAbility` result when `$server_id` is not in the allowlist.
+- `mcp_adapter_pre_tool_call` (P10, 4 args) → `block_execute_ability_by_server()`: returns
+  `WP_Error('mcp_server_not_allowed')` to short-circuit `ExecuteAbilityAbility` execution when
+  `$server_id` is not in the allowlist.
+
+**Allowlist tri-state semantics** (resolved at `is_ability_allowed_on_server()`):
+- `null` / key absent → all servers allowed (inherit)
+- `[]` (empty array) → no servers allowed (block all)
+- `['id', ...]` → membership check: `in_array($server_id, $allowlist, true)`
+
+**Note**: `mcp_adapter_expose_ability` does NOT exist in mcp-adapter (confirmed by grep). Any prior
+references to it were dead code. The filters used above are the real mcp-adapter extension points.
 
 **Decision 5: `site_allowed` unregistration vs. arg injection**
 Abilities with `site_allowed = false` are **unregistered** at P100001 (after all registrations), not
@@ -337,24 +355,47 @@ plugins_loaded (P20)
         ├── is_manager_rest_request() → true  (PATH A: Manager REST)
         │     └── return — do NOT register any hooks
         └── is_manager_rest_request() → false  (PATH B: all other requests)
-              ├── add_filter('wp_register_ability_args', [..., 'inject_override_args'], 10, 2)
-              └── add_action('wp_abilities_api_init', [..., 'unregister_blocked_abilities'], 100001)
+              ├── add_filter('wp_register_ability_args', [..., 'inject_override_args'], 100000, 2)
+              ├── add_action('wp_abilities_api_init', [..., 'unregister_blocked_abilities'], 100001)
+              ├── add_filter('mcp_adapter_tool_call_result', [..., 'filter_discover_abilities_result'], 10, 5)
+              └── add_filter('mcp_adapter_pre_tool_call', [..., 'block_execute_ability_by_server'], 10, 4)
 
 wp_abilities_api_init (P10)
   └── WP core registers abilities
 
 wp_abilities_api_init (P20–999)
   └── Plugins register abilities
-        └── Each wp_register_ability() triggers wp_register_ability_args filter
+        └── Each wp_register_ability() triggers wp_register_ability_args filter (P100000)
               └── inject_override_args($args, $name)
                     ├── load_overrides_cache()  → returns slug→row map (transient or DB)
                     ├── if no row for $name → return $args unchanged
                     └── foreach non-null DB field → overwrite $args field
+                          └── mcp_servers → $args['meta']['mcp']['servers'] (array|null, pre-decoded by Row)
 
 wp_abilities_api_init (P100001)
   └── unregister_blocked_abilities()
         ├── load_overrides_cache()  → returns from in-memory (already populated above)
         └── foreach row where site_allowed === false → wp_unregister_ability($slug)
+
+MCP tools/call → DiscoverAbilitiesAbility ('mcp-adapter/discover-abilities')
+  └── mcp_adapter_tool_call_result (P10) → filter_discover_abilities_result()
+        ├── guard: is_ability_tool($mcp_tool, 'mcp-adapter/discover-abilities')
+        ├── $server_id = $server->get_server_id()
+        └── foreach $result['abilities'] as $entry
+              └── is_ability_allowed_on_server($entry['name'], $server_id)
+                    ├── wp_get_ability($name) → reads $meta['mcp']['servers'] (injected above)
+                    ├── null/absent → true (all servers)
+                    ├── [] → false (no servers)
+                    └── [...] → in_array($server_id, $allowlist, true)
+
+MCP tools/call → ExecuteAbilityAbility ('mcp-adapter/execute-ability')
+  └── mcp_adapter_pre_tool_call (P10) → block_execute_ability_by_server()
+        ├── guard: is_ability_tool($mcp_tool, 'mcp-adapter/execute-ability')
+        ├── $ability_name = $args['ability_name']
+        ├── is_ability_allowed_on_server($ability_name, $server_id)
+        │     ├── allowed → return $args (execution proceeds)
+        │     └── not allowed → return WP_Error('mcp_server_not_allowed') → execution short-circuits
+        └── (if WP_Error already: pass through unchanged)
 
 REST/MCP/execution request
   └── wp_get_ability($slug) or wp_get_abilities()
