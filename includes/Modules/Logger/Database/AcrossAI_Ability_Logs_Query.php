@@ -1,6 +1,9 @@
 <?php
 /**
- * BerlinDB Query class for ability execution log records.
+ * BerlinDB Query class for ability execution logs.
+ *
+ * Provides low-level CRUD operations for the acrossai_ability_logs table.
+ * High-level filtering/sorting is handled by AcrossAI_Logger_Query (Phase C).
  *
  * @package    AcrossAI_Abilities_Manager
  * @subpackage AcrossAI_Abilities_Manager/includes/Modules/Logger/Database
@@ -63,40 +66,83 @@ class AcrossAI_Ability_Logs_Query extends Query {
 	}
 
 	/**
-	 * Insert a log entry via BerlinDB add_item().
+	 * Insert a log entry into the table.
+	 *
+	 * Validates the 10-field array before insertion.
 	 *
 	 * @since  0.1.0
-	 * @param  array $data Associative array of column => value pairs.
-	 * @return int|false Inserted row ID on success, false on failure.
+	 * @param  array $entry 10-field log entry array
+	 * @return int|false Inserted row ID or false on failure
 	 */
-	public function insert_log( array $data ) {
-		$result = $this->add_item( $data );
+	public function insert( array $entry ) {
+		// Validate required fields
+		$required_fields = array(
+			'ability_slug',
+			'source',
+			'status',
+			'duration_ms',
+			'created_at',
+		);
 
-		return ( false !== $result && (int) $result > 0 ) ? (int) $result : false;
+		foreach ( $required_fields as $field ) {
+			if ( ! isset( $entry[ $field ] ) ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( "Logger Query: missing required field '{$field}'" );
+				return false;
+			}
+		}
+
+		// Validate status is valid (SEC-04: strict comparison)
+		$valid_statuses = array( 'success', 'error', 'permission_denied' );
+		if ( ! in_array( $entry['status'], $valid_statuses, true ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'Logger Query: invalid status value' );
+			return false;
+		}
+
+		// Prepare insert data
+		$data = array(
+			'ability_slug'  => sanitize_text_field( $entry['ability_slug'] ),
+			'source'        => sanitize_key( $entry['source'] ),
+			'mcp_server_id' => isset( $entry['mcp_server_id'] ) ? sanitize_text_field( $entry['mcp_server_id'] ) : null,
+			'user_id'       => isset( $entry['user_id'] ) ? (int) $entry['user_id'] : null,
+			'input'         => isset( $entry['input'] ) ? sanitize_textarea_field( $entry['input'] ) : null,
+			'output'        => isset( $entry['output'] ) ? sanitize_textarea_field( $entry['output'] ) : null,
+			'status'        => sanitize_key( $entry['status'] ),
+			'duration_ms'   => (int) $entry['duration_ms'],
+			'created_at'    => sanitize_text_field( $entry['created_at'] ),
+		);
+
+		// Use BerlinDB's add method to insert row
+		$result = $this->add( $data );
+
+		return $result ? $result->id : false;
 	}
 
 	/**
-	 * Retrieve log rows matching the given BerlinDB query args.
+	 * Get logs with optional filtering.
 	 *
-	 * Filtering is the caller's responsibility — this method passes args directly
-	 * to BerlinDB without modification (AC-QUERY-LAYER-FILTERING).
+	 * Returns all logs or subset. Does NOT perform filtering here.
+	 * Filtering is handled by AcrossAI_Logger_Query (Phase C).
 	 *
 	 * @since  0.1.0
-	 * @param  array $args BerlinDB query arguments.
-	 * @return AcrossAI_Ability_Logs_Row[]
+	 * @param  array $args Query arguments
+	 * @return array Array of Row objects
 	 */
 	public function get_logs( array $args = array() ): array {
-		return $this->query( $args );
+		$results = $this->query( $args );
+
+		return is_array( $results ) ? $results : array();
 	}
 
 	/**
-	 * Retrieve a single log row by primary key.
+	 * Get a single log entry by ID.
 	 *
 	 * @since  0.1.0
-	 * @param  int $id Row ID.
-	 * @return AcrossAI_Ability_Logs_Row|null
+	 * @param  int $id Log entry ID
+	 * @return AcrossAI_Ability_Logs_Row|null Row object or null
 	 */
-	public function get_log_by_id( int $id ): ?AcrossAI_Ability_Logs_Row {
+	public function get_by_id( int $id ): ?AcrossAI_Ability_Logs_Row {
 		$results = $this->query(
 			array(
 				'id'     => $id,
@@ -112,55 +158,57 @@ class AcrossAI_Ability_Logs_Query extends Query {
 	}
 
 	/**
-	 * Delete all log rows created before the given datetime.
+	 * Delete log entries before a specific date.
 	 *
-	 * Used by the retention cleanup job (T016).
+	 * Used by cleanup job (T016) to implement log retention.
 	 *
 	 * @since  0.1.0
-	 * @param  string $date Datetime string in 'Y-m-d H:i:s' format.
-	 * @return int Number of rows deleted, 0 on failure or empty date.
+	 * @param  string $date Date cutoff in format 'YYYY-MM-DD HH:MM:SS'
+	 * @return int Number of rows deleted
 	 */
 	public function delete_logs_before_date( string $date ): int {
 		global $wpdb;
 
-		if ( empty( $date ) ) {
+		// Validate date format (basic check)
+		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $date ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'Logger Query: invalid date format for delete_logs_before_date' );
 			return 0;
 		}
 
-		$table = $this->get_table_name();
+		$table_name = 'acrossai_ability_logs';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->query(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$wpdb->prepare( "DELETE FROM `{$table}` WHERE created_at < %s", $date )
+		// Use prepared statement for safe deletion (no SQL injection)
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$query = $wpdb->prepare(
+			'DELETE FROM ' . $wpdb->prefix . '%i WHERE created_at < %s',
+			$table_name,
+			$date
 		);
 
-		return ( false !== $result ) ? (int) $result : 0;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->query( $query );
+
+		return is_int( $result ) ? $result : 0;
 	}
 
 	/**
-	 * Return the total count of log rows in the table.
+	 * Count total log entries.
 	 *
 	 * @since  0.1.0
-	 * @return int
+	 * @return int Total count of logs
 	 */
-	public function count_logs(): int {
+	public function count(): int {
 		global $wpdb;
 
-		$table = $this->get_table_name();
+		$table_name = 'acrossai_ability_logs';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
-	}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_var(
+			'SELECT COUNT(*) FROM ' . $wpdb->prefix . '%i',
+			$table_name
+		);
 
-	/**
-	 * Return the full table name including the WordPress table prefix.
-	 *
-	 * @since  0.1.0
-	 * @return string
-	 */
-	private function get_table_name(): string {
-		global $wpdb;
-		return $wpdb->prefix . $this->table_name;
+		return is_numeric( $result ) ? (int) $result : 0;
 	}
 }

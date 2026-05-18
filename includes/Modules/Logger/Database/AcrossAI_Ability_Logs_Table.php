@@ -1,6 +1,6 @@
 <?php
 /**
- * Database table definition for the ability execution logs table.
+ * Database table registration for ability execution logs.
  *
  * @package    AcrossAI_Abilities_Manager
  * @subpackage AcrossAI_Abilities_Manager/includes/Modules/Logger/Database
@@ -16,6 +16,9 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Manages database table creation and upgrades for ability execution logs.
+ *
+ * Registered at plugins_loaded P20 to create the table schema if it doesn't exist.
+ * Per-site isolation is enforced via $global = false (SEC-03).
  *
  * @since 0.1.0
  */
@@ -33,7 +36,7 @@ class AcrossAI_Ability_Logs_Table extends Table {
 	 *
 	 * @var string
 	 */
-	protected $version = '1.0.0';
+	protected $version = '1';
 
 	/**
 	 * WordPress option key used to track the installed schema version.
@@ -44,7 +47,7 @@ class AcrossAI_Ability_Logs_Table extends Table {
 
 	/**
 	 * Use per-site table prefix ($wpdb->prefix), not the network base prefix.
-	 * Explicitly set to false so multisite intent is declared in code (SEC-03).
+	 * Explicitly set to false for per-site isolation (multisite compliance — SEC-03).
 	 *
 	 * @var bool
 	 */
@@ -75,6 +78,7 @@ class AcrossAI_Ability_Logs_Table extends Table {
 	 *
 	 * BerlinDB interpolates $this->schema directly into:
 	 *   CREATE TABLE {name} ( {schema} ) {charset_collation}
+	 * so this must be a raw SQL column definition string.
 	 *
 	 * @since  0.1.0
 	 * @return void
@@ -88,14 +92,14 @@ class AcrossAI_Ability_Logs_Table extends Table {
 			`user_id` bigint(20) unsigned DEFAULT NULL,
 			`input` longtext DEFAULT NULL,
 			`output` longtext DEFAULT NULL,
-			`status` varchar(20) NOT NULL DEFAULT '',
+			`status` varchar(20) NOT NULL DEFAULT 'success',
 			`duration_ms` int(11) NOT NULL DEFAULT 0,
 			`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (`id`),
-			KEY `ability_slug_created` (`ability_slug`(191),`created_at`),
-			KEY `source_created` (`source`,`created_at`),
-			KEY `user_id_created` (`user_id`,`created_at`),
-			KEY `status_created` (`status`,`created_at`)
+			KEY `idx_ability_slug_created` (`ability_slug`, `created_at`),
+			KEY `idx_source_created` (`source`, `created_at`),
+			KEY `idx_user_id_created` (`user_id`, `created_at`),
+			KEY `idx_status_created` (`status`, `created_at`)
 		";
 	}
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Database schema definition for the ability execution logs table.
+ * Database schema definition for ability execution logs.
  *
  * @package    AcrossAI_Abilities_Manager
  * @subpackage AcrossAI_Abilities_Manager/includes/Modules/Logger/Database
@@ -17,6 +17,12 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Schema class defining all 10 columns of the acrossai_ability_logs table.
  *
+ * Indexes are designed for FR-003 query performance (SC-002):
+ * - (ability_slug, created_at): Filter/sort by ability slug over time
+ * - (source, created_at): Filter/sort by source over time
+ * - (user_id, created_at): Filter/sort by user over time
+ * - (status, created_at): Filter/sort by status over time
+ *
  * @since 0.1.0
  */
 class AcrossAI_Ability_Logs_Schema extends Schema {
@@ -24,7 +30,6 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 	/**
 	 * Array of column definitions.
 	 *
-	 * @since 0.1.0
 	 * @var array
 	 */
 	public $columns = array(
@@ -40,7 +45,7 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 			'sortable' => true,
 		),
 
-		// Ability identifier.
+		// Ability slug identifier.
 		array(
 			'name'       => 'ability_slug',
 			'type'       => 'varchar',
@@ -50,25 +55,26 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 			'sortable'   => true,
 		),
 
-		// Execution source: mcp|rest|cli|cron|ajax|direct.
+		// Execution source (mcp, rest, cli, cron, ajax, direct).
 		array(
-			'name'     => 'source',
-			'type'     => 'varchar',
-			'length'   => '20',
-			'null'     => false,
-			'sortable' => true,
+			'name'       => 'source',
+			'type'       => 'varchar',
+			'length'     => '20',
+			'null'       => false,
+			'sortable'   => true,
 		),
 
-		// MCP server ID — null when source is not mcp.
+		// MCP server ID (nullable, only set for MCP executions).
 		array(
 			'name'       => 'mcp_server_id',
 			'type'       => 'varchar',
 			'length'     => '255',
 			'allow_null' => true,
 			'default'    => null,
+			'sortable'   => false,
 		),
 
-		// WordPress user ID — null for non-authenticated contexts.
+		// User ID (nullable, 0 for non-user contexts).
 		array(
 			'name'       => 'user_id',
 			'type'       => 'bigint',
@@ -79,7 +85,7 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 			'sortable'   => true,
 		),
 
-		// JSON-encoded ability input arguments.
+		// Input data (JSON-encoded, may be NULL).
 		array(
 			'name'       => 'input',
 			'type'       => 'longtext',
@@ -87,7 +93,7 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 			'default'    => null,
 		),
 
-		// JSON-encoded ability output.
+		// Output data (JSON-encoded, may be NULL for pending entries).
 		array(
 			'name'       => 'output',
 			'type'       => 'longtext',
@@ -95,34 +101,63 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 			'default'    => null,
 		),
 
-		// Execution result: success|error|permission_denied.
+		// Execution status (success, error, permission_denied).
 		array(
-			'name'     => 'status',
-			'type'     => 'varchar',
-			'length'   => '20',
-			'null'     => false,
-			'sortable' => true,
+			'name'       => 'status',
+			'type'       => 'varchar',
+			'length'     => '20',
+			'null'       => false,
+			'sortable'   => true,
 		),
 
-		// Wall-clock execution time in milliseconds.
+		// Execution duration in milliseconds.
 		array(
-			'name'     => 'duration_ms',
-			'type'     => 'int',
-			'length'   => '11',
-			'null'     => false,
-			'default'  => '0',
-			'sortable' => true,
+			'name'       => 'duration_ms',
+			'type'       => 'int',
+			'length'     => '11',
+			'unsigned'   => false,
+			'default'    => 0,
+			'sortable'   => true,
 		),
 
-		// Execution timestamp.
+		// Timestamp when execution was logged.
 		array(
 			'name'       => 'created_at',
 			'type'       => 'datetime',
 			'null'       => false,
-			'default'    => 'CURRENT_TIMESTAMP',
-			'created'    => true,
-			'date_query' => true,
 			'sortable'   => true,
+		),
+	);
+
+	/**
+	 * Array of index definitions (composite indexes for query performance).
+	 *
+	 * @var array
+	 */
+	public $indexes = array(
+
+		// Index for filtering/sorting by ability_slug and created_at (SC-002).
+		array(
+			'name'    => 'idx_ability_slug_created',
+			'columns' => array( 'ability_slug', 'created_at' ),
+		),
+
+		// Index for filtering/sorting by source and created_at (SC-002).
+		array(
+			'name'    => 'idx_source_created',
+			'columns' => array( 'source', 'created_at' ),
+		),
+
+		// Index for filtering/sorting by user_id and created_at (SC-002).
+		array(
+			'name'    => 'idx_user_id_created',
+			'columns' => array( 'user_id', 'created_at' ),
+		),
+
+		// Index for filtering/sorting by status and created_at (SC-002).
+		array(
+			'name'    => 'idx_status_created',
+			'columns' => array( 'status', 'created_at' ),
 		),
 	);
 }

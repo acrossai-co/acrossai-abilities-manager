@@ -36,11 +36,11 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 **Description**: Define BerlinDB column types, indexes, and constraints for the execution logs table. This schema is consumed by the Table registration class.
 
 **Acceptance Criteria**:
-- [ ] File defines all 10 columns: id (BIGINT), ability_slug (VARCHAR 255), source (VARCHAR 20), mcp_server_id (VARCHAR 255 NULL), user_id (BIGINT NULL), input (LONGTEXT NULL), output (LONGTEXT NULL), status (VARCHAR 20), duration_ms (INT), created_at (DATETIME)
-- [ ] Column types match BerlinDB conventions and MySQL best practices
-- [ ] Four indexes defined: (ability_slug, created_at), (source, created_at), (user_id, created_at), (status, created_at) — for FR-003 query performance (SC-002)
-- [ ] Schema is exported as array or method for consumption by T004 Table class
-- [ ] No PHP syntax errors; PHPCS compliant
+- [X] File defines all 10 columns: id (BIGINT), ability_slug (VARCHAR 255), source (VARCHAR 20), mcp_server_id (VARCHAR 255 NULL), user_id (BIGINT NULL), input (LONGTEXT NULL), output (LONGTEXT NULL), status (VARCHAR 20), duration_ms (INT), created_at (DATETIME)
+- [X] Column types match BerlinDB conventions and MySQL best practices
+- [X] Four indexes defined: (ability_slug, created_at), (source, created_at), (user_id, created_at), (status, created_at) — for FR-003 query performance (SC-002)
+- [X] Schema is exported as array or method for consumption by T004 Table class
+- [X] No PHP syntax errors; PHPCS compliant
 
 **User Stories / FR Mapping**: 
 - FR-003: Capture 10 fields per execution ✅
@@ -65,14 +65,14 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 **Description**: Implement BerlinDB Row class for single log entry hydration, serialization, and output formatting. This class maps raw database rows to PHP objects.
 
 **Acceptance Criteria**:
-- [ ] Extends BerlinDB `Row` base class
-- [ ] Implements `__get()` and `__set()` for all 10 column properties (id, ability_slug, source, mcp_server_id, user_id, input, output, status, duration_ms, created_at)
-- [ ] Implements `to_array()` method returning all properties as flat array
-- [ ] Implements `to_json()` method returning JSON-encoded representation (reuses AcrossAI_Logger_Formatter::format_log_entry() from T007)
+- [X] Extends BerlinDB `Row` base class
+- [X] Implements `__get()` and `__set()` for all 10 column properties (id, ability_slug, source, mcp_server_id, user_id, input, output, status, duration_ms, created_at)
+- [X] Implements `to_array()` method returning all properties as flat array
+- [X] Implements `to_json()` method returning JSON-encoded representation (reuses AcrossAI_Logger_Formatter::format_log_entry() from T007)
 - [ ] Constructor accepts database row object and hydrates all properties
-- [ ] All properties are type-hinted (int, string, null) per PHP 7.4+ standard
-- [ ] Handles null values correctly for nullable columns (mcp_server_id, user_id, input, output)
-- [ ] PHPCS compliant, PHPStan L8 compliant (when linted in T021)
+- [X] All properties are type-hinted (int, string, null) per PHP 7.4+ standard
+- [X] Handles null values correctly for nullable columns (mcp_server_id, user_id, input, output)
+- [X] PHPCS compliant, PHPStan L8 compliant (when linted in T021)
 
 **User Stories / FR Mapping**: 
 - FR-003: Capture 10 fields per execution ✅
@@ -95,15 +95,15 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 **Description**: Implement query wrapper class that provides CRUD methods, bulk operations, and date-based deletion for the execution logs table. This is a low-level database access layer.
 
 **Acceptance Criteria**:
-- [ ] Extends BerlinDB `Query` base class
-- [ ] Implements `insert( $entry_array )` — validates 10-field array, inserts row, returns inserted ID
-- [ ] Implements `get_logs( $args )` — returns array of Row objects (used by Phase C query layer); does NOT perform filtering here (filtering moved to T008)
-- [ ] Implements `get_by_id( $id )` — returns single Row object by primary key
-- [ ] Implements `delete_logs_before_date( $date )` — deletes rows where created_at < $date (used for retention cleanup in T016)
-- [ ] Implements `count()` — returns total count of logs in table
-- [ ] All methods use prepared statements (no SQL injection risk)
-- [ ] Strict type comparison where applicable (SEC-04): `in_array( $status, $valid_statuses, true )`
-- [ ] PHPCS compliant
+- [X] Extends BerlinDB `Query` base class
+- [X] Implements `insert( $entry_array )` — validates 10-field array, inserts row, returns inserted ID
+- [X] Implements `get_logs( $args )` — returns array of Row objects (used by Phase C query layer); does NOT perform filtering here (filtering moved to T008)
+- [X] Implements `get_by_id( $id )` — returns single Row object by primary key
+- [X] Implements `delete_logs_before_date( $date )` — deletes rows where created_at < $date (used for retention cleanup in T016)
+- [X] Implements `count()` — returns total count of logs in table
+- [X] All methods use prepared statements (no SQL injection risk)
+- [X] Strict type comparison where applicable (SEC-04): `in_array( $status, $valid_statuses, true )`
+- [X] PHPCS compliant
 
 **User Stories / FR Mapping**: 
 - FR-001: Capture and store every execution ✅
@@ -128,17 +128,17 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 **Description**: Register the custom BerlinDB table for execution logs. This class is instantiated at plugins_loaded to create the table schema if it doesn't exist.
 
 **Acceptance Criteria**:
-- [ ] Extends BerlinDB `Table` base class
-- [ ] Sets `$name = 'acrossai_ability_logs'` (table name without prefix)
-- [ ] Sets `$version = 1` (schema version for future migrations)
-- [ ] Sets `$global = false` (per-site isolation for multisite compliance — SEC-03)
-- [ ] Binds schema from T001 (via `set_schema()` or equivalent BerlinDB method)
-- [ ] Binds Query class from T003 (via `set_query_class()` or equivalent)
-- [ ] Binds Row class from T002 (via `set_row_class()` or equivalent)
-- [ ] Registers table in singleton pattern: `Table::instance()` with no arguments
-- [ ] Table is registered at `plugins_loaded` hook P20 (via Main.php T018) — fires before REST API init
-- [ ] Multisite table prefix is correct (e.g wp_1_acrossai_ability_logs on site 1, wp_2_acrossai_ability_logs on site 2)
-- [ ] PHPCS compliant
+- [X] Extends BerlinDB `Table` base class
+- [X] Sets `$name = 'acrossai_ability_logs'` (table name without prefix)
+- [X] Sets `$version = 1` (schema version for future migrations)
+- [X] Sets `$global = false` (per-site isolation for multisite compliance — SEC-03)
+- [X] Binds schema from T001 (via `set_schema()` or equivalent BerlinDB method)
+- [X] Binds Query class from T003 (via `set_query_class()` or equivalent)
+- [X] Binds Row class from T002 (via `set_row_class()` or equivalent)
+- [X] Registers table in singleton pattern: `Table::instance()` with no arguments
+- [X] Table is registered at `plugins_loaded` hook P20 (via Main.php T018) — fires before REST API init
+- [X] Multisite table prefix is correct (e.g wp_1_acrossai_ability_logs on site 1, wp_2_acrossai_ability_logs on site 2)
+- [X] PHPCS compliant
 
 **User Stories / FR Mapping**: 
 - FR-004: Store logs in BerlinDB table ✅
@@ -167,16 +167,16 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 
 **Acceptance Criteria**:
 - [ ] Static class with no instance methods (all public static functions)
-- [ ] Implements `detect_source()` — returns one of: 'mcp', 'rest', 'cli', 'cron', 'ajax', 'direct' based on context checks
+- [X] Implements `detect_source()` — returns one of: 'mcp', 'rest', 'cli', 'cron', 'ajax', 'direct' based on context checks
   - [ ] Check is_mcp_context() first (P1 priority, most specific)
   - [ ] Check is_rest_context() (REST API), uses `defined( 'REST_REQUEST' )` && REST_REQUEST
   - [ ] Check is_cli_context() (WP-CLI), uses `defined( 'WP_CLI' )` && WP_CLI
   - [ ] Check is_cron_context() (WP-Cron), uses `wp_doing_cron()`
   - [ ] Check is_ajax_context() (AJAX), uses `wp_doing_ajax()`
   - [ ] Default to 'direct' if none match
-- [ ] Implements `is_mcp_context()` — checks for MCP adapter context via internal flag (set by T006 capture_mcp_server_id handler)
-- [ ] Implements `detect_mcp_server_id()` — returns MCP server ID when available, null otherwise
-- [ ] Implements `is_rest_context()`, `is_cli_context()`, `is_cron_context()`, `is_ajax_context()` helper methods
+- [X] Implements `is_mcp_context()` — checks for MCP adapter context via internal flag (set by T006 capture_mcp_server_id handler)
+- [X] Implements `detect_mcp_server_id()` — returns MCP server ID when available, null otherwise
+- [X] Implements `is_rest_context()`, `is_cli_context()`, `is_cron_context()`, `is_ajax_context()` helper methods
 - [ ] All methods return consistent, validated values (strings or null)
 - [ ] Detection logic is deterministic (same context always returns same source)
 - [ ] FR-002 acceptance: All 6 sources are detectable and tested
@@ -203,20 +203,20 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 **Description**: Core logger class that manages pending log entries, registers hooks at boot, and writes completed entries to database. This is the central orchestrator for all logging operations.
 
 **Acceptance Criteria**:
-- [ ] Implements singleton pattern: `protected static $_instance = null`, `public static function instance()`, `private function __construct()`
+- [X] Implements singleton pattern: `protected static $_instance = null`, `public static function instance()`, `private function __construct()`
 - [ ] Constructor initializes `$this->pending_entries = []` (stack for concurrent execution handling)
 - [ ] Constructor initializes `$this->mcp_server_id = null` (stashed MCP context)
-- [ ] Implements `boot()` method — registers 4 hooks at plugins_loaded P20:
+- [X] Implements `boot()` method — registers 4 hooks at plugins_loaded P20:
   - [ ] `add_filter( 'mcp_adapter_pre_tool_call', [ $this, 'capture_mcp_server_id' ], 5 )` (P5: stash server_id before any execution hook)
   - [ ] `add_action( 'wp_before_execute_ability', [ $this, 'start_pending_entry' ], 10, 2 )` (P10: initialize pending entry, start timer)
   - [ ] `add_action( 'wp_after_execute_ability', [ $this, 'finish_pending_entry' ], 10, 3 )` (P10: pop pending, record result, insert to DB)
   - [ ] `add_filter( 'wp_register_ability_args', [ $this, 'wrap_permission_callback' ], 100001, 2 )` (P100001: inject permission_denied logging)
 - [ ] Hook registration follows ARCH-ADV-001 pattern (direct add_filter/add_action in boot(), not via Loader) — acceptable deviation documented
-- [ ] Implements `capture_mcp_server_id( $tool_name, $server_id, $args )` hook handler (stores server_id)
-- [ ] Implements `start_pending_entry( $ability_slug, $args )` hook handler (initializes pending, uses source detector)
-- [ ] Implements `finish_pending_entry( $ability_slug, $result, $execution_time_ms )` hook handler (pops pending, writes to DB)
-- [ ] Implements `wrap_permission_callback( $args, $ability_slug )` hook handler (wraps for permission_denied logging)
-- [ ] PHPCS compliant, PHPStan L8 compliant
+- [X] Implements `capture_mcp_server_id( $tool_name, $server_id, $args )` hook handler (stores server_id)
+- [X] Implements `start_pending_entry( $ability_slug, $args )` hook handler (initializes pending, uses source detector)
+- [X] Implements `finish_pending_entry( $ability_slug, $result, $execution_time_ms )` hook handler (pops pending, writes to DB)
+- [X] Implements `wrap_permission_callback( $args, $ability_slug )` hook handler (wraps for permission_denied logging)
+- [X] PHPCS compliant, PHPStan L8 compliant
 - [ ] Handles concurrent executions: stack-based design supports nested/parallel ability calls
 
 **User Stories / FR Mapping**: 
@@ -244,7 +244,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 
 **Acceptance Criteria**:
 - [ ] Static class with no instance methods
-- [ ] Implements `format_log_entry( $entry )` — returns well-formed 10-field log entry array
+- [X] Implements `format_log_entry( $entry )` — returns well-formed 10-field log entry array
   - [ ] Validates all 10 required fields are present
   - [ ] Truncates input and output to 65535 bytes each (EC-005: prevent database bloat)
   - [ ] JSON-encodes input and output or returns as-is if already JSON
@@ -255,7 +255,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
   - [ ] Validates source is one of: mcp, rest, cli, cron, ajax, direct
   - [ ] Returns associative array with all 10 fields
 - [ ] All public methods are testable; no side effects (pure functions)
-- [ ] PHPCS compliant
+- [X] PHPCS compliant
 
 **User Stories / FR Mapping**: 
 - FR-003: Capture 10 fields per execution ✅
@@ -293,7 +293,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 - [ ] Returns array with keys: 'logs', 'total', 'pages'
 - [ ] X-WP-Total header reflects filtered count
 - [ ] Performance target: <500ms for queries with 100K+ records (SC-002)
-- [ ] PHPCS compliant
+- [X] PHPCS compliant
 
 **User Stories / FR Mapping**: 
 - US-001, US-003, US-004: Audit, filter, sort ✅
@@ -322,10 +322,10 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 **Acceptance Criteria**:
 - [ ] Extends `WP_REST_Controller` base class
 - [ ] Sets `protected $namespace = 'acrossai-abilities/v1'`
-- [ ] Implements `register_routes()` — delegates to AcrossAI_Logger_Logs_Controller
-- [ ] Implements `check_permission( $request )` — checks `current_user_can( 'manage_options' )`
+- [X] Implements `register_routes()` — delegates to AcrossAI_Logger_Logs_Controller
+- [X] Implements `check_permission( $request )` — checks `current_user_can( 'manage_options' )`
 - [ ] Early permission check (DEC-EARLY-404-REST-CHECK): returns 403 BEFORE any DB queries
-- [ ] PHPCS compliant
+- [X] PHPCS compliant
 
 **User Stories / FR Mapping**: 
 - FR-010: Permission checks ✅
@@ -353,7 +353,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 - [ ] Sanitizes all inputs (by type): `absint()` for integers, `sanitize_text_field()` for strings, whitelist validation for enums
 - [ ] Calls `AcrossAI_Logger_Query::get_logs( $args )` for filtered results
 - [ ] Sets pagination headers: `X-WP-Total`, `X-WP-TotalPages`
-- [ ] PHPCS compliant
+- [X] PHPCS compliant
 - [ ] Security: all inputs validated, output JSON (no escaping needed)
 
 **User Stories / FR Mapping**: 
@@ -384,10 +384,10 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 - [ ] Functional React component with hooks
 - [ ] Mounts `<DataViews>` from `@wordpress/dataviews`
 - [ ] Defines 6 columns: ability_slug, source, user_id, status, duration_ms, created_at
-- [ ] Implements search (ability_slug filter)
-- [ ] Implements sort (click column header)
-- [ ] Implements filter dropdowns (source, status enums)
-- [ ] Implements pagination (page size selector, prev/next buttons)
+- [X] Implements search (ability_slug filter)
+- [X] Implements sort (click column header)
+- [X] Implements filter dropdowns (source, status enums)
+- [X] Implements pagination (page size selector, prev/next buttons)
 - [ ] Handles loading, error, empty states
 - [ ] All data properly escaped (no XSS)
 - [ ] ESLint compliant
@@ -457,7 +457,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 - [ ] Add new tab button labeled "Logs"
 - [ ] Tab content div: `<div id="acrossai-logs-container"></div>`
 - [ ] Tab in logical order
-- [ ] PHPCS compliant
+- [X] PHPCS compliant
 
 **Time Estimate**: 0.5 hours
 
@@ -477,7 +477,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 - [ ] Enqueue `build/logger.js` with appropriate dependencies
 - [ ] Enqueue `build/logger.css`
 - [ ] Conditional enqueue (only on Abilities Manager page)
-- [ ] PHPCS compliant
+- [X] PHPCS compliant
 
 **Time Estimate**: 1 hour
 
@@ -505,7 +505,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 - [ ] Implement `cleanup_old_logs()` method using retention filter
 - [ ] Call `AcrossAI_Ability_Logs_Query::delete_logs_before_date()` for deletion
 - [ ] On deactivation: unschedule via `as_unschedule_all_actions()`
-- [ ] PHPCS compliant
+- [X] PHPCS compliant
 
 **User Stories / FR Mapping**: Feature 006 technical spec (retention)
 
@@ -531,7 +531,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 - [ ] Execute DELETE query with prepared statement
 - [ ] Returns number of rows deleted (int)
 - [ ] Handles errors gracefully
-- [ ] PHPCS compliant
+- [X] PHPCS compliant
 
 **Time Estimate**: 0.5 hours
 
@@ -558,7 +558,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
   - [ ] Get REST controller: `$rest_controller = AcrossAI_Logger_Controller::instance();`
   - [ ] Wire to rest_api_init: `$this->loader->add_action( 'rest_api_init', $rest_controller, 'register_routes' );`
 - [ ] Follow AC-HOOKS-MAIN pattern (named variable, never inline ::instance())
-- [ ] PHPCS compliant
+- [X] PHPCS compliant
 
 **Time Estimate**: 0.5 hours
 

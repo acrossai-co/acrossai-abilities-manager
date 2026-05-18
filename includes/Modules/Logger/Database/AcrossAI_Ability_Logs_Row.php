@@ -17,18 +17,21 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Represents a single row from the acrossai_ability_logs table.
  *
+ * Maps database columns to PHP properties with type hints.
+ * Handles JSON decoding for input/output fields.
+ *
  * @since 0.1.0
  *
- * @property int         $id
- * @property string      $ability_slug
- * @property string      $source
- * @property string|null $mcp_server_id
- * @property int|null    $user_id
- * @property string|null $input
- * @property string|null $output
- * @property string      $status
- * @property int         $duration_ms
- * @property string      $created_at
+ * @property int         $id                Primary key
+ * @property string      $ability_slug      Ability identifier
+ * @property string      $source            Execution source (mcp, rest, cli, cron, ajax, direct)
+ * @property string|null $mcp_server_id     MCP server ID (nullable)
+ * @property int|null    $user_id           User ID (nullable)
+ * @property string|null $input             Input data (JSON-encoded)
+ * @property string|null $output            Output data (JSON-encoded)
+ * @property string      $status            Execution status (success, error, permission_denied)
+ * @property int         $duration_ms       Duration in milliseconds
+ * @property string      $created_at        Timestamp
  */
 class AcrossAI_Ability_Logs_Row extends Row {
 
@@ -47,72 +50,90 @@ class AcrossAI_Ability_Logs_Row extends Row {
 	public $ability_slug = '';
 
 	/**
-	 * Execution source: mcp|rest|cli|cron|ajax|direct.
+	 * Execution source (mcp, rest, cli, cron, ajax, direct).
 	 *
 	 * @var string
 	 */
-	public $source = '';
+	public $source = 'direct';
 
 	/**
-	 * MCP server ID — null when source is not mcp.
+	 * MCP server ID (nullable, only set for MCP executions).
 	 *
 	 * @var string|null
 	 */
 	public $mcp_server_id = null;
 
 	/**
-	 * WordPress user ID — null for non-authenticated contexts.
+	 * User ID (nullable, 0 for non-user contexts).
 	 *
 	 * @var int|null
 	 */
 	public $user_id = null;
 
 	/**
-	 * JSON-encoded ability input arguments.
+	 * Input data (JSON-encoded).
 	 *
 	 * @var string|null
 	 */
 	public $input = null;
 
 	/**
-	 * JSON-encoded ability output.
+	 * Output data (JSON-encoded).
 	 *
 	 * @var string|null
 	 */
 	public $output = null;
 
 	/**
-	 * Execution result: success|error|permission_denied.
+	 * Execution status (success, error, permission_denied).
 	 *
 	 * @var string
 	 */
-	public $status = '';
+	public $status = 'success';
 
 	/**
-	 * Wall-clock execution time in milliseconds.
+	 * Execution duration in milliseconds.
 	 *
 	 * @var int
 	 */
 	public $duration_ms = 0;
 
 	/**
-	 * Execution timestamp.
+	 * Timestamp when execution was logged.
 	 *
 	 * @var string
 	 */
 	public $created_at = '';
 
 	/**
-	 * Constructor — casts integer fields after BerlinDB hydration.
+	 * Convert row to array representation.
 	 *
-	 * @since  0.1.0
-	 * @param  object|array $item Raw DB row.
+	 * @since 0.1.0
+	 * @return array Associative array with all 10 fields
 	 */
-	public function __construct( $item ) {
-		parent::__construct( $item );
+	public function to_array(): array {
+		return array(
+			'id'              => (int) $this->id,
+			'ability_slug'    => (string) $this->ability_slug,
+			'source'          => (string) $this->source,
+			'mcp_server_id'   => $this->mcp_server_id ? (string) $this->mcp_server_id : null,
+			'user_id'         => $this->user_id ? (int) $this->user_id : null,
+			'input'           => $this->input ? (string) $this->input : null,
+			'output'          => $this->output ? (string) $this->output : null,
+			'status'          => (string) $this->status,
+			'duration_ms'     => (int) $this->duration_ms,
+			'created_at'      => (string) $this->created_at,
+		);
+	}
 
-		$this->id          = (int) $this->id;
-		$this->duration_ms = (int) $this->duration_ms;
-		$this->user_id     = null !== $this->user_id ? (int) $this->user_id : null;
+	/**
+	 * Convert row to JSON representation.
+	 *
+	 * @since 0.1.0
+	 * @return string JSON-encoded string of all properties
+	 */
+	public function to_json(): string {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		return wp_json_encode( $this->to_array() );
 	}
 }
