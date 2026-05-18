@@ -1,61 +1,58 @@
 <?php
-namespace AcrossAI_Abilities_Manager\Admin\Partials;
-
 /**
- * AcrossAI_Abilities_Manager_Main_Menu Main Menu Class.
+ * Admin Menu Page for AcrossAI Abilities Manager
  *
- * @since AcrossAI_Abilities_Manager_Main_Menu 0.0.1
+ * Main admin page with tabbed interface for Abilities, Overrides, and Logs.
+ *
+ * @package    AcrossAI_Abilities_Manager
+ * @subpackage AcrossAI_Abilities_Manager/Admin/Partials
+ * @since      0.0.1
  */
+
+namespace AcrossAI_Abilities_Manager\Admin\Partials;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-
 /**
- * Fired during plugin licences.
+ * Menu class for admin page content
  *
- * This class defines all code necessary to run during the plugin's licences and update.
- *
- * @since      0.0.1
- * @package    AcrossAI_Abilities_Manager\Admin\Partials\Menu
- * @subpackage AcrossAI_Abilities_Manager\Admin\Partials
+ * @since 0.0.1
  */
 class Menu {
 
 	/**
-	 * The ID of this plugin.
+	 * Plugin name
 	 *
-	 * @since    0.0.1
-	 * @access   private
-	 * @var      string    $plugin_name    The ID of this plugin.
+	 * @since 0.0.1
+	 * @var string
 	 */
 	private $plugin_name;
 
 	/**
-	 * The version of this plugin.
+	 * Plugin version
 	 *
-	 * @since    0.0.1
-	 * @access   private
-	 * @var      string    $version    The current version of this plugin.
+	 * @since 0.0.1
+	 * @var string
 	 */
 	private $version;
 
 	/**
-	 * Initialize the class and set its properties.
+	 * Initialize the class and set its properties
 	 *
-	 * @since    0.0.1
-	 * @param      string    $plugin_name       The name of this plugin.
-	 * @param      string    $version    The version of this plugin.
+	 * @since 0.0.1
+	 * @param string $plugin_name Plugin name.
+	 * @param string $version Plugin version.
 	 */
 	public function __construct( $plugin_name, $version ) {
-
 		$this->plugin_name = $plugin_name;
 		$this->version     = $version;
 	}
 
 	/**
-	 * Adds the plugin license page to the admin menu.
+	 * Add plugin menu page
 	 *
+	 * @since 0.0.1
 	 * @return void
 	 */
 	public function main_menu() {
@@ -71,16 +68,26 @@ class Menu {
 	}
 
 	/**
-	 * About us for the plugins
+	 * Render admin page content with tabs
+	 *
+	 * Displays main interface with tab navigation:
+	 * - Abilities: Main ability management interface
+	 * - Overrides: Ability override processor
+	 * - Logs: Execution logs viewer (Feature 006)
+	 *
+	 * @since 0.0.1
+	 * @return void
 	 */
 	public function contents() {
 		?>
 		<div class="wrap acrossai-abilities-manager-wrap">
-			<!-- Main Abilities Manager React app -->
+			<!-- Main Abilities Manager React app (tabbed interface) -->
 			<div id="acrossai-abilities-manager-root"></div>
 
-			<!-- Logs tab mount point (T014: added for logger feature) -->
-			<div id="acrossai-logs-tab-panel" style="display:none;">
+			<!-- Logs tab content panel (T014: added for Feature 006 - Logger) -->
+			<!-- Tab content is switched by main React app based on active tab -->
+			<div id="acrossai-logs-tab-panel" style="display:none;" role="tabpanel">
+				<!-- Logs table container (populated by LogsTable component in T015) -->
 				<div id="acrossai-logs-container"></div>
 			</div>
 		</div>
@@ -88,26 +95,29 @@ class Menu {
 	}
 
 	/**
-	 * Add Settings link to plugins area.
+	 * Add Settings link to plugins area
 	 *
-	 * @since    0.0.1
-	 *
+	 * @since 0.0.1
 	 * @param array  $links Links array in which we would prepend our link.
 	 * @param string $file  Current plugin basename.
 	 * @return array Processed links.
 	 */
 	public function plugin_action_links( $links, $file ) {
-
-		// Return normal links if not BuddyPress.
+		// Return normal links if not this plugin.
 		if ( \ACROSSAI_ABILITIES_MANAGER_PLUGIN_BASENAME !== $file ) {
 			return $links;
 		}
 
-		// Add a few links to the existing links array.
+		// Add settings link to the existing links array.
 		return array_merge(
 			$links,
 			array(
-				'settings' => sprintf( '<a href="%sadmin.php?page=%s">%s</a>', admin_url(), 'acrossai-abilities-manager', esc_html__( 'Settings', 'acrossai-abilities-manager' ) ),
+				'settings' => sprintf(
+					'<a href="%sadmin.php?page=%s">%s</a>',
+					admin_url(),
+					'acrossai-abilities-manager',
+					esc_html__( 'Settings', 'acrossai-abilities-manager' )
+				),
 			)
 		);
 	}

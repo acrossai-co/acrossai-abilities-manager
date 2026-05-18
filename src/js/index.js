@@ -1,25 +1,19 @@
 /**
- * AcrossAI Logger - Admin UI Build Entry Point
+ * Logger Admin UI Build Entry Point
  *
- * Entry point for @wordpress/scripts build pipeline.
- * Imports React component and styles, outputs to build/logger.js and build/logger.css.
+ * Imports and registers the LogsTable React component.
+ * Compiled via @wordpress/scripts build pipeline.
  *
- * @package AcrossAI\Abilities\Admin
- * @since   1.0.0
+ * @since 0.1.0
  */
 
-import React from 'react';
-import { createRoot } from 'react-dom';
+// Import React component
 import LogsTable from './components/LogsTable';
+
+// Import stylesheet
 import '../scss/logs-table.scss';
 
-// Mount React component when DOM is ready
-document.addEventListener( 'DOMContentLoaded', function() {
-	const container = document.getElementById( 'acrossai-logs-container' );
-	if ( container ) {
-		const root = createRoot( container );
-		root.render( <LogsTable /> );
-	}
-} );
-
-export { LogsTable };
+// Export component for use in admin page
+window.AcrossAILoggerUI = {
+	LogsTable,
+};

@@ -376,7 +376,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 
 ### T011 – Create LogsTable React Component
 
-- [ ] T011 Create `src/js/components/LogsTable.js` React component using @wordpress/dataviews
+- [X] T011 Create `src/js/components/LogsTable.js` React component using @wordpress/dataviews
 
 **Description**: React component that renders a sortable, filterable, searchable logs table using @wordpress/dataviews.
 
@@ -408,7 +408,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 
 ### T012 – Create Logs Table Styles
 
-- [ ] T012 Create `src/scss/logs-table.scss` stylesheet for logs table container
+- [X] T012 Create `src/scss/logs-table.scss` stylesheet for logs table container
 
 **Description**: SCSS stylesheet for logs table component.
 
@@ -429,7 +429,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 
 ### T013 – Create Build Entry Point
 
-- [ ] T013 Create `src/js/index.js` build entry point for admin UI
+- [X] T013 Create `src/js/index.js` build entry point for admin UI
 
 **Description**: Build entry point that imports and registers the LogsTable React component.
 
@@ -449,7 +449,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 
 ### T014 – Modify Admin Menu Partials for Logs Tab
 
-- [ ] T014 Modify `admin/Partials/Menu.php` to add "Logs" tab in-place
+- [X] T014 Modify `admin/Partials/Menu.php` to add "Logs" tab in-place
 
 **Description**: Add a new "Logs" tab to the Abilities Manager admin page.
 
@@ -469,7 +469,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 
 ### T015 – Enqueue Admin UI Scripts and Styles
 
-- [ ] T015 Modify `admin/Main.php` to enqueue Logger React bundle and stylesheet
+- [X] T015 Modify `admin/Main.php` to enqueue Logger React bundle and stylesheet
 
 **Description**: Register script/style enqueue for the logger React component. Enqueue only on Abilities Manager admin page.
 
@@ -574,7 +574,7 @@ This artifact decomposes Feature 006's plan.md into 24 granular implementation t
 
 ### T019 – Create and Run Unit Tests
 
-- [ ] T019 Create comprehensive unit tests for all logger components
+- [X] T019 Create comprehensive unit tests for all logger components
 
 **Description**: Write PHPUnit and Jest tests covering logger core, source detector, query builder, and React component.
 
