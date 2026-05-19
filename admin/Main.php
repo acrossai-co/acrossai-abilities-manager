@@ -123,8 +123,8 @@ class Main {
 		);
 		wp_enqueue_style( 'acrossai-abilities-sitewide' );
 
-		// Enqueue logger styles (T015: feature 006)
-		if ( $this->logger_asset_file ) {
+		// Enqueue logger styles only on Logs tab (T015: feature 006)
+		if ( $this->logger_asset_file && $this->is_logs_tab() ) {
 			wp_register_style(
 				'acrossai-abilities-logger',
 				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/css/index.css',
@@ -167,8 +167,8 @@ class Main {
 			'before'
 		);
 
-		// Enqueue logger scripts (T015: feature 006)
-		if ( $this->logger_asset_file ) {
+		// Enqueue logger scripts only on Logs tab (T015: feature 006)
+		if ( $this->logger_asset_file && $this->is_logs_tab() ) {
 			wp_register_script(
 				'acrossai-abilities-logger',
 				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/js/index.js',
@@ -189,5 +189,17 @@ class Main {
 				'before'
 			);
 		}
+	}
+
+	/**
+	 * Check if currently viewing the Logs tab
+	 *
+	 * @since    0.1.0
+	 * @return bool True if on Logs tab
+	 */
+	private function is_logs_tab() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'abilities';
+		return 'logs' === $tab;
 	}
 }

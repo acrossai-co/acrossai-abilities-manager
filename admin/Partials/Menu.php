@@ -79,17 +79,35 @@ class Menu {
 	 * @return void
 	 */
 	public function contents() {
+		// Get active tab from query parameter, default to 'abilities'
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'abilities'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		?>
 		<div class="wrap acrossai-abilities-manager-wrap">
-			<!-- Main Abilities Manager React app (tabbed interface) -->
-			<div id="acrossai-abilities-manager-root"></div>
+			<!-- Tab Navigation -->
+			<nav class="nav-tab-wrapper acrossai-nav-tabs" style="margin-bottom: 20px; border-bottom: 1px solid #ddd;">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=acrossai-abilities-manager&tab=abilities' ) ); ?>" class="nav-tab <?php echo 'abilities' === $active_tab ? 'nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Abilities', 'acrossai-abilities-manager' ); ?>
+				</a>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=acrossai-abilities-manager&tab=logs' ) ); ?>" class="nav-tab <?php echo 'logs' === $active_tab ? 'nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Logs', 'acrossai-abilities-manager' ); ?>
+				</a>
+			</nav>
 
-			<!-- Logs tab content panel (T014: added for Feature 006 - Logger) -->
-			<!-- Tab content is switched by main React app based on active tab -->
-			<div id="acrossai-logs-tab-panel" style="display:none;" role="tabpanel">
-				<!-- Logs table container (populated by LogsTable component in T015) -->
-				<div id="acrossai-logs-container"></div>
-			</div>
+			<!-- Tab Content: Abilities -->
+			<?php if ( 'abilities' === $active_tab ) : ?>
+				<div id="acrossai-abilities-tab-panel" class="acrossai-tab-panel" role="tabpanel">
+					<!-- Main Abilities Manager React app -->
+					<div id="acrossai-abilities-manager-root"></div>
+				</div>
+			<?php endif; ?>
+
+			<!-- Tab Content: Logs (Feature 006) -->
+			<?php if ( 'logs' === $active_tab ) : ?>
+				<div id="acrossai-logs-tab-panel" class="acrossai-tab-panel" role="tabpanel">
+					<!-- Logs table container (populated by LogsTable component) -->
+					<div id="acrossai-logs-container"></div>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
