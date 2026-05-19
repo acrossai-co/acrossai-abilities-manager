@@ -1,6 +1,8 @@
 <?php
 namespace AcrossAI_Abilities_Manager\Admin;
 
+use AcrossAI_Abilities_Manager\Admin\Partials\LogsMenu;
+
 // Exit if accessed directly
 defined( 'ABSPATH' ) || exit;
 
@@ -123,8 +125,8 @@ class Main {
 		);
 		wp_enqueue_style( 'acrossai-abilities-sitewide' );
 
-		// Enqueue logger styles only on Logs tab (T015: feature 006)
-		if ( $this->logger_asset_file && $this->is_logs_tab() ) {
+		// Enqueue logger styles only on Logs submenu page (T015: feature 006)
+		if ( $this->logger_asset_file && $this->is_logs_page( $hook_suffix ) ) {
 			wp_register_style(
 				'acrossai-abilities-logger',
 				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/css/index.css',
@@ -167,8 +169,8 @@ class Main {
 			'before'
 		);
 
-		// Enqueue logger scripts only on Logs tab (T015: feature 006)
-		if ( $this->logger_asset_file && $this->is_logs_tab() ) {
+		// Enqueue logger scripts only on Logs submenu page (T015: feature 006)
+		if ( $this->logger_asset_file && $this->is_logs_page( $hook_suffix ) ) {
 			wp_register_script(
 				'acrossai-abilities-logger',
 				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/js/index.js',
@@ -192,14 +194,14 @@ class Main {
 	}
 
 	/**
-	 * Check if currently viewing the Logs tab
+	 * Check if currently viewing the Logs submenu page
 	 *
 	 * @since    0.1.0
-	 * @return bool True if on Logs tab
+	 * @param string $hook_suffix Current admin page hook suffix
+	 * @return bool True if on Logs submenu page
 	 */
-	private function is_logs_tab() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'abilities';
-		return 'logs' === $tab;
+	private function is_logs_page( string $hook_suffix ): bool {
+		$logs_menu = LogsMenu::instance();
+		return $hook_suffix === $logs_menu->get_hook_suffix();
 	}
 }

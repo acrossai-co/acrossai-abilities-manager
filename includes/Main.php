@@ -270,6 +270,10 @@ final class Main {
 		$this->loader->add_action( 'admin_menu', $main_menu, 'main_menu' );
 		$this->loader->add_action( 'plugin_action_links', $main_menu, 'plugin_action_links', 1000, 2 );
 
+		// Execution Logs submenu page (Feature 006: T014)
+		$logs_menu = \AcrossAI_Abilities_Manager\Admin\Partials\LogsMenu::instance();
+		$this->loader->add_action( 'admin_menu', $logs_menu, 'register_submenu' );
+
 		// Sitewide Ability Manager — DB table setup and REST routes via singleton pattern.
 		// Table instance call makes the class available; BerlinDB hooks maybe_upgrade() to admin_init.
 		\AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Table::instance();
