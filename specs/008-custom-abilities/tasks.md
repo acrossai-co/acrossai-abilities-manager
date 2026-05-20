@@ -340,7 +340,7 @@ Tasks are organized by technical layer to enable parallel execution within each 
 
 ---
 
-- [ ] T013 [P] Implement Custom Ability Processor for WordPress API registration
+- [x] T013 [P] Implement Custom Ability Processor for WordPress API registration
 
   **Description**: Create `AcrossAI_Custom_Ability_Processor` singleton (Memory SEC-PLAN-002) that runs at `wp_abilities_api_init` hook (priority 10). Fetch all enabled custom abilities from BerlinDB, build metadata, inject permission callback per permission_type (Memory DEC-PERM-CB), register via `wp_register_ability()`, fire hooks. Address security-constraints.md Finding 6 (permission callback validation).
   
