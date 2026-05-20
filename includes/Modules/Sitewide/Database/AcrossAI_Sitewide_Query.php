@@ -113,7 +113,28 @@ class AcrossAI_Sitewide_Query extends Query {
 		$tri_state_columns = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'show_in_mcp' );
 		foreach ( $tri_state_columns as $col ) {
 			if ( array_key_exists( $col, $fields ) && is_bool( $fields[ $col ] ) ) {
-				$fields[ $col ] = (int) $fields[ $col ]; // true → 1, false → 0
+				$fields[ $col ] = (int) $fields[ $col ]; // true → 1, false → 0.
+			}
+		}
+
+		// ST-02 / LOW-03: Defense-in-depth re-validation at the BerlinDB boundary.
+		// PHP do_action() passes $fields by value so hook consumers cannot alter
+		// the caller's array, but this guard protects against unexpected future
+		// refactoring where call order might change.
+		if ( array_key_exists( 'mcp_type', $fields ) && null !== $fields['mcp_type'] ) {
+			if ( ! in_array( $fields['mcp_type'], array( 'tool', 'resource', 'prompt' ), true ) ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'acrossai: invalid mcp_type value blocked before DB write' );
+				unset( $fields['mcp_type'] );
+			}
+		}
+		// At this point mcp_servers is null, a JSON-encoded string (from the encoding
+		// step above), or an unexpected non-null non-string — the latter must be cleared.
+		if ( array_key_exists( 'mcp_servers', $fields ) && null !== $fields['mcp_servers'] ) {
+			if ( ! is_string( $fields['mcp_servers'] ) ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'acrossai: non-string mcp_servers blocked before DB write' );
+				$fields['mcp_servers'] = null;
 			}
 		}
 
@@ -159,5 +180,25 @@ class AcrossAI_Sitewide_Query extends Query {
 		}
 		$result = $this->delete_item( $existing->id );
 		return false !== $result;
+	}
+
+	/**
+	 * Retrieve all override rows indexed by ability_slug.
+	 *
+	 * Passes number => 0 to BerlinDB which signals no LIMIT clause (unlimited rows).
+	 * Returns an associative array keyed by ability_slug.
+	 *
+	 * @since  0.1.0
+	 * @return AcrossAI_Sitewide_Row[]  Indexed by ability_slug string.
+	 */
+	public function get_all_overrides(): array {
+		$results = $this->query( array( 'number' => 0 ) );
+		$indexed = array();
+		foreach ( $results as $row ) {
+			if ( $row instanceof AcrossAI_Sitewide_Row ) {
+				$indexed[ $row->ability_slug ] = $row;
+			}
+		}
+		return $indexed;
 	}
 }

@@ -46,6 +46,10 @@ No data is sent to any external server by this plugin.
 
 == Frequently Asked Questions ==
 
+= Does this plugin support Multisite? =
+
+No. This plugin has not been tested on WordPress Multisite installations.
+
 = Does this plugin modify the WordPress ability registry? =
 
 No. The plugin stores only overrides — fields that differ from the registry defaults. The ability registry itself (`wp_get_ability()`) is never modified.

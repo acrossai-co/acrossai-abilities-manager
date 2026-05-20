@@ -36,7 +36,17 @@ function loadView() {
 	try {
 		const stored = localStorage.getItem( getStorageKey() );
 		if ( stored ) {
-			return { ...DEFAULT_VIEW, ...JSON.parse( stored ) };
+			const parsed = JSON.parse( stored ) || {};
+			// Restore layout preferences only — never restore transient
+			// query state (filters/search/page). A stale `filters` entry
+			// would silently hide rows on every load.
+			return {
+				...DEFAULT_VIEW,
+				...( parsed.type    !== undefined && { type:    parsed.type } ),
+				...( parsed.sort    !== undefined && { sort:    parsed.sort } ),
+				...( parsed.perPage !== undefined && { perPage: parsed.perPage } ),
+				...( parsed.fields  !== undefined && { fields:  parsed.fields } ),
+			};
 		}
 	} catch ( e ) {
 		// Ignore parse errors.

@@ -24,7 +24,7 @@ namespace AcrossAI_Abilities_Manager;
  * Plugin URI:        https://github.com/WPBoilerplate/acrossai-abilities-manager
  * Description:       AcrossAI Abilities Manager by WPBoilerplate
  * Version:           0.0.1
- * Requires PHP:	  7.4
+ * Requires PHP:      7.4
  * Requires at least: 6.9
  * Author:            WPBoilerplate
  * Author URI:        https://github.com/WPBoilerplate/acrossai-abilities-manager
@@ -51,8 +51,8 @@ define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE', __FILE__ );
  * This action is documented in includes/activator.php
  */
 function acrossai_abilities_manager_activate() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/Activator.php';
-	Includes\Activator::activate();
+	require_once plugin_dir_path( __FILE__ ) . 'includes/AcrossAI_Activator.php';
+	Includes\AcrossAI_Activator::activate();
 }
 
 /**
@@ -60,8 +60,8 @@ function acrossai_abilities_manager_activate() {
  * This action is documented in includes/deactivator.php
  */
 function acrossai_abilities_manager_deactivate() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/Deactivator.php';
-	Includes\Deactivator::deactivate();
+	require_once plugin_dir_path( __FILE__ ) . 'includes/AcrossAI_Deactivator.php';
+	Includes\AcrossAI_Deactivator::deactivate();
 }
 
 register_activation_hook( __FILE__, 'AcrossAI_Abilities_Manager\acrossai_abilities_manager_activate' );

@@ -110,4 +110,38 @@ class AcrossAI_Sitewide_Access_Control {
 
 		return $this->manager;
 	}
+
+	/**
+	 * Display an admin notice when the wpb-access-control library is absent.
+	 *
+	 * Hooked to admin_notices. Only shown to users with manage_options and only
+	 * when the library class is not loaded. This ensures that admins who rely on
+	 * per-ability access-control rules are made aware that enforcement is currently
+	 * inactive (fail-open, per DEC-PERM-CB). (SAC-01 / MEDIUM-03)
+	 *
+	 * @since  0.1.0
+	 * @return void
+	 */
+	public function maybe_show_library_notice(): void {
+		if ( $this->is_available() ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		wp_admin_notice(
+			sprintf(
+				/* translators: %s: library class name */
+				esc_html__( 'AcrossAI Abilities Manager: The wpb-access-control library (%s) is not loaded. Per-ability access-control rules are inactive and all ability checks will pass (fail-open). Install or activate the library to enforce saved rules.', 'acrossai-abilities-manager' ),
+				'<code>WPBoilerplate\\AccessControl\\AccessControlManager</code>'
+			),
+			array(
+				'type'           => 'warning',
+				'dismissible'    => true,
+				'paragraph_wrap' => false,
+			)
+		);
+	}
 }

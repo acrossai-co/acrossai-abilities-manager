@@ -52,11 +52,11 @@ WordPress ecosystem. Non-compliant code will not be merged.
 
 ### III. User-Centric Design (NON-NEGOTIABLE)
 All admin interfaces MUST prioritize site administrator experience above implementation convenience.
-All form handling and data input MUST use `@wordpress/dataforms` (WordPress DataForms).
+All form handling and data input MUST use `DataForm` (exported from `@wordpress/dataviews`) — there is no separate `@wordpress/dataforms` package.
 All data display and listing MUST use `@wordpress/dataviews` (WordPress DataViews).
-DataForms MUST handle: field-level validation, inline error display, and submission state feedback.
+DataForm MUST handle: field-level validation, inline error display, and submission state feedback.
 DataViews MUST provide: searchable lists, column sorting, pagination, and contextual filtering.
-No custom form or table rendering that duplicates DataForms/DataViews functionality is permitted.
+No custom form or table rendering that duplicates DataForm/DataViews functionality is permitted.
 
 **Rationale**: Consistency with WordPress core UI patterns reduces the learning curve for
 administrators and ensures a coherent, familiar admin experience across all five feature areas.
@@ -107,7 +107,7 @@ A feature is ONLY considered complete when ALL of the following gates pass:
 - [ ] ESLint: zero errors
 - [ ] Security review complete: sanitization, escaping, nonces, and capabilities verified at every boundary
 - [ ] Unit tests written and passing for all new logic
-- [ ] All data input uses DataForms (`@wordpress/dataforms`)
+- [ ] All data input uses `DataForm` from `@wordpress/dataviews` — no separate `@wordpress/dataforms` package exists
 - [ ] All data display uses DataViews (`@wordpress/dataviews`)
 - [ ] No code duplication or DRY violations exist in the changeset
 - [ ] All functions, hooks, and classes are prefixed with `acrossai_`
@@ -196,9 +196,9 @@ canonical decomposition for the four planned sibling modules (`PerUser`, `McpSer
 4. Expose integration points exclusively via WordPress actions and filters
 
 **UI Contract**:
-- `@wordpress/dataforms` handles all admin form UIs: field validation, error display, submission state
+- `DataForm` from `@wordpress/dataviews` handles all admin form UIs: field validation, error display, submission state
 - `@wordpress/dataviews` handles all admin list/table UIs: search, sort, pagination, filter
-- No custom implementations of form or table patterns that duplicate DataForms/DataViews are permitted
+- No custom implementations of form or table patterns that duplicate DataForm/DataViews are permitted
 
 **Database**:
 - Direct SQL is permitted only with `$wpdb->prepare()`

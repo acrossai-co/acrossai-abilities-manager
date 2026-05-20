@@ -14,6 +14,7 @@ use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitew
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Ability_Merger;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Ability_Registry_Query;
+use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Protected_Abilities;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -132,6 +133,7 @@ class AcrossAI_Sitewide_Abilities_Controller {
 							'type'              => 'string',
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
+							'validate_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'validate_ability_slug' ),
 						),
 					),
 				),
@@ -178,6 +180,11 @@ class AcrossAI_Sitewide_Abilities_Controller {
 	public function get_ability( \WP_REST_Request $request ) {
 		$slug = AcrossAI_Sanitizer::sanitize_ability_slug( (string) $request->get_param( 'slug' ) );
 
+		// Protected abilities cannot be accessed via REST endpoints.
+		if ( AcrossAI_Protected_Abilities::is_protected( $slug ) ) {
+			return new \WP_Error( 'rest_not_found', __( 'Ability not found.', 'acrossai-abilities-manager' ), array( 'status' => 404 ) );
+		}
+
 		if ( ! function_exists( 'wp_get_ability' ) ) {
 			return new \WP_Error( 'rest_not_supported', __( 'Abilities API not available.', 'acrossai-abilities-manager' ), array( 'status' => 501 ) );
 		}
@@ -190,6 +197,18 @@ class AcrossAI_Sitewide_Abilities_Controller {
 
 		$override = $this->db_query->get_override_by_slug( $slug );
 		$merged   = AcrossAI_Ability_Merger::merge( $registry, $override );
+
+		/**
+		 * Filters the merged ability data before it is returned in the REST response.
+		 *
+		 * Consumers MUST NOT remove 'slug', 'has_override', or alter field types —
+		 * doing so will break client-side Redux store deserialization.
+		 *
+		 * @since 0.1.0
+		 * @param array  $merged Merged ability data (registry + override).
+		 * @param string $slug   Sanitized ability slug.
+		 */
+		$merged = (array) apply_filters( 'acrossai_abilities_sitewide_rest_response', $merged, $slug );
 
 		return rest_ensure_response( $merged );
 	}

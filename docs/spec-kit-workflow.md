@@ -1,338 +1,283 @@
 # Spec Kit Workflow Documentation
-## AcrossAI Abilities Manager WordPress Plugin
 
 ---
 
 ## Overview
 
-This document explains the complete Spec Kit workflow for building the AcrossAI Abilities Manager plugin. The workflow has **10 main steps** that take you from project principles to a fully implemented, tested, and documented plugin.
+This document explains how to use the Spec Kit commands and their extensions. The workflow moves from project principles through specification, planning, implementation, and final review.
+
+---
+
+## Complete Command Reference
+
+### Core Workflow Commands
+
+| Command | What it produces |
+|---|---|
+| `/speckit.constitution` | Creates/updates `.specify/memory/CONSTITUTION.md` |
+| `/speckit.specify` | Creates `specs/NNN-feature/spec.md` + `research.md` |
+| `/speckit.clarify` | Refines `spec.md` by asking up to 5 targeted questions *(optional)* |
+| `/speckit.plan` | Creates `specs/NNN-feature/plan.md` + `data-model.md` + `quickstart.md` + `contracts/` |
+| `/speckit.tasks` | Creates `specs/NNN-feature/tasks.md` + `checklists/` |
+| `/speckit.implement` | Executes tasks.md — writes actual code to plugin files |
+| `/speckit.analyze` | Cross-artifact consistency check (spec ↔ plan ↔ tasks ↔ code) |
+
+### Memory MD Extension — Knowledge Management
+
+| Command | When to use |
+|---|---|
+| `/speckit.memory-md.bootstrap` | First time setup — initialises `.specify/memory/` structure |
+| `/speckit.memory-md.audit` | Audits memory files for staleness or gaps |
+| `/speckit.memory-md.capture` | Saves key decisions/findings to memory manually |
+| `/speckit.memory-md.capture-from-diff` | After implementation — extracts learnings from git diff into memory |
+| `/speckit.memory-md.log-finding` | Logs a single finding (bug, pattern, decision) to memory |
+| `/speckit.memory-md.plan-with-memory` | Runs `/speckit.plan` with full memory context injected |
+
+### Architecture Guard Extension — Architectural Integrity
+
+| Command | When to use |
+|---|---|
+| `/speckit.architecture-guard.init` | Initialises Architecture Guard config for this project |
+| `/speckit.architecture-guard.governed-plan` | Validates plan against constitution + memory before proceeding |
+| `/speckit.architecture-guard.governed-tasks` | Validates tasks against architecture constraints + refactor awareness |
+| `/speckit.architecture-guard.governed-implement` | Runs implement then reviews code against architecture + security |
+| `/speckit.architecture-guard.architecture-review` | Post-implementation drift analysis vs spec/plan/tasks |
+| `/speckit.architecture-guard.violation-detection` | Scans plans, tasks, or implementation summaries for violations |
+| `/speckit.architecture-guard.refactor-generator` | Converts violations into non-blocking structured refactor tasks |
+| `/speckit.architecture-guard.architecture-apply` | Applies approved architecture refactors to plan/task artifacts |
+| `/speckit.architecture-guard.architecture-workflow` | Single workflow incorporating memory + security context |
+
+### Security Review Extension — Security Auditing
+
+| Command | When to use |
+|---|---|
+| `/speckit.security-review.plan` | Security review of plan artifacts before implementation starts |
+| `/speckit.security-review.tasks` | Security review of task sequencing for security gaps |
+| `/speckit.security-review.staged` | Security review of currently staged git changes |
+| `/speckit.security-review.branch` | Security review of an entire feature branch |
+| `/speckit.security-review.followup` | Creates remediation tasks from security findings |
+| `/speckit.security-review.apply` | Applies approved security follow-up items into planning artifacts |
+
+### Git Extension — Version Control
+
+| Command | What it does |
+|---|---|
+| `/speckit.git.initialize` | Initialises git repo with first commit |
+| `/speckit.git.feature` | Creates a numbered feature branch (`feature/NNN-slug`) |
+| `/speckit.git.validate` | Validates current branch follows naming conventions |
+| `/speckit.git.commit` | Auto-commits all staged changes with a structured message |
+| `/speckit.git.remote` | Detects and configures git remote URL |
 
 ---
 
 ## Step-by-Step Workflow
 
-### 1. `/speckit.constitution`
+### Phase 0 — One-Time Project Setup
 
-**What it does:** Creates your project's foundational principles and governance guidelines.
+#### Step 1: `/speckit.constitution`
 
-**Purpose:** Establishes the "constitution" - core values, coding standards, security requirements, and quality gates that will guide all development decisions. This becomes the reference for AI agents throughout the project.
+Run once when the project starts (or when principles need updating).
 
-**Creates:** `.specify/memory/constitution.md` - Your project's rulebook that agents follow during /specify, /plan, and /implement.
+**Creates:** `.specify/memory/CONSTITUTION.md`
 
-**Example output:** Principles like "All PHP code must be WordPress-strict PHPCS compliant", "All REST endpoints require manage_options capability", "BerlinDB Query class mandatory for all DB operations"
+#### Step 2: `/speckit.memory-md.bootstrap`
 
----
+Run once after constitution to initialise the `.specify/memory/` directory structure.
 
-### 2. `/speckit.memory-md.create-context-memo`
-
-**What it does:** Documents your initial project context and team knowledge.
-
-**Purpose:** Captures why this project exists, who's involved, what problems it solves, and key decisions. This creates a searchable record that helps onboard new team members and maintains context over time.
-
-**Creates:** `.specify/memory/project-context.md` - A narrative document explaining the "why" behind the plugin and important team knowledge.
-
-**Example content:** "We're building this because WordPress admins need centralized control over plugin abilities. Key constraint: must work with WordPress 6.9+. Team: 1 lead dev, 2 junior devs."
+**Creates:** Memory scaffolding that agents read during planning and implementation.
 
 ---
 
-### 3. `/speckit.specify`
+### Phase 1 — Per-Feature: Specification
 
-**What it does:** Writes the functional specification - what the plugin should do from a user's perspective.
+#### Step 3: `/speckit.specify <natural language description>`
 
-**Purpose:** Translates your vision into concrete requirements. Describes features, user stories, acceptance criteria, and constraints WITHOUT specifying tech choices. Focus on the "what" and "why", not the "how".
+**Creates in `specs/NNN-feature/`:**
+- `spec.md` — functional requirements (FR-001…), user stories (US1…), acceptance scenarios (SC-001…), constraints
+- `research.md` — technical research findings used by the planner
 
-**Creates:** `specs/sitewide-ability-management/spec.md` - Your functional requirements document that Architecture Guard and Security Review will validate.
+**Naming convention:** Specs are numbered sequentially: `001-`, `002-`, `003-`, etc.
 
-**Example content:** "Admins can view all abilities, edit settings (allowed/readonly/destructive flags), override database defaults, reset to original values, control REST API visibility, and manage MCP server access per ability."
+#### Step 4: `/speckit.clarify` *(optional)*
 
----
-
-### 4. `/speckit.clarify` (If Needed - Optional)
-
-**What it does:** Clarifies ambiguous requirements or asks follow-up questions about the specification.
-
-**Purpose:** Surfaces gaps, contradictions, or unclear parts of your spec. Useful when your initial `/specify` is vague or when stakeholders disagree on requirements. Helps refine the spec before moving to planning.
-
-**Usage:** Run this ONLY if your spec needs clarification. You'll be prompted with questions to answer, which improve the spec.
-
-**Example questions:** "Should admins be able to override abilities from core WordPress? Should there be an audit log of changes? Can deleted overrides be recovered?"
+Run only if `spec.md` has ambiguous requirements. Asks up to 5 targeted questions and encodes answers back into the spec.
 
 ---
 
-### 5. `/speckit.plan`
+### Phase 2 — Per-Feature: Planning
 
-**What it does:** Creates the technical implementation plan based on your architecture and tech stack decisions.
+#### Step 5: `/speckit.plan` or `/speckit.memory-md.plan-with-memory`
 
-**Purpose:** Translates the functional spec into a technical roadmap. Specifies technology choices (React, BerlinDB, REST API), data models, API contracts, module structure, and implementation phases. Defines the "how".
+Prefer `plan-with-memory` on features 002+ — it injects prior memory context so the planner knows existing patterns (singleton, REST namespace, DB schema, etc.).
 
-**Creates:** `specs/sitewide-ability-management/plan.md` - Your technical blueprint with architecture decisions, database schema, API endpoints, component structure.
+**Creates in `specs/NNN-feature/`:**
+- `plan.md` — technical blueprint: architecture decisions, data model, API endpoints, component structure, phases
+- `data-model.md` — database schema and shape definitions *(if applicable)*
+- `quickstart.md` — fast-path verification steps for manual testing
+- `contracts/` — API contract files (e.g., `wpb-ac-v1-rest-api.md`)
 
-**Example content:** "Use BerlinDB Query class for all database operations. React with @wordpress/dataviews for UI. REST API endpoints require manage_options. All override data stored in wp_acrossai_abilities_overwrite table."
+#### Step 6: `/speckit.architecture-guard.governed-plan` *(recommended)*
 
----
+Validates `plan.md` against the constitution and prior architecture decisions before proceeding.
 
-### 6. Extension: `Memory MD` - Index Project
+#### Step 7: `/speckit.security-review.plan`
 
-**What it does:** Auto-generates a map of your project structure, modules, and dependencies.
-
-**Purpose:** Creates `.specify/memory/module-map.md` showing which components depend on which others, what each module does, and how they interconnect. Helps visualize architecture at a glance.
-
-**Output:** Visual module hierarchy, dependency graph, integration points between React UI / REST API / BerlinDB layers.
-
-**Use after:** `/speckit.plan` (when you have a complete technical plan)
-
----
-
-### 7. Extension: `Architecture Guard` - Validate Plan
-
-**What it does:** Reviews your technical plan for architectural consistency and pattern adherence.
-
-**Purpose:** Checks that your plan follows best practices: BerlinDB usage patterns, module isolation, REST security, React component hierarchy. Catches architectural issues BEFORE implementation.
-
-**Output:** Report with findings like "✅ BerlinDB integration correct", "⚠️ REST endpoint missing nonce verification", "❌ UI component coupling too tight"
-
-**Use after:** `/speckit.plan` (validate your architecture before tasks)
+Reviews `plan.md` for security gaps:
+- Missing nonce verification declarations
+- Unvalidated REST args
+- Capability check coverage
 
 ---
 
-### 8. Extension: `Security Review` - Full Audit
+### Phase 3 — Per-Feature: Task Generation
 
-**What it does:** Performs a comprehensive security analysis of your specification and plan.
+#### Step 8: `/speckit.tasks`
 
-**Purpose:** Identifies potential vulnerabilities: missing input validation, output escaping gaps, capability checks, authentication issues, data exposure risks. Ensures secure-by-design before implementation starts.
+**Creates in `specs/NNN-feature/`:**
+- `tasks.md` — dependency-ordered, phase-grouped implementation tasks with parallel execution hints
+- `checklists/` — quality gate checklists (PHPCS, PHPStan, ESLint, browser test)
+- `memory.md` — feature-specific memory artifacts
+- `memory-synthesis.md` — cross-feature learning synthesis
 
-**Output:** Security findings organized by severity (Critical/High/Medium/Low) with remediation steps. Example: "Missing sanitization on admin input fields", "REST endpoint missing nonce check"
+#### Step 9: `/speckit.architecture-guard.governed-tasks` *(recommended)*
 
-**Use after:** `/speckit.plan` (identify security issues early when fixes are cheaper)
+Validates task ordering and checks for architecture violations or missing refactor tasks. Safe to run in parallel with Step 7 if plan is already reviewed.
 
----
+#### Step 10: `/speckit.security-review.tasks`
 
-### 9. `/speckit.tasks`
-
-**What it does:** Breaks down your plan into an ordered list of implementation tasks.
-
-**Purpose:** Creates a task list that developers can execute sequentially. Each task is actionable, has dependencies defined, and can be assigned to a developer. Tasks are ordered so dependencies complete first.
-
-**Creates:** `specs/sitewide-ability-management/tasks.md` - Numbered list of implementation tasks with descriptions, dependencies, estimated effort.
-
-**Example tasks:** 
-- Task 1: Create BerlinDB Query class for abilities_overwrite table
-- Task 2: Build REST API endpoints for GET /abilities
-- Task 3: Create React AbilityTable component using DataViews
-- Task 4: Implement edit modal with nonce validation
+Checks task sequencing for security: Are capability checks added before REST routes? Is sanitization wired before the REST callback runs?
 
 ---
 
-### 10. Extension: `Architecture Guard` - Validate Tasks
+### Phase 4 — Implementation
 
-**What it does:** Reviews your task list to ensure it respects architectural patterns and dependencies.
+#### Step 11: `/speckit.implement` or `/speckit.architecture-guard.governed-implement`
 
-**Purpose:** Catches issues like "Task 5 depends on Task 8, but Task 8 is listed later" or "This task violates module isolation rules". Ensures task order is logical before implementation begins.
+Prefer `governed-implement` — it runs implementation then immediately reviews the produced code against security and architecture constraints.
 
-**Output:** Task validation report with sequencing issues or architectural concerns.
-
-**Use after:** `/speckit.tasks` (validate task sequence before developers start)
-
----
-
-### 11. `/speckit.implement`
-
-**What it does:** Generates the actual code from your tasks and plan.
-
-**Purpose:** AI creates working PHP/JavaScript/CSS code based on your specifications. Output is code files ready to run (though it may need human review/refinement).
-
-**Creates:** Actual WordPress plugin files:
-- PHP classes (Query, REST controller, Feature class)
-- React components (AbilityTable, EditModal, etc.)
-- Database migrations
-- CSS files
-- Tests (if configured)
-
-**Output:** A functioning WordPress plugin that matches your specification and plan.
+**After implement always run:**
+```bash
+npm run build          # verify webpack builds clean
+composer run phpcs     # zero PHPCS errors
+composer run phpstan   # PHPStan level 8 zero errors
+npm run lint:js        # ESLint zero errors
+```
 
 ---
 
-### 12. `/speckit.analyze`
+### Phase 5 — Review & Commit
 
-**What it does:** Reviews your implementation against the original specification and plan to check for consistency and completeness.
+#### Step 12: `/speckit.analyze`
 
-**Purpose:** Detects if code matches spec ("Did we implement everything that was spec'd?"), if plan was followed ("Did we use the architecture we planned?"), and identifies drift ("Did scope creep happen?").
+Cross-artifact consistency check. Verifies:
+- All spec requirements (FR-NNN) have a corresponding task
+- Plan architecture decisions are reflected in implementation
+- No scope creep (tasks not in spec)
 
-**Output:** Consistency report with findings like "✅ All abilities endpoint implemented", "⚠️ Edit validation logic missing nonce check", "❌ MCP integration only partially complete"
+#### Step 13: `/speckit.architecture-guard.architecture-review`
 
-**Use after:** `/speckit.implement` (before going to production)
+Post-implementation drift analysis. Detects if code diverged from planned architecture.
 
----
+#### Step 14: `/speckit.security-review.staged` or `/speckit.security-review.branch`
 
-### 13. Post-Implementation: `Architecture Guard` - Drift Analysis
+Final security audit of the actual changed code before commit.
 
-**What it does:** Detects if the implemented code has drifted from the planned architecture.
+#### Step 15: `/speckit.memory-md.capture-from-diff`
 
-**Purpose:** Identifies tangled modules, violated patterns, code that doesn't follow decisions made in the plan. Proposes refactoring to restore architectural integrity.
+Extracts durable knowledge from the implementation diff and saves to `.specify/memory/`. This feeds future planning sessions.
 
-**Output:** Drift report with issues and refactoring suggestions. Example: "UI components importing directly from database layer instead of through REST API"
+#### Step 16: `/speckit.git.commit`
 
-**Use after:** `/speckit.analyze` (ensure code quality before final review)
-
----
-
-### 14. Post-Implementation: `Security Review` - Final Audit
-
-**What it does:** Comprehensive security audit of the entire implemented codebase.
-
-**Purpose:** Final check for security vulnerabilities: input validation, output escaping, nonce verification, capability checks, SQL injection risks, XSS risks, authentication/authorization issues.
-
-**Output:** Security findings report with severity levels and remediation steps. Must fix Critical/High before release.
-
-**Use after:** `/speckit.implement` (catch security issues before deployment)
+Commits all changes with a structured commit message. Always appended with:
+```
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+```
 
 ---
 
-### 15. Post-Implementation: `Memory MD` - Merge Features
-
-**What it does:** Archives implementation decisions, learnings, and known issues into project memory.
-
-**Purpose:** Captures what was learned during implementation, decisions made to overcome obstacles, known limitations, and technical debt for future reference.
-
-**Creates:** Updates to `.specify/memory/` files:
-- Adds actual implementation decisions to architecture-decisions.md
-- Records known issues/bugs in known-issues.md
-- Updates project-context.md with new learnings
-
-**Use after:** `/speckit.implement` (document what was learned before moving on)
-
----
-
-### 16. Git Auto-Commit (Hook)
-
-**What it does:** Automatically commits all changes to git after `/analyze` completes.
-
-**Purpose:** Creates a permanent record of the completed feature in version control. Triggered automatically by the git extension hook.
-
-**Output:** New git commit with message like "feat: sitewide ability management complete" + all changes staged and committed.
-
-**Automatic:** Runs automatically after `/speckit.analyze` (no manual action needed)
-
----
-
-## Complete Workflow Sequence
+## Recommended Workflow Sequence
 
 ```
-Step 1:  /constitution
-         ↓
-Step 2:  /memory-md.create-context-memo (Extension)
-         ↓
-Step 3:  /specify
-         ↓
-Step 4:  /clarify (OPTIONAL - if spec needs clarification)
-         ↓
-Step 5:  /plan
-         ↓
-Step 6:  /memory-md.index-project (Extension)
-         ↓
-Step 7:  /architecture-guard.governed-plan (Extension)
-         ↓
-Step 8:  /security-review.full (Extension)
-         ↓
-Step 9:  /tasks
-         ↓
-Step 10: /architecture-guard.governed-tasks (Extension)
-         ↓
-Step 11: /implement
-         ↓
-Step 12: /analyze
-         ↓
-Step 13: /architecture-guard.drift-analysis (Extension)
-         ↓
-Step 14: /security-review.full (Extension)
-         ↓
-Step 15: /memory-md.merge-features (Extension)
-         ↓
-Step 16: Git auto-commit (Automatic hook)
-         ✅ Done!
+─── ONE-TIME SETUP ───────────────────────────────────────────────────────────
+/speckit.constitution
+/speckit.memory-md.bootstrap
+──────────────────────────────────────────────────────────────────────────────
+
+─── PER FEATURE ──────────────────────────────────────────────────────────────
+
+  SPEC
+  /speckit.specify "<natural language description>"
+  /speckit.clarify  ← OPTIONAL (only if spec is ambiguous)
+        ↓
+  PLAN
+  /speckit.memory-md.plan-with-memory  (or /speckit.plan on feature 001)
+  /speckit.architecture-guard.governed-plan
+  /speckit.security-review.plan
+        ↓
+  TASKS
+  /speckit.tasks
+  /speckit.architecture-guard.governed-tasks
+  /speckit.security-review.tasks
+        ↓
+  IMPLEMENT
+  /speckit.architecture-guard.governed-implement  (or /speckit.implement)
+  npm run build && composer run phpcs && composer run phpstan && npm run lint:js
+        ↓
+  REVIEW
+  /speckit.analyze
+  /speckit.architecture-guard.architecture-review
+  /speckit.security-review.staged
+        ↓
+  CLOSE
+  /speckit.memory-md.capture-from-diff
+  /speckit.git.commit
+  ✅ Feature complete
+
+──────────────────────────────────────────────────────────────────────────────
 ```
 
 ---
 
 ## When to Skip Steps
 
-### `/clarify` - SKIP if:
-- Your specification is already clear and complete
-- All stakeholders agree on requirements
-- There are no ambiguous requirements
-
-### `/clarify` - RUN if:
-- Your `/specify` output feels vague or incomplete
-- Stakeholders are disagreeing on requirements
-- You have unanswered questions about scope
+| Step | Skip if | Run if |
+|---|---|---|
+| `/speckit.clarify` | Spec is clear, requirements agreed | Spec has gaps, stakeholders disagree |
+| `governed-plan` vs `plan` | Feature 001 (no prior memory) | Feature 002+ (prior patterns exist) |
+| `governed-implement` vs `implement` | Trivial config-only changes | Any new PHP class or React component |
+| `security-review.staged` | Pure documentation PR | Any REST endpoint or capability check change |
 
 ---
 
-## Time Estimates
-
-- `/constitution` - 5-10 minutes
-- `/specify` - 10-15 minutes
-- `/clarify` - 5-10 minutes (if needed)
-- `/plan` - 10-15 minutes
-- Extensions (Memory, Architecture, Security) - Automatic (1-2 min each)
-- `/tasks` - 5 minutes (auto-generated)
-- `/implement` - 10-30 minutes (depends on complexity)
-- `/analyze` - 2-5 minutes
-- Post-impl extensions - 5-10 minutes each
-- Git commit - Automatic
-
-**Total time: 60-120 minutes for a feature like "Sitewide Ability Management"**
-
----
-
-## Key Principles
-
-1. **Constitution First** - Principles guide all decisions
-2. **Spec Before Plan** - Define "what" before "how"
-3. **Validate Early** - Architecture & Security checks BEFORE implementation
-4. **Document Always** - Memory files keep knowledge for the team
-5. **Analyze Last** - Final consistency check before release
-
----
-
-## Files This Workflow Creates
+## Actual Spec Artifacts (what each feature folder contains)
 
 ```
-.specify/memory/
-├── constitution.md
-├── project-context.md
-├── architecture-decisions.md
-├── known-issues.md
-├── module-map.md
-└── governance/
-    ├── architecture-findings.md
-    └── security-findings.md
-
-specs/sitewide-ability-management/
-├── spec.md
-├── plan.md
-└── tasks.md
-
-Plugin files (generated):
-├── includes/features/sitewide/
-│   ├── class-feature.php
-│   ├── class-query.php
-│   ├── class-rest-controller.php
-│   ├── src/
-│   │   ├── components/
-│   │   ├── store/
-│   │   └── api/
-│   └── templates/
+specs/NNN-feature-name/
+├── spec.md              ← functional requirements (FR-NNN, US-N, SC-NNN)
+├── plan.md              ← technical architecture and implementation blueprint
+├── tasks.md             ← dependency-ordered, phase-grouped task list
+├── research.md          ← technical research used by planner
+├── data-model.md        ← DB schema / data shape definitions (if applicable)
+├── quickstart.md        ← fast manual verification steps
+├── memory.md            ← feature-specific memory artifacts
+├── memory-synthesis.md  ← cross-feature learning synthesis
+├── contracts/           ← API contract files
+│   └── *.md
+└── checklists/          ← quality gate checklists
+    └── *.md
 ```
 
 ---
 
-## Your Next Action
-
-Ready to start? Run in your Claude chat:
+## Quick Start (new feature)
 
 ```
-/speckit.constitution Create principles focused on code quality, testing standards, WordPress security, REST API design, and BerlinDB patterns
+1. /speckit.git.feature
+2. /speckit.specify "describe the feature in natural language"
+3. /speckit.memory-md.plan-with-memory
+4. /speckit.architecture-guard.governed-tasks
+5. /speckit.architecture-guard.governed-implement
+6. npm run build && composer run phpcs && composer run phpstan && npm run lint:js
+7. /speckit.memory-md.capture-from-diff
+8. /speckit.git.commit
 ```
-
-Then follow the workflow sequence above. Each step builds on the previous one. 🚀

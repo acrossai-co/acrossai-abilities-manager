@@ -9,6 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Rest;
 
+use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Ability_Override_Processor;
 use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Rest_Controller;
 use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Query;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer;
@@ -85,6 +86,7 @@ class AcrossAI_Sitewide_Override_Controller {
 							'type'              => 'string',
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
+							'validate_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'validate_ability_slug' ),
 						),
 						'site_allowed' => array(
 							'type'     => 'boolean',
@@ -109,6 +111,7 @@ class AcrossAI_Sitewide_Override_Controller {
 							'type'              => 'string',
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
+							'validate_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'validate_ability_slug' ),
 						),
 						// All 8 overridable fields must be declared — missing args cause WP to reject
 						// the entire request with 'Invalid parameter(s)' before the callback runs.
@@ -165,6 +168,7 @@ class AcrossAI_Sitewide_Override_Controller {
 							'type'              => 'string',
 							'required'          => true,
 							'sanitize_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'sanitize_ability_slug' ),
+							'validate_callback' => array( 'AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer', 'validate_ability_slug' ),
 						),
 					),
 				),
@@ -198,8 +202,8 @@ class AcrossAI_Sitewide_Override_Controller {
 		// overwrite the other tab's saved DB values with NULL on UPDATE.
 		// has_param() is true even when the field is explicitly null in the body
 		// (intentional "clear this field"), so only truly absent fields are skipped.
-		$fields      = array();
-		$tri_state   = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'show_in_mcp' );
+		$fields    = array();
+		$tri_state = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'show_in_mcp' );
 		foreach ( $tri_state as $field ) {
 			if ( $request->has_param( $field ) ) {
 				$fields[ $field ] = AcrossAI_Sanitizer::sanitize_tri_state( $request->get_param( $field ) );
@@ -256,6 +260,18 @@ class AcrossAI_Sitewide_Override_Controller {
 		$override = $this->db_query->get_override_by_slug( $slug );
 		$merged   = AcrossAI_Ability_Merger::merge( $registry, $override );
 
+		/**
+		 * Filters the merged ability data before it is returned in the REST response.
+		 *
+		 * Consumers MUST NOT remove 'slug', 'has_override', or alter field types —
+		 * doing so will break client-side Redux store deserialization.
+		 *
+		 * @since 0.1.0
+		 * @param array  $merged Merged ability data (registry + override).
+		 * @param string $slug   Sanitized ability slug.
+		 */
+		$merged = (array) apply_filters( 'acrossai_abilities_sitewide_rest_response', $merged, $slug );
+
 		return rest_ensure_response( $merged );
 	}
 
@@ -287,6 +303,8 @@ class AcrossAI_Sitewide_Override_Controller {
 				)
 			);
 		}
+
+		AcrossAI_Ability_Override_Processor::bust_cache();
 
 		return rest_ensure_response(
 			array(
@@ -331,13 +349,26 @@ class AcrossAI_Sitewide_Override_Controller {
 		/**
 		 * Fires after toggling an ability override.
 		 *
+		 * Passes the complete saved row fields — not just the toggled field —
+		 * so hook consumers do not need to handle partial arrays (LOW-NEW-02).
+		 *
 		 * @since 0.1.0
-		 * @param string $slug   Ability slug.
-		 * @param array  $fields Sanitized fields that were saved.
+		 * @param string $slug        Ability slug.
+		 * @param array  $hook_fields Complete override fields from the saved row.
 		 */
-		do_action( 'acrossai_abilities_sitewide_after_save', $slug, $fields );
-
-		$override = $this->db_query->get_override_by_slug( $slug );
+		$override    = $this->db_query->get_override_by_slug( $slug );
+		$hook_fields = null !== $override ? array(
+			'site_allowed' => $override->site_allowed,
+			'readonly'     => $override->readonly,
+			'destructive'  => $override->destructive,
+			'idempotent'   => $override->idempotent,
+			'show_in_rest' => $override->show_in_rest,
+			'show_in_mcp'  => $override->show_in_mcp,
+			'mcp_type'     => $override->mcp_type,
+			'mcp_servers'  => $override->mcp_servers,
+			'source'       => $override->source,
+		) : $fields;
+		do_action( 'acrossai_abilities_sitewide_after_save', $slug, $hook_fields );
 
 		return rest_ensure_response(
 			array(

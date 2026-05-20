@@ -32,7 +32,31 @@ class AcrossAI_Sanitizer {
 	public static function sanitize_ability_slug( string $slug ): string {
 		$slug = sanitize_text_field( $slug );
 		// Allow alphanumeric, hyphens, underscores, forward-slashes (namespaced slugs).
-		return preg_replace( '/[^a-zA-Z0-9\-_\/]/', '', $slug );
+		$slug = preg_replace( '/[^a-zA-Z0-9\-_\/]/', '', $slug );
+		// Enforce maximum length to prevent oversized slugs reaching the DB (LOW-04).
+		return substr( $slug, 0, 255 );
+	}
+
+	/**
+	 * Validate an ability slug — reject slugs exceeding 255 characters.
+	 *
+	 * Used as `validate_callback` on `{slug}` URL parameters. Returns a WP_Error
+	 * with HTTP 400 when the raw slug exceeds 255 characters (LOW-04 / ST-01).
+	 * Sanitization is handled separately via `sanitize_ability_slug()`.
+	 *
+	 * @since  0.1.0
+	 * @param  string $slug Raw slug value from URL.
+	 * @return true|\WP_Error
+	 */
+	public static function validate_ability_slug( string $slug ) {
+		if ( mb_strlen( $slug ) > 255 ) {
+			return new \WP_Error(
+				'rest_invalid_param',
+				__( 'Ability slug must not exceed 255 characters.', 'acrossai-abilities-manager' ),
+				array( 'status' => 400 )
+			);
+		}
+		return true;
 	}
 
 	/**

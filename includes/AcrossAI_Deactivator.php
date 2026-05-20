@@ -24,7 +24,7 @@ defined( 'ABSPATH' ) || exit;
  * @subpackage AcrossAI_Abilities_Manager/includes
  * @author     WPBoilerplate <contact@wpboilerplate.com>
  */
-class Deactivator {
+class AcrossAI_Deactivator {
 
 	/**
 	 * Short Description. (use period)

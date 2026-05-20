@@ -1,7 +1,14 @@
 <?php
+/**
+ * The core plugin class file.
+ *
+ * @package AcrossAI_Abilities_Manager
+ * @since   0.0.1
+ */
+
 namespace AcrossAI_Abilities_Manager\Includes;
 
-// Exit if accessed directly
+// Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -108,9 +115,9 @@ final class Main {
 		$this->define_constants();
 
 		$this->plugin_name = 'acrossai-abilities-manager';
-		$this->version = ACROSSAI_ABILITIES_MANAGER_VERSION;
+		$this->version     = ACROSSAI_ABILITIES_MANAGER_VERSION;
 
-		// Load the autoloader class manually before registering it
+		// Load the autoloader class manually before registering it.
 		$this->plugin_dir = ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH;
 
 		$this->load_composer_dependencies();
@@ -154,7 +161,8 @@ final class Main {
 
 	/**
 	 * Define constant if not already set
-	 * @param  string $name
+	 *
+	 * @param  string      $name
 	 * @param  string|bool $value
 	 */
 	private function define( $name, $value ) {
@@ -220,7 +228,7 @@ final class Main {
 	 */
 	private function load_dependencies() {
 
-		$this->loader = Loader::instance();
+		$this->loader = AcrossAI_Loader::instance();
 	}
 
 	/**
@@ -233,9 +241,9 @@ final class Main {
 	 * @access   private
 	 */
 	private function set_locale() {
-		$i18n = new I18n();
+		$i18n = new AcrossAI_I18n();
 
-		// Now attach it to `init`, not `plugins_loaded`
+		// Now attach it to `init`, not `plugins_loaded`.
 		$this->loader->add_action( 'init', $i18n, 'do_load_textdomain' );
 	}
 
@@ -274,9 +282,10 @@ final class Main {
 		$mcp_servers_list = \WPBoilerplate\McpServersList\McpServersList::instance();
 		$this->loader->add_action( 'rest_api_init', $mcp_servers_list, 'collect', 20 );
 
-		// Register Access Control REST routes.
+		// Register Access Control REST routes and admin notice for absent library (SAC-01).
 		$sitewide_ac = \AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Access_Control::instance();
 		$this->loader->add_action( 'rest_api_init', $sitewide_ac, 'register_rest_api' );
+		$this->loader->add_action( 'admin_notices', $sitewide_ac, 'maybe_show_library_notice' );
 	}
 
 	/**
@@ -293,6 +302,12 @@ final class Main {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+
+		// Ability Override Processor — boot at plugins_loaded P20 and bust cache on override save.
+		// Named variable before Loader calls satisfies the Boot Flow Rule (SEC-PLAN-002).
+		$override_processor = \AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Ability_Override_Processor::instance();
+		$this->loader->add_action( 'plugins_loaded', $override_processor, 'boot_hook', 20 );
+		$this->loader->add_action( 'acrossai_abilities_sitewide_after_save', $override_processor, 'bust_cache_hook' );
 	}
 
 	/**
