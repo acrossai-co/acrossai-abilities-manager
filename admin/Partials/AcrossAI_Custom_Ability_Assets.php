@@ -1,13 +1,15 @@
 <?php
 /**
- * Custom Ability Admin Assets Manager
+ * Custom Ability Assets Manager
  *
- * Enqueues scripts and styles for Custom Abilities admin interface.
+ * Enqueues scripts and stylesheets for the Custom Abilities admin page.
  *
  * @package AcrossAI_Abilities_Manager
  * @subpackage Admin\Partials
  * @since 1.0.0
  */
+
+namespace AcrossAI_Abilities_Manager\Admin\Partials;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -16,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * AcrossAI_Custom_Ability_Assets class
  *
- * Singleton: Manages asset enqueuing for Custom Abilities admin.
+ * Singleton: Manages script and style enqueuing for Custom Abilities.
  *
  * @since 1.0.0
  */
@@ -44,7 +46,7 @@ class AcrossAI_Custom_Ability_Assets {
 	}
 
 	/**
-	 * Constructor
+	 * Constructor (private for singleton)
 	 *
 	 * @since 1.0.0
 	 */
@@ -53,115 +55,71 @@ class AcrossAI_Custom_Ability_Assets {
 	}
 
 	/**
-	 * Enqueue scripts
-	 *
-	 * Enqueues JavaScript for Custom Abilities admin interface.
-	 * Only on acrossai-custom-abilities admin page.
+	 * Enqueue scripts for Custom Abilities admin page
 	 *
 	 * @since 1.0.0
+	 * @action admin_enqueue_scripts
 	 * @return void
 	 */
 	public function enqueue_scripts() {
 		// Only enqueue on Custom Abilities admin page
-		if ( ! $this->is_custom_abilities_page() ) {
+		$screen = get_current_screen();
+		if ( ! $screen || 'abilities-manager_page_acrossai-custom-abilities' !== $screen->id ) {
 			return;
 		}
 
-		$script_path = ACROSSAI_ABILITIES_MANAGER_DIR . 'build/js/custom-abilities.js';
-		$script_url  = ACROSSAI_ABILITIES_MANAGER_URL . 'build/js/custom-abilities.js';
+		// Get plugin file path
+		$plugin_file = defined( 'ACROSSAI_ABILITIES_MANAGER_FILE' )
+			? ACROSSAI_ABILITIES_MANAGER_FILE
+			: dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/acrossai-abilities-manager.php';
 
-		// Check if built script exists (development/production)
+		// Build script path
+		$script_path = dirname( $plugin_file ) . '/build/js/custom-abilities.js';
+		$script_url = plugins_url( 'build/js/custom-abilities.js', $plugin_file );
+
+		// Only enqueue if built file exists (for production)
 		if ( file_exists( $script_path ) ) {
-			$dependencies = include ACROSSAI_ABILITIES_MANAGER_DIR . 'build/js/custom-abilities.asset.php';
 			wp_enqueue_script(
 				'acrossai-abilities-custom',
 				$script_url,
-				$dependencies['dependencies'] ?? array( 'wp-react', 'wp-react-dom', 'wp-dataviews', 'wp-i18n' ),
-				$dependencies['version'] ?? ACROSSAI_ABILITIES_MANAGER_VERSION,
-				array( 'in_footer' => true )
-			);
-		} else {
-			// Fallback if script not built yet (development)
-			wp_enqueue_script(
-				'acrossai-abilities-custom',
-				$script_url,
-				array( 'wp-react', 'wp-react-dom', 'wp-dataviews', 'wp-i18n' ),
-				ACROSSAI_ABILITIES_MANAGER_VERSION,
-				array( 'in_footer' => true )
+				array( 'wp-react', 'wp-react-dom', 'wp-dataviews', 'wp-i18n', 'wp-api-fetch' ),
+				filemtime( $script_path ),
+				true
 			);
 		}
-
-		// Localize script with data
-		wp_localize_script(
-			'acrossai-abilities-custom',
-			'acrossaiCustomAbilitiesSettings',
-			array(
-				'restNamespace' => rest_url( 'acrossai-abilities-manager/v1' ),
-				'nonce'         => wp_create_nonce( 'wp_rest' ),
-				'currentUser'   => get_current_user_id(),
-			)
-		);
 	}
 
 	/**
-	 * Enqueue styles
-	 *
-	 * Enqueues CSS for Custom Abilities admin interface.
-	 * Only on acrossai-custom-abilities admin page.
+	 * Enqueue styles for Custom Abilities admin page
 	 *
 	 * @since 1.0.0
+	 * @action admin_enqueue_scripts
 	 * @return void
 	 */
 	public function enqueue_styles() {
 		// Only enqueue on Custom Abilities admin page
-		if ( ! $this->is_custom_abilities_page() ) {
+		$screen = get_current_screen();
+		if ( ! $screen || 'abilities-manager_page_acrossai-custom-abilities' !== $screen->id ) {
 			return;
 		}
 
-		$style_path = ACROSSAI_ABILITIES_MANAGER_DIR . 'build/css/custom-abilities.css';
-		$style_url  = ACROSSAI_ABILITIES_MANAGER_URL . 'build/css/custom-abilities.css';
+		// Get plugin file path
+		$plugin_file = defined( 'ACROSSAI_ABILITIES_MANAGER_FILE' )
+			? ACROSSAI_ABILITIES_MANAGER_FILE
+			: dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/acrossai-abilities-manager.php';
 
-		// Check if built stylesheet exists
+		// Build style path
+		$style_path = dirname( $plugin_file ) . '/build/css/custom-abilities.css';
+		$style_url = plugins_url( 'build/css/custom-abilities.css', $plugin_file );
+
+		// Only enqueue if built file exists (for production)
 		if ( file_exists( $style_path ) ) {
-			$style_mtime = filemtime( $style_path );
 			wp_enqueue_style(
 				'acrossai-abilities-custom',
 				$style_url,
 				array( 'wp-components', 'wp-dataviews' ),
-				$style_mtime
-			);
-		} else {
-			// Fallback if stylesheet not built yet (development)
-			wp_enqueue_style(
-				'acrossai-abilities-custom',
-				$style_url,
-				array( 'wp-components', 'wp-dataviews' ),
-				ACROSSAI_ABILITIES_MANAGER_VERSION
+				filemtime( $style_path )
 			);
 		}
-	}
-
-	/**
-	 * Check if current page is Custom Abilities admin page
-	 *
-	 * @since 1.0.0
-	 * @return bool True if on Custom Abilities page, false otherwise
-	 */
-	private function is_custom_abilities_page() {
-		// Check if we're on the admin page
-		if ( ! is_admin() ) {
-			return false;
-		}
-
-		// Check current page/screen
-		$screen = get_current_screen();
-		if ( null === $screen ) {
-			return false;
-		}
-
-		// Check by base (handles both submenu and parent menu pages)
-		$page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
-
-		return 'acrossai-custom-abilities' === $page;
 	}
 }

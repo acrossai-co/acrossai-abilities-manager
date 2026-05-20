@@ -4,14 +4,15 @@
  *
  * Renders the Custom Abilities admin page with DataForm/DataViews containers.
  *
- * @package AcrossAI_Abilities_Manager
- * @subpackage Admin\Partials
- * @since 1.0.0
+ * @package    AcrossAI_Abilities_Manager
+ * @subpackage AcrossAI_Abilities_Manager/admin/Partials
+ * @since      1.0.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+namespace AcrossAI_Abilities_Manager\Admin\Partials;
+
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
 
 /**
  * AcrossAI_Custom_Ability_Page class

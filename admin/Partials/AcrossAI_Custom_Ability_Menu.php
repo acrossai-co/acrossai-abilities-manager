@@ -1,13 +1,15 @@
 <?php
 /**
- * Custom Ability Admin Menu Registration
+ * Custom Ability Admin Menu
  *
- * Registers submenu for Custom Abilities under main Abilities Manager menu.
+ * Registers the Custom Abilities submenu under Abilities Manager.
  *
  * @package AcrossAI_Abilities_Manager
  * @subpackage Admin\Partials
  * @since 1.0.0
  */
+
+namespace AcrossAI_Abilities_Manager\Admin\Partials;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -16,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * AcrossAI_Custom_Ability_Menu class
  *
- * Singleton: Registers and manages Custom Abilities admin menu.
+ * Singleton: Registers admin menu for Custom Abilities.
  *
  * @since 1.0.0
  */
@@ -44,7 +46,7 @@ class AcrossAI_Custom_Ability_Menu {
 	}
 
 	/**
-	 * Constructor
+	 * Constructor (private for singleton)
 	 *
 	 * @since 1.0.0
 	 */
@@ -53,40 +55,43 @@ class AcrossAI_Custom_Ability_Menu {
 	}
 
 	/**
-	 * Register admin menu
+	 * Add admin menu and submenu
 	 *
-	 * Adds submenu under "Abilities Manager" parent menu.
+	 * Registers the Custom Abilities submenu under Abilities Manager parent menu.
+	 * Called via Loader action hook: admin_menu
 	 *
 	 * @since 1.0.0
+	 * @action admin_menu
 	 * @return void
 	 */
-	public function register_menu() {
-		// Verify parent menu exists before adding submenu
-		if ( ! menu_page_url( 'acrossai-abilities-manager', false ) ) {
-			// Parent menu not registered yet; this can happen if dependencies aren't loaded
-			// Schedule retry or silently fail
-			return;
-		}
-
+	public function add_menu() {
+		// Register submenu under Abilities Manager
+		// Parent slug: 'abilities-manager' (registered by feature 003/004)
 		add_submenu_page(
-			'acrossai-abilities-manager',                  // Parent menu slug
-			__( 'Custom Abilities', 'acrossai-abilities-manager' ),  // Page title
-			__( 'Custom Abilities', 'acrossai-abilities-manager' ),  // Menu title
-			'manage_options',                              // Capability
-			'acrossai-custom-abilities',                   // Menu slug
-			array( $this, 'render_page' )                  // Callback
+			'abilities-manager',                           // Parent slug
+			esc_html__( 'Custom Abilities', 'acrossai-abilities-manager' ), // Page title
+			esc_html__( 'Custom Abilities', 'acrossai-abilities-manager' ), // Menu title
+			'manage_options',                             // Capability
+			'acrossai-custom-abilities',                  // Menu slug
+			array( $this, 'render_page' )                 // Callback
 		);
 	}
 
 	/**
 	 * Render admin page
 	 *
-	 * Delegates to page renderer.
+	 * Callback for displaying the Custom Abilities page.
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	public function render_page() {
+		// Verify capability
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'acrossai-abilities-manager' ) );
+		}
+
+		// Render page via Page class
 		$page = AcrossAI_Custom_Ability_Page::instance();
 		$page->render();
 	}
