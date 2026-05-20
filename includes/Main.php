@@ -294,6 +294,15 @@ final class Main {
 		// Custom Abilities Module — Register REST routes at rest_api_init (T005).
 		$custom_ability_rest = \AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest\AcrossAI_Custom_Ability_Rest_Controller::instance();
 		$this->loader->add_action( 'rest_api_init', $custom_ability_rest, 'register_routes' );
+
+		// Custom Abilities Admin Menu (T010)
+		$custom_ability_menu = AcrossAI_Custom_Ability_Menu::instance();
+		$this->loader->add_action( 'admin_menu', $custom_ability_menu, 'register_submenu' );
+
+		// Custom Abilities Assets (T010)
+		$custom_ability_assets = AcrossAI_Custom_Ability_Assets::instance();
+		$this->loader->add_action( 'admin_enqueue_scripts', $custom_ability_assets, 'enqueue_scripts' );
+		$this->loader->add_action( 'admin_enqueue_scripts', $custom_ability_assets, 'enqueue_styles' );
 	}
 
 	/**
