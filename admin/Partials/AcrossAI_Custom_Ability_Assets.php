@@ -55,6 +55,25 @@ class AcrossAI_Custom_Ability_Assets {
 	}
 
 	/**
+	 * Check if we're on the custom abilities page
+	 *
+	 * @since 1.0.0
+	 * @return bool True if on custom abilities page
+	 */
+	private function is_custom_abilities_page() {
+		global $pagenow;
+		
+		// Check if we're on admin.php with acrossai-custom-abilities page
+		if ( 'admin.php' !== $pagenow ) {
+			return false;
+		}
+		
+		// Check the page parameter
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+		return 'acrossai-custom-abilities' === $page;
+	}
+
+	/**
 	 * Enqueue scripts for Custom Abilities admin page
 	 *
 	 * @since 1.0.0
@@ -63,8 +82,7 @@ class AcrossAI_Custom_Ability_Assets {
 	 */
 	public function enqueue_scripts() {
 		// Only enqueue on Custom Abilities admin page
-		$screen = get_current_screen();
-		if ( ! $screen || 'abilities-manager_page_acrossai-custom-abilities' !== $screen->id ) {
+		if ( ! $this->is_custom_abilities_page() ) {
 			return;
 		}
 
@@ -108,8 +126,7 @@ class AcrossAI_Custom_Ability_Assets {
 	 */
 	public function enqueue_styles() {
 		// Only enqueue on Custom Abilities admin page
-		$screen = get_current_screen();
-		if ( ! $screen || 'abilities-manager_page_acrossai-custom-abilities' !== $screen->id ) {
+		if ( ! $this->is_custom_abilities_page() ) {
 			return;
 		}
 
