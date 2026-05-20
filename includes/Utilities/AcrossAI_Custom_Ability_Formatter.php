@@ -1,190 +1,223 @@
 <?php
 /**
- * Custom Ability Response Formatter Utility
+ * Custom Ability Response Formatter
  *
- * Converts database Row objects to REST API and MCP response formats.
+ * Formats custom ability objects for REST API and MCP responses.
  *
  * @package AcrossAI_Abilities_Manager
- * @subpackage Includes\Utilities
- * @since 0.0.1
+ * @subpackage Utilities
+ * @since 1.0.0
  */
 
-namespace AcrossAI_Abilities_Manager\Includes\Utilities;
-
-use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Database\AcrossAI_Custom_Ability_Row;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
- * Class AcrossAI_Custom_Ability_Formatter
+ * AcrossAI_Custom_Ability_Formatter class
  *
- * Static utility class for formatting ability data for REST API and MCP responses.
- * All methods are static (Memory DEC-UTILITY-STATIC-ONLY).
+ * Static utility: Formats ability data for various output contexts (REST, MCP, admin).
  *
- * @since 0.0.1
+ * @since 1.0.0
  */
 class AcrossAI_Custom_Ability_Formatter {
 
 	/**
-	 * Format ability for REST API response.
+	 * Format ability for REST API response
 	 *
-	 * Converts database Row object to REST response format with all 20 fields.
-	 * Returns JSON-encodable stdClass object.
+	 * Converts BerlinDB ability row to REST-compatible object with all 20 fields.
+	 * Ensures proper data types, JSON encoding, timestamp formatting.
 	 *
-	 * @since 0.0.1
-	 * @param AcrossAI_Custom_Ability_Row $ability Ability Row object.
-	 * @return \stdClass Formatted ability for REST response.
+	 * @since 1.0.0
+	 * @param AcrossAI_Custom_Ability_Row $ability_row Ability row object
+	 * @return stdClass|WP_Error Formatted ability object or error
 	 */
-	public static function format_ability_for_response( AcrossAI_Custom_Ability_Row $ability ) {
-		$response = new \stdClass();
+	public static function format_ability_for_response( $ability_row ) {
+		if ( ! $ability_row || ! is_object( $ability_row ) ) {
+			return new WP_Error(
+				'invalid_ability',
+				'Ability must be a valid object',
+				array( 'status' => 500 )
+			);
+		}
 
-		// Basic fields
-		$response->id             = (int) $ability->id;
-		$response->ability_slug   = $ability->ability_slug;
-		$response->label          = $ability->label;
-		$response->description    = $ability->description;
-		$response->category       = $ability->category;
-		$response->enabled        = (bool) $ability->enabled;
+		// Ensure JSON fields are properly decoded
+		$callback_config = is_array( $ability_row->callback_config ) 
+			? $ability_row->callback_config 
+			: (array) json_decode( $ability_row->callback_config, true );
 
-		// Callback configuration
-		$response->callback_type   = $ability->callback_type;
-		$response->callback_config = $ability->get_callback_config();
+		$permission_config = is_array( $ability_row->permission_config ) 
+			? $ability_row->permission_config 
+			: (array) json_decode( $ability_row->permission_config, true );
 
-		// Permission configuration
-		$response->permission_type   = $ability->permission_type;
-		$response->permission_config = $ability->get_permission_config();
+		$input_schema = is_array( $ability_row->input_schema ) 
+			? $ability_row->input_schema 
+			: (array) json_decode( $ability_row->input_schema, true );
 
-		// Input/Output schemas
-		$response->input_schema  = $ability->get_input_schema();
-		$response->output_schema = $ability->get_output_schema();
+		$output_schema = is_array( $ability_row->output_schema ) 
+			? $ability_row->output_schema 
+			: (array) json_decode( $ability_row->output_schema, true );
 
-		// Exposure flags
-		$response->show_in_rest = (bool) $ability->show_in_rest;
-		$response->show_in_mcp  = (bool) $ability->show_in_mcp;
+		$mcp_servers = is_array( $ability_row->mcp_servers ) 
+			? $ability_row->mcp_servers 
+			: (array) json_decode( $ability_row->mcp_servers, true );
 
-		// MCP configuration
-		$response->mcp_type    = $ability->mcp_type;
-		$response->mcp_servers = $ability->get_mcp_servers();
-
-		// Metadata flags (tri-state)
-		$response->readonly    = $ability->readonly;
-		$response->destructive = $ability->destructive;
-		$response->idempotent  = $ability->idempotent;
-
-		// Timestamps (ISO 8601 format)
-		$response->created_at = $ability->created_at;
-		$response->updated_at = $ability->updated_at;
+		// Format all 20 fields
+		$response = (object) array(
+			'id'                => (int) $ability_row->id,
+			'ability_slug'      => (string) $ability_row->ability_slug,
+			'label'             => (string) $ability_row->label,
+			'description'       => (string) $ability_row->description,
+			'category'          => (string) $ability_row->category,
+			'enabled'           => (bool) $ability_row->enabled,
+			'callback_type'     => (string) $ability_row->callback_type,
+			'callback_config'   => $callback_config,
+			'permission_type'   => (string) $ability_row->permission_type,
+			'permission_config' => $permission_config,
+			'input_schema'      => $input_schema,
+			'output_schema'     => $output_schema,
+			'show_in_rest'      => (bool) $ability_row->show_in_rest,
+			'show_in_mcp'       => (bool) $ability_row->show_in_mcp,
+			'mcp_type'          => $ability_row->mcp_type ? (string) $ability_row->mcp_type : null,
+			'mcp_servers'       => $mcp_servers,
+			'readonly'          => $ability_row->readonly !== null ? (int) $ability_row->readonly : null,
+			'destructive'       => $ability_row->destructive !== null ? (int) $ability_row->destructive : null,
+			'idempotent'        => $ability_row->idempotent !== null ? (int) $ability_row->idempotent : null,
+			'created_at'        => self::format_timestamp( $ability_row->created_at ),
+			'updated_at'        => self::format_timestamp( $ability_row->updated_at ),
+		);
 
 		/**
-		 * Filter REST response before sending.
+		 * Filter REST response before returning to client
 		 *
-		 * @since 0.0.1
-		 * @param \stdClass $response Formatted ability response.
-		 * @param AcrossAI_Custom_Ability_Row $ability Original ability Row object.
+		 * Allows plugins to modify response shape or add additional fields.
+		 *
+		 * @since 1.0.0
+		 * @param stdClass                  $response     Formatted response object
+		 * @param AcrossAI_Custom_Ability_Row $ability_row Original ability row
+		 * @return stdClass Modified response object
 		 */
-		return apply_filters(
-			'acrossai_custom_ability_rest_response',
-			$response,
-			$ability
-		);
+		return apply_filters( 'acrossai_custom_ability_rest_response', $response, $ability_row );
 	}
 
 	/**
-	 * Format abilities for MCP response.
+	 * Format abilities for MCP exposure
 	 *
-	 * Converts ability array to MCP-compatible format based on MCP type.
+	 * Formats abilities array for MCP (Model Context Protocol) clients.
+	 * Filters by show_in_mcp, mcp_type, and mcp_servers.
+	 * Returns MCP-compatible format with simplified field set.
 	 *
-	 * @since 0.0.1
-	 * @param AcrossAI_Custom_Ability_Row[] $abilities Array of ability Row objects.
-	 * @param string                        $mcp_type  MCP type: 'tool', 'resource', or 'prompt'.
-	 * @param string|null                   $current_server Current MCP server slug (optional).
-	 * @return \stdClass[] Array of MCP-formatted abilities.
+	 * @since 1.0.0
+	 * @param array      $abilities Array of ability row objects
+	 * @param string     $mcp_type Type to filter (tool|resource|prompt)
+	 * @param string|null $current_mcp_server Current MCP server slug (optional)
+	 * @return array Array of MCP-formatted ability objects
 	 */
-	public static function format_for_mcp( $abilities, $mcp_type, $current_server = null ) {
+	public static function format_for_mcp( $abilities = array(), $mcp_type = 'tool', $current_mcp_server = null ) {
 		$formatted = array();
 
 		foreach ( (array) $abilities as $ability ) {
-			if ( ! ( $ability instanceof AcrossAI_Custom_Ability_Row ) ) {
+			// Skip if not exposed to MCP
+			if ( ! $ability->show_in_mcp ) {
 				continue;
 			}
 
-			// Filter by MCP type
+			// Skip if mcp_type doesn't match
 			if ( $ability->mcp_type !== $mcp_type ) {
 				continue;
 			}
 
-			// Filter by MCP server (if server specified and list provided)
-			$mcp_servers = $ability->get_mcp_servers();
-			if ( ! empty( $current_server ) && ! empty( $mcp_servers ) ) {
-				if ( ! in_array( $current_server, (array) $mcp_servers, true ) ) {
-					continue; // This server is not in the ability's server list
-				}
+			// Skip if current server is specified and not in mcp_servers list
+			if ( $current_mcp_server && is_array( $ability->mcp_servers ) && ! in_array( $current_mcp_server, $ability->mcp_servers, true ) ) {
+				continue;
 			}
 
-			// Build MCP response object
-			$mcp_item = new \stdClass();
-
-			$mcp_item->name        = $ability->ability_slug;
-			$mcp_item->description = $ability->description ?: $ability->label;
-
-			// Include input schema for tools/resources
-			if ( $ability->get_input_schema() ) {
-				$mcp_item->inputSchema = $ability->get_input_schema();
-			}
-
-			// Include metadata flags
-			if ( null !== $ability->destructive ) {
-				$mcp_item->destructive = (bool) $ability->destructive;
-			}
-			if ( null !== $ability->idempotent ) {
-				$mcp_item->idempotent = (bool) $ability->idempotent;
-			}
-
-			/**
-			 * Filter MCP item before adding to response.
-			 *
-			 * @since 0.0.1
-			 * @param \stdClass $mcp_item Formatted MCP item.
-			 * @param AcrossAI_Custom_Ability_Row $ability Original ability Row object.
-			 * @param string $mcp_type MCP type.
-			 */
-			$mcp_item = apply_filters(
+			// Allow filter to exclude ability from MCP
+			$include = apply_filters(
 				'acrossai_custom_ability_mcp_filter',
-				$mcp_item,
+				true,
 				$ability,
-				$mcp_type
+				$mcp_type,
+				$current_mcp_server
 			);
 
-			if ( $mcp_item ) {
-				$formatted[] = $mcp_item;
+			if ( ! $include ) {
+				continue;
 			}
+
+			// Decode schemas
+			$input_schema = is_array( $ability->input_schema ) 
+				? $ability->input_schema 
+				: json_decode( $ability->input_schema, true );
+
+			// MCP-compatible response format
+			$formatted[] = (object) array(
+				'name'        => $ability->ability_slug,
+				'description' => $ability->description,
+				'inputSchema' => $input_schema ?: array(),
+				'destructive' => (bool) $ability->destructive,
+				'idempotent'  => (bool) $ability->idempotent,
+			);
 		}
 
 		return $formatted;
 	}
 
 	/**
-	 * Format single ability as MCP object.
+	 * Format timestamp to ISO 8601 format
 	 *
-	 * @since 0.0.1
-	 * @param AcrossAI_Custom_Ability_Row $ability Ability Row object.
-	 * @return \stdClass MCP-formatted ability.
+	 * Converts MySQL timestamp to ISO 8601 format (e.g., 2026-05-20T10:30:00Z).
+	 * Used for REST API responses and MCP compatibility.
+	 *
+	 * @since 1.0.0
+	 * @param string $timestamp MySQL timestamp (e.g., "2026-05-20 10:30:00")
+	 * @return string ISO 8601 formatted timestamp or empty string if invalid
 	 */
-	public static function format_ability_for_mcp( AcrossAI_Custom_Ability_Row $ability ) {
-		$mcp_item = new \stdClass();
-
-		$mcp_item->name        = $ability->ability_slug;
-		$mcp_item->description = $ability->description ?: $ability->label;
-
-		if ( $ability->get_input_schema() ) {
-			$mcp_item->inputSchema = $ability->get_input_schema();
+	private static function format_timestamp( $timestamp ) {
+		if ( empty( $timestamp ) ) {
+			return '';
 		}
 
-		if ( null !== $ability->destructive ) {
-			$mcp_item->destructive = (bool) $ability->destructive;
+		try {
+			// Parse MySQL timestamp and convert to ISO 8601
+			$datetime = new DateTime( $timestamp, new DateTimeZone( 'UTC' ) );
+			return $datetime->format( 'c' ); // ISO 8601 format with timezone
+		} catch ( Exception $e ) {
+			// Return empty string if parsing fails
+			return '';
 		}
-		if ( null !== $ability->idempotent ) {
-			$mcp_item->idempotent = (bool) $ability->idempotent;
+	}
+
+	/**
+	 * Format ability summary for admin list display
+	 *
+	 * Formats ability data for quick display in admin lists/tables.
+	 * Truncates description, formats status badges, etc.
+	 *
+	 * @since 1.0.0
+	 * @param AcrossAI_Custom_Ability_Row $ability_row Ability row object
+	 * @param int                          $desc_length Max description length (default: 100)
+	 * @return array Formatted array for display
+	 */
+	public static function format_for_admin_display( $ability_row, $desc_length = 100 ) {
+		$description = $ability_row->description;
+		if ( strlen( $description ) > $desc_length ) {
+			$description = substr( $description, 0, $desc_length ) . '…';
 		}
 
-		return $mcp_item;
+		$status = $ability_row->enabled ? 'Enabled' : 'Disabled';
+		$status_class = $ability_row->enabled ? 'active' : 'inactive';
+
+		return array(
+			'id'              => (int) $ability_row->id,
+			'slug'            => (string) $ability_row->ability_slug,
+			'label'           => (string) $ability_row->label,
+			'description'     => $description,
+			'status'          => $status,
+			'status_class'    => $status_class,
+			'callback_type'   => (string) $ability_row->callback_type,
+			'permission_type' => (string) $ability_row->permission_type,
+			'show_in_mcp'     => (bool) $ability_row->show_in_mcp,
+		);
 	}
 }

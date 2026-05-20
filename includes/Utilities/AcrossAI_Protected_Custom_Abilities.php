@@ -1,70 +1,122 @@
 <?php
 /**
- * Protected namespace prefixes for custom abilities
+ * Protected Custom Abilities Namespace Filtering
+ *
+ * Defines and manages protected ability namespace prefixes to prevent collisions.
  *
  * @package AcrossAI_Abilities_Manager
- * @subpackage Includes\Utilities
- * @since 0.0.1
+ * @subpackage Utilities
+ * @since 1.0.0
  */
 
-namespace AcrossAI_Abilities_Manager\Includes\Utilities;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
- * Class AcrossAI_Protected_Custom_Abilities
+ * AcrossAI_Protected_Custom_Abilities class
  *
- * Manages protected namespace prefixes that cannot be used for custom abilities.
- * All static methods (Memory DEC-UTILITY-STATIC-ONLY).
+ * Static utility: Manages protected namespace prefixes (DEC-PROTECTED-SLUGS-PATTERN).
  *
- * @since 0.0.1
+ * @since 1.0.0
  */
 class AcrossAI_Protected_Custom_Abilities {
 
 	/**
-	 * Get list of protected namespace prefixes.
+	 * Default protected prefixes
 	 *
-	 * Extensible via apply_filters() (Memory DEC-PROTECTED-SLUGS-PATTERN).
-	 * These prefixes cannot be used for custom ability slugs.
+	 * These prefixes cannot be used for custom ability slugs to prevent conflicts
+	 * with core, WordPress, MCP, and system abilities.
 	 *
-	 * @since 0.0.1
-	 * @param string $context Context for filtering (e.g., 'custom_abilities').
-	 * @return array Array of protected prefixes.
+	 * @since 1.0.0
+	 * @var array
+	 */
+	private static $default_prefixes = array(
+		'acrossai',  // AcrossAI system abilities
+		'mcp',       // MCP-specific abilities
+		'wp',        // WordPress core abilities
+		'system',    // System-level abilities
+		'core',      // Core WordPress abilities
+	);
+
+	/**
+	 * Get list of protected ability namespace prefixes
+	 *
+	 * Protected prefixes cannot be used when creating custom abilities.
+	 * This ensures custom abilities don't collide with system or core abilities.
+	 *
+	 * Can be filtered via `acrossai_protected_ability_prefixes` filter to add/remove prefixes.
+	 *
+	 * @since 1.0.0
+	 * @param string $context Context for the query (e.g., 'custom_abilities', 'validation', 'filtering')
+	 * @return array Array of protected namespace prefixes (e.g., ['acrossai', 'wp', 'core'])
 	 */
 	public static function get_protected_prefixes( $context = 'custom_abilities' ) {
-		$default_prefixes = array(
-			'acrossai',
-			'mcp',
-			'wp',
-			'system',
-			'core',
+		/**
+		 * Filter protected ability namespace prefixes
+		 *
+		 * Allows plugins/themes to add or remove protected prefixes dynamically.
+		 * Default includes: acrossai, mcp, wp, system, core
+		 *
+		 * @since 1.0.0
+		 * @param array  $prefixes Default protected prefixes
+		 * @param string $context Context for the filter (custom_abilities, validation, filtering, etc.)
+		 * @return array Modified array of protected prefixes
+		 */
+		$prefixes = apply_filters(
+			'acrossai_protected_ability_prefixes',
+			self::$default_prefixes,
+			$context
 		);
 
-		/**
-		 * Filter protected ability namespace prefixes.
-		 *
-		 * @since 0.0.1
-		 * @param array  $prefixes Default list of protected prefixes.
-		 * @param string $context  Context for the filter.
-		 */
-		return apply_filters( 'acrossai_protected_ability_prefixes', $default_prefixes, $context );
+		// Ensure return value is array
+		if ( ! is_array( $prefixes ) ) {
+			$prefixes = self::$default_prefixes;
+		}
+
+		return array_unique( array_filter( array_map( 'strval', $prefixes ) ) );
 	}
 
 	/**
-	 * Check if a slug uses a protected prefix.
+	 * Check if a slug starts with a protected prefix
 	 *
-	 * @since 0.0.1
-	 * @param string $slug Ability slug (format: "namespace/name").
-	 * @param string $context Context for filtering.
-	 * @return bool True if slug uses protected prefix, false otherwise.
+	 * @since 1.0.0
+	 * @param string $slug Ability slug to check (format: "namespace/name")
+	 * @param string $context Context for prefix filtering (default: 'custom_abilities')
+	 * @return bool True if slug starts with protected prefix, false otherwise
 	 */
-	public static function is_protected_prefix( $slug = '', $context = 'custom_abilities' ) {
-		if ( empty( $slug ) || strpos( $slug, '/' ) === false ) {
+	public static function is_protected_slug( $slug, $context = 'custom_abilities' ) {
+		$prefixes = self::get_protected_prefixes( $context );
+
+		// Extract namespace part (before first /)
+		$namespace = strpos( $slug, '/' ) !== false ? substr( $slug, 0, strpos( $slug, '/' ) ) : '';
+
+		if ( empty( $namespace ) ) {
 			return false;
 		}
 
-		$parts     = explode( '/', $slug );
-		$namespace = $parts[0];
-		$prefixes  = self::get_protected_prefixes( $context );
+		// Check if namespace matches any protected prefix
+		foreach ( $prefixes as $prefix ) {
+			if ( $namespace === $prefix ) {
+				return true;
+			}
+		}
 
-		return in_array( $namespace, $prefixes, true );
+		return false;
+	}
+
+	/**
+	 * Get list of protected prefixes as pipe-separated string (for regex patterns)
+	 *
+	 * Useful for building regex patterns that match any protected prefix.
+	 * Example output: "acrossai|mcp|wp|system|core"
+	 *
+	 * @since 1.0.0
+	 * @param string $context Context for prefix filtering
+	 * @return string Protected prefixes separated by pipe character
+	 */
+	public static function get_protected_prefixes_pattern( $context = 'custom_abilities' ) {
+		$prefixes = self::get_protected_prefixes( $context );
+		return implode( '|', array_map( 'preg_quote', $prefixes ) );
 	}
 }

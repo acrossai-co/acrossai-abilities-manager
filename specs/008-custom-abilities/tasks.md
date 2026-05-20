@@ -374,7 +374,7 @@ Tasks are organized by technical layer to enable parallel execution within each 
 
 ---
 
-- [ ] T014 [P] Create additional Utility classes (Protected Prefixes, Callback Executor, Formatter)
+- [x] T014 [P] Create additional Utility classes (Protected Prefixes, Callback Executor, Formatter)
 
   **Description**: Implement remaining Utility classes: `AcrossAI_Protected_Custom_Abilities` (namespace filtering per Memory DEC-PROTECTED-SLUGS-PATTERN), `AcrossAI_Custom_Ability_Callback_Executor` (stub for callback execution, out of scope for v1), `AcrossAI_Custom_Ability_Formatter` (REST response formatting).
   
