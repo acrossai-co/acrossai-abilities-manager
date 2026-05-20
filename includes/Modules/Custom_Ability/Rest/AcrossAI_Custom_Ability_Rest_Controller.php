@@ -10,6 +10,8 @@
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest;
 
 use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest\AcrossAI_Custom_Ability_Read_Controller;
+use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest\AcrossAI_Custom_Ability_Write_Controller;
+use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest\AcrossAI_Custom_Ability_Mcp_Controller;
 
 /**
  * Class AcrossAI_Custom_Ability_Rest_Controller
@@ -79,13 +81,13 @@ class AcrossAI_Custom_Ability_Rest_Controller {
 		$read_controller = AcrossAI_Custom_Ability_Read_Controller::instance();
 		$read_controller->register_routes( $this->namespace, $this->rest_base );
 
-		// Register Write sub-controller routes (TODO: T006)
-		// $write_controller = AcrossAI_Custom_Ability_Write_Controller::instance();
-		// $write_controller->register_routes( $this->namespace, $this->rest_base );
+		// Register Write sub-controller routes (T006)
+		$write_controller = AcrossAI_Custom_Ability_Write_Controller::instance();
+		$write_controller->register_routes( $this->namespace, $this->rest_base );
 
-		// Register MCP sub-controller routes (TODO: T006)
-		// $mcp_controller = AcrossAI_Custom_Ability_Mcp_Controller::instance();
-		// $mcp_controller->register_routes( $this->namespace, $this->rest_base );
+		// Register MCP sub-controller routes (T006)
+		$mcp_controller = AcrossAI_Custom_Ability_Mcp_Controller::instance();
+		$mcp_controller->register_routes( $this->namespace, $this->rest_base );
 	}
 
 	/**
