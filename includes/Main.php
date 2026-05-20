@@ -290,6 +290,10 @@ final class Main {
 		$sitewide_ac = \AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Access_Control::instance();
 		$this->loader->add_action( 'rest_api_init', $sitewide_ac, 'register_rest_api' );
 		$this->loader->add_action( 'admin_notices', $sitewide_ac, 'maybe_show_library_notice' );
+
+		// Custom Abilities Module — Register REST routes at rest_api_init (T005).
+		$custom_ability_rest = \AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest\AcrossAI_Custom_Ability_Rest_Controller::instance();
+		$this->loader->add_action( 'rest_api_init', $custom_ability_rest, 'register_routes' );
 	}
 
 	/**
@@ -326,6 +330,10 @@ final class Main {
 		// Named variable before Loader call satisfies Boot Flow Rule (SEC-PLAN-002).
 		$custom_ability_processor = \AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\AcrossAI_Custom_Ability_Processor::instance();
 		$this->loader->add_action( 'wp_abilities_api_init', $custom_ability_processor, 'register_abilities', 10 );
+
+		// Custom Ability REST Controller — stub routes registered at rest_api_init (T005, T006).
+		$custom_ability_rest = \AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest\AcrossAI_Custom_Ability_Rest_Controller::instance();
+		$this->loader->add_action( 'rest_api_init', $custom_ability_rest, 'register_routes' );
 	}
 
 	/**
