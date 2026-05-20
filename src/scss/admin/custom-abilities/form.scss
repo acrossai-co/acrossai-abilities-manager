@@ -1,0 +1,46 @@
+/**
+ * Custom Abilities Form Styles
+ */
+
+.acrossai-ability-form {
+	max-width: 800px;
+	margin: 20px 0;
+
+	.acrossai-form-section {
+		background: #fff;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		padding: 20px;
+		margin-bottom: 20px;
+
+		h3 {
+			margin-top: 0;
+			margin-bottom: 15px;
+			font-size: 14px;
+			font-weight: 600;
+			text-transform: uppercase;
+			color: #23282d;
+		}
+
+		> * + * {
+			margin-top: 15px;
+		}
+	}
+
+	.acrossai-error {
+		display: block;
+		margin-top: 5px;
+		color: #dc3545;
+		font-size: 12px;
+	}
+
+	.acrossai-form-actions {
+		display: flex;
+		gap: 10px;
+		margin-top: 20px;
+
+		button {
+			min-width: 100px;
+		}
+	}
+}
