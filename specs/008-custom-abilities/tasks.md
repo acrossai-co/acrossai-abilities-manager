@@ -256,7 +256,7 @@ Tasks are organized by technical layer to enable parallel execution within each 
 
 ---
 
-- [ ] T010 [P] Create admin menu, page, and asset enqueue
+- [x] T010 [P] Create admin menu, page, and asset enqueue
 
   **Description**: Implement admin menu registration (`AcrossAI_Custom_Ability_Menu.php`), page renderer (`AcrossAI_Custom_Ability_Page.php`), and asset enqueue (`AcrossAI_Custom_Ability_Assets.php`). Register submenu under "Abilities Manager", render DataForm + DataViews containers, enqueue custom-abilities JS/CSS bundle.
   
