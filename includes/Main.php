@@ -296,11 +296,11 @@ final class Main {
 		$this->loader->add_action( 'rest_api_init', $custom_ability_rest, 'register_routes' );
 
 		// Custom Abilities Admin Menu (T010)
-		$custom_ability_menu = AcrossAI_Custom_Ability_Menu::instance();
-		$this->loader->add_action( 'admin_menu', $custom_ability_menu, 'register_submenu' );
+		$custom_ability_menu = \AcrossAI_Custom_Ability_Menu::instance();
+		$this->loader->add_action( 'admin_menu', $custom_ability_menu, 'register_menu' );
 
 		// Custom Abilities Assets (T010)
-		$custom_ability_assets = AcrossAI_Custom_Ability_Assets::instance();
+		$custom_ability_assets = \AcrossAI_Custom_Ability_Assets::instance();
 		$this->loader->add_action( 'admin_enqueue_scripts', $custom_ability_assets, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $custom_ability_assets, 'enqueue_styles' );
 	}
@@ -340,9 +340,6 @@ final class Main {
 		$custom_ability_processor = \AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\AcrossAI_Custom_Ability_Processor::instance();
 		$this->loader->add_action( 'wp_abilities_api_init', $custom_ability_processor, 'register_abilities', 10 );
 
-		// Custom Ability REST Controller — stub routes registered at rest_api_init (T005, T006).
-		$custom_ability_rest = \AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest\AcrossAI_Custom_Ability_Rest_Controller::instance();
-		$this->loader->add_action( 'rest_api_init', $custom_ability_rest, 'register_routes' );
 	}
 
 	/**

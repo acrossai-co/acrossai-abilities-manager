@@ -1,8 +1,8 @@
 <?php
 /**
- * Custom Ability Menu Handler
+ * Custom Ability Admin Menu Registration
  *
- * Registers admin menu/submenu for Custom Abilities management.
+ * Registers submenu for Custom Abilities under main Abilities Manager menu.
  *
  * @package AcrossAI_Abilities_Manager
  * @subpackage Admin\Partials
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * AcrossAI_Custom_Ability_Menu class
  *
- * Singleton: Registers Custom Abilities submenu under "Abilities Manager".
+ * Singleton: Registers and manages Custom Abilities admin menu.
  *
  * @since 1.0.0
  */
@@ -53,29 +53,35 @@ class AcrossAI_Custom_Ability_Menu {
 	}
 
 	/**
-	 * Register admin submenu
+	 * Register admin menu
 	 *
-	 * Hooked at admin_menu priority 10.
-	 * Adds "Custom Abilities" submenu under "Abilities Manager" parent menu.
+	 * Adds submenu under "Abilities Manager" parent menu.
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
-	public function register_submenu() {
+	public function register_menu() {
+		// Verify parent menu exists before adding submenu
+		if ( ! menu_page_url( 'acrossai-abilities-manager', false ) ) {
+			// Parent menu not registered yet; this can happen if dependencies aren't loaded
+			// Schedule retry or silently fail
+			return;
+		}
+
 		add_submenu_page(
-			'acrossai-abilities-manager',  // Parent menu slug
+			'acrossai-abilities-manager',                  // Parent menu slug
 			__( 'Custom Abilities', 'acrossai-abilities-manager' ),  // Page title
 			__( 'Custom Abilities', 'acrossai-abilities-manager' ),  // Menu title
-			'manage_options',              // Capability required
-			'acrossai-custom-abilities',   // Menu slug
-			array( $this, 'render_page' )  // Callback to render page
+			'manage_options',                              // Capability
+			'acrossai-custom-abilities',                   // Menu slug
+			array( $this, 'render_page' )                  // Callback
 		);
 	}
 
 	/**
 	 * Render admin page
 	 *
-	 * Delegates to AcrossAI_Custom_Ability_Page for rendering.
+	 * Delegates to page renderer.
 	 *
 	 * @since 1.0.0
 	 * @return void
