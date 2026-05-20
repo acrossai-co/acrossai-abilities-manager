@@ -103,24 +103,15 @@ final class Main {
 	 *
 	 * @since    0.0.1
 	 */
-	public function __construct() {
-
-		$this->plugin_name = 'acrossai-abilities-manager';
+	private function __construct() {
 
 		$this->define_constants();
 
-		if ( defined( 'ACROSSAI_ABILITIES_MANAGER_VERSION' ) ) {
-			$this->version = ACROSSAI_ABILITIES_MANAGER_VERSION;
-		} else {
-			$this->version = '0.0.1';
-		}
+		$this->plugin_name = 'acrossai-abilities-manager';
+		$this->version = ACROSSAI_ABILITIES_MANAGER_VERSION;
 
 		// Load the autoloader class manually before registering it
-		$plugin_path = ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH;
-
-		require_once $plugin_path . 'includes/Autoloader.php';
-
-		$this->register_autoloader();
+		$this->plugin_dir = ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH;
 
 		$this->load_composer_dependencies();
 
@@ -158,20 +149,7 @@ final class Main {
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL', plugin_dir_url( \ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE ) );
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_NAME_SLUG', $this->plugin_name );
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_NAME', 'AcrossAI Abilities Manager' );
-
-		if ( ! function_exists( 'get_plugin_data' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-		$plugin_file = defined( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE' )
-			? \ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE
-			: \ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE;
-		$plugin_data = get_plugin_data( $plugin_file );
-		$version     = $plugin_data['Version'];
-		$this->define( 'ACROSSAI_ABILITIES_MANAGER_VERSION', $version );
-
-		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL', $version );
-
-		$this->plugin_dir = ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH;
+		$this->define( 'ACROSSAI_ABILITIES_MANAGER_VERSION', '0.0.1' );
 	}
 
 	/**
@@ -183,26 +161,6 @@ final class Main {
 		if ( ! defined( $name ) ) {
 			define( $name, $value );
 		}
-	}
-
-	/**
-	 * Register the plugin's autoloader.
-	 *
-	 * This autoloader will automatically load classes from the plugin's namespace
-	 * when they are instantiated.
-	 *
-	 * @since    0.0.1
-	 * @access   private
-	 */
-	private function register_autoloader() {
-		// Get the plugin path
-		$plugin_path = ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH;
-
-		// Create autoloader instance
-		$this->autoloader = new Autoloader( 'AcrossAI_Abilities_Manager', $plugin_path );
-
-		// Register the autoloader
-		spl_autoload_register( array( $this->autoloader, 'autoload' ) );
 	}
 
 	/**
@@ -220,7 +178,7 @@ final class Main {
 		 *
 		 * @since    0.0.1
 		 */
-		if ( apply_filters( 'acrossai-abilities-manager-load', true ) ) {
+		if ( apply_filters( 'acrossai_abilities_manager_load', true ) ) {
 			$this->define_admin_hooks();
 			$this->define_public_hooks();
 		}
@@ -239,14 +197,9 @@ final class Main {
 		 */
 		$plugin_path = ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH;
 
-		if ( file_exists( $plugin_path . 'vendor/autoload.php' ) ) {
-			require_once $plugin_path . 'vendor/autoload.php';
+		if ( file_exists( $plugin_path . 'vendor/autoload_packages.php' ) ) {
+			require_once $plugin_path . 'vendor/autoload_packages.php';
 		}
-
-		/**
-tt/**
-tt * Check if class exists or not
-tt */ntt/**ntt * GitHub auto-updaterntt */nttif ( class_exists( 'WPBoilerplate_Updater_Checker_Github' ) ) {nttt$package = array(ntttt'repo' => 'https://github.com/acrosswp/acrossai-abilities-manager',ntttt'file_path' => ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE,ntttt'plugin_name_slug' => 'acrossai-abilities-manager',ntttt'release_branch' => 'main'nttt);ntttnew WPBoilerplate_Updater_Checker_Github( $package );ntt}n
 	}
 
 	/**
@@ -308,6 +261,22 @@ tt */ntt/**ntt * GitHub auto-updaterntt */nttif ( class_exists( 'WPBoilerplate_U
 		$main_menu = new \AcrossAI_Abilities_Manager\Admin\Partials\Menu( $this->get_plugin_name(), $this->get_version() );
 		$this->loader->add_action( 'admin_menu', $main_menu, 'main_menu' );
 		$this->loader->add_action( 'plugin_action_links', $main_menu, 'plugin_action_links', 1000, 2 );
+
+		// Sitewide Ability Manager — DB table setup and REST routes via singleton pattern.
+		// Table instance call makes the class available; BerlinDB hooks maybe_upgrade() to admin_init.
+		\AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Table::instance();
+
+		// Register REST routes on rest_api_init.
+		$rest_controller = \AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Rest_Controller::instance();
+		$this->loader->add_action( 'rest_api_init', $rest_controller, 'register_routes' );
+
+		// Collect MCP servers at priority 20, after McpAdapter initialises at priority 15.
+		$mcp_servers_list = \WPBoilerplate\McpServersList\McpServersList::instance();
+		$this->loader->add_action( 'rest_api_init', $mcp_servers_list, 'collect', 20 );
+
+		// Register Access Control REST routes.
+		$sitewide_ac = \AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\AcrossAI_Sitewide_Access_Control::instance();
+		$this->loader->add_action( 'rest_api_init', $sitewide_ac, 'register_rest_api' );
 	}
 
 	/**

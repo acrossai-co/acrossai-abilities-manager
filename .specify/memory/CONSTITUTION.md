@@ -1,15 +1,24 @@
 <!--
 SYNC IMPACT REPORT
-Version change: template (unset) → 1.0.0
-Modified principles: N/A — initial creation from template placeholders
-Added sections: Core Principles (I–VII), Code Quality & Workflow, Architecture & UI Standards, Governance
-Removed sections: All template placeholder tokens replaced; no prior sections removed
+Version change: 1.4.0 → 1.4.1
+Modified principles: Integration Resilience — added canonical pattern for MCP server listing via wpboilerplate/wpb-mcp-servers-list Composer package
+Added sections: None
+Removed sections: None
 Templates reviewed:
   - .specify/templates/plan-template.md ✅ reviewed — no outdated references
   - .specify/templates/spec-template.md ✅ reviewed — no outdated references
   - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
   - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
-Deferred TODOs: None — all placeholders resolved
+Deferred TODOs: None
+Rationale: Direct McpAdapter consumption required undocumented timing knowledge and manual getter mapping
+(McpServer objects have private properties). wpboilerplate/wpb-mcp-servers-list encapsulates both concerns;
+its collect() method is wired in Main.php at rest_api_init priority 20 via the Loader. Integration Resilience
+updated to name this as the canonical approach. Patch bump — clarification of existing principle, no new
+principle added.
+
+Previous sync impact (v1.3.0 → v1.4.0): Boot Flow Rule — variable-first instantiation requirement added;
+REST Controller Pattern subsection added under Architecture & UI Standards.
+Previous sync impact (v1.2.0 → v1.3.0): §I Base/ removed, Boot Flow Rule updated to singleton + direct wiring, Module Contract updated to replace abstract base class + register_hooks() with singleton pattern.
 -->
 
 # AcrossAI Abilities Manager Constitution
@@ -19,7 +28,7 @@ Deferred TODOs: None — all placeholders resolved
 ### I. Modular Architecture
 Each feature MUST be implemented as a self-contained module with a clear, singular purpose.
 Modules MUST be independently testable, extensible, and replaceable without affecting sibling modules.
-Shared logic MUST be extracted to `includes/utilities/` or abstract base classes in `includes/base/`.
+Shared logic MUST be extracted to `includes/Utilities/`.
 No code duplication between modules is permitted under any circumstance.
 
 **Rationale**: Enables parallel development, isolated testing, and safe iteration on any single feature
@@ -78,8 +87,7 @@ process and MUST NOT block admin page rendering.
 without introducing tight coupling between the core plugin and optional dependencies.
 
 ### VI. Reusability & DRY Principle
-All common logic MUST be extracted to shared utilities (`includes/utilities/`) or abstract base
-classes (`includes/base/`) before it is used in a second location.
+All common logic MUST be extracted to shared utilities (`includes/Utilities/`) before it is used in a second location.
 Reusable components MUST be built and maintained for: form builders, view generators, input
 validation, output sanitization, API response formatters, and permission checks.
 If equivalent functionality already exists anywhere in the codebase, it MUST be reused — never
@@ -102,7 +110,7 @@ A feature is ONLY considered complete when ALL of the following gates pass:
 - [ ] All data input uses DataForms (`@wordpress/dataforms`)
 - [ ] All data display uses DataViews (`@wordpress/dataviews`)
 - [ ] No code duplication or DRY violations exist in the changeset
-- [ ] All functions, hooks, and classes are prefixed with `agency_`
+- [ ] All functions, hooks, and classes are prefixed with `acrossai_`
 - [ ] All standards in `AGENTS.md` are met
 - [ ] `npm run validate-packages` passes
 
@@ -111,7 +119,7 @@ enforces consistent, shippable quality at every increment.
 
 ## Code Quality & Workflow
 
-- All PHP functions, hooks, filters, and class names MUST be prefixed with `agency_`
+- All PHP functions, hooks, filters, and class names MUST be prefixed with `acrossai_`
 - All forms and AJAX handlers MUST verify nonces using `check_ajax_referer()` or `wp_verify_nonce()`
 - Capability checks MUST be enforced on all admin page renders and all data-mutation endpoints
 - Input MUST be sanitized immediately upon receipt; output MUST be escaped at the point of render
@@ -127,27 +135,64 @@ enforces consistent, shippable quality at every increment.
 
 **Directory Layout**:
 ```
+admin/
+└── Partials/       # All admin-facing classes: menu, page renderers, asset enqueues
 includes/
-├── base/           # Abstract base classes extended by all feature modules
-├── utilities/      # Shared utility functions, helpers, formatters
-└── modules/        # One subdirectory per feature module (self-contained)
-    ├── sitewide/
-    ├── per-user/
-    ├── mcp-server/
-    ├── custom-ability/
-    └── webmcp/
+├── Utilities/      # Shared utility functions, helpers, formatters
+└── Modules/        # One subdirectory per feature module (self-contained)
+    ├── Sitewide/
+    ├── PerUser/
+    ├── McpServer/
+    ├── CustomAbility/
+    └── Webmcp/
 src/
 ├── js/             # JavaScript/React source files
-└── css/            # Stylesheet source files
+└── scss/           # Stylesheet source files (compiled by @wordpress/scripts)
 tests/
 ├── phpunit/        # PHP unit and integration tests
 └── jest/           # JavaScript unit tests
 ```
 
-**Module Contract**: Every feature module MUST:
-1. Extend the appropriate abstract base class from `includes/base/`
-2. Register all WordPress hooks in a dedicated `register()` method
-3. Depend only on shared utilities from `includes/utilities/` — never on sibling modules directly
+**Admin Partials Rule**: Any class that calls `add_menu_page()`, enqueues admin assets via
+`wp_enqueue_style()` / `wp_enqueue_script()`, or renders admin HTML MUST live in `admin/Partials/`
+with namespace `AcrossAI_Abilities_Manager\Admin\Partials`. Classes in `includes/` are
+context-neutral — they MUST NOT contain admin-specific logic.
+
+**Boot Flow Rule**: `includes/Main.php` is the single source of all hook registration.
+`define_admin_hooks()` and `define_public_hooks()` are the ONLY methods that call
+`$this->loader->add_action()` / `$this->loader->add_filter()` — all hooks trace directly to
+one of these two methods with no intermediate delegation.
+All feature classes use the plugin-wide **singleton `instance()` pattern**:
+`protected static $_instance = null;` + `public static function instance(): self`.
+`includes/Main.php` resolves each singleton to a **named variable** before passing it to the
+Loader — never inline. This is the canonical form:
+```php
+$rest_controller = FeatureClass::instance();
+$this->loader->add_action( 'rest_api_init', $rest_controller, 'register_routes' );
+```
+Passing `FeatureClass::instance()` directly as the second argument to `add_action` is
+**prohibited** — it couples instantiation to hook registration and makes the call harder to read.
+Feature classes MUST NOT call `Loader::instance()` themselves.
+No `register_hooks()` delegation. No abstract module base class. No `includes/Base/` directory.
+No hook-registering code MAY run inside `load_dependencies()`.
+
+**REST Controller Pattern**: A feature module's REST controller MUST be split into per-domain
+sub-controllers whenever it would otherwise exceed roughly 400 lines or own more than one user
+story's handlers. The split places sub-controllers in a `Rest/` subdirectory inside the module
+directory (e.g. `includes/Modules/Sitewide/Rest/`). The module's top-level controller becomes
+a thin **orchestrator** responsible for exactly three things: (a) the `REST_NAMESPACE` constant,
+(b) a `register_routes()` method that calls each sub-controller's `register_routes()`, and (c)
+the shared `check_permission()` callback. Sub-controllers MUST use the singleton pattern, MUST
+reference the orchestrator's `check_permission` as:
+`array( MyOrchestrator::instance(), 'check_permission' )`, and MUST NOT register any WordPress
+hooks themselves — only the orchestrator is wired in `Main.php` via the Loader. This is the
+canonical decomposition for the four planned sibling modules (`PerUser`, `McpServer`,
+`CustomAbility`, `Webmcp`). See `specs/002-rest-controller-modularization/` for reference.
+
+**Module Contract**: Every feature class MUST:
+1. Implement the singleton `instance()` pattern (`protected static $_instance = null;` + `public static function instance(): self`)
+2. Use a `private` constructor; dependencies are obtained via other classes' `::instance()` calls — never via constructor injection from outside
+3. Depend only on shared utilities from `includes/Utilities/` — never on sibling modules directly
 4. Expose integration points exclusively via WordPress actions and filters
 
 **UI Contract**:
@@ -164,6 +209,14 @@ tests/
 **Integration Resilience**:
 - All calls to optional integrations (WPBoilerplate Access Control, MCP servers) MUST be wrapped in
   availability checks and MUST NOT throw fatal errors or produce broken UIs when absent
+- MCP server listing MUST use the `wpboilerplate/wpb-mcp-servers-list` Composer package — direct
+  `McpAdapter::instance()->get_servers()` calls are prohibited. The package handles McpAdapter timing
+  (collect at `rest_api_init` priority 20, after McpAdapter's priority 15) and returns `ServerData[]`
+  objects that implement `JsonSerializable`. Wire collect via the Loader in `Main::define_admin_hooks()`:
+  ```php
+  $mcp_servers_list = \WPBoilerplate\McpServersList\McpServersList::instance();
+  $this->loader->add_action( 'rest_api_init', $mcp_servers_list, 'collect', 20 );
+  ```
 
 ## Governance
 
@@ -187,4 +240,4 @@ constitution. Any implementation that appears to violate a principle MUST either
 include documented justification in the feature plan explaining why a compliant approach was not
 feasible.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-11
+**Version**: 1.4.1 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-15

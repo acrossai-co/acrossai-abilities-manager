@@ -58,6 +58,16 @@ blockJsonFiles.forEach( ( jsonFile ) => {
 // Final Webpack export
 module.exports = {
 	...defaultConfig,
+	resolve: {
+		...defaultConfig.resolve,
+		alias: {
+			...(defaultConfig.resolve?.alias ?? {}),
+			'@wpb/access-control': path.resolve(
+				process.cwd(),
+				'vendor/wpboilerplate/wpb-access-control/js/index.js'
+			),
+		},
+	},
 	entry: {
 		...getWebpackEntryPoints(), // Default WP entry points (e.g., index.js)
 		...blockStylesheets(), // Core block styles (scss)
@@ -73,6 +83,12 @@ module.exports = {
 			process.cwd(),
 			'src/scss',
 			'backend.scss'
+		),
+		'js/sitewide': path.resolve( process.cwd(), 'src/js/sitewide', 'index.js' ),
+		'css/sitewide': path.resolve(
+			process.cwd(),
+			'src/scss/sitewide',
+			'admin.scss'
 		),
 	},
 	output: {

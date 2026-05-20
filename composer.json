@@ -7,9 +7,10 @@
 	"minimum-stability": "dev",
 	"require": {
 		"php": ">=7.4",
-		"coenjacobs/mozart": "^0.7",
-		"automattic/jetpack-autoloader": "^2",
-		"wpboilerplate/wpb-access-control": "dev-main"
+		"automattic/jetpack-autoloader": "^5.0",
+		"wpboilerplate/wpb-access-control": "dev-main",
+		"berlindb/core": "^2.0",
+		"wpboilerplate/wpb-mcp-servers-list": "dev-main"
 	},
 	"keywords": [
 		"wordpress",
@@ -33,7 +34,10 @@
 	"require-dev": {
 		"wp-coding-standards/wpcs": "*",
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.2",
-		"phpunit/phpunit": "^13.2@dev"
+		"phpunit/phpunit": "^13.2@dev",
+		"phpcompatibility/php-compatibility": "^10.0@alpha",
+		"phpstan/phpstan": "2.2.x-dev",
+		"szepeviktor/phpstan-wordpress": "2.x-dev"
 	},
 	"config": {
 		"allow-plugins": {

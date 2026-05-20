@@ -1,5 +1,8 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
 parameters:
-    level: 5
+    level: 8
     paths:
         - includes/
         - admin/
@@ -22,10 +25,5 @@ parameters:
         - '#Function wp_enqueue_script invoked with [0-9]+ parameters?, [0-9]+ required\.#'
         - '#Function wp_enqueue_style invoked with [0-9]+ parameters?, [0-9]+ required\.#'
 
-    # WordPress environment
-    scanDirectories:
-        - /tmp/wordpress/
-
-    # WordPress constants bootstrap
     universalObjectCratesClasses:
         - stdClass

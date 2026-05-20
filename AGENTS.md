@@ -1,6 +1,6 @@
 ---
-name: "WordPress Plugin Development"
-description: "Agency standards for professional WordPress plugin development"
+name: "AcrossAI Abilities Manager"
+description: "Agency standards for professional AcrossAI Abilities Manager"
 version: "1.0.0"
 ---
 
@@ -19,7 +19,7 @@ composer_version: "2.0"
 ## Plugin Configuration
 
 ```yaml
-naming_prefix: "agency_"
+naming_prefix: "acrossai_"
 coding_standard: "wpcs-strict"
 multisite_support: true
 ```
@@ -43,6 +43,10 @@ phpstan_level: 8
 eslint_enabled: true
 ```
 
+## Plugin Boilerplate Reference
+
+All plugin development MUST follow the `wp-plugin-development` skill: `.agents/skills/wp-plugin-development/SKILL.md`
+
 ## Package Strategy
 
 ```yaml
@@ -58,7 +62,7 @@ package_hierarchy:
 
 - [ ] PHPCS pass
 - [ ] PHPStan pass
-- [ ] All functions prefixed with "agency_"
+- [ ] All functions prefixed with "acrossai_"
 - [ ] Nonces on all forms/AJAX
 - [ ] Capabilities checked
 - [ ] Input sanitized, output escaped
@@ -84,7 +88,7 @@ package_hierarchy:
 
 # Workflow
 
-1. Read architecture.md
+1. Read `.specify/memory/CONSTITUTION.md`
 2. Read current feature spec
 3. Read related memory
 4. Read current task
@@ -112,14 +116,6 @@ package_hierarchy:
 
 ---
 
-# WooCommerce Rules
-
-- HPOS compatible
-- Use CRUD objects
-- Use wc_get_orders()
-
----
-
 # Testing Rules
 
 Feature is NOT complete without:
@@ -143,48 +139,36 @@ These repositories are external dependencies and must remain isolated from plugi
 
 # Code Organization & Module Structure
 
-When implementing the AcrossAI Abilities Manager plugin, follow this reusable component structure:
+Architecture and module structure are governed by the Constitution.
+Read `.specify/memory/CONSTITUTION.md` for the canonical rules. Key rules summarised here:
 
-## Shared Utilities Directory
-- Create a `includes/utilities/` directory for all reusable components
-- All modules must reference shared utilities rather than duplicate code
-- Never implement the same functionality twice across modules
+**Directory layout**: `admin/Partials/` (admin classes), `includes/Utilities/` (shared logic), `includes/Modules/` (feature modules). There is NO `includes/Base/` directory and NO abstract module base class.
 
-## Base Classes and Inheritance
-- Create base classes in `includes/base/` that all features extend from
-- Extract common logic into abstract classes
-- Use inheritance to prevent code duplication
+**Singleton pattern (plugin-wide convention)**: Every feature class MUST implement:
+```php
+protected static $_instance = null;
+public static function instance(): self {
+    if ( null === self::$_instance ) { self::$_instance = new self(); }
+    return self::$_instance;
+}
+private function __construct() { /* dependencies via OtherClass::instance() only */ }
+```
 
-## Reusable Components to Create
-- Common form builders for standard input types (checkboxes, toggles, dropdowns, etc.)
-- Common view generators for standard display types (lists, matrices, tables, etc.)
-- Shared validation and sanitization functions
-- Common data transformation utilities
-- Shared API response formatters
-- Shared permission checking utilities
+**Hook registration**: `includes/Main.php` is the ONLY file that calls `$this->loader->add_action()` / `$this->loader->add_filter()`. All hooks wire directly in `define_admin_hooks()` or `define_public_hooks()`. Singleton instances MUST be resolved to a named variable before being passed to `add_action` — never inline:
+```php
+// Correct
+$rest_controller = MyClass::instance();
+$this->loader->add_action( 'rest_api_init', $rest_controller, 'register_routes' );
 
-## DataForms & DataViews Implementation
-- Use WordPress DataForms for all form handling and data input
-- Use WordPress DataViews for all data display and listing
-- Create reusable DataForm components that other modules can use
-- Create reusable DataView components that other modules can use
-- DataForms must handle: form validation, error display, submission
-- DataViews must provide: searchable lists, sorting, pagination, filtering
+// Wrong — inline ::instance() call
+$this->loader->add_action( 'rest_api_init', MyClass::instance(), 'register_routes' );
+```
+There is NO `register_hooks( Loader $loader )` delegation pattern and NO module orchestrator class.
 
-## When Implementing Features
-1. Check if similar functionality exists in shared utilities first
-2. Reuse existing base classes and utilities
-3. Extract new common patterns into shared utilities
-4. Never duplicate code from other modules
-5. DRY principle: Don't Repeat Yourself - if code exists elsewhere, reuse it
+**REST controller split pattern**: When a REST controller exceeds ~400 lines or spans more than one user story, it MUST be decomposed into a **thin orchestrator** + per-domain sub-controllers. Sub-controllers live in `includes/Modules/<Feature>/Rest/` and each has exactly one handler group (e.g. read-only, overrides, bulk, MCP). The orchestrator keeps `REST_NAMESPACE`, `register_routes()` (delegates to sub-controllers), and `check_permission()` (shared permission callback). `Main.php` wires only the orchestrator. See `.specify/memory/CONSTITUTION.md` §REST Controller Pattern and `specs/002-rest-controller-modularization/` for the canonical reference implementation.
 
-## Code Review Checklist for Reusability
-- [ ] No duplicate code between modules
-- [ ] All common logic extracted to shared utilities
-- [ ] Each module extends appropriate base classes
-- [ ] Form patterns use shared form builders
-- [ ] View patterns use shared view generators
-- [ ] Validation uses shared validation functions
-- [ ] Sanitization uses shared sanitization utilities
-- [ ] DataForms used for all form implementations
-- [ ] DataViews used for all data display implementations
+**Admin Partials Rule**: Classes that call `add_menu_page()`, enqueue assets, or render HTML live in `admin/Partials/`. Asset enqueue (`wp_enqueue_script/style`) MUST be in `Admin\Main::enqueue_scripts()/enqueue_styles()` only — never in Partials page classes or module classes.
+
+**UI Contract**: `@wordpress/dataforms` for all admin forms; `@wordpress/dataviews` for all admin tables/lists.
+
+See `.agents/skills/wp-plugin-development/SKILL.md` and `.agents/skills/wp-plugin-development/references/boot-flow.md` for full examples and anti-patterns.

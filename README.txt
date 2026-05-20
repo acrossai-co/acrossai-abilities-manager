@@ -1,102 +1,85 @@
 === AcrossAI Abilities Manager ===
-Contributors: (this should be a list of wordpress.org userid's)
+Contributors: raftaar1191
 Donate link: https://github.com/WPBoilerplate/acrossai-abilities-manager
-Tags: comments, spam
+Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
-Requires PHP: 8.0
+Requires PHP: 7.4
 Stable tag: 0.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
+Manage every WordPress ability registered on your site — view, search, override, and bulk-control ability metadata from a single admin page.
+
 == Description ==
 
-This is the long description.  No limit, and you can use Markdown (as well as in the following sections).
+AcrossAI Abilities Manager gives site administrators full visibility and control over every ability registered via the WordPress Abilities API (`wp_get_ability()`).
 
-For backwards compatibility, if this section is missing, the full length of the short description will be used, and
-Markdown parsed.
+**Features:**
 
-A few notes about the sections above:
+* **Browse all abilities** — a searchable, sortable, paginated table listing every registered ability with slug, provider, source, and current status.
+* **Toggle allow/disallow** — enable or disable any ability site-wide with a single click. Changes are saved instantly without a page reload.
+* **Edit ability metadata** — override `readonly`, `destructive`, `idempotent`, `show_in_rest`, `show_in_mcp`, `mcp_type`, and `mcp_servers` fields per ability using a tri-state system (Yes / No / Inherit from registry).
+* **Reset overrides** — restore any ability back to its registry defaults with one click.
+* **Bulk actions** — allow, disallow, or reset up to 50 abilities at once.
+* **MCP server list** — view all registered MCP servers when the MCP Adapter plugin is active.
 
-*   "Contributors" is a comma separated list of wp.org/wp-plugins.org usernames
-*   "Tags" is a comma separated list of tags that apply to the plugin
-*   "Requires at least" is the lowest version that the plugin will work on
-*   "Tested up to" is the highest version that you've *successfully used to test the plugin*. Note that it might work on
-higher versions... this is just the highest one you've verified.
-*   Stable tag should indicate the Subversion "tag" of the latest stable version, or "trunk," if you use `/trunk/` for
-stable.
+All overrides are stored in a dedicated database table. The WordPress ability registry is never modified — only the fields that differ from registry defaults are persisted.
 
-    Note that the `readme.txt` of the stable tag is the one that is considered the defining one for the plugin, so
-if the `/trunk/readme.txt` file says that the stable tag is `4.3`, then it is `/tags/4.3/readme.txt` that'll be used
-for displaying information about the plugin.  In this situation, the only thing considered from the trunk `readme.txt`
-is the stable tag pointer.  Thus, if you develop in trunk, you can update the trunk `readme.txt` to reflect changes in
-your in-development version, without having that information incorrectly disclosed about the current stable version
-that lacks those changes -- as long as the trunk's `readme.txt` points to the correct stable tag.
+**Security:**
 
-    If no stable tag is provided, it is assumed that trunk is stable, but you should specify "trunk" if that's where
-you put the stable version, in order to eliminate any doubt.
+* All endpoints require `manage_options` capability.
+* All state-changing requests are protected by WordPress nonce verification.
+* All input is sanitized; all output is escaped.
+
+**Third-party integrations (optional):**
+
+* **MCP Adapter plugin** — if active, the plugin displays a list of registered MCP servers inside the ability edit panel. No data is sent to any external service. The MCP Adapter plugin communicates only with your own WordPress installation.
+
+No data is sent to any external server by this plugin.
 
 == Installation ==
 
-This section describes how to install the plugin and get it working.
-
-e.g.
-
-1. Upload `acrossai-abilities-manager.php` to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('plugin_name_hook'); ?>` in your templates
+1. Upload the `acrossai-abilities-manager` folder to `/wp-content/plugins/`.
+2. Activate the plugin through the **Plugins** menu in WordPress.
+3. Navigate to **AcrossAI Abilities Manager** in the WordPress admin menu.
 
 == Frequently Asked Questions ==
 
-= A question that someone might have =
+= Does this plugin modify the WordPress ability registry? =
 
-An answer to that question.
+No. The plugin stores only overrides — fields that differ from the registry defaults. The ability registry itself (`wp_get_ability()`) is never modified.
 
-= What about foo bar? =
+= What happens when I reset an override? =
 
-Answer to foo bar dilemma.
+The override row is deleted from the database. The ability will inherit its values from the registry again.
+
+= Does the plugin work on WordPress Multisite? =
+
+Yes. Each subsite has its own override table using the site-specific table prefix.
+
+= What is the MCP Adapter integration? =
+
+If the MCP Adapter plugin is active on your site, AcrossAI Abilities Manager will display the list of registered MCP servers in the ability edit panel. This is entirely optional — the plugin works without the MCP Adapter.
+
+= Does this plugin make external HTTP requests? =
+
+No. All data is stored and retrieved locally within your WordPress installation. No external API calls are made.
 
 == Screenshots ==
 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
+1. The Abilities Manager admin page — searchable, sortable ability table.
+2. The edit drawer — tri-state override controls for each ability field.
+3. Bulk actions toolbar for allow/disallow/reset across multiple abilities.
 
 == Changelog ==
 
-= 1.0 =
-* A change since the previous version.
-* Another change.
+= 0.0.1 =
+* Initial release.
+* Sitewide Ability Management: browse, toggle, edit, reset, bulk-action.
+* MCP server listing via MCP Adapter integration.
 
-== Arbitrary section ==
+== Upgrade Notice ==
 
-You may provide arbitrary sections, in the same format as the ones above.  This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation."  Arbitrary sections will be shown below the built-in sections outlined above.
-
-== A brief Markdown Example ==
-
-Ordered list:
-
-1. Some feature
-1. Another feature
-1. Something else about the plugin
-
-Unordered list:
-
-* something
-* something else
-* third thing
-
-Here's a link to [WordPress](http://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax].
-Titles are optional, naturally.
-
-[markdown syntax]: http://daringfireball.net/projects/markdown/syntax
-            "Markdown is what the parser uses to process much of the readme file"
-
-Markdown uses email style notation for blockquotes and I've been told:
-> Asterisks for *emphasis*. Double it up  for **strong**.
-
-`<?php code(); // goes in backticks ?>`
+= 0.0.1 =
+Initial release.
