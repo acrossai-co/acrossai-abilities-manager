@@ -34,6 +34,7 @@ Tasks are organized by technical layer to enable parallel execution within each 
   - Utilities stubs created: `AcrossAI_Custom_Ability_Validator.php`, `AcrossAI_Custom_Ability_Sanitizer.php`
   - All files use `AcrossAI_*` naming prefix and underscore namespace convention (Memory DEC-NAMESPACE-CONVENTION)
   - Entry point verified in `includes/Main.php` (wire Custom Ability processor at init)
+  - Run `composer dump-autoload` after all files created — verify no errors before proceeding to T002
   
   **Files to Create/Modify**:
   - `includes/Modules/Custom_Ability/AcrossAI_Custom_Ability_Main.php` (new)
@@ -196,7 +197,7 @@ Tasks are organized by technical layer to enable parallel execution within each 
 
 ## Phase 4: Admin UI Layer
 
-- [ ] T008 [P] Implement DataForm component for ability creation/editing
+- [x] T008 [P] Implement DataForm component for ability creation/editing
 
   **Description**: Create React component `AbilityForm.js` wrapping `@wordpress/dataviews` DataForm API. Include all 20 form fields with conditional visibility (callback_type/permission_type/show_in_mcp specific fields), real-time validation (slug uniqueness), error display (plan.md Admin UI Architecture, Constitution §III).
   
@@ -217,7 +218,7 @@ Tasks are organized by technical layer to enable parallel execution within each 
   **Files to Create/Modify**:
   - `src/js/admin/custom-abilities/components/AbilityForm.js` (new)
   - `src/js/admin/custom-abilities/api/useCustomAbilities.js` (new, React hook for CRUD via REST)
-  - `webpack.config.js` (modify: add entry point for custom-abilities bundle)
+  - `webpack.config.js` (modify: add two entries matching existing naming convention: `'js/custom-abilities': path.resolve( process.cwd(), 'src/js/admin/custom-abilities', 'index.js' )` and `'css/custom-abilities': path.resolve( process.cwd(), 'src/scss/admin/custom-abilities', 'index.scss' )` — see existing `'js/logger'`/`'css/logger'` entries as precedent)
   - `src/scss/admin/custom-abilities/form.scss` (new, form styles)
   
   **Dependencies**: T006 (REST Write controller exist)
@@ -260,11 +261,13 @@ Tasks are organized by technical layer to enable parallel execution within each 
   **Description**: Implement admin menu registration (`AcrossAI_Custom_Ability_Menu.php`), page renderer (`AcrossAI_Custom_Ability_Page.php`), and asset enqueue (`AcrossAI_Custom_Ability_Assets.php`). Register submenu under "Abilities Manager", render DataForm + DataViews containers, enqueue custom-abilities JS/CSS bundle.
   
   **Acceptance Criteria**:
-  - Menu class: register submenu `acrossai-custom-abilities` under Abilities Manager with `manage_options` permission (FR-002)
-  - Page class: verify capability, enqueue DataForm/DataViews assets, render page wrapper with breadcrumbs ("Abilities Manager > Custom Abilities"), render DataForm + DataViews containers, pass REST namespace URL to JS via `wp_localize_script()`
-  - Asset class: enqueue `acrossai-abilities-custom` styles (depends: wp-components, wp-dataviews) and scripts (depends: wp-react, wp-react-dom, wp-dataviews, wp-i18n), conditional on `acrossai-custom-abilities` page only
+  - Menu class: register submenu `acrossai-custom-abilities` under Abilities Manager with `manage_options` permission (FR-002) — follow `admin/Partials/LogsMenu.php` singleton pattern exactly
+  - Menu class wired in `includes/Main.php` via `$this->loader->add_action( 'admin_menu', $menu, 'register_submenu' )` — same pattern as LogsMenu wiring in includes/Main.php
+  - Asset class constructor: load manifest via `$this->asset_file = include \ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH . 'build/js/custom-abilities.asset.php';` — reference admin/Main.php lines 98–106 as precedent. Never hardcode dependency array or version string.
+  - Asset class: enqueue `acrossai-abilities-custom` styles and scripts **only** on `acrossai-custom-abilities` page — guard via `$hook_suffix` (see `is_custom_abilities_page()` pattern in admin/Main.php)
+  - Pass data to JS via `wp_add_inline_script()` with `wp_json_encode()` — NOT `wp_localize_script()` (deprecated). Pattern: `wp_add_inline_script( 'acrossai-abilities-custom', 'window.acrossaiCustomAbilities = ' . wp_json_encode( [ 'nonce' => wp_create_nonce( 'wp_rest' ), 'rest_url' => rest_url( 'acrossai-abilities-manager/v1' ), 'current_user_id' => get_current_user_id() ] ) . ';', 'before' )` — reference admin/Main.php lines 164–174 as precedent
+  - Page render callback outputs: `<div class="wrap"><div id="acrossai-custom-abilities-root"></div></div>`
   - All output escaped via proper escaping functions (Constitution §IV)
-  - Menu class wired in `includes/Main.php` via Loader
   - PHPCS: zero errors
   - PHPStan L8: zero errors
   
