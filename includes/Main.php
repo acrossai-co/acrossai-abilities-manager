@@ -296,11 +296,11 @@ final class Main {
 		$this->loader->add_action( 'rest_api_init', $custom_ability_rest, 'register_routes' );
 
 		// Custom Abilities Admin Menu (T010)
-		$custom_ability_menu = \AcrossAI_Custom_Ability_Menu::instance();
-		$this->loader->add_action( 'admin_menu', $custom_ability_menu, 'register_menu' );
+		$custom_ability_menu = \AcrossAI_Abilities_Manager\Admin\Partials\AcrossAI_Custom_Ability_Menu::instance();
+		$this->loader->add_action( 'admin_menu', $custom_ability_menu, 'add_menu' );
 
 		// Custom Abilities Assets (T010)
-		$custom_ability_assets = \AcrossAI_Custom_Ability_Assets::instance();
+		$custom_ability_assets = \AcrossAI_Abilities_Manager\Admin\Partials\AcrossAI_Custom_Ability_Assets::instance();
 		$this->loader->add_action( 'admin_enqueue_scripts', $custom_ability_assets, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $custom_ability_assets, 'enqueue_styles' );
 	}
