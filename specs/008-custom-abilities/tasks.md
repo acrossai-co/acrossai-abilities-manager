@@ -35,6 +35,7 @@ Tasks are organized by technical layer to enable parallel execution within each 
   - All files use `AcrossAI_*` naming prefix and underscore namespace convention (Memory DEC-NAMESPACE-CONVENTION)
   - Entry point verified in `includes/Main.php` (wire Custom Ability processor at init)
   - Run `composer dump-autoload` after all files created — verify no errors before proceeding to T002
+  - Run `./vendor/bin/phpstan analyse includes/Modules/Custom_Ability includes/Utilities/AcrossAI_Custom_Ability_Sanitizer.php includes/Utilities/AcrossAI_Custom_Ability_Validator.php --level=8` — zero errors before proceeding to T002
   
   **Files to Create/Modify**:
   - `includes/Modules/Custom_Ability/AcrossAI_Custom_Ability_Main.php` (new)
@@ -306,7 +307,7 @@ Tasks are organized by technical layer to enable parallel execution within each 
 
 ## Phase 5: Business Logic & Integration
 
-- [ ] T012 [P] Implement Validator and Sanitizer utility classes
+- [x] T012 [P] Implement Validator and Sanitizer utility classes
 
   **Description**: Create `AcrossAI_Custom_Ability_Validator` and `AcrossAI_Custom_Ability_Sanitizer` static utility classes (Memory DEC-UTILITY-STATIC-ONLY). Validator implements: validate_slug (pattern, uniqueness, length), validate_label, validate_category, validate_callback_config (type-specific), validate_permission_config (type-specific), validate_schema (JSON). Sanitizer implements: sanitize_* methods for all fields, cast_to_db_format (bool→int, json→string). Address security-constraints.md Finding 2-3 (callback config validation, JSON sanitization).
   

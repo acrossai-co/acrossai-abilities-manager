@@ -1,62 +1,61 @@
 <?php
 /**
- * Custom Ability Sanitization Utility
+ * Custom Ability Sanitizer
  *
- * Static utility for sanitizing custom ability fields before validation and save.
+ * Static utility class for sanitizing custom ability fields.
+ * Handles input sanitization, type casting, and normalization.
  *
  * @package AcrossAI_Abilities_Manager
- * @subpackage Includes\Utilities
- * @since 0.0.1
+ * @subpackage Utilities
+ * @since 1.0.0
  */
 
-namespace AcrossAI_Abilities_Manager\Includes\Utilities;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
- * Class AcrossAI_Custom_Ability_Sanitizer
+ * AcrossAI_Custom_Ability_Sanitizer class
  *
- * Static utility class for comprehensive field sanitization (Memory DEC-UTILITY-STATIC-ONLY).
- * Sanitizes all input fields before validation per Constitution §IV (input sanitization).
+ * Provides static sanitization methods for custom ability fields.
  *
- * @since 0.0.1
+ * @since 1.0.0
  */
 class AcrossAI_Custom_Ability_Sanitizer {
 
 	/**
-	 * Sanitize ability slug.
+	 * Sanitize ability slug
 	 *
-	 * Lowercase, remove invalid chars, ensure format: namespace/name
+	 * Converts to lowercase, removes invalid characters.
 	 *
-	 * @since 0.0.1
-	 * @param string $slug Raw ability slug.
-	 * @return string Sanitized ability slug.
+	 * @since 1.0.0
+	 * @param string $slug Raw slug input.
+	 * @return string Sanitized slug.
 	 */
 	public static function sanitize_ability_slug( $slug ) {
+		if ( ! is_string( $slug ) ) {
+			return '';
+		}
+
 		// Convert to lowercase
 		$slug = strtolower( $slug );
 
-		// Apply WordPress sanitization for title-like strings
+		// Use WordPress title sanitization (handles special chars, spaces)
 		$slug = sanitize_title_with_dashes( $slug );
 
-		// Replace dashes with underscores where appropriate, but preserve single slash
-		// Pattern: namespace/name
-		$parts = explode( '/', $slug );
-
-		if ( count( $parts ) === 2 ) {
-			$parts[0] = sanitize_key( $parts[0] );
-			$parts[1] = sanitize_key( $parts[1] );
-			$slug = implode( '/', $parts );
-		} else {
-			$slug = sanitize_key( $slug );
-		}
+		// Replace remaining spaces/underscores with hyphens
+		$slug = str_replace( '_', '-', $slug );
 
 		return $slug;
 	}
 
 	/**
-	 * Sanitize label.
+	 * Sanitize ability label
 	 *
-	 * @since 0.0.1
-	 * @param string $label Raw label.
+	 * Removes HTML, scripts, and unwanted content.
+	 *
+	 * @since 1.0.0
+	 * @param string $label Raw label input.
 	 * @return string Sanitized label.
 	 */
 	public static function sanitize_label( $label ) {
@@ -64,12 +63,12 @@ class AcrossAI_Custom_Ability_Sanitizer {
 	}
 
 	/**
-	 * Sanitize description.
+	 * Sanitize ability description
 	 *
-	 * Allow limited HTML as per wp_kses_post (for markdown-like formatting support).
+	 * Allows safe HTML (like paragraphs, links, formatting).
 	 *
-	 * @since 0.0.1
-	 * @param string $description Raw description.
+	 * @since 1.0.0
+	 * @param string $description Raw description input.
 	 * @return string Sanitized description.
 	 */
 	public static function sanitize_description( $description ) {
@@ -77,10 +76,12 @@ class AcrossAI_Custom_Ability_Sanitizer {
 	}
 
 	/**
-	 * Sanitize category.
+	 * Sanitize ability category
 	 *
-	 * @since 0.0.1
-	 * @param string $category Raw category.
+	 * Removes HTML and unwanted content.
+	 *
+	 * @since 1.0.0
+	 * @param string $category Raw category input.
 	 * @return string Sanitized category.
 	 */
 	public static function sanitize_category( $category ) {
@@ -88,156 +89,167 @@ class AcrossAI_Custom_Ability_Sanitizer {
 	}
 
 	/**
-	 * Sanitize callback configuration (type-specific).
+	 * Sanitize callback configuration
 	 *
-	 * @since 0.0.1
-	 * @param string $callback_type Callback type (noop, filter_hook, wp_remote_post).
-	 * @param mixed  $callback_config Raw callback config.
-	 * @return array Sanitized callback config.
+	 * Type-specific sanitization based on callback_type.
+	 *
+	 * @since 1.0.0
+	 * @param string $type Callback type (noop, filter_hook, wp_remote_post).
+	 * @param mixed  $config Configuration data.
+	 * @return array Sanitized configuration.
 	 */
-	public static function sanitize_callback_config( $callback_type, $callback_config ) {
-		if ( ! is_array( $callback_config ) ) {
-			return array();
+	public static function sanitize_callback_config( $type, $config ) {
+		if ( ! is_array( $config ) ) {
+			$config = [];
 		}
 
-		$sanitized = array();
-
-		switch ( $callback_type ) {
+		switch ( $type ) {
 			case 'noop':
-				// No config for noop
-				break;
+				// No configuration for noop
+				return [];
 
 			case 'filter_hook':
-				if ( ! empty( $callback_config['hook_name'] ) ) {
-					$sanitized['hook_name'] = sanitize_key( $callback_config['hook_name'] );
-				}
-				break;
+				return [
+					'hook_name' => sanitize_text_field( $config['hook_name'] ?? '' ),
+				];
 
 			case 'wp_remote_post':
-				if ( ! empty( $callback_config['url'] ) ) {
-					$sanitized['url'] = esc_url_raw( $callback_config['url'] );
-				}
-				if ( ! empty( $callback_config['method'] ) ) {
-					$sanitized['method'] = in_array( $callback_config['method'], array( 'POST', 'PUT' ), true ) 
-						? $callback_config['method'] 
-						: 'POST';
-				}
-				if ( isset( $callback_config['timeout'] ) ) {
-					$sanitized['timeout'] = absint( $callback_config['timeout'] );
-				}
-				break;
-		}
+				return [
+					'url'     => esc_url_raw( $config['url'] ?? '' ),
+					'method'  => sanitize_text_field( $config['method'] ?? 'POST' ),
+					'timeout' => isset( $config['timeout'] ) ? intval( $config['timeout'] ) : 30,
+				];
 
-		return $sanitized;
+			default:
+				return [];
+		}
 	}
 
 	/**
-	 * Sanitize permission configuration (type-specific).
+	 * Sanitize permission configuration
 	 *
-	 * @since 0.0.1
-	 * @param string $permission_type Permission type (always_allow, logged_in, capability).
-	 * @param mixed  $permission_config Raw permission config.
-	 * @return array Sanitized permission config.
+	 * Type-specific sanitization based on permission_type.
+	 *
+	 * @since 1.0.0
+	 * @param string $type Permission type (always_allow, logged_in, capability).
+	 * @param mixed  $config Configuration data.
+	 * @return array Sanitized configuration.
 	 */
-	public static function sanitize_permission_config( $permission_type, $permission_config ) {
-		if ( ! is_array( $permission_config ) ) {
-			return array();
+	public static function sanitize_permission_config( $type, $config ) {
+		if ( ! is_array( $config ) ) {
+			$config = [];
 		}
 
-		$sanitized = array();
-
-		switch ( $permission_type ) {
+		switch ( $type ) {
 			case 'always_allow':
 			case 'logged_in':
-				// No config for these types
-				break;
+				// No configuration for these types
+				return [];
 
 			case 'capability':
-				if ( ! empty( $permission_config['capability'] ) ) {
-					$sanitized['capability'] = sanitize_key( $permission_config['capability'] );
-				}
-				break;
-		}
+				return [
+					'capability' => sanitize_text_field( $config['capability'] ?? '' ),
+				];
 
-		return $sanitized;
+			default:
+				return [];
+		}
 	}
 
 	/**
-	 * Sanitize JSON schema string.
+	 * Sanitize JSON schema
 	 *
-	 * Validates JSON syntax and re-encodes for normalization.
+	 * Validates JSON syntax and re-encodes to normalize.
 	 *
-	 * @since 0.0.1
-	 * @param string $schema_json Raw JSON schema.
-	 * @return string Sanitized and normalized JSON schema.
+	 * @since 1.0.0
+	 * @param mixed $schema Schema data (string JSON or null).
+	 * @return string|null Sanitized JSON string or null if invalid.
 	 */
-	public static function sanitize_schema( $schema_json ) {
-		if ( empty( $schema_json ) ) {
-			return '';
+	public static function sanitize_schema( $schema ) {
+		// Empty/null input returns null
+		if ( empty( $schema ) ) {
+			return null;
+		}
+
+		// Convert to string if necessary
+		if ( ! is_string( $schema ) ) {
+			if ( is_array( $schema ) || is_object( $schema ) ) {
+				$schema = wp_json_encode( $schema );
+			} else {
+				return null;
+			}
 		}
 
 		// Validate JSON syntax
-		$decoded = json_decode( $schema_json, true );
+		$decoded = json_decode( $schema, true );
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return ''; // Invalid JSON rejected
+			return null; // Invalid JSON
 		}
 
-		// Re-encode to normalize (remove extra whitespace, ensure consistency)
+		// Check depth to prevent DOS
+		$max_depth = 10;
+		if ( self::get_json_depth( $decoded ) > $max_depth ) {
+			return null; // Too deeply nested
+		}
+
+		// Check size to prevent DOS and storage issues
+		$max_size = 65536; // 64KB
+		if ( strlen( $schema ) > $max_size ) {
+			return null; // Too large
+		}
+
+		// Re-encode with wp_json_encode to normalize (remove extra whitespace, ensure encoding)
 		return wp_json_encode( $decoded );
 	}
 
 	/**
-	 * Sanitize MCP servers array.
+	 * Cast fields to database format
 	 *
-	 * @since 0.0.1
-	 * @param mixed $servers Raw MCP servers array.
-	 * @return array Sanitized servers array.
+	 * Converts boolean to int, arrays to JSON strings, etc.
+	 *
+	 * @since 1.0.0
+	 * @param array $fields Fields to cast.
+	 * @return array Casted fields ready for database storage.
 	 */
-	public static function sanitize_mcp_servers( $servers ) {
-		if ( ! is_array( $servers ) ) {
-			return array();
+	public static function cast_to_db_format( $fields ) {
+		$casted = $fields;
+
+		// Cast boolean fields to int (0/1)
+		$bool_fields = [ 'enabled', 'show_in_rest', 'show_in_mcp', 'readonly', 'destructive', 'idempotent' ];
+		foreach ( $bool_fields as $field ) {
+			if ( isset( $casted[ $field ] ) && $casted[ $field ] !== null ) {
+				$casted[ $field ] = intval( $casted[ $field ] );
+			}
 		}
 
-		return array_map( 'sanitize_key', $servers );
+		// Cast array fields to JSON string
+		$json_fields = [ 'callback_config', 'permission_config', 'input_schema', 'output_schema', 'mcp_servers' ];
+		foreach ( $json_fields as $field ) {
+			if ( isset( $casted[ $field ] ) ) {
+				if ( is_array( $casted[ $field ] ) ) {
+					$casted[ $field ] = wp_json_encode( $casted[ $field ] );
+				} elseif ( ! is_string( $casted[ $field ] ) && $casted[ $field ] !== null ) {
+					$casted[ $field ] = wp_json_encode( $casted[ $field ] );
+				}
+			}
+		}
+
+		return $casted;
 	}
 
 	/**
-	 * Sanitize tri-state flag (readonly, destructive, idempotent).
+	 * Sanitize complete ability record
 	 *
-	 * Valid values: null, 0, 1
+	 * Applies all sanitization rules to all fields.
 	 *
-	 * @since 0.0.1
-	 * @param mixed $value Raw flag value.
-	 * @return int|null Sanitized flag (null, 0, or 1).
-	 */
-	public static function sanitize_tristate_flag( $value ) {
-		if ( null === $value ) {
-			return null;
-		}
-
-		$int_value = absint( $value );
-
-		return in_array( $int_value, array( 0, 1 ), true ) ? $int_value : null;
-	}
-
-	/**
-	 * Sanitize complete ability object.
-	 *
-	 * Aggregate sanitization calling all field sanitizers.
-	 * First step in validation pipeline (sanitize → validate → save).
-	 *
-	 * @since 0.0.1
-	 * @param array $fields Raw ability fields.
-	 * @return array Sanitized ability fields.
+	 * @since 1.0.0
+	 * @param array $fields Raw fields to sanitize.
+	 * @return array Fully sanitized fields.
 	 */
 	public static function sanitize_ability( $fields ) {
-		if ( ! is_array( $fields ) ) {
-			return array();
-		}
+		$sanitized = [];
 
-		$sanitized = array();
-
-		// Sanitize each field
+		// Sanitize individual fields
 		if ( isset( $fields['ability_slug'] ) ) {
 			$sanitized['ability_slug'] = self::sanitize_ability_slug( $fields['ability_slug'] );
 		}
@@ -254,32 +266,23 @@ class AcrossAI_Custom_Ability_Sanitizer {
 			$sanitized['category'] = self::sanitize_category( $fields['category'] );
 		}
 
-		if ( isset( $fields['enabled'] ) ) {
-			$sanitized['enabled'] = (bool) $fields['enabled'];
-		}
-
-		if ( isset( $fields['callback_type'] ) ) {
-			$sanitized['callback_type'] = sanitize_key( $fields['callback_type'] );
-		}
-
-		if ( isset( $fields['callback_config'] ) ) {
+		// Callback configuration (type-specific)
+		if ( isset( $fields['callback_type'] ) && isset( $fields['callback_config'] ) ) {
 			$sanitized['callback_config'] = self::sanitize_callback_config(
-				$sanitized['callback_type'] ?? '',
+				$fields['callback_type'],
 				$fields['callback_config']
 			);
 		}
 
-		if ( isset( $fields['permission_type'] ) ) {
-			$sanitized['permission_type'] = sanitize_key( $fields['permission_type'] );
-		}
-
-		if ( isset( $fields['permission_config'] ) ) {
+		// Permission configuration (type-specific)
+		if ( isset( $fields['permission_type'] ) && isset( $fields['permission_config'] ) ) {
 			$sanitized['permission_config'] = self::sanitize_permission_config(
-				$sanitized['permission_type'] ?? '',
+				$fields['permission_type'],
 				$fields['permission_config']
 			);
 		}
 
+		// Schema fields
 		if ( isset( $fields['input_schema'] ) ) {
 			$sanitized['input_schema'] = self::sanitize_schema( $fields['input_schema'] );
 		}
@@ -288,94 +291,52 @@ class AcrossAI_Custom_Ability_Sanitizer {
 			$sanitized['output_schema'] = self::sanitize_schema( $fields['output_schema'] );
 		}
 
-		if ( isset( $fields['show_in_rest'] ) ) {
-			$sanitized['show_in_rest'] = (bool) $fields['show_in_rest'];
+		// Pass-through simple fields (will be validated separately)
+		if ( isset( $fields['callback_type'] ) ) {
+			$sanitized['callback_type'] = sanitize_text_field( $fields['callback_type'] );
 		}
 
-		if ( isset( $fields['show_in_mcp'] ) ) {
-			$sanitized['show_in_mcp'] = (bool) $fields['show_in_mcp'];
+		if ( isset( $fields['permission_type'] ) ) {
+			$sanitized['permission_type'] = sanitize_text_field( $fields['permission_type'] );
 		}
 
 		if ( isset( $fields['mcp_type'] ) ) {
-			$sanitized['mcp_type'] = sanitize_key( $fields['mcp_type'] );
+			$sanitized['mcp_type'] = sanitize_text_field( $fields['mcp_type'] );
 		}
 
+		// Sanitize MCP servers array
 		if ( isset( $fields['mcp_servers'] ) ) {
-			$sanitized['mcp_servers'] = self::sanitize_mcp_servers( $fields['mcp_servers'] );
-		}
-
-		if ( isset( $fields['readonly'] ) ) {
-			$sanitized['readonly'] = self::sanitize_tristate_flag( $fields['readonly'] );
-		}
-
-		if ( isset( $fields['destructive'] ) ) {
-			$sanitized['destructive'] = self::sanitize_tristate_flag( $fields['destructive'] );
-		}
-
-		if ( isset( $fields['idempotent'] ) ) {
-			$sanitized['idempotent'] = self::sanitize_tristate_flag( $fields['idempotent'] );
+			if ( is_array( $fields['mcp_servers'] ) ) {
+				$sanitized['mcp_servers'] = array_map( 'sanitize_text_field', $fields['mcp_servers'] );
+			} else {
+				$sanitized['mcp_servers'] = [];
+			}
 		}
 
 		return $sanitized;
 	}
 
 	/**
-	 * Cast fields to database format.
+	 * Get JSON nesting depth
 	 *
-	 * Converts PHP types to database-ready format:
-	 * - bool → int (0/1)
-	 * - array → json string
-	 * - object → json string
+	 * Recursively calculates the maximum depth of nested arrays/objects.
 	 *
-	 * Per Memory SEC-02 and BUG-FLAT-ARGS-PATH patterns.
-	 *
-	 * @since 0.0.1
-	 * @param array $fields Sanitized ability fields.
-	 * @return array Fields ready for database insert/update.
+	 * @since 1.0.0
+	 * @param mixed $data Data to measure.
+	 * @param int   $depth Current depth level.
+	 * @return int Maximum depth.
 	 */
-	public static function cast_to_db_format( $fields ) {
-		if ( ! is_array( $fields ) ) {
-			return array();
+	private static function get_json_depth( $data, $depth = 0 ) {
+		if ( ! is_array( $data ) && ! is_object( $data ) ) {
+			return $depth;
 		}
 
-		$casted = array();
-
-		foreach ( $fields as $key => $value ) {
-			switch ( $key ) {
-				// Boolean fields: cast to int (0/1)
-				case 'enabled':
-				case 'show_in_rest':
-				case 'show_in_mcp':
-				case 'readonly':
-				case 'destructive':
-				case 'idempotent':
-					$casted[ $key ] = is_null( $value ) ? null : (int) $value;
-					break;
-
-				// JSON fields: cast to string via wp_json_encode
-				case 'callback_config':
-				case 'permission_config':
-				case 'mcp_servers':
-					if ( is_array( $value ) || is_object( $value ) ) {
-						$casted[ $key ] = wp_json_encode( $value );
-					} else {
-						$casted[ $key ] = $value;
-					}
-					break;
-
-				// Schema fields: ensure string format (already normalized by sanitizer)
-				case 'input_schema':
-				case 'output_schema':
-					$casted[ $key ] = is_string( $value ) ? $value : '';
-					break;
-
-				// Pass through other fields as-is
-				default:
-					$casted[ $key ] = $value;
-					break;
-			}
+		$max = $depth;
+		foreach ( (array) $data as $item ) {
+			$current = self::get_json_depth( $item, $depth + 1 );
+			$max     = max( $max, $current );
 		}
 
-		return $casted;
+		return $max;
 	}
 }
