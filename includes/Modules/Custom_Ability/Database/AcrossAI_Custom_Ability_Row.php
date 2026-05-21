@@ -17,7 +17,7 @@ use BerlinDB\Database\Row;
  * Represents a single custom ability record.
  * Handles JSON decoding/encoding for JSON columns (Watchpoint 1).
  *
- * JSON columns: callback_config, permission_config, input_schema, output_schema, mcp_servers
+ * JSON columns: callback_config, input_schema, output_schema
  *
  * @since 0.0.1
  */
@@ -31,10 +31,8 @@ class AcrossAI_Custom_Ability_Row extends Row {
 	 */
 	protected $json_columns = array(
 		'callback_config',
-		'permission_config',
 		'input_schema',
 		'output_schema',
-		'mcp_servers',
 	);
 
 	/**
@@ -105,16 +103,6 @@ class AcrossAI_Custom_Ability_Row extends Row {
 	}
 
 	/**
-	 * Get permission_config.
-	 *
-	 * @since 0.0.1
-	 * @return array|null Decoded permission configuration.
-	 */
-	public function get_permission_config() {
-		return $this->permission_config ?? null;
-	}
-
-	/**
 	 * Get input_schema.
 	 *
 	 * @since 0.0.1
@@ -132,16 +120,6 @@ class AcrossAI_Custom_Ability_Row extends Row {
 	 */
 	public function get_output_schema() {
 		return $this->output_schema ?? null;
-	}
-
-	/**
-	 * Get mcp_servers.
-	 *
-	 * @since 0.0.1
-	 * @return array|null Decoded MCP servers list.
-	 */
-	public function get_mcp_servers() {
-		return $this->mcp_servers ?? null;
 	}
 
 	/**

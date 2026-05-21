@@ -10,6 +10,8 @@
  * @since 1.0.0
  */
 
+namespace AcrossAI_Abilities_Manager\Includes\Utilities;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

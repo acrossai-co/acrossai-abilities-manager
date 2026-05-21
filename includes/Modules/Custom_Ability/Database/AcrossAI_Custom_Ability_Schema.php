@@ -1,107 +1,200 @@
 <?php
 /**
- * BerlinDB Schema definition for custom abilities table
+ * Database schema definition for the custom abilities table.
  *
- * @package AcrossAI_Abilities_Manager
- * @subpackage Includes\Modules\Custom_Ability\Database
- * @since 0.0.1
+ * @package    AcrossAI_Abilities_Manager
+ * @subpackage AcrossAI_Abilities_Manager/includes/Modules/Custom_Ability/Database
+ * @since      1.0.0
  */
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Database;
 
 use BerlinDB\Database\Schema;
 
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
+
 /**
- * Class AcrossAI_Custom_Ability_Schema
+ * Schema class defining all columns of the acrossai_custom_abilities table.
  *
- * Defines the structure of the custom_abilities database table.
- * Extends BerlinDB\Database\Schema for database abstraction.
- *
- * Table: {prefix}acrossai_custom_abilities
- * Per-site table (not global) for multisite isolation.
- *
- * @since 0.0.1
+ * @since 1.0.0
  */
 class AcrossAI_Custom_Ability_Schema extends Schema {
 
 	/**
-	 * Array of column definitions for the custom abilities table.
+	 * Array of column definitions.
 	 *
-	 * @since 0.0.1
 	 * @var array
 	 */
 	public $columns = array(
-		// Primary key
-		'id'                    => 'bigint(20) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY',
 
-		// Ability identifier (unique, required)
-		'ability_slug'          => 'varchar(255) NOT NULL UNIQUE',
+		// Primary key.
+		array(
+			'name'     => 'id',
+			'type'     => 'bigint',
+			'length'   => '20',
+			'unsigned' => true,
+			'extra'    => 'auto_increment',
+			'primary'  => true,
+			'sortable' => true,
+		),
 
-		// Display and metadata
-		'label'                 => 'varchar(255) NOT NULL',
-		'description'           => 'longtext',
-		'category'              => 'varchar(100)',
+		// Ability identifier (unique, required).
+		array(
+			'name'       => 'ability_slug',
+			'type'       => 'varchar',
+			'length'     => '255',
+			'allow_null' => false,
+			'default'    => '',
+			'searchable' => true,
+			'sortable'   => true,
+		),
 
-		// Registration control
-		'enabled'               => 'tinyint(1) DEFAULT 1',
+		// Display label (required).
+		array(
+			'name'       => 'label',
+			'type'       => 'varchar',
+			'length'     => '255',
+			'allow_null' => false,
+			'default'    => '',
+			'searchable' => true,
+			'sortable'   => true,
+		),
 
-		// Callback configuration
-		'callback_type'         => 'varchar(50) NOT NULL',
-		'callback_config'       => 'longtext', // JSON structure for callback-specific config
+		// Human-readable description.
+		array(
+			'name'       => 'description',
+			'type'       => 'longtext',
+			'allow_null' => true,
+			'default'    => null,
+			'searchable' => true,
+		),
 
-		// Permission configuration
-		'permission_type'       => 'varchar(50) NOT NULL',
-		'permission_config'     => 'longtext', // JSON structure for permission-specific config
+		// Registration control.
+		array(
+			'name'       => 'enabled',
+			'type'       => 'tinyint',
+			'length'     => '1',
+			'allow_null' => false,
+			'default'    => '1',
+			'sortable'   => true,
+		),
 
-		// Ability schemas (JSON)
-		'input_schema'          => 'longtext', // JSON Schema Draft 7
-		'output_schema'         => 'longtext', // JSON Schema Draft 7
+		// Callback configuration.
+		array(
+			'name'       => 'callback_type',
+			'type'       => 'varchar',
+			'length'     => '50',
+			'allow_null' => false,
+			'default'    => 'noop',
+			'sortable'   => true,
+		),
+		array(
+			'name'       => 'callback_config',
+			'type'       => 'longtext',
+			'allow_null' => true,
+			'default'    => null,
+		),
 
-		// REST API exposure
-		'show_in_rest'          => 'tinyint(1) DEFAULT 1',
+		// Ability schemas (JSON Schema).
+		array(
+			'name'       => 'input_schema',
+			'type'       => 'longtext',
+			'allow_null' => true,
+			'default'    => null,
+		),
+		array(
+			'name'       => 'output_schema',
+			'type'       => 'longtext',
+			'allow_null' => true,
+			'default'    => null,
+		),
 
-		// MCP exposure
-		'show_in_mcp'           => 'tinyint(1) DEFAULT 0',
-		'mcp_type'              => 'varchar(50)', // 'tool', 'resource', 'prompt'
-		'mcp_servers'           => 'longtext', // JSON array of server slugs
+		// REST / MCP exposure.
+		array(
+			'name'       => 'show_in_rest',
+			'type'       => 'tinyint',
+			'length'     => '1',
+			'allow_null' => false,
+			'default'    => '1',
+			'sortable'   => true,
+		),
+		array(
+			'name'       => 'show_in_mcp',
+			'type'       => 'tinyint',
+			'length'     => '1',
+			'allow_null' => false,
+			'default'    => '0',
+			'sortable'   => true,
+		),
+		array(
+			'name'       => 'mcp_type',
+			'type'       => 'varchar',
+			'length'     => '50',
+			'allow_null' => true,
+			'default'    => null,
+			'sortable'   => true,
+		),
 
-		// Metadata flags (tri-state: NULL/0/1)
-		'readonly'              => 'tinyint(1)',
-		'destructive'           => 'tinyint(1)',
-		'idempotent'            => 'tinyint(1)',
+		// Tri-state annotation flags: NULL (inherit) / 0 (no) / 1 (yes).
+		array(
+			'name'       => 'readonly',
+			'type'       => 'tinyint',
+			'length'     => '1',
+			'allow_null' => true,
+			'default'    => null,
+		),
+		array(
+			'name'       => 'destructive',
+			'type'       => 'tinyint',
+			'length'     => '1',
+			'allow_null' => true,
+			'default'    => null,
+		),
+		array(
+			'name'       => 'idempotent',
+			'type'       => 'tinyint',
+			'length'     => '1',
+			'allow_null' => true,
+			'default'    => null,
+		),
 
-		// Timestamps
-		'created_at'            => 'datetime DEFAULT CURRENT_TIMESTAMP',
-		'updated_at'            => 'datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+		// Audit timestamps.
+		array(
+			'name'       => 'created_at',
+			'type'       => 'datetime',
+			'allow_null' => false,
+			'default'    => 'CURRENT_TIMESTAMP',
+			'created'    => true,
+			'date_query' => true,
+			'sortable'   => true,
+		),
+		array(
+			'name'       => 'updated_at',
+			'type'       => 'datetime',
+			'allow_null' => false,
+			'default'    => 'CURRENT_TIMESTAMP',
+			'modified'   => true,
+			'date_query' => true,
+			'sortable'   => true,
+		),
+
+		// Audit user IDs.
+		array(
+			'name'       => 'created_by',
+			'type'       => 'bigint',
+			'length'     => '20',
+			'unsigned'   => true,
+			'allow_null' => true,
+			'default'    => null,
+		),
+		array(
+			'name'       => 'updated_by',
+			'type'       => 'bigint',
+			'length'     => '20',
+			'unsigned'   => true,
+			'allow_null' => true,
+			'default'    => null,
+		),
 	);
-
-	/**
-	 * Get the table name.
-	 *
-	 * @since 0.0.1
-	 * @return string The table name with prefix.
-	 */
-	public function get_table_name() {
-		return 'acrossai_custom_abilities';
-	}
-
-	/**
-	 * Get the primary key column.
-	 *
-	 * @since 0.0.1
-	 * @return string The primary key column name.
-	 */
-	public function get_primary_key() {
-		return 'id';
-	}
-
-	/**
-	 * Get unique columns.
-	 *
-	 * @since 0.0.1
-	 * @return array Array of unique columns.
-	 */
-	public function get_unique_keys() {
-		return array( 'ability_slug' );
-	}
 }

@@ -291,6 +291,9 @@ final class Main {
 		$this->loader->add_action( 'rest_api_init', $sitewide_ac, 'register_rest_api' );
 		$this->loader->add_action( 'admin_notices', $sitewide_ac, 'maybe_show_library_notice' );
 
+		// Custom Abilities table registration (BerlinDB maybe_upgrade hooks).
+		\AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Database\AcrossAI_Custom_Ability_Table::instance();
+
 		// Custom Abilities Module — Register REST routes at rest_api_init (T005).
 		$custom_ability_rest = \AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest\AcrossAI_Custom_Ability_Rest_Controller::instance();
 		$this->loader->add_action( 'rest_api_init', $custom_ability_rest, 'register_routes' );

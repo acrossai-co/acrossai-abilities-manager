@@ -11,8 +11,12 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest;
 
+use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Database\AcrossAI_Custom_Ability_Query;
 use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Database\AcrossAI_Custom_Ability_Table;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Custom_Ability_Formatter;
+
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Class AcrossAI_Custom_Ability_Mcp_Controller
@@ -68,7 +72,7 @@ class AcrossAI_Custom_Ability_Mcp_Controller {
 	 */
 	private function __construct() {
 		$this->orchestrator = AcrossAI_Custom_Ability_Rest_Controller::instance();
-		$this->table = AcrossAI_Custom_Ability_Table::instance();
+		$this->table        = AcrossAI_Custom_Ability_Table::instance();
 	}
 
 	/**
@@ -167,7 +171,7 @@ class AcrossAI_Custom_Ability_Mcp_Controller {
 	 * Core MCP filtering logic:
 	 * - Filter: show_in_mcp = true
 	 * - Filter: mcp_type matches requested type (tool/resource/prompt)
-	 * - Filter: current_mcp_server is in mcp_servers allowlist (if mcp_servers not empty)
+	 * - Server filtering: all enabled MCP abilities exposed to all servers (mcp_servers removed)
 	 * - Fire: acrossai_custom_ability_mcp_query hook for extensibility
 	 *
 	 * @since 0.0.1
@@ -180,7 +184,7 @@ class AcrossAI_Custom_Ability_Mcp_Controller {
 			$current_server = sanitize_text_field( $request->get_param( 'server' ) ) ?: null;
 
 			// Fetch all enabled abilities
-			$abilities = $this->table->query()
+			$abilities = ( new AcrossAI_Custom_Ability_Query() )
 				->enabled_only()
 				->with_pagination( 1000, 1 )
 				->get();
@@ -201,21 +205,7 @@ class AcrossAI_Custom_Ability_Mcp_Controller {
 				}
 			);
 
-			// Filter: current server in mcp_servers allowlist (if specified)
-			if ( ! empty( $current_server ) ) {
-				$mcp_abilities = array_filter(
-					$mcp_abilities,
-					function( $ability ) use ( $current_server ) {
-						$mcp_servers = $ability->get_mcp_servers();
-						// Empty list means "expose to all servers"
-						if ( empty( $mcp_servers ) ) {
-							return true;
-						}
-						// Check if current server is in allowlist
-						return in_array( $current_server, (array) $mcp_servers, true );
-					}
-				);
-			}
+			// mcp_servers column removed — all enabled MCP abilities are exposed to all servers.
 
 			// Format abilities for MCP response
 			$data = AcrossAI_Custom_Ability_Formatter::format_for_mcp( $mcp_abilities, $mcp_type, $current_server );

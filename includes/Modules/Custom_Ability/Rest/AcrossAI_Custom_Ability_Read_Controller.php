@@ -11,8 +11,12 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest;
 
+use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Database\AcrossAI_Custom_Ability_Query;
 use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Database\AcrossAI_Custom_Ability_Table;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Custom_Ability_Formatter;
+
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Class AcrossAI_Custom_Ability_Read_Controller
@@ -41,12 +45,20 @@ class AcrossAI_Custom_Ability_Read_Controller {
 	protected $orchestrator;
 
 	/**
-	 * Custom Ability Table instance.
+	 * Custom Ability Table instance (for schema/table-exists checks).
 	 *
 	 * @since 0.0.1
 	 * @var AcrossAI_Custom_Ability_Table
 	 */
 	protected $table;
+
+	/**
+	 * Custom Ability Query instance (for data retrieval).
+	 *
+	 * @since 0.0.1
+	 * @var AcrossAI_Custom_Ability_Query
+	 */
+	protected $db_query;
 
 	/**
 	 * Get singleton instance.
@@ -68,7 +80,8 @@ class AcrossAI_Custom_Ability_Read_Controller {
 	 */
 	private function __construct() {
 		$this->orchestrator = AcrossAI_Custom_Ability_Rest_Controller::instance();
-		$this->table = AcrossAI_Custom_Ability_Table::instance();
+		$this->table        = AcrossAI_Custom_Ability_Table::instance();
+		$this->db_query     = AcrossAI_Custom_Ability_Query::instance();
 	}
 
 	/**
@@ -134,9 +147,19 @@ class AcrossAI_Custom_Ability_Read_Controller {
 			$search   = sanitize_text_field( $request->get_param( 'search' ) ) ?: '';
 			$order    = sanitize_text_field( $request->get_param( 'order' ) ) ?: 'asc';
 			$orderby  = sanitize_text_field( $request->get_param( 'orderby' ) ) ?: 'label';
-			$category = sanitize_text_field( $request->get_param( 'category' ) ) ?: '';
 			$enabled  = $request->get_param( 'enabled' );
 			$mcp_only = $request->get_param( 'show_in_mcp' );
+
+			// Validate pagination
+			if ( ! $this->table->exists() ) {
+				$this->table->maybe_upgrade();
+				if ( ! $this->table->exists() ) {
+					$response = new \WP_REST_Response( array(), 200 );
+					$response->header( 'X-WP-Total', 0 );
+					$response->header( 'X-WP-TotalPages', 0 );
+					return $response;
+				}
+			}
 
 			// Validate pagination
 			if ( $per_page < 1 || $per_page > 100 ) {
@@ -147,23 +170,18 @@ class AcrossAI_Custom_Ability_Read_Controller {
 			}
 
 			// Validate sort parameters
-			$allowed_orderby = array( 'label', 'slug', 'category', 'created_at', 'updated_at' );
+			$allowed_orderby = array( 'label', 'ability_slug', 'created_at', 'updated_at' );
 			if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
 				$orderby = 'label';
 			}
 			$order = 'desc' === strtolower( $order ) ? 'DESC' : 'ASC';
 
 			// Build query via Query layer (single source of truth per Memory AC-QUERY-LAYER-FILTERING)
-			$query = $this->table->new_query();
+			$query = new AcrossAI_Custom_Ability_Query();
 
 			// Apply search filter (if provided)
 			if ( ! empty( $search ) ) {
 				$query->search( $search );
-			}
-
-			// Apply category filter (if provided)
-			if ( ! empty( $category ) ) {
-				$query->by_category( $category );
 			}
 
 			// Apply enabled filter (if provided, 0 or 1)
@@ -189,7 +207,7 @@ class AcrossAI_Custom_Ability_Read_Controller {
 
 			// Execute query
 			$abilities = $query->get();
-			$total     = $query->found_rows;
+			$total     = $query->found_items;
 
 			// Format responses
 			$data = array();
@@ -225,6 +243,17 @@ class AcrossAI_Custom_Ability_Read_Controller {
 		try {
 			$ability_id = absint( $request->get_param( 'id' ) );
 
+			if ( ! $this->table->exists() ) {
+				$this->table->maybe_upgrade();
+				if ( ! $this->table->exists() ) {
+					return new \WP_Error(
+						'rest_not_found',
+						esc_html__( 'Custom abilities table is not available yet.', 'acrossai-abilities-manager' ),
+						array( 'status' => 404 )
+					);
+				}
+			}
+
 			if ( $ability_id < 1 ) {
 				return new \WP_Error(
 					'rest_invalid_param',
@@ -233,8 +262,7 @@ class AcrossAI_Custom_Ability_Read_Controller {
 				);
 			}
 
-			// Fetch ability from database
-			$ability = $this->table->get( $ability_id );
+			$ability = $this->db_query->get_ability_by_id( $ability_id );
 
 			if ( ! $ability ) {
 				return new \WP_Error(
@@ -244,7 +272,6 @@ class AcrossAI_Custom_Ability_Read_Controller {
 				);
 			}
 
-			// Format and return response
 			$data = AcrossAI_Custom_Ability_Formatter::format_ability_for_response( $ability );
 
 			return new \WP_REST_Response( $data, 200 );
@@ -298,13 +325,7 @@ class AcrossAI_Custom_Ability_Read_Controller {
 				'description'       => __( 'Sort collection by object attribute.', 'acrossai-abilities-manager' ),
 				'type'              => 'string',
 				'default'           => 'label',
-				'enum'              => array( 'label', 'slug', 'category', 'created_at', 'updated_at' ),
-				'validate_callback' => 'rest_validate_request_arg',
-			),
-			'category'    => array(
-				'description'       => __( 'Filter by ability category.', 'acrossai-abilities-manager' ),
-				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
+				'enum'              => array( 'label', 'ability_slug', 'created_at', 'updated_at' ),
 				'validate_callback' => 'rest_validate_request_arg',
 			),
 			'enabled'     => array(

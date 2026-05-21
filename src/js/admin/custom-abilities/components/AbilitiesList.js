@@ -32,7 +32,6 @@ export function AbilitiesList( {
 	const [ currentPage, setCurrentPage ] = useState( 1 );
 	const [ perPage, setPerPage ] = useState( 20 );
 	const [ selectedAbilities, setSelectedAbilities ] = useState( new Set() );
-	const [ filterCategory, setFilterCategory ] = useState( '' );
 	const [ filterEnabled, setFilterEnabled ] = useState( '' );
 	const [ deleteConfirm, setDeleteConfirm ] = useState( null );
 
@@ -84,11 +83,6 @@ export function AbilitiesList( {
 				);
 			}
 
-			// Category filter
-			if ( filterCategory ) {
-				filtered = filtered.filter( ( ability ) => ability.category === filterCategory );
-			}
-
 			// Enabled filter
 			if ( filterEnabled !== '' ) {
 				const enabled = filterEnabled === '1';
@@ -113,13 +107,13 @@ export function AbilitiesList( {
 			setFilteredAbilities( filtered );
 			setCurrentPage( 1 );
 		},
-		[ searchTerm, sortField, sortOrder, filterCategory, filterEnabled ]
+		[ searchTerm, sortField, sortOrder, filterEnabled ]
 	);
 
 	// Apply filters when search or filters change
 	useEffect( () => {
 		applyFilters( abilities );
-	}, [ searchTerm, sortField, sortOrder, filterCategory, filterEnabled, applyFilters, abilities ] );
+	}, [ searchTerm, sortField, sortOrder, filterEnabled, applyFilters, abilities ] );
 
 	/**
 	 * Handle delete confirmation
@@ -241,16 +235,6 @@ export function AbilitiesList( {
 					/>
 
 					<select
-						value={ filterCategory }
-						onChange={ ( e ) => setFilterCategory( e.target.value ) }
-						className="acrossai-filter-select"
-					>
-						<option value="">{ __( 'All Categories', 'acrossai-abilities-manager' ) }</option>
-						<option value="custom">{ __( 'Custom', 'acrossai-abilities-manager' ) }</option>
-						<option value="integration">{ __( 'Integration', 'acrossai-abilities-manager' ) }</option>
-					</select>
-
-					<select
 						value={ filterEnabled }
 						onChange={ ( e ) => setFilterEnabled( e.target.value ) }
 						className="acrossai-filter-select"
@@ -370,10 +354,8 @@ export function AbilitiesList( {
 								} }
 								style={ { width: '250px' } }
 							/>
-							<th>{ __( 'Category', 'acrossai-abilities-manager' ) }</th>
 							<th>{ __( 'Status', 'acrossai-abilities-manager' ) }</th>
 							<th>{ __( 'Type', 'acrossai-abilities-manager' ) }</th>
-							<th>{ __( 'Permission', 'acrossai-abilities-manager' ) }</th>
 							<th style={ { width: '60px' } }>{ __( 'MCP', 'acrossai-abilities-manager' ) }</th>
 							<th style={ { width: '100px' } }>{ __( 'Actions', 'acrossai-abilities-manager' ) }</th>
 						</tr>
@@ -396,16 +378,14 @@ export function AbilitiesList( {
 										} }
 									/>
 								</td>
-								<td className="acrossai-slug">{ ability.ability_slug }</td>
+								<td className="acrossai-slug">{ ability.ability_slug.replace( 'acrossai-custom-abilities/', '' ) }</td>
 								<td className="acrossai-label">{ ability.label }</td>
-								<td>{ ability.category }</td>
 								<td>
 									<span className={ `acrossai-status ${ ability.enabled ? 'enabled' : 'disabled' }` }>
 										{ ability.enabled ? __( '✓ Enabled', 'acrossai-abilities-manager' ) : __( '○ Disabled', 'acrossai-abilities-manager' ) }
 									</span>
 								</td>
 								<td>{ ability.callback_type }</td>
-								<td>{ ability.permission_type }</td>
 								<td>
 									{ ability.show_in_mcp ? __( '✓ Yes', 'acrossai-abilities-manager' ) : __( '○ No', 'acrossai-abilities-manager' ) }
 								</td>

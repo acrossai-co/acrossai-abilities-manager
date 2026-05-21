@@ -11,10 +11,14 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Rest;
 
+use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Database\AcrossAI_Custom_Ability_Query;
 use AcrossAI_Abilities_Manager\Includes\Modules\Custom_Ability\Database\AcrossAI_Custom_Ability_Table;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Custom_Ability_Formatter;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Custom_Ability_Sanitizer;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Custom_Ability_Validator;
+
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Class AcrossAI_Custom_Ability_Write_Controller
@@ -43,12 +47,20 @@ class AcrossAI_Custom_Ability_Write_Controller {
 	protected $orchestrator;
 
 	/**
-	 * Custom Ability Table instance.
+	 * Custom Ability Table instance (for schema/table-exists checks).
 	 *
 	 * @since 0.0.1
 	 * @var AcrossAI_Custom_Ability_Table
 	 */
 	protected $table;
+
+	/**
+	 * Custom Ability Query instance (for CRUD).
+	 *
+	 * @since 0.0.1
+	 * @var AcrossAI_Custom_Ability_Query
+	 */
+	protected $db_query;
 
 	/**
 	 * Get singleton instance.
@@ -70,7 +82,8 @@ class AcrossAI_Custom_Ability_Write_Controller {
 	 */
 	private function __construct() {
 		$this->orchestrator = AcrossAI_Custom_Ability_Rest_Controller::instance();
-		$this->table = AcrossAI_Custom_Ability_Table::instance();
+		$this->table        = AcrossAI_Custom_Ability_Table::instance();
+		$this->db_query     = AcrossAI_Custom_Ability_Query::instance();
 	}
 
 	/**
@@ -124,6 +137,29 @@ class AcrossAI_Custom_Ability_Write_Controller {
 	}
 
 	/**
+	 * Ensure the custom abilities table is available before writes.
+	 *
+	 * @since 0.0.1
+	 * @return true|\WP_Error True when table is ready, WP_Error otherwise.
+	 */
+	protected function ensure_table_ready() {
+		if ( $this->table->exists() ) {
+			return true;
+		}
+
+		$this->table->maybe_upgrade();
+		if ( $this->table->exists() ) {
+			return true;
+		}
+
+		return new \WP_Error(
+			'rest_error',
+			esc_html__( 'Custom abilities table is unavailable.', 'acrossai-abilities-manager' ),
+			array( 'status' => 500 )
+		);
+	}
+
+	/**
 	 * Create a new custom ability.
 	 *
 	 * POST /custom-abilities
@@ -136,6 +172,11 @@ class AcrossAI_Custom_Ability_Write_Controller {
 	 */
 	public function create_item( \WP_REST_Request $request ) {
 		try {
+			$table_ready = $this->ensure_table_ready();
+			if ( is_wp_error( $table_ready ) ) {
+				return $table_ready;
+			}
+
 			// Step 1: Extract and sanitize input
 			$fields = $this->extract_fields( $request );
 			$fields = AcrossAI_Custom_Ability_Sanitizer::sanitize_ability( $fields );
@@ -150,12 +191,8 @@ class AcrossAI_Custom_Ability_Write_Controller {
 				);
 			}
 
-			// Step 3: Check for slug collision (uniqueness)
-			$existing = $this->table->query()
-				->by_slug( $fields['ability_slug'] )
-				->get();
-
-			if ( ! empty( $existing ) ) {
+			// Step 3: Check for slug collision (uniqueness).
+			if ( isset( $fields['ability_slug'] ) && $this->db_query->slug_exists( $fields['ability_slug'] ) ) {
 				return new \WP_Error(
 					'rest_duplicate',
 					esc_html__( 'Ability slug already exists.', 'acrossai-abilities-manager' ),
@@ -170,7 +207,7 @@ class AcrossAI_Custom_Ability_Write_Controller {
 			do_action( 'acrossai_custom_ability_before_save', $fields, null );
 
 			// Step 6: Save to database
-			$ability_id = $this->table->insert( $fields );
+			$ability_id = $this->db_query->insert_ability( $fields );
 
 			if ( ! $ability_id ) {
 				return new \WP_Error(
@@ -181,7 +218,7 @@ class AcrossAI_Custom_Ability_Write_Controller {
 			}
 
 			// Step 7: Fetch complete row from database (Memory BUG-PARTIAL-HOOK-FIELDS)
-			$ability_row = $this->table->get( $ability_id );
+			$ability_row = $this->db_query->get_ability_by_id( $ability_id );
 
 			if ( ! $ability_row ) {
 				return new \WP_Error(
@@ -220,6 +257,11 @@ class AcrossAI_Custom_Ability_Write_Controller {
 	 */
 	public function update_item( \WP_REST_Request $request ) {
 		try {
+			$table_ready = $this->ensure_table_ready();
+			if ( is_wp_error( $table_ready ) ) {
+				return $table_ready;
+			}
+
 			$ability_id = absint( $request->get_param( 'id' ) );
 
 			if ( $ability_id < 1 ) {
@@ -231,7 +273,7 @@ class AcrossAI_Custom_Ability_Write_Controller {
 			}
 
 			// Verify ability exists
-			$existing_ability = $this->table->get( $ability_id );
+			$existing_ability = $this->db_query->get_ability_by_id( $ability_id );
 
 			if ( ! $existing_ability ) {
 				return new \WP_Error(
@@ -255,13 +297,9 @@ class AcrossAI_Custom_Ability_Write_Controller {
 				);
 			}
 
-			// Step 3: Check for slug collision only if slug changed
+			// Step 3: Check for slug collision only if slug changed.
 			if ( isset( $fields['ability_slug'] ) && $fields['ability_slug'] !== $existing_ability->ability_slug ) {
-				$collision = $this->table->query()
-					->by_slug( $fields['ability_slug'] )
-					->get();
-
-				if ( ! empty( $collision ) ) {
+				if ( $this->db_query->slug_exists( $fields['ability_slug'] ) ) {
 					return new \WP_Error(
 						'rest_duplicate',
 						esc_html__( 'Ability slug already exists.', 'acrossai-abilities-manager' ),
@@ -277,7 +315,7 @@ class AcrossAI_Custom_Ability_Write_Controller {
 			do_action( 'acrossai_custom_ability_before_save', $fields, $ability_id );
 
 			// Step 6: Update in database
-			$updated = $this->table->update( $ability_id, $fields );
+			$updated = $this->db_query->update_ability( $ability_id, $fields );
 
 			if ( ! $updated ) {
 				return new \WP_Error(
@@ -288,7 +326,7 @@ class AcrossAI_Custom_Ability_Write_Controller {
 			}
 
 			// Step 7: Fetch complete row from database (Memory BUG-PARTIAL-HOOK-FIELDS)
-			$ability_row = $this->table->get( $ability_id );
+			$ability_row = $this->db_query->get_ability_by_id( $ability_id );
 
 			if ( ! $ability_row ) {
 				return new \WP_Error(
@@ -326,6 +364,11 @@ class AcrossAI_Custom_Ability_Write_Controller {
 	 */
 	public function delete_item( \WP_REST_Request $request ) {
 		try {
+			$table_ready = $this->ensure_table_ready();
+			if ( is_wp_error( $table_ready ) ) {
+				return $table_ready;
+			}
+
 			$ability_id = absint( $request->get_param( 'id' ) );
 
 			if ( $ability_id < 1 ) {
@@ -337,7 +380,7 @@ class AcrossAI_Custom_Ability_Write_Controller {
 			}
 
 			// Verify ability exists before deletion
-			$ability = $this->table->get( $ability_id );
+			$ability = $this->db_query->get_ability_by_id( $ability_id );
 
 			if ( ! $ability ) {
 				return new \WP_Error(
@@ -351,7 +394,7 @@ class AcrossAI_Custom_Ability_Write_Controller {
 			$ability_slug = $ability->ability_slug;
 
 			// Delete from database
-			$deleted = $this->table->delete( $ability_id );
+			$deleted = $this->db_query->delete_ability( $ability_id );
 
 			if ( ! $deleted ) {
 				return new \WP_Error(
@@ -387,18 +430,14 @@ class AcrossAI_Custom_Ability_Write_Controller {
 			'ability_slug',
 			'label',
 			'description',
-			'category',
 			'enabled',
 			'callback_type',
 			'callback_config',
-			'permission_type',
-			'permission_config',
 			'input_schema',
 			'output_schema',
 			'show_in_rest',
 			'show_in_mcp',
 			'mcp_type',
-			'mcp_servers',
 			'readonly',
 			'destructive',
 			'idempotent',
@@ -409,6 +448,14 @@ class AcrossAI_Custom_Ability_Write_Controller {
 		foreach ( $allowed_fields as $field ) {
 			if ( null !== $request->get_param( $field ) ) {
 				$fields[ $field ] = $request->get_param( $field );
+			}
+		}
+
+		// Prepend fixed namespace — user submits the suffix only.
+		if ( isset( $fields['ability_slug'] ) ) {
+			$suffix = ltrim( (string) $fields['ability_slug'], '/' );
+			if ( 0 !== strpos( $suffix, 'acrossai-custom-abilities/' ) ) {
+				$fields['ability_slug'] = 'acrossai-custom-abilities/' . $suffix;
 			}
 		}
 
@@ -470,12 +517,6 @@ class AcrossAI_Custom_Ability_Write_Controller {
 				'sanitize_callback' => 'sanitize_textarea_field',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'category'            => array(
-				'description'       => __( 'Ability category.', 'acrossai-abilities-manager' ),
-				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
-				'validate_callback' => 'rest_validate_request_arg',
-			),
 			'enabled'             => array(
 				'description'       => __( 'Enable this ability (auto-register at WordPress init).', 'acrossai-abilities-manager' ),
 				'type'              => 'boolean',
@@ -490,18 +531,6 @@ class AcrossAI_Custom_Ability_Write_Controller {
 			),
 			'callback_config'     => array(
 				'description'       => __( 'Callback configuration (JSON).', 'acrossai-abilities-manager' ),
-				'type'              => 'object',
-				'validate_callback' => 'rest_validate_request_arg',
-			),
-			'permission_type'     => array(
-				'description'       => __( 'Permission type (always_allow, logged_in, capability).', 'acrossai-abilities-manager' ),
-				'type'              => 'string',
-				'required'          => true,
-				'enum'              => array( 'always_allow', 'logged_in', 'capability' ),
-				'validate_callback' => 'rest_validate_request_arg',
-			),
-			'permission_config'   => array(
-				'description'       => __( 'Permission configuration (JSON).', 'acrossai-abilities-manager' ),
 				'type'              => 'object',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
@@ -529,11 +558,6 @@ class AcrossAI_Custom_Ability_Write_Controller {
 				'description'       => __( 'MCP type (tool, resource, prompt).', 'acrossai-abilities-manager' ),
 				'type'              => 'string',
 				'enum'              => array( 'tool', 'resource', 'prompt' ),
-				'validate_callback' => 'rest_validate_request_arg',
-			),
-			'mcp_servers'         => array(
-				'description'       => __( 'MCP servers to expose to (JSON array).', 'acrossai-abilities-manager' ),
-				'type'              => 'array',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
 			'readonly'            => array(

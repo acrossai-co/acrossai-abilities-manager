@@ -41,18 +41,14 @@ export function AbilityForm( {
 		ability_slug: '',
 		label: '',
 		description: '',
-		category: 'custom',
 		enabled: true,
 		callback_type: 'noop',
 		callback_config: {},
-		permission_type: 'always_allow',
-		permission_config: {},
 		input_schema: '{}',
 		output_schema: '{}',
 		show_in_rest: true,
 		show_in_mcp: false,
 		mcp_type: 'tool',
-		mcp_servers: [],
 		readonly: null,
 		destructive: null,
 		idempotent: null,
@@ -72,12 +68,18 @@ export function AbilityForm( {
 		error: apiError,
 	} = useCustomAbilities( restNamespace );
 
+	const SLUG_PREFIX = 'acrossai-custom-abilities/';
+
 	// Load ability data on edit mode
 	useEffect( () => {
 		if ( isEditMode ) {
 			fetchAbility( abilityId )
 				.then( ( ability ) => {
-					setFormData( ability );
+					const data = { ...ability };
+					if ( data.ability_slug && data.ability_slug.startsWith( SLUG_PREFIX ) ) {
+						data.ability_slug = data.ability_slug.slice( SLUG_PREFIX.length );
+					}
+					setFormData( data );
 				} )
 				.catch( ( err ) => {
 					setFormError(
@@ -130,13 +132,13 @@ export function AbilityForm( {
 		// Required fields
 		if ( ! formData.ability_slug ) {
 			newErrors.ability_slug = __( 'Ability slug is required', 'acrossai-abilities-manager' );
-		} else if ( ! /^[a-z0-9]+\/[a-z0-9-]+$/.test( formData.ability_slug ) ) {
+		} else if ( ! /^[a-z0-9][a-z0-9-]*$/.test( formData.ability_slug ) ) {
 			newErrors.ability_slug = __(
-				'Invalid format. Use: namespace/name (e.g., custom/my-ability)',
+				'Use lowercase letters, numbers, and hyphens only (e.g. my-ability)',
 				'acrossai-abilities-manager'
 			);
-		} else if ( formData.ability_slug.length > 255 ) {
-			newErrors.ability_slug = __( 'Slug must be 255 characters or less', 'acrossai-abilities-manager' );
+		} else if ( formData.ability_slug.length > 230 ) {
+			newErrors.ability_slug = __( 'Slug suffix must be 230 characters or less', 'acrossai-abilities-manager' );
 		} else if ( slugExists && ! isEditMode ) {
 			newErrors.ability_slug = __( 'This slug already exists', 'acrossai-abilities-manager' );
 		}
@@ -190,20 +192,6 @@ export function AbilityForm( {
 		[ formData, validateForm, isEditMode, abilityId, createAbility, updateAbility, onSuccess ]
 	);
 
-	if ( formError && ! isLoading ) {
-		return (
-			<>
-				<Notice status="error" onRemove={ () => setFormError( '' ) }>
-					{ formError }
-				</Notice>
-				{ onCancel && (
-					<Button onClick={ onCancel } variant="secondary">
-						{ __( 'Back', 'acrossai-abilities-manager' ) }
-					</Button>
-				) }
-			</>
-		);
-	}
 
 	if ( isEditMode && isLoading ) {
 		return <Spinner />;
@@ -211,6 +199,12 @@ export function AbilityForm( {
 
 	return (
 		<form onSubmit={ handleSubmit } className="acrossai-ability-form">
+			{ formError && (
+				<Notice status="error" onRemove={ () => setFormError( '' ) }>
+					{ formError }
+				</Notice>
+			) }
+
 			{ apiError && (
 				<Notice status="error" onRemove={ () => {} }>
 					{ apiError }
@@ -220,19 +214,28 @@ export function AbilityForm( {
 			<div className="acrossai-form-section">
 				<h3>{ __( 'Basic Information', 'acrossai-abilities-manager' ) }</h3>
 
-				<TextControl
-					label={ __( 'Ability Slug', 'acrossai-abilities-manager' ) }
-					help={ __( 'Format: namespace/name (e.g., custom/my-ability)', 'acrossai-abilities-manager' ) }
-					value={ formData.ability_slug }
-					onChange={ ( val ) => handleFieldChange( 'ability_slug', val ) }
-					placeholder="custom/my-ability"
-					disabled={ isEditMode }
-					required
-					isInvalid={ !! errors.ability_slug }
-				/>
-				{ errors.ability_slug && (
-					<span className="acrossai-error">{ errors.ability_slug }</span>
-				) }
+				<div className="acrossai-slug-field components-base-control">
+					<label className="components-base-control__label">
+						{ __( 'Ability Slug', 'acrossai-abilities-manager' ) }
+					</label>
+					<div className={ `acrossai-slug-input-wrap${ errors.ability_slug ? ' is-invalid' : '' }` }>
+						<span className="acrossai-slug-prefix">acrossai-custom-abilities/</span>
+						<input
+							type="text"
+							className="components-text-control__input"
+							value={ formData.ability_slug }
+							onChange={ ( e ) => handleFieldChange( 'ability_slug', e.target.value ) }
+							placeholder="my-ability"
+							disabled={ isEditMode }
+						/>
+					</div>
+					<p className="components-base-control__help">
+						{ __( 'Suffix only — lowercase letters, numbers, and hyphens', 'acrossai-abilities-manager' ) }
+					</p>
+					{ errors.ability_slug && (
+						<span className="acrossai-error">{ errors.ability_slug }</span>
+					) }
+				</div>
 
 				<TextControl
 					label={ __( 'Label', 'acrossai-abilities-manager' ) }
@@ -255,16 +258,6 @@ export function AbilityForm( {
 					rows={ 4 }
 				/>
 
-				<SelectControl
-					label={ __( 'Category', 'acrossai-abilities-manager' ) }
-					help={ __( 'Organizational category', 'acrossai-abilities-manager' ) }
-					value={ formData.category }
-					onChange={ ( val ) => handleFieldChange( 'category', val ) }
-					options={ [
-						{ value: 'custom', label: __( 'Custom', 'acrossai-abilities-manager' ) },
-						{ value: 'integration', label: __( 'Integration', 'acrossai-abilities-manager' ) },
-					] }
-				/>
 
 				<CheckboxControl
 					label={ __( 'Enabled', 'acrossai-abilities-manager' ) }
@@ -348,39 +341,6 @@ export function AbilityForm( {
 				) }
 			</div>
 
-			<div className="acrossai-form-section">
-				<h3>{ __( 'Permission Configuration', 'acrossai-abilities-manager' ) }</h3>
-
-				<SelectControl
-					label={ __( 'Permission Type', 'acrossai-abilities-manager' ) }
-					help={ __( 'Who can execute this ability', 'acrossai-abilities-manager' ) }
-					value={ formData.permission_type }
-					onChange={ ( val ) => {
-						handleFieldChange( 'permission_type', val );
-						// Reset permission_config on type change
-						handleFieldChange( 'permission_config', {} );
-					} }
-					options={ [
-						{ value: 'always_allow', label: __( 'Always Allow', 'acrossai-abilities-manager' ) },
-						{ value: 'logged_in', label: __( 'Logged In Users Only', 'acrossai-abilities-manager' ) },
-						{ value: 'capability', label: __( 'WordPress Capability', 'acrossai-abilities-manager' ) },
-					] }
-					required
-				/>
-
-				{ formData.permission_type === 'capability' && (
-					<TextControl
-						label={ __( 'Capability Name', 'acrossai-abilities-manager' ) }
-						help={ __( 'WordPress capability (e.g., manage_options)', 'acrossai-abilities-manager' ) }
-						value={ formData.permission_config?.capability || '' }
-						onChange={ ( val ) =>
-							handleFieldChange( 'permission_config', { ...formData.permission_config, capability: val } )
-						}
-						placeholder="manage_options"
-						required
-					/>
-				) }
-			</div>
 
 			<div className="acrossai-form-section">
 				<h3>{ __( 'Input/Output Schemas', 'acrossai-abilities-manager' ) }</h3>
@@ -442,18 +402,6 @@ export function AbilityForm( {
 							required
 						/>
 
-						<TextControl
-							label={ __( 'MCP Servers', 'acrossai-abilities-manager' ) }
-							help={ __( 'Comma-separated list of server slugs (leave empty for all)', 'acrossai-abilities-manager' ) }
-							value={ formData.mcp_servers?.join( ', ' ) || '' }
-							onChange={ ( val ) =>
-								handleFieldChange(
-									'mcp_servers',
-									val.split( ',' ).map( ( s ) => s.trim() ).filter( ( s ) => s )
-								)
-							}
-							placeholder="server1, server2"
-						/>
 					</>
 				) }
 			</div>
@@ -521,6 +469,7 @@ export function AbilityForm( {
 
 				{ onCancel && (
 					<Button
+						type="button"
 						onClick={ onCancel }
 						variant="secondary"
 						disabled={ isLoading }
