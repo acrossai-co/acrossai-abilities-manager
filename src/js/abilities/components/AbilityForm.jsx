@@ -66,6 +66,7 @@ const TRI_STATE_OPTIONS = [
 function TriStateEditField({ data, field, onChange }) {
 	return (
 		<select
+			className="rs"
 			value={ts2s(data[field.id])}
 			onChange={(e) =>
 				onChange({ ...data, [field.id]: s2ts(e.target.value) })
@@ -718,7 +719,7 @@ export default function AbilityForm({ mode, id }) {
 									<input
 										id="ability-label"
 										type="text"
-										className="regular-text"
+										className="rt"
 										value={draftAbility.label || ''}
 										onChange={(e) =>
 											patch({ label: e.target.value })
@@ -737,6 +738,7 @@ export default function AbilityForm({ mode, id }) {
 									</label>
 									<select
 										id="ability-category"
+										className="rs"
 										style={{ maxWidth: '260px' }}
 										value={draftAbility.category || ''}
 										onChange={(e) =>
@@ -770,7 +772,7 @@ export default function AbilityForm({ mode, id }) {
 									</label>
 									<textarea
 										id="ability-description"
-										className="large-text"
+										className="rt lt"
 										rows="3"
 										value={draftAbility.description || ''}
 										placeholder={__(
@@ -793,28 +795,69 @@ export default function AbilityForm({ mode, id }) {
 											'acrossai-abilities-manager'
 										)}
 									</label>
-									<div className="wptog-wrap">
-										<input
-											type="checkbox"
-											id="auto-register"
-											checked={
-												'publish' ===
-												draftAbility.status
-											}
-											onChange={(e) =>
-												patch({
-													status: e.target.checked
-														? 'publish'
-														: 'draft',
-												})
-											}
-										/>
-										<label htmlFor="auto-register">
+									<div className="ff">
+										<div className="trow">
+											<button
+												type="button"
+												id="auto-register"
+												role="switch"
+												aria-checked={
+													'publish' === draftAbility.status
+														? 'true'
+														: 'false'
+												}
+												className={`wptog${
+													'publish' === draftAbility.status
+														? ' on'
+														: ''
+												}`}
+												onClick={() =>
+													patch({
+														status:
+															'publish' === draftAbility.status
+																? 'draft'
+																: 'publish',
+													})
+												}
+											/>
+											<span className="tog-lbl">
+												{'publish' === draftAbility.status ? (
+													<>
+														<strong>
+															{__(
+																'Enabled',
+																'acrossai-abilities-manager'
+															)}
+														</strong>
+														{' — '}
+														{__(
+															'registered on every page load',
+															'acrossai-abilities-manager'
+														)}
+													</>
+												) : (
+													<>
+														<strong>
+															{__(
+																'Disabled',
+																'acrossai-abilities-manager'
+															)}
+														</strong>
+														{' — '}
+														{__(
+															'saved but not registered',
+															'acrossai-abilities-manager'
+														)}
+													</>
+												)}
+											</span>
+										</div>
+										<div className="desc">
 											{__(
-												'Register this ability on every page load',
+												'When off, the ability is saved but not registered with WordPress on each request.',
 												'acrossai-abilities-manager'
 											)}
-										</label>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -960,25 +1003,38 @@ export default function AbilityForm({ mode, id }) {
 										'acrossai-abilities-manager'
 									)}
 								</label>
-								<div className="wptog-wrap">
-									<input
-										type="checkbox"
-										id="show-in-mcp"
-										checked={!!draftAbility.show_in_mcp}
-										onChange={(e) =>
-											patch({
-												show_in_mcp: e.target.checked
-													? true
-													: null,
-											})
-										}
-									/>
-									<label htmlFor="show-in-mcp">
-										{__(
-											'Expose this ability to MCP clients',
-											'acrossai-abilities-manager'
-										)}
-									</label>
+								<div className="ff">
+									<div className="trow">
+										<button
+											type="button"
+											id="show-in-mcp"
+											role="switch"
+											aria-checked={
+												draftAbility.show_in_mcp
+													? 'true'
+													: 'false'
+											}
+											className={`wptog${
+												draftAbility.show_in_mcp
+													? ' on'
+													: ''
+											}`}
+											onClick={() =>
+												patch({
+													show_in_mcp:
+														draftAbility.show_in_mcp
+															? null
+															: true,
+												})
+											}
+										/>
+										<span className="tog-lbl">
+											{__(
+												'Expose this ability to MCP clients',
+												'acrossai-abilities-manager'
+											)}
+										</span>
+									</div>
 								</div>
 							</div>
 
@@ -991,6 +1047,7 @@ export default function AbilityForm({ mode, id }) {
 								</label>
 								<select
 									id="mcp-type"
+									className="rs"
 									style={{ maxWidth: '200px' }}
 									value={draftAbility.mcp_type || ''}
 									onChange={(e) =>
@@ -1035,7 +1092,7 @@ export default function AbilityForm({ mode, id }) {
 									<input
 										id="mcp-servers"
 										type="text"
-										className="regular-text"
+										className="rt"
 										value={
 											Array.isArray(
 												draftAbility.mcp_servers
@@ -1297,64 +1354,55 @@ export default function AbilityForm({ mode, id }) {
 							{__('Preview', 'acrossai-abilities-manager')}
 						</div>
 						<div className="sbody">
-							<table style={{ width: '100%', fontSize: '12px' }}>
-								<tbody>
-									<tr>
-										<td style={{ color: '#646970' }}>
+							<div className="prev-row">
+								<span className="prev-k">
+									{__('Slug', 'acrossai-abilities-manager')}
+								</span>
+								<span className="prev-v">
+									{draftAbility.ability_slug ? (
+										<code style={{ fontSize: '10px' }}>
+											{draftAbility.ability_slug}
+										</code>
+									) : (
+										<em style={{ color: '#646970' }}>
 											{__(
-												'Slug',
+												'(not set)',
 												'acrossai-abilities-manager'
 											)}
-										</td>
-										<td>
-											{draftAbility.ability_slug ? (
-												<code
-													style={{ fontSize: '10px' }}
-												>
-													{draftAbility.ability_slug}
-												</code>
-											) : (
-												<em
-													style={{ color: '#646970' }}
-												>
-													{__(
-														'(not set)',
-														'acrossai-abilities-manager'
-													)}
-												</em>
-											)}
-										</td>
-									</tr>
-									{!isOverride && (
-										<tr>
-											<td style={{ color: '#646970' }}>
-												{__(
-													'Type',
-													'acrossai-abilities-manager'
-												)}
-											</td>
-											<td>{callbackType}</td>
-										</tr>
+										</em>
 									)}
-									<tr>
-										<td style={{ color: '#646970' }}>
-											{__(
-												'Source',
-												'acrossai-abilities-manager'
-											)}
-										</td>
-										<td>
-											<SourceBadge
-												source={
-													draftAbility.source ||
-													savedAbility?.source ||
-													'db'
-												}
-											/>
-										</td>
-									</tr>
-								</tbody>
-							</table>
+								</span>
+							</div>
+							{!isOverride && (
+								<div className="prev-row">
+									<span className="prev-k">
+										{__(
+											'Type',
+											'acrossai-abilities-manager'
+										)}
+									</span>
+									<span className="prev-v">
+										{callbackType}
+									</span>
+								</div>
+							)}
+							<div className="prev-row">
+								<span className="prev-k">
+									{__(
+										'Source',
+										'acrossai-abilities-manager'
+									)}
+								</span>
+								<span className="prev-v">
+									<SourceBadge
+										source={
+											draftAbility.source ||
+											savedAbility?.source ||
+											'db'
+										}
+									/>
+								</span>
+							</div>
 						</div>
 					</div>
 
@@ -1366,14 +1414,14 @@ export default function AbilityForm({ mode, id }) {
 							</div>
 							<div className="sbody">
 								{savedAbility.updated_at && (
-									<div className="activity-item">
-										<span className="activity-dot updated" />
+									<div className="act-row">
+										<span className="act-dot updated" />
 										<span>
 											{__(
 												'Updated',
 												'acrossai-abilities-manager'
 											)}{' '}
-											<time>
+											<time className="act-d">
 												{formatDate(
 													savedAbility.updated_at
 												)}
@@ -1382,14 +1430,14 @@ export default function AbilityForm({ mode, id }) {
 									</div>
 								)}
 								{savedAbility.created_at && (
-									<div className="activity-item">
-										<span className="activity-dot created" />
+									<div className="act-row">
+										<span className="act-dot created" />
 										<span>
 											{__(
 												'Created',
 												'acrossai-abilities-manager'
 											)}{' '}
-											<time>
+											<time className="act-d">
 												{formatDate(
 													savedAbility.created_at
 												)}
@@ -1444,13 +1492,7 @@ export default function AbilityForm({ mode, id }) {
 										);
 									}
 									return (
-										<ul
-											style={{
-												margin: 0,
-												padding: '0 0 0 16px',
-												fontSize: '12px',
-											}}
-										>
+										<ul className="hlist">
 											{active.map((f) => (
 												<li key={f}>
 													{f}:{' '}

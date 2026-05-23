@@ -1,9 +1,9 @@
 /**
- * Abilities list view — DataViews-powered table (Constitution §III).
+ * Abilities list view — Classic WP-admin HTML table.
  *
- * Uses DataViews for sorting / filtering / pagination per architectural mandate.
- * Custom cell renderers produce the design-spec HTML: source badges, status dots,
- * type pills, MCP indicators.
+ * Matches "Abilities Manager — Final Design.html" pixel-for-pixel:
+ * a .wptable with checkboxes, inline row actions, subsubsub quick-links,
+ * tablenav with bulk-actions + source/status filters + search.
  *
  * SEC-010-02: Bulk delete requires window.confirm before dispatching.
  *
@@ -11,163 +11,94 @@
  */
 import { useState, useEffect, useCallback } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { DataViews } from '@wordpress/dataviews';
 import { __ } from '@wordpress/i18n';
 import { STORE_NAME } from '../store/index';
 import SourceBadge from './cells/SourceBadge';
 
 const SLUG_PREFIX = 'acrossai-abilities/';
-const LS_KEY = 'acrossai_abilities_list_view';
-
-// ---------------------------------------------------------------------------
-// Default view — persisted layout prefs (type + perPage) to localStorage
-// ---------------------------------------------------------------------------
-const DEFAULT_VIEW = {
-	type: 'table',
-	perPage: 20,
-	page: 1,
-	sort: { field: 'ability_slug', direction: 'asc' },
-	filters: [],
-	search: '',
-	fields: [
-		'ability_slug',
-		'label',
-		'category',
-		'source',
-		'status',
-		'callback_type',
-		'show_in_mcp',
-		'updated_at',
-	],
-};
-
-function loadView() {
-	try {
-		const stored = localStorage.getItem(LS_KEY);
-		if (stored) {
-			const parsed = JSON.parse(stored);
-			return {
-				...DEFAULT_VIEW,
-				type: parsed.type || DEFAULT_VIEW.type,
-				perPage: parsed.perPage || DEFAULT_VIEW.perPage,
-			};
-		}
-	} catch {
-		/* ignore */
-	}
-	return DEFAULT_VIEW;
-}
 
 // ---------------------------------------------------------------------------
 // Cell renderers
 // ---------------------------------------------------------------------------
 
-function SlugCell({ item }) {
-	const slug = item.ability_slug || '';
-	const hasPrefix = slug.startsWith(SLUG_PREFIX);
-	const prefix = hasPrefix ? SLUG_PREFIX : '';
-	const suffix = hasPrefix ? slug.slice(SLUG_PREFIX.length) : slug;
+function SlugCell( { item } ) {
+	const slug      = item.ability_slug || '';
+	const hasPrefix = slug.startsWith( SLUG_PREFIX );
+	const dimPart   = hasPrefix ? SLUG_PREFIX : '';
+	const namePart  = hasPrefix ? slug.slice( SLUG_PREFIX.length ) : slug;
+	return (
+		<div className="slug-cell">
+			{ dimPart && <span className="slug-dim">{ dimPart }</span> }
+			<span className="slug-name">{ namePart }</span>
+		</div>
+	);
+}
+
+function LabelCell( { item } ) {
 	return (
 		<>
-			{prefix && <span className="slug-dim">{prefix}</span>}
-			<span className="slug-name">{suffix}</span>
+			<div style={ { fontSize: '13px', fontWeight: 600 } }>
+				{ item.label || '—' }
+			</div>
+			{ item.provider && (
+				<div className="lbl-by">
+					{ __( 'by', 'acrossai-abilities-manager' ) }{ ' ' }
+					{ item.provider }
+				</div>
+			) }
 		</>
 	);
 }
 
-function LabelCell({ item }) {
-	return (
-		<>
-			<strong>{item.label || '—'}</strong>
-			{item.provider && (
-				<span className="lbl-by">
-					{__('by', 'acrossai-abilities-manager')} {item.provider}
-				</span>
-			)}
-		</>
-	);
+function CategoryCell( { item } ) {
+	if ( ! item.category ) return <span>—</span>;
+	return <span className="cpill">{ item.category }</span>;
 }
 
-function CategoryCell({ item }) {
-	if (!item.category) {
-		return <span>—</span>;
-	}
-	return <span className="cpill">{item.category}</span>;
-}
-
-function StatusCell({ item }) {
-	const isCustom = 'db' === (item.source || 'db');
-	if (isCustom) {
+function StatusCell( { item } ) {
+	const isCustom = 'db' === ( item.source || 'db' );
+	if ( isCustom ) {
 		return 'publish' === item.status ? (
-			<span className="sta-on">
-				{__('● Enabled', 'acrossai-abilities-manager')}
-			</span>
+			<div className="sta sta-on">
+				<div className="sta-dot" />
+				{ __( 'Enabled', 'acrossai-abilities-manager' ) }
+			</div>
 		) : (
-			<span className="sta-off">
-				{__('○ Disabled', 'acrossai-abilities-manager')}
-			</span>
+			<div className="sta sta-off">
+				<div className="sta-dot" />
+				{ __( 'Disabled', 'acrossai-abilities-manager' ) }
+			</div>
 		);
 	}
-	// Inherited — show site_allowed override badge
 	const sa = item.site_allowed;
-	if (true === sa || 1 === sa) {
-		return (
-			<span className="ibadge ib-a">
-				{__('Allowed', 'acrossai-abilities-manager')}
-			</span>
-		);
+	if ( true === sa || 1 === sa ) {
+		return <span className="ibadge ib-a">{ __( 'Allowed', 'acrossai-abilities-manager' ) }</span>;
 	}
-	if (false === sa || 0 === sa) {
-		return (
-			<span className="ibadge ib-b">
-				{__('Blocked', 'acrossai-abilities-manager')}
-			</span>
-		);
+	if ( false === sa || 0 === sa ) {
+		return <span className="ibadge ib-b">{ __( 'Blocked', 'acrossai-abilities-manager' ) }</span>;
 	}
-	return (
-		<span className="ibadge ib-d">
-			{__('Default', 'acrossai-abilities-manager')}
-		</span>
-	);
+	return <span className="ibadge ib-d">{ __( 'Default', 'acrossai-abilities-manager' ) }</span>;
 }
 
 const TYPE_MAP = {
-	noop: { cls: 'tb-n', label: 'noop' },
-	filter_hook: { cls: 'tb-f', label: 'filter_hook' },
+	noop:           { cls: 'tb-n', label: 'noop' },
+	filter_hook:    { cls: 'tb-f', label: 'filter_hook' },
 	wp_remote_post: { cls: 'tb-r', label: 'wp_remote_post' },
-	php_code: { cls: 'tb-p', label: 'php_code' },
+	php_code:       { cls: 'tb-p', label: 'php_code' },
 };
 
-function TypeCell({ item }) {
-	if (!item.callback_type || 'db' !== (item.source || 'db')) {
-		return <span>—</span>;
-	}
-	const { cls, label } = TYPE_MAP[item.callback_type] || TYPE_MAP.noop;
-	return <span className={`tbadge ${cls}`}>{label}</span>;
+function TypeCell( { item } ) {
+	if ( ! item.callback_type ) return <span>—</span>;
+	const { cls, label } = TYPE_MAP[ item.callback_type ] || TYPE_MAP.noop;
+	return <span className={ `tbadge ${ cls }` }>{ label }</span>;
 }
 
-function McpCell({ item }) {
+function McpCell( { item } ) {
 	return item.show_in_mcp ? (
-		<span className="mcp-y">
-			{__('✓ Yes', 'acrossai-abilities-manager')}
-		</span>
+		<span className="mcp-y">{ __( '✓ Yes', 'acrossai-abilities-manager' ) }</span>
 	) : (
-		<span className="mcp-n">
-			{__('○ No', 'acrossai-abilities-manager')}
-		</span>
+		<span className="mcp-n">{ __( '○ No', 'acrossai-abilities-manager' ) }</span>
 	);
-}
-
-function UpdatedCell({ item }) {
-	if (!item.updated_at) {
-		return <span>—</span>;
-	}
-	try {
-		const d = new Date(item.updated_at);
-		return <span title={item.updated_at}>{d.toLocaleDateString()}</span>;
-	} catch {
-		return <span>{item.updated_at}</span>;
-	}
 }
 
 // ---------------------------------------------------------------------------
@@ -180,409 +111,392 @@ function UpdatedCell({ item }) {
  * @return {JSX.Element}
  */
 export default function AbilitiesList() {
-	const [view, setView] = useState(loadView);
+	// ---- filter / sort / search state ----
+	const [ search, setSearch ]           = useState( '' );
+	const [ sourceFilter, setSourceFilter ] = useState( '' );
+	const [ statusFilter, setStatusFilter ] = useState( '' );
+	const [ sortDir, setSortDir ]         = useState( 'asc' );
+	const [ page ]                        = useState( 1 );
+	const PER_PAGE                        = 20;
 
-	const { abilities, total, pages, isLoading, error } = useSelect(
-		(select) => ({
-			abilities: select(STORE_NAME).getAbilities(),
-			total: select(STORE_NAME).getTotal(),
-			pages: select(STORE_NAME).getPages(),
-			isLoading: select(STORE_NAME).getIsLoading(),
-			error: select(STORE_NAME).getError(),
-		}),
+	// ---- checkbox state ----
+	const [ selected, setSelected ]       = useState( new Set() );
+	const [ bulkAction, setBulkAction ]   = useState( '' );
+
+	const { abilities, total, isLoading, error } = useSelect(
+		( select ) => ( {
+			abilities:  select( STORE_NAME ).getAbilities(),
+			total:      select( STORE_NAME ).getTotal(),
+			isLoading:  select( STORE_NAME ).getIsLoading(),
+			error:      select( STORE_NAME ).getError(),
+		} ),
 		[]
 	);
 
-	const dispatch = useDispatch(STORE_NAME);
+	const dispatch = useDispatch( STORE_NAME );
 
-	// Build server query params from current view state and fetch.
-	useEffect(() => {
-		const filterMap = (view.filters || []).reduce((acc, f) => {
-			acc[f.field] = f.value;
-			return acc;
-		}, {});
+	// Fetch whenever filters change.
+	useEffect( () => {
+		dispatch.fetchAbilities( {
+			page,
+			per_page:  PER_PAGE,
+			search:    search || undefined,
+			orderby:   'ability_slug',
+			order:     sortDir,
+			source:    sourceFilter || undefined,
+			status:    statusFilter || undefined,
+		} );
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ page, search, sourceFilter, statusFilter, sortDir ] );
 
-		dispatch.fetchAbilities({
-			page: view.page,
-			per_page: view.perPage,
-			search: view.search || undefined,
-			orderby: view.sort?.field || undefined,
-			order: view.sort?.direction || undefined,
-			...filterMap,
-		});
-	}, [
-		view.page,
-		view.perPage,
-		view.search,
-		view.sort?.field,
-		view.sort?.direction,
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		JSON.stringify(view.filters),
-	]);
+	// ---- counts from current page (approximate) ----
+	const publishedCount = abilities.filter( ( a ) => 'publish' === a.status ).length;
+	const draftCount     = abilities.filter( ( a ) => 'draft'   === a.status ).length;
 
-	// Persist only layout prefs (type, perPage) to localStorage — not filters/search.
-	const handleViewChange = useCallback((newView) => {
-		setView(newView);
-		try {
-			localStorage.setItem(
-				LS_KEY,
-				JSON.stringify({
-					type: newView.type,
-					perPage: newView.perPage,
-				})
-			);
-		} catch {
-			/* ignore */
+	// ---- checkbox helpers ----
+	const dbAbilities = abilities.filter( ( a ) => 'db' === ( a.source || 'db' ) );
+	const allDbIds    = new Set( dbAbilities.map( ( a ) => String( a.id ) ) );
+	const allChecked  = allDbIds.size > 0 && [ ...allDbIds ].every( ( id ) => selected.has( id ) );
+
+	const toggleAll = useCallback( () => {
+		if ( allChecked ) {
+			setSelected( new Set() );
+		} else {
+			setSelected( new Set( allDbIds ) );
 		}
-	}, []);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ allChecked, JSON.stringify( [ ...allDbIds ] ) ] );
 
-	// ---------------------------------------------------------------------------
-	// Fields
-	// ---------------------------------------------------------------------------
-	const fields = [
-		{
-			id: 'ability_slug',
-			label: __('Slug', 'acrossai-abilities-manager'),
-			getValue: ({ item }) => item.ability_slug || '',
-			render: ({ item }) => <SlugCell item={item} />,
-			enableSorting: true,
-			enableSearch: true,
-		},
-		{
-			id: 'label',
-			label: __('Label', 'acrossai-abilities-manager'),
-			getValue: ({ item }) => item.label || '',
-			render: ({ item }) => <LabelCell item={item} />,
-			enableSorting: true,
-		},
-		{
-			id: 'category',
-			label: __('Category', 'acrossai-abilities-manager'),
-			getValue: ({ item }) => item.category || '',
-			render: ({ item }) => <CategoryCell item={item} />,
-			enableHiding: true,
-		},
-		{
-			id: 'source',
-			label: __('Source', 'acrossai-abilities-manager'),
-			getValue: ({ item }) => item.source || 'db',
-			render: ({ item }) => <SourceBadge source={item.source || 'db'} />,
-			elements: [
-				{
-					value: 'db',
-					label: __('Custom', 'acrossai-abilities-manager'),
-				},
-				{
-					value: 'plugin',
-					label: __('Plugin', 'acrossai-abilities-manager'),
-				},
-				{
-					value: 'core',
-					label: __('Core', 'acrossai-abilities-manager'),
-				},
-				{
-					value: 'theme',
-					label: __('Theme', 'acrossai-abilities-manager'),
-				},
-			],
-			enableHiding: true,
-		},
-		{
-			id: 'status',
-			label: __('Status', 'acrossai-abilities-manager'),
-			getValue: ({ item }) => item.status || '',
-			render: ({ item }) => <StatusCell item={item} />,
-			elements: [
-				{
-					value: 'publish',
-					label: __('Published', 'acrossai-abilities-manager'),
-				},
-				{
-					value: 'draft',
-					label: __('Draft', 'acrossai-abilities-manager'),
-				},
-			],
-			enableHiding: true,
-		},
-		{
-			id: 'callback_type',
-			label: __('Type', 'acrossai-abilities-manager'),
-			getValue: ({ item }) => item.callback_type || '',
-			render: ({ item }) => <TypeCell item={item} />,
-			elements: [
-				{ value: 'noop', label: 'noop' },
-				{ value: 'filter_hook', label: 'filter_hook' },
-				{ value: 'wp_remote_post', label: 'wp_remote_post' },
-				{ value: 'php_code', label: 'php_code' },
-			],
-			enableHiding: true,
-		},
-		{
-			id: 'show_in_mcp',
-			label: __('MCP', 'acrossai-abilities-manager'),
-			getValue: ({ item }) => item.show_in_mcp,
-			render: ({ item }) => <McpCell item={item} />,
-			enableHiding: true,
-		},
-		{
-			id: 'updated_at',
-			label: __('Updated', 'acrossai-abilities-manager'),
-			getValue: ({ item }) => item.updated_at || '',
-			render: ({ item }) => <UpdatedCell item={item} />,
-			enableSorting: true,
-			enableHiding: true,
-		},
-	];
+	const toggleOne = useCallback( ( id ) => {
+		setSelected( ( prev ) => {
+			const next = new Set( prev );
+			if ( next.has( id ) ) {
+				next.delete( id );
+			} else {
+				next.add( id );
+			}
+			return next;
+		} );
+	}, [] );
 
-	// ---------------------------------------------------------------------------
-	// Actions
-	// ---------------------------------------------------------------------------
-	const actions = [
-		{
-			id: 'edit',
-			label: __('Edit', 'acrossai-abilities-manager'),
-			isPrimary: true,
-			callback: (items) => {
-				const item = Array.isArray(items) ? items[0] : items;
-				dispatch.setView({ mode: 'edit', id: item.id });
-			},
-		},
-		{
-			id: 'override',
-			label: __('Override', 'acrossai-abilities-manager'),
-			isPrimary: false,
-			isEligible: (item) => 'db' !== (item.source || 'db'),
-			callback: (items) => {
-				const item = Array.isArray(items) ? items[0] : items;
-				dispatch.setView({ mode: 'override', id: item.id });
-			},
-		},
-		{
-			id: 'toggle-status',
-			label: __('Toggle Status', 'acrossai-abilities-manager'),
-			isEligible: (item) => 'db' === (item.source || 'db'),
-			callback: (items) => {
-				const item = Array.isArray(items) ? items[0] : items;
-				const newStatus =
-					'publish' === item.status ? 'draft' : 'publish';
-				dispatch.updateAbility(item.id, { status: newStatus });
-			},
-		},
-		{
-			id: 'delete',
-			label: __('Delete', 'acrossai-abilities-manager'),
-			isDestructive: true,
-			isEligible: (item) => 'db' === (item.source || 'db'),
-			callback: (items) => {
-				const item = Array.isArray(items) ? items[0] : items;
+	// ---- inline status dropdown ----
+	function handleStatusDropdown( item, value ) {
+		const newStatus = 'e' === value ? 'publish' : 'draft';
+		dispatch.updateAbility( item.id, { status: newStatus } );
+	}
 
-				if (
-					// eslint-disable-next-line no-alert
-					window.confirm(
-						__(
-							'Delete this ability? This cannot be undone.',
-							'acrossai-abilities-manager'
-						)
-					)
-				) {
-					dispatch.deleteAbility(item.id);
-				}
-			},
-		},
-		// Bulk actions (supportsBulk marks them for multi-select toolbar)
-		{
-			id: 'bulk-publish',
-			label: __('Publish', 'acrossai-abilities-manager'),
-			supportsBulk: true,
-			isEligible: (item) =>
-				'db' === (item.source || 'db') && 'publish' !== item.status,
-			callback: (items) => {
-				const ids = items
-					.filter((i) => 'db' === (i.source || 'db'))
-					.map((i) => i.id);
-				if (ids.length) {
-					dispatch.bulkUpdateStatus(ids, 'publish');
-				}
-			},
-		},
-		{
-			id: 'bulk-unpublish',
-			label: __('Unpublish', 'acrossai-abilities-manager'),
-			supportsBulk: true,
-			isEligible: (item) =>
-				'db' === (item.source || 'db') && 'draft' !== item.status,
-			callback: (items) => {
-				const ids = items
-					.filter((i) => 'db' === (i.source || 'db'))
-					.map((i) => i.id);
-				if (ids.length) {
-					dispatch.bulkUpdateStatus(ids, 'draft');
-				}
-			},
-		},
-		{
-			id: 'bulk-delete',
-			label: __('Delete', 'acrossai-abilities-manager'),
-			supportsBulk: true,
-			isDestructive: true,
-			isEligible: (item) => 'db' === (item.source || 'db'),
-			callback: (items) => {
-				const dbItems = items.filter(
-					(i) => 'db' === (i.source || 'db')
-				);
-				if (!dbItems.length) {
-					return;
-				}
-				const count = dbItems.length;
-				// SEC-010-02: bulk delete requires explicit confirmation.
-				if (
-					// eslint-disable-next-line no-alert
-					window.confirm(
-						1 === count
-							? __(
-									'Delete 1 ability? This cannot be undone.',
-									'acrossai-abilities-manager'
-								)
-							: `${__('Delete', 'acrossai-abilities-manager')} ${count} ${__('abilities? This cannot be undone.', 'acrossai-abilities-manager')}`
-					)
-				) {
-					dispatch.bulkDeleteAbilities(dbItems.map((i) => i.id));
-				}
-			},
-		},
-	];
+	// ---- bulk apply ----
+	function handleBulkApply() {
+		if ( ! bulkAction || ! selected.size ) return;
+		const ids = [ ...selected ].map( Number );
 
-	// ---------------------------------------------------------------------------
-	// Quick-link counts (from current loaded page — approximate for sub-counts)
-	// ---------------------------------------------------------------------------
-	const publishedCount = abilities.filter(
-		(a) => 'publish' === a.status
-	).length;
-	const draftCount = abilities.filter((a) => 'draft' === a.status).length;
+		if ( 'publish' === bulkAction ) {
+			dispatch.bulkUpdateStatus( ids, 'publish' );
+			setSelected( new Set() );
+		} else if ( 'unpublish' === bulkAction ) {
+			dispatch.bulkUpdateStatus( ids, 'draft' );
+			setSelected( new Set() );
+		} else if ( 'delete' === bulkAction ) {
+			const count = ids.length;
+			// SEC-010-02: require explicit confirmation.
+			if (
+				// eslint-disable-next-line no-alert
+				window.confirm(
+					1 === count
+						? __( 'Delete 1 ability? This cannot be undone.', 'acrossai-abilities-manager' )
+						: `${ __( 'Delete', 'acrossai-abilities-manager' ) } ${ count } ${ __( 'abilities? This cannot be undone.', 'acrossai-abilities-manager' ) }`
+				)
+			) {
+				dispatch.bulkDeleteAbilities( ids );
+				setSelected( new Set() );
+			}
+		}
+		setBulkAction( '' );
+	}
 
-	const activeStatusFilter = (view.filters || []).find(
-		(f) => 'status' === f.field
-	);
-
-	function setStatusFilter(status) {
-		const baseFilters = (view.filters || []).filter(
-			(f) => 'status' !== f.field
-		);
-		const newFilters = status
-			? [
-					...baseFilters,
-					{ field: 'status', operator: 'is', value: status },
-				]
-			: baseFilters;
-		handleViewChange({ ...view, page: 1, filters: newFilters });
+	// ---- sort toggle ----
+	function toggleSort() {
+		setSortDir( ( d ) => ( 'asc' === d ? 'desc' : 'asc' ) );
 	}
 
 	return (
 		<div className="wrap">
-			{/* Error notice */}
-			{error && (
+			{ /* Error notice */ }
+			{ error && (
 				<div className="notice notice-error">
-					<p>{error}</p>
+					<p>{ error }</p>
 					<button
 						type="button"
 						className="notice-dismiss"
-						aria-label={__('Dismiss', 'acrossai-abilities-manager')}
-						onClick={() => dispatch.clearError()}
+						aria-label={ __( 'Dismiss', 'acrossai-abilities-manager' ) }
+						onClick={ () => dispatch.clearError() }
 					/>
 				</div>
-			)}
+			) }
 
-			{/* Page title row */}
-			<div className="abilities-list-header">
+			{ /* Page title */ }
+			<div className="pg-title">
 				<h1 className="wp-heading-inline">
-					{__('Custom Abilities', 'acrossai-abilities-manager')}
+					{ __( 'Custom Abilities', 'acrossai-abilities-manager' ) }
 				</h1>
 				<button
 					type="button"
-					className="page-title-action"
-					onClick={() => dispatch.setView({ mode: 'create' })}
+					className="title-action"
+					onClick={ () => dispatch.setView( { mode: 'create' } ) }
 				>
-					{__('+ Add New Ability', 'acrossai-abilities-manager')}
+					{ __( '+ Add New Ability', 'acrossai-abilities-manager' ) }
 				</button>
 			</div>
 
 			<p className="abilities-subtitle">
-				{__(
+				{ __(
 					'Manage abilities created on this site and override how plugin, theme and core abilities behave.',
 					'acrossai-abilities-manager'
-				)}
+				) }
 			</p>
 
-			{/* Quick-links: All | Published | Draft */}
+			{ /* Quick-links: All | Published | Draft */ }
 			<ul className="subsubsub">
 				<li>
-					<a
+					<a // eslint-disable-line jsx-a11y/anchor-is-valid
 						href="#all"
-						className={!activeStatusFilter ? 'current' : ''}
-						onClick={(e) => {
-							e.preventDefault();
-							setStatusFilter(null);
-						}}
+						className={ `ssl${ '' === statusFilter ? ' on' : '' }` }
+						onClick={ ( e ) => { e.preventDefault(); setStatusFilter( '' ); } }
 					>
-						{__('All', 'acrossai-abilities-manager')}{' '}
-						<span className="count">({total})</span>
+						{ __( 'All', 'acrossai-abilities-manager' ) }{ ' ' }
+						<span className="ct">({ total })</span>
 					</a>
+					<span className="ssp">|</span>
 				</li>
 				<li>
-					<a
+					<a // eslint-disable-line jsx-a11y/anchor-is-valid
 						href="#published"
-						className={
-							activeStatusFilter?.value === 'publish'
-								? 'current'
-								: ''
-						}
-						onClick={(e) => {
-							e.preventDefault();
-							setStatusFilter('publish');
-						}}
+						className={ `ssl${ 'publish' === statusFilter ? ' on' : '' }` }
+						onClick={ ( e ) => { e.preventDefault(); setStatusFilter( 'publish' ); } }
 					>
-						{__('Published', 'acrossai-abilities-manager')}{' '}
-						<span className="count">({publishedCount})</span>
+						{ __( 'Published', 'acrossai-abilities-manager' ) }{ ' ' }
+						<span className="ct">({ publishedCount })</span>
 					</a>
+					<span className="ssp">|</span>
 				</li>
 				<li>
-					<a
+					<a // eslint-disable-line jsx-a11y/anchor-is-valid
 						href="#draft"
-						className={
-							activeStatusFilter?.value === 'draft'
-								? 'current'
-								: ''
-						}
-						onClick={(e) => {
-							e.preventDefault();
-							setStatusFilter('draft');
-						}}
+						className={ `ssl${ 'draft' === statusFilter ? ' on' : '' }` }
+						onClick={ ( e ) => { e.preventDefault(); setStatusFilter( 'draft' ); } }
 					>
-						{__('Draft', 'acrossai-abilities-manager')}{' '}
-						<span className="count">({draftCount})</span>
+						{ __( 'Draft', 'acrossai-abilities-manager' ) }{ ' ' }
+						<span className="ct">({ draftCount })</span>
 					</a>
 				</li>
 			</ul>
 
-			{/* DataViews table (Constitution §III) */}
-			<DataViews
-				data={abilities}
-				fields={fields}
-				view={view}
-				onChangeView={handleViewChange}
-				actions={actions}
-				paginationInfo={{ totalItems: total, totalPages: pages }}
-				getItemId={(item) => String(item.id)}
-				defaultLayouts={{ table: {} }}
-				isLoading={isLoading}
-			/>
-
-			{/* No results */}
-			{!isLoading && !error && 0 === abilities.length && (
-				<div className="abilities-no-results">
-					{__('No abilities found.', 'acrossai-abilities-manager')}
+			{ /* Tablenav */ }
+			<div className="tablenav">
+				<div className="bulk-row">
+					<select
+						value={ bulkAction }
+						onChange={ ( e ) => setBulkAction( e.target.value ) }
+						aria-label={ __( 'Bulk actions', 'acrossai-abilities-manager' ) }
+					>
+						<option value="">{ __( 'Bulk Actions', 'acrossai-abilities-manager' ) }</option>
+						<option value="publish">{ __( 'Publish', 'acrossai-abilities-manager' ) }</option>
+						<option value="unpublish">{ __( 'Unpublish', 'acrossai-abilities-manager' ) }</option>
+						<option value="delete">{ __( 'Delete', 'acrossai-abilities-manager' ) }</option>
+					</select>
+					<button type="button" className="button" onClick={ handleBulkApply }>
+						{ __( 'Apply', 'acrossai-abilities-manager' ) }
+					</button>
 				</div>
-			)}
+
+				<select
+					value={ sourceFilter }
+					onChange={ ( e ) => setSourceFilter( e.target.value ) }
+					aria-label={ __( 'Filter by source', 'acrossai-abilities-manager' ) }
+				>
+					<option value="">{ __( 'All Sources', 'acrossai-abilities-manager' ) }</option>
+					<option value="db">{ __( 'Custom', 'acrossai-abilities-manager' ) }</option>
+					<option value="plugin">{ __( 'Plugin', 'acrossai-abilities-manager' ) }</option>
+					<option value="core">{ __( 'Core', 'acrossai-abilities-manager' ) }</option>
+					<option value="theme">{ __( 'Theme', 'acrossai-abilities-manager' ) }</option>
+				</select>
+
+				<select
+					value={ statusFilter }
+					onChange={ ( e ) => setStatusFilter( e.target.value ) }
+					aria-label={ __( 'Filter by status', 'acrossai-abilities-manager' ) }
+				>
+					<option value="">{ __( 'All Statuses', 'acrossai-abilities-manager' ) }</option>
+					<option value="publish">{ __( 'Published', 'acrossai-abilities-manager' ) }</option>
+					<option value="draft">{ __( 'Draft', 'acrossai-abilities-manager' ) }</option>
+				</select>
+
+				<div className="tablenav-search">
+					<span className="search-icon" aria-hidden="true">🔍</span>
+					<input
+						type="text"
+						value={ search }
+						placeholder={ __( 'Search abilities…', 'acrossai-abilities-manager' ) }
+						onChange={ ( e ) => setSearch( e.target.value ) }
+						aria-label={ __( 'Search abilities', 'acrossai-abilities-manager' ) }
+					/>
+				</div>
+
+				<div className="tn-pages">
+					{ isLoading
+						? __( 'Loading…', 'acrossai-abilities-manager' )
+						: `${ abilities.length } ${ __( 'of', 'acrossai-abilities-manager' ) } ${ total } ${ __( 'items', 'acrossai-abilities-manager' ) }` }
+				</div>
+			</div>
+
+			{ /* WP-style table */ }
+			<table className="wptable">
+				<colgroup>
+					<col style={ { width: '32px' } } />
+					<col className="col-slug" />
+					<col className="col-lbl" />
+					<col className="col-cat" />
+					<col className="col-src" />
+					<col className="col-sta" />
+					<col className="col-typ" />
+					<col className="col-mcp" />
+					<col className="col-act" />
+				</colgroup>
+				<thead>
+					<tr>
+						<th className="chk-col">
+							<input
+								type="checkbox"
+								checked={ allChecked }
+								onChange={ toggleAll }
+								aria-label={ __( 'Select all', 'acrossai-abilities-manager' ) }
+							/>
+						</th>
+						<th
+							className="sorted"
+							style={ { cursor: 'pointer' } }
+							onClick={ toggleSort }
+						>
+							{ __( 'Slug', 'acrossai-abilities-manager' ) }{ ' ' }
+							{ 'asc' === sortDir ? '↑' : '↓' }
+						</th>
+						<th>{ __( 'Label', 'acrossai-abilities-manager' ) }</th>
+						<th>{ __( 'Category', 'acrossai-abilities-manager' ) }</th>
+						<th>{ __( 'Source', 'acrossai-abilities-manager' ) }</th>
+						<th>{ __( 'Status', 'acrossai-abilities-manager' ) }</th>
+						<th>{ __( 'Type', 'acrossai-abilities-manager' ) }</th>
+						<th>{ __( 'MCP', 'acrossai-abilities-manager' ) }</th>
+						<th>{ __( 'Actions', 'acrossai-abilities-manager' ) }</th>
+					</tr>
+				</thead>
+				<tbody>
+					{ isLoading && (
+						<tr>
+							<td colSpan="9" style={ { textAlign: 'center', padding: '20px', color: '#646970' } }>
+								{ __( 'Loading…', 'acrossai-abilities-manager' ) }
+							</td>
+						</tr>
+					) }
+					{ ! isLoading && 0 === abilities.length && (
+						<tr>
+							<td colSpan="9" style={ { textAlign: 'center', padding: '20px', color: '#646970' } }>
+								{ __( 'No abilities found.', 'acrossai-abilities-manager' ) }
+							</td>
+						</tr>
+					) }
+					{ abilities.map( ( item ) => {
+						const isCustom = 'db' === ( item.source || 'db' );
+						const itemId   = String( item.id );
+						const isChecked = selected.has( itemId );
+						const statusCls = 'publish' === item.status ? 'e' : 'd';
+
+						return (
+							<tr
+								key={ item.id }
+								className={ isCustom ? '' : 'inh-row' }
+							>
+								<td className="chk-col">
+									{ isCustom && (
+										<input
+											type="checkbox"
+											checked={ isChecked }
+											onChange={ () => toggleOne( itemId ) }
+											aria-label={ `${ __( 'Select', 'acrossai-abilities-manager' ) } ${ item.ability_slug }` }
+										/>
+									) }
+								</td>
+								<td><SlugCell item={ item } /></td>
+								<td><LabelCell item={ item } /></td>
+								<td><CategoryCell item={ item } /></td>
+								<td><SourceBadge source={ item.source || 'db' } /></td>
+								<td><StatusCell item={ item } /></td>
+								<td><TypeCell item={ item } /></td>
+								<td><McpCell item={ item } /></td>
+								<td>
+									<div className="racts">
+										{ isCustom ? (
+											<>
+												<button
+													type="button"
+													className="ra"
+													onClick={ () => dispatch.setView( { mode: 'edit', id: item.id } ) }
+												>
+													{ __( 'Edit', 'acrossai-abilities-manager' ) }
+												</button>
+												<span className="ra-sep">|</span>
+												<select
+													className={ `sdd ${ statusCls }` }
+													value={ statusCls }
+													onChange={ ( e ) => handleStatusDropdown( item, e.target.value ) }
+													aria-label={ __( 'Change status', 'acrossai-abilities-manager' ) }
+												>
+													<option value="e">{ __( 'Enabled', 'acrossai-abilities-manager' ) }</option>
+													<option value="d">{ __( 'Disabled', 'acrossai-abilities-manager' ) }</option>
+												</select>
+												<span className="ra-sep">|</span>
+												<button
+													type="button"
+													className="ra del"
+													onClick={ () => {
+														if (
+															// eslint-disable-next-line no-alert
+															window.confirm(
+																__( 'Delete this ability? This cannot be undone.', 'acrossai-abilities-manager' )
+															)
+														) {
+															dispatch.deleteAbility( item.id );
+														}
+													} }
+												>
+													{ __( 'Delete', 'acrossai-abilities-manager' ) }
+												</button>
+											</>
+										) : (
+											<>
+												<button
+													type="button"
+													className="ra"
+													onClick={ () => dispatch.setView( { mode: 'edit', id: item.id } ) }
+												>
+													{ __( 'Edit', 'acrossai-abilities-manager' ) }
+												</button>
+												<span className="ra-sep">|</span>
+												<button
+													type="button"
+													className="ra"
+													onClick={ () => dispatch.setView( { mode: 'override', id: item.id } ) }
+												>
+													{ __( 'Override', 'acrossai-abilities-manager' ) }
+												</button>
+											</>
+										) }
+									</div>
+								</td>
+							</tr>
+						);
+					} ) }
+				</tbody>
+			</table>
 		</div>
 	);
 }
