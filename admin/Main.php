@@ -236,7 +236,7 @@ class Main {
 		}
 
 		// Enqueue Custom Abilities scripts only on Custom Abilities submenu page (feature 010).
-		if ( $this->abilities_asset_file && $this->is_abilities_custom_page( $hook_suffix ) ) {
+		// if ( $this->abilities_asset_file && $this->is_abilities_custom_page( $hook_suffix ) ) {
 			wp_register_script(
 				'acrossai-abilities-manager-abilities',
 				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/js/abilities.js',
@@ -258,7 +258,7 @@ class Main {
 				) . ';',
 				'before'
 			);
-		}
+		// }
 	}
 
 	/**
