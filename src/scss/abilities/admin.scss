@@ -1,9 +1,12 @@
 /**
  * Custom Abilities Manager — Admin Styles
  *
- * Matches "Abilities Manager — Final Design.html" pixel-for-pixel.
+ * Matches both:
+ *   - "Abilities Manager — Final Design.html" (list view, badges, color tokens)
+ *   - "Abilities Manager — Edit Form Wireframe.html" (unified panel/sect form layout)
+ *
  * Primary/accent colors use var(--wp-admin-theme-color) so the UI adapts
- * to all 9 built-in WP admin colour schemes.
+ * to all 9 built-in WP admin colour schemes (Ocean, Sunrise, etc.).
  *
  * @since 0.2.0
  */
@@ -11,24 +14,25 @@
 // ---------------------------------------------------------------------------
 // Fixed WP admin neutrals (safe to hardcode — WP design system constants)
 // ---------------------------------------------------------------------------
-$bg:      #f0f0f1;
-$row:     #f6f7f7;
-$border:  #c3c4c7;
-$txt:     #1d2327;
+$bg:      #f6f7f7;
+$row:     #f8f9fa;
+$border:  #e0e0e0;
+$border-dk: #c3c4c7;
+$txt:     #1e1e1e;
 $muted:   #646970;
+$soft:    #8c8f94;
 $green:   #00a32a;
 $red:     #d63638;
 $warn:    #dba617;
 
 // ---------------------------------------------------------------------------
 // Source badges (semantic role-fixed colors — NOT theme-adaptive)
-// Design: .src-c uses #0055b3 (a fixed darker-blue that contrasts on #e0f0ff)
 // ---------------------------------------------------------------------------
 .src {
 	display:       inline-block;
 	font-size:     11px;
 	font-weight:   600;
-	padding:       2px 7px;
+	padding:       2px 8px;
 	border-radius: 3px;
 	white-space:   nowrap;
 }
@@ -39,12 +43,12 @@ $warn:    #dba617;
 .src-t { background: #fff4e0; color: #7a4000; }
 
 // ---------------------------------------------------------------------------
-// WP list table  (.wptable)
+// WP list table (.wptable)
 // ---------------------------------------------------------------------------
 .wptable {
 	width:           100%;
 	border-collapse: collapse;
-	border:          1px solid $border;
+	border:          1px solid $border-dk;
 	background:      #fff;
 	clear:           both;
 	font-size:       13px;
@@ -52,7 +56,7 @@ $warn:    #dba617;
 
 	th {
 		background:    $row;
-		border-bottom: 1px solid $border;
+		border-bottom: 1px solid $border-dk;
 		padding:       8px 10px;
 		text-align:    left;
 		font-size:     13px;
@@ -71,10 +75,10 @@ $warn:    #dba617;
 		&.chk-col { width: 32px; padding: 8px 0 8px 10px; }
 	}
 
-	tr:hover td               { background: #f9f9f9; }
-	tr.inh-row td             { background: #fafafa; }
-	tr.inh-row:hover td       { background: #f3f5f7; }
-	tbody tr:last-child td    { border-bottom: none; }
+	tr:hover td            { background: #f9f9f9; }
+	tr.inh-row td          { background: #fafafa; }
+	tr.inh-row:hover td    { background: #f3f5f7; }
+	tbody tr:last-child td { border-bottom: none; }
 }
 
 // Column widths
@@ -148,28 +152,28 @@ $warn:    #dba617;
 }
 
 .ib-a { background: #edfaef; color: #007017; border: 1px solid #b5e6bc; }
-.ib-d { background: $row;    color: $muted;  border: 1px solid $border; }
+.ib-d { background: $row;    color: $muted;  border: 1px solid $border-dk; }
 .ib-b { background: #fceaea; color: #8a0000; border: 1px solid #f0b0b0; }
 
-// Type badges — exact design colors
+// Type badges
 .tbadge {
 	display:       inline-block;
 	font-family:   "SFMono-Regular", Consolas, monospace;
 	font-size:     10.5px;
 	font-weight:   600;
-	padding:       2px 7px;
-	border-radius: 3px;
+	padding:       3px 9px;
+	border-radius: 4px;
 	white-space:   nowrap;
 }
 
-.tb-n { background: #f0f0f0;  color: $muted;   border: 1px solid $border; }   // noop
-.tb-f { background: #e8eeff;  color: #2038a0;  border: 1px solid #b0c0f0; }   // filter_hook
-.tb-r { background: #fff3e0;  color: #7a3500;  border: 1px solid #f0c080; }   // wp_remote_post
-.tb-p { background: #fff0e0;  color: #803000;  border: 1px solid #f0b080; }   // php_code
+.tb-n { background: #f0f0f0;  color: $muted;   border: 1px solid $border-dk; }
+.tb-f { background: #e8eeff;  color: #2038a0;  border: 1px solid #b0c0f0; }
+.tb-r { background: #fff3e0;  color: #7a3500;  border: 1px solid #f0c080; }
+.tb-p { background: #fff0e0;  color: #803000;  border: 1px solid #f0b080; }
 
 // MCP visibility
 .mcp-y { color: #007017; font-weight: 600; }
-.mcp-n { color: $border; }
+.mcp-n { color: $border-dk; }
 
 // Row actions
 .racts {
@@ -199,7 +203,7 @@ $warn:    #dba617;
 .sdd {
 	font-family:       inherit;
 	font-size:         12px;
-	border:            1px solid $border;
+	border:            1px solid $border-dk;
 	border-radius:     3px;
 	padding:           1px 18px 1px 6px;
 	cursor:            pointer;
@@ -211,7 +215,7 @@ $warn:    #dba617;
 }
 
 .sdd.e { background-color: #edfaef; border-color: #7ec898; color: #007017; }
-.sdd.d { background-color: $row;    border-color: $border;  color: $muted; }
+.sdd.d { background-color: $row;    border-color: $border-dk; color: $muted; }
 
 // ---------------------------------------------------------------------------
 // Tablenav
@@ -230,7 +234,7 @@ $warn:    #dba617;
 		font-size:     13px;
 		height:        28px;
 		padding:       0 8px;
-		border:        1px solid $border;
+		border:        1px solid $border-dk;
 		border-radius: 3px;
 		background:    #fff;
 		color:         $txt;
@@ -245,7 +249,7 @@ $warn:    #dba617;
 	.button {
 		height:        28px;
 		padding:       0 10px;
-		border:        1px solid $border;
+		border:        1px solid $border-dk;
 		border-radius: 3px;
 		font-family:   inherit;
 		font-size:     13px;
@@ -261,7 +265,7 @@ $warn:    #dba617;
 .tablenav-search {
 	display:       flex;
 	align-items:   center;
-	border:        1px solid $border;
+	border:        1px solid $border-dk;
 	border-radius: 3px;
 	background:    #fff;
 	height:        28px;
@@ -288,13 +292,13 @@ $warn:    #dba617;
 // Subsubsub quick-links
 // ---------------------------------------------------------------------------
 .subsubsub {
-	list-style: none;
-	display:    flex;
+	list-style:  none;
+	display:     flex;
 	align-items: center;
-	gap:        0;
-	margin:     6px 0 10px;
-	padding:    0;
-	font-size:  13px;
+	gap:         0;
+	margin:      6px 0 10px;
+	padding:     0;
+	font-size:   13px;
 
 	li { display: inline; }
 
@@ -323,257 +327,333 @@ $warn:    #dba617;
 
 // ---------------------------------------------------------------------------
 // Form layout (2-column grid: main + sticky sidebar)
+// Wireframe: 1fr 260px
 // ---------------------------------------------------------------------------
 .form-layout {
 	display:               grid;
-	grid-template-columns: 1fr 236px;
-	gap:                   16px;
+	grid-template-columns: 1fr 260px;
+	gap:                   20px;
 	align-items:           start;
-	padding-top:           10px;
+	padding-top:           14px;
 }
 
 .form-main { min-width: 0; }
 
 .form-side {
 	position: sticky;
-	top:      10px;
+	top:      14px;
 }
 
 // ---------------------------------------------------------------------------
-// Postboxes
+// Unified panel (replaces individual postboxes)
+// Wireframe: .panel > .sect > .sect-hdr + form rows
 // ---------------------------------------------------------------------------
-.postbox {
-	border:        1px solid $border;
+.panel {
 	background:    #fff;
-	margin-bottom: 14px;
+	border:        1px solid $border;
+	border-radius: 6px;
 	overflow:      hidden;
+	box-shadow:    0 1px 2px rgba(0, 0, 0, 0.04);
+	margin-bottom: 20px;
 }
 
-.pbhdr {
-	padding:       10px 16px 8px;
-	border-bottom: 1px solid $border;
-
-	h2 {
-		margin:      0;
-		font-size:   13px;
-		font-weight: 600;
-		color:       $txt;
-	}
-
-	p {
-		font-size:   12px;
-		color:       $muted;
-		margin-top:  2px;
-		line-height: 1.5;
-	}
-}
-
-.pbody { padding: 4px 16px 14px; }
-
-// Form rows — label 180px / field 1fr
-.fr {
-	display:               grid;
-	grid-template-columns: 180px 1fr;
-	gap:                   8px 14px;
-	padding:               12px 0;
-	border-bottom:         1px solid #f4f4f4;
-	align-items:           start;
+// Each section in the unified panel
+.sect {
+	border-bottom: 1px solid #f0f0f1;
+	padding:       24px 28px;
 
 	&:last-child { border-bottom: none; }
-
-	// .fl = field label (div equivalent of <label>)
-	.fl,
-	label {
-		font-size:   13px;
-		font-weight: 600;
-		color:       $txt;
-		padding-top: 5px;
-
-		.req, .required { color: $red; font-weight: 400; margin-left: 2px; }
-	}
-
-	// .ff = field wrapper
-	.ff {
-		display:        flex;
-		flex-direction: column;
-		gap:            4px;
-	}
 }
 
-// Description / helper text
-.desc {
+.sect-hdr { margin-bottom: 18px; }
+
+.sect-title {
+	font-size:       16px;
+	font-weight:     600;
+	color:           $txt;
+	letter-spacing:  -.01em;
+	display:         flex;
+	align-items:     center;
+	gap:             8px;
+	line-height:     1.3;
+}
+
+.sect-num {
+	display:         inline-flex;
+	align-items:     center;
+	justify-content: center;
+	width:           24px;
+	height:          24px;
+	border-radius:   50%;
+	background:      #e8f4fb;
+	color:           var(--wp-admin-theme-color);
+	font-size:       11px;
+	font-weight:     700;
+	flex-shrink:     0;
+}
+
+.sect-opt {
 	font-size:   12px;
-	color:       $muted;
-	line-height: 1.5;
+	font-weight: 400;
+	color:       $soft;
+	margin-left: 6px;
+}
+
+.sect-desc {
+	font-size:    13px;
+	color:        $muted;
+	margin-top:   4px;
+	line-height:  1.55;
+	padding-left: 32px;
 }
 
 // ---------------------------------------------------------------------------
-// Input classes matching design (.rt = regular text, .lt = large textarea, .rs = regular select)
+// Form rows (Wireframe: 200px label / 1fr field, padded left 32px)
 // ---------------------------------------------------------------------------
-.rt,
-.lt,
-.rs {
+.fr {
+	display:               grid;
+	grid-template-columns: 200px 1fr;
+	gap:                   10px 24px;
+	padding:               14px 0 14px 32px;
+	align-items:           start;
+	border-bottom:         1px dashed #f4f4f4;
+
+	&:last-child   { border-bottom: none; }
+	&:first-of-type { padding-top: 6px; }
+}
+
+// .fl = field label (div or label element in form rows)
+.fl {
+	font-size:   13px;
+	font-weight: 500;
+	color:       $txt;
+	padding-top: 8px;
+	line-height: 1.4;
+
+	.req, .required { color: $red; font-weight: 400; margin-left: 2px; }
+
+	.lopt {
+		font-size:   12px;
+		color:       $soft;
+		font-weight: 400;
+		margin-top:  2px;
+		display:     block;
+	}
+}
+
+// .ff = field value wrapper
+.ff {
+	display:        flex;
+	flex-direction: column;
+	gap:            6px;
+	min-width:      0;
+}
+
+// ---------------------------------------------------------------------------
+// Input classes
+// .ri  = regular input (36px height) — matches wireframe
+// .rs  = select with chevron arrow
+// .rt  = textarea (resizable, min-height 78px)
+// ---------------------------------------------------------------------------
+.ri,
+.rs,
+.rt {
 	width:         100%;
-	border:        1px solid $border;
-	border-radius: 3px;
-	padding:       5px 8px;
+	border:        1px solid $border-dk;
+	border-radius: 4px;
+	padding:       7px 10px;
 	font-family:   inherit;
 	font-size:     13px;
 	color:         $txt;
 	background:    #fff;
+	transition:    border-color 0.15s, box-shadow 0.15s;
 	box-sizing:    border-box;
 
 	&:focus {
+		outline:      none;
 		border-color: var(--wp-admin-theme-color);
 		box-shadow:   0 0 0 1px var(--wp-admin-theme-color);
-		outline:      none;
 	}
 }
 
-.lt {
-	min-height: 66px;
-	resize:     vertical;
+.ri {
+	height: 36px;
+	padding-top:    0;
+	padding-bottom: 0;
 }
 
 .rs {
-	padding-right:     28px;
+	height:            36px;
+	padding-top:       0;
+	padding-bottom:    0;
+	padding-right:     32px;
 	appearance:        none;
 	background-image:  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");
 	background-repeat: no-repeat;
-	background-position: right 9px center;
+	background-position: right 10px center;
 	background-size:   8px;
+}
+
+.rt {
+	min-height:  78px;
+	resize:      vertical;
+	line-height: 1.5;
+
+	// Code textarea (schema fields)
+	&.code {
+		font-family: "SFMono-Regular", Consolas, monospace;
+		font-size:   11.5px;
+		min-height:  64px;
+		background:  #fafbfc;
+		border-color: #e0e3e7;
+	}
+
+	// Dark code textarea (php_code)
+	&.dark {
+		background:  #1e1e1e;
+		color:       #a8ff60;
+		border-color: #333;
+		font-family: "SFMono-Regular", Consolas, monospace;
+		font-size:   12px;
+		line-height: 1.5;
+		min-height:  72px;
+
+		&:focus { outline: 1px solid #a8ff60; box-shadow: none; }
+	}
 }
 
 // Also support WP's own .regular-text class
 .regular-text {
-	@extend .rt;
-	max-width: 25em;
-}
-
-// Code textareas
-.code-lt {
-	font-family: "SFMono-Regular", Consolas, monospace;
-	font-size:   11.5px;
-	min-height:  72px;
-	width:       100%;
-	box-sizing:  border-box;
-	resize:      vertical;
-	padding:     5px 8px;
-}
-
-// Dark code textarea (php_code)
-.dark-code {
-	background:  #1e1e1e;
-	color:       #a8ff60;
-	border:      1px solid #444;
-	min-height:  72px;
-	font-family: "SFMono-Regular", Consolas, monospace;
-	font-size:   12px;
-	line-height: 1.5;
-	width:       100%;
-	padding:     8px;
-	box-sizing:  border-box;
-	resize:      vertical;
-
-	&:focus { outline: 1px solid #a8ff60; }
+	border:        1px solid $border-dk;
+	border-radius: 4px;
+	padding:       7px 10px;
+	font-family:   inherit;
+	font-size:     13px;
+	color:         $txt;
+	background:    #fff;
+	max-width:     25em;
+	box-sizing:    border-box;
 }
 
 // ---------------------------------------------------------------------------
-// Prefix input (.px-wrap)
+// Prefix input (.pxwrap)
 // ---------------------------------------------------------------------------
-.px-wrap {
+.pxwrap {
 	display:       flex;
-	border:        1px solid $border;
-	border-radius: 3px;
+	border:        1px solid $border-dk;
+	border-radius: 4px;
 	overflow:      hidden;
-	max-width:     100%;
+	height:        36px;
+	transition:    border-color 0.15s, box-shadow 0.15s;
 
-	&:focus-within { box-shadow: 0 0 0 1px var(--wp-admin-theme-color); }
+	&:focus-within {
+		border-color: var(--wp-admin-theme-color);
+		box-shadow:   0 0 0 1px var(--wp-admin-theme-color);
+	}
 }
 
-.px-txt {
+.pxtxt {
 	background:   $row;
+	padding:      0 12px;
+	font-size:    11.5px;
 	font-family:  monospace;
-	font-size:    11px;
 	color:        $muted;
-	padding:      5px 8px;
+	border-right: 1px solid $border-dk;
 	white-space:  nowrap;
-	border-right: 1px solid $border;
 	display:      flex;
 	align-items:  center;
+	letter-spacing: .01em;
 }
 
-.px-inp {
+.pxinp {
 	flex:        1;
+	border:      none;
+	padding:     0 12px;
 	font-family: monospace;
 	font-size:   13px;
 	font-weight: 600;
-	border:      none;
-	padding:     5px 8px;
-	outline:     none;
 	color:       $txt;
+	background:  transparent;
+	outline:     none;
 }
 
 // ---------------------------------------------------------------------------
-// Toggle (.wptog) — WP-style checkbox toggle
+// Toggle (.wptog) — WP-style toggle button
 // ---------------------------------------------------------------------------
-.trow {
+.togrow {
 	display:     flex;
 	align-items: center;
-	gap:         10px;
+	gap:         12px;
 }
 
 .wptog {
-	width:         36px;
-	height:        18px;
-	border-radius: 9px;
+	width:         40px;
+	height:        22px;
+	border-radius: 11px;
 	background:    #ccc;
 	position:      relative;
 	flex-shrink:   0;
 	cursor:        pointer;
+	transition:    background 0.2s;
+	border:        none;
+	padding:       0;
 
 	&.on { background: $green; }
 
 	&::after {
 		content:       '';
 		position:      absolute;
-		width:         14px;
-		height:        14px;
+		width:         16px;
+		height:        16px;
 		border-radius: 50%;
 		background:    #fff;
-		top:           2px;
-		left:          2px;
-		transition:    left 0.1s;
+		top:           3px;
+		left:          3px;
+		transition:    left 0.2s;
+		box-shadow:    0 1px 2px rgba(0, 0, 0, 0.2);
 	}
 
-	&.on::after { left: 20px; }
+	&.on::after { left: 21px; }
 }
 
-.tog-lbl { font-size: 13px; color: $txt; }
+.toglbl {
+	font-size: 13px;
+	color:     $txt;
+}
+
+// Soft hint (for "plugin default: yes" style text)
+.soft-hint {
+	color:     $soft;
+	font-size: 12px;
+}
 
 // ---------------------------------------------------------------------------
-// Callback type chips (.tchips)
+// Callback type chips (.chips / .chip)
+// Wireframe: monospace with ✓ before active chip
 // ---------------------------------------------------------------------------
-.tchips {
+.chips {
 	display:   flex;
-	gap:       6px;
+	gap:       8px;
 	flex-wrap: wrap;
 }
 
-.tc {
-	cursor:        pointer;
-	border:        1px solid $border;
-	background:    #fff;
-	color:         $muted;
-	font-family:   "SFMono-Regular", Consolas, monospace;
-	font-size:     12px;
-	padding:       4px 12px;
-	border-radius: 3px;
-	transition:    border-color 0.1s, background 0.1s, color 0.1s;
+.chip {
+	font-family:    "SFMono-Regular", Consolas, monospace;
+	font-size:      12px;
+	padding:        8px 14px;
+	border-radius:  6px;
+	cursor:         pointer;
+	border:         1.5px solid $border-dk;
+	background:     #fff;
+	color:          $muted;
+	transition:     all 0.15s;
+	display:        inline-flex;
+	align-items:    center;
+	gap:            5px;
 
 	&:hover {
-		border-color: var(--wp-admin-theme-color);
-		color:        var(--wp-admin-theme-color);
+		border-color: #aaa;
+		color:        $txt;
 	}
 
 	&.on {
@@ -581,97 +661,189 @@ $warn:    #dba617;
 		background:   #e8f4fb;
 		color:        var(--wp-admin-theme-color);
 		font-weight:  600;
+
+		&::before {
+			content:     '✓';
+			font-family: inherit;
+			font-size:   11px;
+		}
 	}
 }
 
-// Force Block / Inherit / Force Allow permission chips
-.tc.tc-block { &.on { border-color: $red;   background: #fce8e8; color: $red; } }
-.tc.tc-allow { &.on { border-color: $green; background: #edfaef; color: #007017; } }
-
 // ---------------------------------------------------------------------------
 // Exec config block (.ecfg)
+// Wireframe: gradient bg + .ecfg-hdr with dot + uppercase title
 // ---------------------------------------------------------------------------
 .ecfg {
-	background:    $row;
-	border:        1px solid #e0e0e0;
-	border-radius: 3px;
-	padding:       12px 14px;
-	margin-top:    10px;
+	background:    linear-gradient(to bottom, #fafbfc, #f6f7f9);
+	border:        1px solid #e8eaec;
+	border-radius: 6px;
+	padding:       18px 20px;
+	margin-top:    14px;
+
+	// .fr rows inside ecfg — override padding and border for tighter layout
+	.fr {
+		padding:    8px 0;
+		border-bottom: none;
+	}
+
+	.fl { padding-top: 8px; }
 }
 
-.ecfg-lbl {
-	font-size:      10px;
+.ecfg-hdr {
+	display:         flex;
+	align-items:     center;
+	gap:             8px;
+	margin-bottom:   14px;
+	padding-bottom:  10px;
+	border-bottom:   1px dashed #e0e3e7;
+}
+
+.ecfg-dot {
+	width:         8px;
+	height:        8px;
+	border-radius: 50%;
+	background:    var(--wp-admin-theme-color);
+	flex-shrink:   0;
+}
+
+.ecfg-title {
+	font-size:      12px;
 	font-weight:    700;
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	color:          var(--wp-admin-theme-color);
-	margin-bottom:  10px;
-	display:        block;
 }
 
-// Inline field row inside ecfg (URL + Method + Timeout)
-.inline-row {
-	display: flex;
-	gap:     14px;
+// ---------------------------------------------------------------------------
+// Cluster layout (for URL + Method + Timeout inline fields)
+// ---------------------------------------------------------------------------
+.cluster {
+	display:     flex;
+	gap:         14px;
 	align-items: flex-start;
 }
 
-.inline-f {
+.cluster-f {
 	display:        flex;
 	flex-direction: column;
-	gap:            4px;
+	gap:            5px;
 }
 
-.inline-l {
-	font-size:   12px;
-	font-weight: 600;
-	color:       $txt;
+.cluster-l {
+	font-size:      11.5px;
+	font-weight:    600;
+	color:          $muted;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
 }
 
-// PHP warning banner
-.acrossai-php-warning {
-	color:         #996600;
-	background:    #fffbe6;
-	border:        1px solid #ffe58f;
+// ---------------------------------------------------------------------------
+// Segmented control / TGC (.tgc / .tgc-opt)
+// Wireframe: "ToggleGroupControl" Gutenberg-style
+// ---------------------------------------------------------------------------
+.tgc {
+	display:       inline-flex;
+	background:    #f0f0f1;
+	border-radius: 4px;
+	padding:       3px;
+	gap:           0;
+}
+
+.tgc-opt {
+	font-family:  inherit;
+	font-size:    12.5px;
+	padding:      6px 14px;
 	border-radius: 3px;
-	padding:       6px 10px;
-	margin-bottom: 8px;
-	font-size:     12px;
-	line-height:   1.5;
+	cursor:       pointer;
+	color:        $muted;
+	font-weight:  500;
+	white-space:  nowrap;
+	transition:   all 0.15s;
+	background:   none;
+	border:       none;
 
-	code {
-		background:    rgba(0, 0, 0, 0.06);
-		border-radius: 2px;
-		padding:       1px 4px;
-		font-size:     11px;
+	&.on {
+		background:  #fff;
+		color:       $txt;
+		box-shadow:  0 1px 2px rgba(0, 0, 0, 0.08);
+		font-weight: 600;
 	}
 }
 
 // ---------------------------------------------------------------------------
-// Checkboxes (.wpchk / .chkbox)
+// Notices inside ecfg / forms
 // ---------------------------------------------------------------------------
-.wpchk {
-	display:     flex;
-	align-items: center;
-	gap:         8px;
-	margin-bottom: 8px;
-	font-size:   13px;
-	cursor:      pointer;
+.notice {
+	border-left:   4px solid;
+	padding:       12px 14px;
+	font-size:     13px;
+	margin:        10px 0;
+	line-height:   1.5;
+	border-radius: 0 4px 4px 0;
+	display:       flex;
+	gap:           8px;
+	align-items:   flex-start;
 }
 
-.chkbox {
-	width:         18px;
-	height:        18px;
-	border:        2px solid $border;
-	border-radius: 3px;
-	background:    #fff;
+.n-warn { background: #fef8ee; border-color: $warn; color: #5c3c00; }
+.n-info { background: #e5f5fa; border-color: var(--wp-admin-theme-color); color: #003f5e; }
+
+// ---------------------------------------------------------------------------
+// Description / helper text
+// ---------------------------------------------------------------------------
+.desc {
+	font-size:   12px;
+	color:       $muted;
+	line-height: 1.5;
+
+	code {
+		font-family:   monospace;
+		font-size:     10.5px;
+		background:    $row;
+		padding:       1px 5px;
+		border-radius: 3px;
+		color:         #0055b3;
+	}
+}
+
+.desc-warn {
+	font-size:   12px;
+	color:       #996600;
+	line-height: 1.5;
+	display:     flex;
+	gap:         5px;
+	align-items: flex-start;
+}
+
+// ---------------------------------------------------------------------------
+// Checkboxes (.wchk / .chkb) — Access Control section
+// ---------------------------------------------------------------------------
+.wchk {
 	display:       flex;
 	align-items:   center;
-	justify-content: center;
-	flex-shrink:   0;
-	font-size:     12px;
-	font-weight:   700;
-	color:         transparent;
+	gap:           10px;
+	margin-bottom: 10px;
+	font-size:     13.5px;
+	cursor:        pointer;
+	transition:    color 0.15s;
+
+	&:hover { color: var(--wp-admin-theme-color); }
+}
+
+.chkb {
+	width:            20px;
+	height:           20px;
+	border:           2px solid $border-dk;
+	border-radius:    4px;
+	background:       #fff;
+	flex-shrink:      0;
+	display:          flex;
+	align-items:      center;
+	justify-content:  center;
+	font-size:        13px;
+	font-weight:      700;
+	transition:       all 0.15s;
 
 	&.on {
 		background:   var(--wp-admin-theme-color);
@@ -680,15 +852,11 @@ $warn:    #dba617;
 	}
 }
 
-// WP notice inside form
-.wp-notice {
-	background:  #e5f5fa;
-	border-left: 4px solid var(--wp-admin-theme-color);
-	padding:     10px 14px;
-	font-size:   13px;
-	color:       #003f5e;
-	margin-bottom: 14px;
-	line-height: 1.5;
+.wchk-desc {
+	font-size:  11px;
+	color:      $soft;
+	margin-left: auto;
+	font-style: italic;
 }
 
 // ---------------------------------------------------------------------------
@@ -710,65 +878,60 @@ $warn:    #dba617;
 	border-radius: 50%;
 	background:    #cc8800;
 	flex-shrink:   0;
+	animation:     pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+	0%, 100% { opacity: 1; }
+	50%       { opacity: 0.35; }
+}
+
+// h1-meta inline badges/indicator
+.h1-meta {
+	display:      inline-flex;
+	align-items:  center;
+	gap:          10px;
+	margin-left:  12px;
+	vertical-align: middle;
 }
 
 // ---------------------------------------------------------------------------
-// Sticky bottom save bar (.sbar)
+// Locked banner (Variant B — override inherited)
+// Wireframe: .locked-banner grid auto/1fr/1fr
 // ---------------------------------------------------------------------------
-.sbar {
-	position:        sticky;
-	bottom:          0;
-	z-index:         10;
-	background:      #fff;
-	border-top:      1px solid $border;
-	padding:         10px 20px;
-	display:         flex;
-	align-items:     center;
-	justify-content: space-between;
-	box-shadow:      0 -2px 8px rgba(0, 0, 0, 0.07);
-
-	.snote {
-		font-size:  12px;
-		color:      $muted;
-		font-style: italic;
-	}
-
-	.brow {
-		display:     flex;
-		gap:         8px;
-		align-items: center;
-	}
-}
-
-// ---------------------------------------------------------------------------
-// Locked card (Variant B — override inherited)
-// ---------------------------------------------------------------------------
-.locked {
-	background:    #fafafa;
+.locked-banner {
+	background:    linear-gradient(to right, #fafafa, #f6f7f7);
 	border:        1px solid $border;
-	border-left:   4px solid $muted;
-	margin-bottom: 14px;
-	overflow:      hidden;
+	border-left:   4px solid #999;
+	border-radius: 6px;
+	margin-bottom: 20px;
+	padding:       18px 24px;
+	display:       grid;
+	grid-template-columns: auto 1fr 1fr;
+	gap:           18px;
 }
 
-.lhdr {
-	background:    $row;
-	border-bottom: 1px solid $border;
-	padding:       10px 16px;
+.lbi {
+	font-size:   24px;
+	line-height: 1;
+	color:       #888;
+}
+
+.lkmeta {
 	display:       flex;
 	align-items:   center;
 	gap:           8px;
-	font-size:     13px;
-	font-weight:   600;
+	margin-bottom: 10px;
+	font-size:     12px;
 	color:         $muted;
+
+	strong { color: $txt; }
 }
 
-.lbody { padding: 14px 16px; }
-
-.lgrid {
+.lblock {
 	display:               grid;
 	grid-template-columns: 1fr 1fr;
-	gap:                   10px;
+	gap:                   14px;
 }
 
 .lf {
@@ -779,9 +942,10 @@ $warn:    #dba617;
 
 .lk {
 	font-size:      10px;
-	color:          $muted;
+	color:          $soft;
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
+	font-weight:    600;
 }
 
 .lv {
@@ -792,96 +956,159 @@ $warn:    #dba617;
 }
 
 // ---------------------------------------------------------------------------
-// Sidebar boxes (.sidebox)
+// Sidebar boxes (.sbox)
+// Wireframe: border-radius 6px, box-shadow
 // ---------------------------------------------------------------------------
-.sidebox {
-	border:        1px solid $border;
+.sbox {
 	background:    #fff;
-	margin-bottom: 12px;
+	border:        1px solid $border;
+	border-radius: 6px;
+	margin-bottom: 14px;
 	overflow:      hidden;
+	box-shadow:    0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .sbhdr {
-	font-size:      10.5px;
+	padding:        12px 16px;
+	font-size:      11px;
 	font-weight:    700;
 	text-transform: uppercase;
-	letter-spacing: 0.07em;
-	padding:        8px 12px;
-	border-bottom:  1px solid $border;
+	letter-spacing: 0.08em;
 	color:          $muted;
-
-	&.teal { color: #007a7a; }
+	border-bottom:  1px solid $border;
+	background:     $row;
+	display:        flex;
+	align-items:    center;
+	gap:            6px;
 }
 
-.sbbody,
-.sbody { padding: 10px 12px; }
+.sbhdr-ic {
+	width:            14px;
+	height:           14px;
+	border-radius:    50%;
+	background:       #e8f4fb;
+	color:            var(--wp-admin-theme-color);
+	display:          flex;
+	align-items:      center;
+	justify-content:  center;
+	font-size:        10px;
+	font-weight:      700;
+}
 
-// Preview rows inside sidebar
+.sbbody { padding: 14px 16px; }
+
+// Preview grid inside sidebar
+.prev-grid {
+	display:        flex;
+	flex-direction: column;
+	gap:            10px;
+}
+
 .prev-row {
 	display:        flex;
 	flex-direction: column;
-	gap:            2px;
-	margin-bottom:  7px;
+	gap:            3px;
 }
-.prev-k      { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: $muted; display: block; }
-.prev-v      { font-size: 13px; color: $txt; word-break: break-all; display: block; }
-.prev-v.mono { font-family: monospace; font-size: 10.5px; }
+
+.prk {
+	font-size:      10px;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	color:          $soft;
+	font-weight:    600;
+	margin-bottom:  3px;
+}
+
+.prv {
+	font-size:   13px;
+	color:       $txt;
+	word-break:  break-all;
+
+	&.mono { font-family: monospace; font-size: 11px; }
+}
 
 // What Happens on Save list
 .hlist {
 	list-style:     none;
 	display:        flex;
 	flex-direction: column;
-	gap:            6px;
+	gap:            8px;
 	padding:        0;
 
 	li {
 		font-size:   12px;
 		color:       $txt;
 		display:     flex;
-		gap:         6px;
+		gap:         8px;
 		align-items: flex-start;
-		line-height: 1.45;
+		line-height: 1.55;
 
-		&::before { content: '•'; color: var(--wp-admin-theme-color); flex-shrink: 0; }
-
-		code {
-			font-family:   monospace;
-			font-size:     10px;
-			background:    #f0f0f0;
-			padding:       1px 4px;
-			border-radius: 2px;
+		&::before {
+			content:    '';
+			width:      5px;
+			height:     5px;
+			border-radius: 50%;
+			background: var(--wp-admin-theme-color);
+			flex-shrink: 0;
+			margin-top: 6px;
 		}
+	}
+
+	code {
+		font-family:   monospace;
+		font-size:     10.5px;
+		background:    $row;
+		padding:       1px 5px;
+		border-radius: 3px;
+		color:         #0055b3;
 	}
 }
 
-// Activity timeline
-.act-row {
-	display:     flex;
-	gap:         8px;
-	align-items: flex-start;
-	margin-bottom: 8px;
-	font-size:   12px;
-	color:       $txt;
+// ---------------------------------------------------------------------------
+// Activity timeline (.aitem / .adot)
+// Wireframe: .aitem > .adot.on/.off + (.at + .adt)
+// ---------------------------------------------------------------------------
+.aitem {
+	display:       flex;
+	gap:           10px;
+	align-items:   flex-start;
+	margin-bottom: 10px;
+
+	&:last-child { margin-bottom: 0; }
 }
 
-.act-d,
-.act-dot {
+.adot {
 	width:         9px;
 	height:        9px;
 	border-radius: 50%;
 	flex-shrink:   0;
-	margin-top:    3px;
-	background:    transparent;
-	border:        1.5px solid $border;
+	margin-top:    4px;
 
-	&.updated { background: $green; border-color: $green; }
-	&.created { background: transparent; border-color: $border; }
-	&.on      { background: $green; border-color: $green; }
-	&.off     { background: transparent; border-color: $border; }
+	&.on  { background: $green; box-shadow: 0 0 0 3px rgba(0, 163, 42, 0.15); }
+	&.off { background: transparent; border: 1.5px solid $border-dk; }
+
+	// Also support updated/created class names from JSX
+	&.updated { background: $green; box-shadow: 0 0 0 3px rgba(0, 163, 42, 0.15); }
+	&.created { background: transparent; border: 1.5px solid $border-dk; }
 }
 
+.at {
+	font-size:   13px;
+	font-weight: 600;
+	color:       $txt;
+
+	&.muted { font-weight: 400; color: $muted; }
+}
+
+.adt {
+	font-size:  11px;
+	color:      $soft;
+	margin-top: 1px;
+}
+
+// ---------------------------------------------------------------------------
 // Delete link in sidebar
+// ---------------------------------------------------------------------------
 .button-link-delete,
 .link-delete {
 	color:           $red;
@@ -897,11 +1124,36 @@ $warn:    #dba617;
 	&:hover { text-decoration: underline; }
 }
 
-// Dashed divider in sidebar
-.sbox-divider {
-	border:     none;
-	border-top: 1px dashed $border;
-	margin:     8px 0;
+// ---------------------------------------------------------------------------
+// Sticky bottom save bar (.sbar)
+// ---------------------------------------------------------------------------
+.sbar {
+	position:        sticky;
+	bottom:          0;
+	z-index:         10;
+	background:      #fff;
+	border-top:      1px solid $border;
+	padding:         12px 28px;
+	display:         flex;
+	align-items:     center;
+	justify-content: space-between;
+	flex-shrink:     0;
+	box-shadow:      0 -2px 12px rgba(0, 0, 0, 0.06);
+}
+
+// Wireframe: .snote and .brow
+.snote {
+	font-size:   12px;
+	color:       $muted;
+	display:     flex;
+	align-items: center;
+	gap:         6px;
+}
+
+.brow {
+	display:     flex;
+	gap:         10px;
+	align-items: center;
 }
 
 // ---------------------------------------------------------------------------
@@ -909,14 +1161,15 @@ $warn:    #dba617;
 // ---------------------------------------------------------------------------
 .abilities-breadcrumb,
 .bc {
-	font-size:    13px;
-	color:        $muted;
+	font-size:     13px;
+	color:         $muted;
 	margin-bottom: 6px;
-	display:      flex;
-	align-items:  center;
-	gap:          5px;
+	display:       flex;
+	align-items:   center;
+	gap:           5px;
 
-	a, button.button-link {
+	a,
+	button.button-link {
 		color:           var(--wp-admin-theme-color);
 		text-decoration: none;
 		background:      none;
@@ -927,48 +1180,70 @@ $warn:    #dba617;
 		font-size:       inherit;
 	}
 
-	.bc-sep { color: $border; }
+	.bc-sep { color: $border-dk; }
 
 	.bc-slug {
 		font-family: monospace;
-		font-size:   11px;
+		font-size:   11.5px;
 	}
 }
 
-// Page title row
+// ---------------------------------------------------------------------------
+// Page title row with inline header actions
+// ---------------------------------------------------------------------------
 .abilities-page-title,
-.pg-title {
-	display:     flex;
-	align-items: center;
-	gap:         0;
-	padding:     6px 0 4px;
-	flex-wrap:   wrap;
+.pgtitle {
+	display:         flex;
+	align-items:     center;
+	justify-content: space-between;
+	gap:             16px;
+	padding:         6px 0 4px;
+	flex-wrap:       wrap;
 
-	h1 { margin: 0; }
-
-	.title-action {
-		display:     inline-flex;
-		align-items: center;
-		height:      28px;
-		padding:     0 10px;
-		font-size:   13px;
-		border:      1px solid var(--wp-admin-theme-color);
-		border-radius: 3px;
-		color:       var(--wp-admin-theme-color);
-		background:  #fff;
-		margin-left: 10px;
-		cursor:      pointer;
-		text-decoration: none;
-
-		&:hover { background: var(--wp-admin-theme-color); color: #fff; }
+	h1,
+	.h1 {
+		font-size:       24px;
+		font-weight:     600;
+		color:           $txt;
+		letter-spacing:  -.01em;
+		margin:          0;
 	}
+}
+
+// Header actions (Cancel + Save in title row)
+.hactions {
+	display:     flex;
+	gap:         8px;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+// List page "Add New Ability" button in title
+.title-action {
+	display:         inline-flex;
+	align-items:     center;
+	height:          28px;
+	padding:         0 10px;
+	font-size:       13px;
+	border:          1px solid var(--wp-admin-theme-color);
+	border-radius:   3px;
+	color:           var(--wp-admin-theme-color);
+	background:      #fff;
+	margin-left:     10px;
+	cursor:          pointer;
+	text-decoration: none;
+
+	&:hover { background: var(--wp-admin-theme-color); color: #fff; }
 }
 
 // Subtitle
-.abilities-subtitle {
-	font-size:    13px;
-	color:        $muted;
-	margin:       4px 0 10px;
+.abilities-subtitle,
+.pgsub {
+	font-size:   13px;
+	color:       $muted;
+	margin:      6px 0 10px;
+	max-width:   680px;
+	line-height: 1.5;
 }
 
 // No results message
@@ -981,8 +1256,8 @@ $warn:    #dba617;
 
 // Inline JSON validation error
 .field-error {
-	color:     $red;
-	font-size: 11px;
+	color:      $red;
+	font-size:  11px;
 	margin-top: 4px;
 }
 

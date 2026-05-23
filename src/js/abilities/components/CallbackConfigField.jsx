@@ -1,10 +1,13 @@
 /**
  * CallbackConfigField — renders the .ecfg config block below the type chips.
  *
- * Dynamically swaps content based on `callbackType`:
+ * Matches Edit Form Wireframe structure:
+ *   .ecfg > .ecfg-hdr (.ecfg-dot + .ecfg-title) > sub-form content
+ *
+ * Callback types:
  *   noop           → info notice (no user input)
  *   filter_hook    → hook_name text input
- *   wp_remote_post → url + method select + timeout number (inline)
+ *   wp_remote_post → url + method select + timeout number (.cluster layout)
  *   php_code       → dark monospace textarea with SEC-010-03 execution warning
  *
  * @since 0.2.0
@@ -19,174 +22,164 @@ const DEFAULT_TIMEOUT = 30;
 
 function NoopConfig() {
 	return (
-		<p className="description">
+		<div className="desc">
 			{__(
-				'No code runs. Useful for declarative or schema-only abilities that describe capabilities without requiring server-side execution.',
+				'No code runs. Useful for declarative or schema-only abilities handled entirely by MCP clients.',
 				'acrossai-abilities-manager'
 			)}
-		</p>
+		</div>
 	);
 }
 
 function FilterHookConfig({ config, onChange }) {
 	return (
-		<div>
-			<label htmlFor="cb-hook-name">
-				<strong>
-					{__('Filter hook name', 'acrossai-abilities-manager')}
-				</strong>
+		<div className="fr">
+			<label htmlFor="cb-hook-name" className="fl">
+				{__('Hook name', 'acrossai-abilities-manager')}
+				<span className="req"> *</span>
 			</label>
-			<br />
-			<input
-				id="cb-hook-name"
-				type="text"
-				className="large-text code"
-				value={config.hook_name || ''}
-				placeholder="my_custom_hook"
-				onChange={(e) =>
-					onChange({ ...config, hook_name: e.target.value })
-				}
-			/>
-			<p className="description">
-				{__(
-					'WordPress filter hook to invoke. Receives the ability input as its second argument.',
-					'acrossai-abilities-manager'
-				)}{' '}
-				<code>
-					{
-						"apply_filters( 'acrossai_ability_execute_{hook_name}', [], $input )"
+			<div className="ff">
+				<input
+					id="cb-hook-name"
+					type="text"
+					className="ri"
+					value={config.hook_name || ''}
+					placeholder="acrossai/my_hook"
+					onChange={(e) =>
+						onChange({ ...config, hook_name: e.target.value })
 					}
-				</code>
-			</p>
+				/>
+				<div className="desc">
+					{__(
+						'WordPress filter hook.',
+						'acrossai-abilities-manager'
+					)}{' '}
+					<code>
+						{'apply_filters()'}
+					</code>{' '}
+					{__(
+						'is called with the input args.',
+						'acrossai-abilities-manager'
+					)}
+				</div>
+			</div>
 		</div>
 	);
 }
 
 function RemotePostConfig({ config, onChange }) {
 	return (
-		<div>
-			<div style={{ marginBottom: '8px' }}>
-				<label htmlFor="cb-url">
-					<strong>{__('URL', 'acrossai-abilities-manager')}</strong>
+		<>
+			<div className="fr">
+				<label htmlFor="cb-url" className="fl">
+					{__('URL', 'acrossai-abilities-manager')}
+					<span className="req"> *</span>
 				</label>
-				<br />
-				<input
-					id="cb-url"
-					type="url"
-					className="large-text"
-					value={config.url || ''}
-					placeholder="https://example.com/webhook"
-					onChange={(e) =>
-						onChange({ ...config, url: e.target.value })
-					}
-				/>
-			</div>
-
-			<div
-				style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}
-			>
-				<div>
-					<label htmlFor="cb-method">
-						<strong>
-							{__('Method', 'acrossai-abilities-manager')}
-						</strong>
-					</label>
-					<br />
-					<select
-						id="cb-method"
-						style={{ width: '90px' }}
-						value={config.method || 'POST'}
-						onChange={(e) =>
-							onChange({ ...config, method: e.target.value })
-						}
-					>
-						<option value="POST">POST</option>
-						<option value="GET">GET</option>
-						<option value="PUT">PUT</option>
-						<option value="PATCH">PATCH</option>
-					</select>
-				</div>
-
-				<div>
-					<label htmlFor="cb-timeout">
-						<strong>
-							{__('Timeout (s)', 'acrossai-abilities-manager')}
-						</strong>
-					</label>
-					<br />
+				<div className="ff">
 					<input
-						id="cb-timeout"
-						type="number"
-						style={{ width: '80px' }}
-						min={1}
-						max={30}
-						value={config.timeout || DEFAULT_TIMEOUT}
+						id="cb-url"
+						type="url"
+						className="ri"
+						value={config.url || ''}
+						placeholder="https://…"
 						onChange={(e) =>
-							onChange({
-								...config,
-								timeout:
-									parseInt(e.target.value, 10) ||
-									DEFAULT_TIMEOUT,
-							})
+							onChange({ ...config, url: e.target.value })
 						}
 					/>
+					<div className="desc">
+						{__(
+							'HTTPS endpoint the input payload will be POSTed to.',
+							'acrossai-abilities-manager'
+						)}
+					</div>
 				</div>
 			</div>
-
-			<p className="description" style={{ marginTop: '6px' }}>
-				{__(
-					'The ability input is sent as a JSON body. The response body is decoded and returned as the ability result.',
-					'acrossai-abilities-manager'
-				)}
-			</p>
-		</div>
+			<div className="fr">
+				<label className="fl">
+					{__('Request', 'acrossai-abilities-manager')}
+				</label>
+				<div className="ff">
+					<div className="cluster">
+						<div className="cluster-f">
+							<div className="cluster-l">
+								{__('Method', 'acrossai-abilities-manager')}
+							</div>
+							<select
+								id="cb-method"
+								className="rs"
+								style={{ width: '100px' }}
+								value={config.method || 'POST'}
+								onChange={(e) =>
+									onChange({ ...config, method: e.target.value })
+								}
+							>
+								<option value="POST">POST</option>
+								<option value="GET">GET</option>
+								<option value="PUT">PUT</option>
+								<option value="PATCH">PATCH</option>
+							</select>
+						</div>
+						<div className="cluster-f">
+							<div className="cluster-l">
+								{__('Timeout (sec)', 'acrossai-abilities-manager')}
+							</div>
+							<input
+								id="cb-timeout"
+								type="number"
+								className="ri"
+								style={{ width: '100px' }}
+								min={1}
+								max={30}
+								value={config.timeout || DEFAULT_TIMEOUT}
+								onChange={(e) =>
+									onChange({
+										...config,
+										timeout:
+											parseInt(e.target.value, 10) ||
+											DEFAULT_TIMEOUT,
+									})
+								}
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</>
 	);
 }
 
 function PhpCodeConfig({ config, onChange }) {
 	return (
-		<div>
-			{/* SEC-010-03: execution warning label above textarea */}
-			<div className="acrossai-php-warning">
-				<strong>
-					{__(
-						'⚠ php_code — code execution',
-						'acrossai-abilities-manager'
-					)}
-				</strong>
-				{' — '}
+		<>
+			{/* SEC-010-03: execution warning */}
+			<div className="notice n-warn">
+				⚠{' '}
 				{__(
-					'This code runs on the server with full WordPress access. Only admins can create or edit php_code abilities.',
+					'Raw PHP executed server-side. Review carefully before publishing.',
 					'acrossai-abilities-manager'
 				)}
 			</div>
-
-			<label htmlFor="cb-php-code">
-				{__(
-					'PHP code (no opening tag). Variable',
-					'acrossai-abilities-manager'
-				)}{' '}
-				<code>$input</code>{' '}
-				{__(
-					'contains the ability input.',
-					'acrossai-abilities-manager'
-				)}
-			</label>
-			<br />
 			<textarea
 				id="cb-php-code"
-				className="dark-code code-lt"
+				className="rt dark"
 				value={config.code || ''}
-				placeholder="return strtoupper( $input );"
+				placeholder={'// $args contains decoded input\nreturn $args;'}
 				onChange={(e) => onChange({ ...config, code: e.target.value })}
 			/>
-		</div>
+		</>
 	);
 }
 
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
+
+const LABEL_MAP = {
+	noop: 'noop — no execution',
+	filter_hook: 'filter_hook configuration',
+	wp_remote_post: 'wp_remote_post configuration',
+	php_code: 'php_code configuration',
+};
 
 /**
  * CallbackConfigField component.
@@ -197,31 +190,17 @@ function PhpCodeConfig({ config, onChange }) {
  * @param {Function} props.onChange     Called with new config object on any change.
  * @return {JSX.Element}
  */
-export default function CallbackConfigField({
-	callbackType,
-	config,
-	onChange,
-}) {
+export default function CallbackConfigField({ callbackType, config, onChange }) {
 	const cfg = config || {};
-
-	const LABEL_MAP = {
-		noop: __('noop — no execution', 'acrossai-abilities-manager'),
-		filter_hook: __(
-			'filter_hook — WordPress filter',
-			'acrossai-abilities-manager'
-		),
-		wp_remote_post: __(
-			'wp_remote_post — HTTP request',
-			'acrossai-abilities-manager'
-		),
-		php_code: __('php_code — code execution', 'acrossai-abilities-manager'),
-	};
 
 	return (
 		<div className="ecfg">
-			<span className="ecfg-lbl">
-				{LABEL_MAP[callbackType] || callbackType}
-			</span>
+			<div className="ecfg-hdr">
+				<div className="ecfg-dot" />
+				<div className="ecfg-title">
+					{LABEL_MAP[callbackType] || callbackType}
+				</div>
+			</div>
 
 			{'noop' === callbackType && <NoopConfig />}
 			{'filter_hook' === callbackType && (

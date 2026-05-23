@@ -2,7 +2,9 @@
  * AbilityForm — full-page form for create / edit / override.
  *
  * Variant A (source=db): create + edit modes — editable identity, callback, schema, MCP, annotations.
- * Variant B (source≠db): override mode — locked identity card + editable override fields only.
+ * Variant B (source≠db): override mode — locked identity banner + editable override fields only.
+ *
+ * Layout: unified single `.panel` with numbered `.sect` sections, matching Edit Form Wireframe.
  *
  * Save model (explicit, not auto-save):
  *   - savedAbility: last-fetched server state (null for Add New)
@@ -20,7 +22,6 @@
  */
 import { useState, useEffect, useCallback, useMemo } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { DataForm } from '@wordpress/dataviews';
 import { __ } from '@wordpress/i18n';
 import { STORE_NAME } from '../store/index';
 import SourceBadge from './cells/SourceBadge';
@@ -53,35 +54,6 @@ function s2ts(s) {
 	return null;
 }
 
-const TRI_STATE_OPTIONS = [
-	{
-		value: 'null',
-		label: __('Inherit (default)', 'acrossai-abilities-manager'),
-	},
-	{ value: 'true', label: __('Yes', 'acrossai-abilities-manager') },
-	{ value: 'false', label: __('No', 'acrossai-abilities-manager') },
-];
-
-// DataForm Edit: component for tri-state selects
-function TriStateEditField({ data, field, onChange }) {
-	return (
-		<select
-			className="rs"
-			value={ts2s(data[field.id])}
-			onChange={(e) =>
-				onChange({ ...data, [field.id]: s2ts(e.target.value) })
-			}
-			style={{ maxWidth: '160px' }}
-		>
-			{TRI_STATE_OPTIONS.map((opt) => (
-				<option key={opt.value} value={opt.value}>
-					{opt.label}
-				</option>
-			))}
-		</select>
-	);
-}
-
 // ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
@@ -109,54 +81,64 @@ function formatDate(iso) {
 }
 
 // ---------------------------------------------------------------------------
-// Locked card for Variant B (inherited identity)
+// Locked banner for Variant B (inherited identity)
+// Matches wireframe .locked-banner structure
 // ---------------------------------------------------------------------------
 function LockedCard({ ability }) {
 	const providerName =
 		ability.provider ||
 		__('an external source', 'acrossai-abilities-manager');
 	return (
-		<div className="locked">
-			<div className="lhdr">
-				<span>
-					🔒 {__('Registered by:', 'acrossai-abilities-manager')}{' '}
+		<div className="locked-banner">
+			<div className="lbi">🔒</div>
+			<div>
+				<div className="lkmeta">
+					{__('Registered by plugin:', 'acrossai-abilities-manager')}{' '}
 					<strong>{providerName}</strong>
-				</span>
-				<SourceBadge source={ability.source} />
-			</div>
-			<div className="lgrid">
-				<div>
-					<div className="lgrid-label">
-						{__('Full Slug', 'acrossai-abilities-manager')}
-					</div>
-					<div className="lgrid-value">
-						<code>{ability.ability_slug}</code>
-					</div>
+					<SourceBadge source={ability.source} />
 				</div>
-				<div>
-					<div className="lgrid-label">
-						{__('Label', 'acrossai-abilities-manager')}
+				<div className="lblock">
+					<div className="lf">
+						<div className="lk">
+							{__('Full Slug', 'acrossai-abilities-manager')}
+						</div>
+						<div className="lv mono">
+							{ability.ability_slug}
+						</div>
 					</div>
-					<div className="lgrid-value">{ability.label || '—'}</div>
-				</div>
-				<div>
-					<div className="lgrid-label">
-						{__('Category', 'acrossai-abilities-manager')}
+					<div className="lf">
+						<div className="lk">
+							{__('Label', 'acrossai-abilities-manager')}
+						</div>
+						<div className="lv">{ability.label || '—'}</div>
 					</div>
-					<div className="lgrid-value">{ability.category || '—'}</div>
-				</div>
-				<div>
-					<div className="lgrid-label">
-						{__('Callback Type', 'acrossai-abilities-manager')}
+					<div className="lf">
+						<div className="lk">
+							{__('Category', 'acrossai-abilities-manager')}
+						</div>
+						<div className="lv">{ability.category || '—'}</div>
 					</div>
-					<div className="lgrid-value">
-						{ability.callback_type || 'noop'}
+					<div className="lf">
+						<div className="lk">
+							{__('Callback', 'acrossai-abilities-manager')}
+						</div>
+						<div className="lv">{ability.callback_type || 'noop'}</div>
 					</div>
 				</div>
 			</div>
 			{ability.description && (
-				<div style={{ padding: '0 16px 12px' }}>
-					<p className="description">{ability.description}</p>
+				<div>
+					<div className="lf">
+						<div className="lk">
+							{__('Description', 'acrossai-abilities-manager')}
+						</div>
+						<div
+							className="lv"
+							style={{ fontSize: '12px', color: '#646970', lineHeight: 1.55 }}
+						>
+							{ability.description}
+						</div>
+					</div>
 				</div>
 			)}
 		</div>
@@ -164,41 +146,38 @@ function LockedCard({ ability }) {
 }
 
 // ---------------------------------------------------------------------------
-// Site permission chips for Variant B
+// Site permission segmented control (TGC) for Variant B
 // ---------------------------------------------------------------------------
 const PERMISSION_CHIPS = [
 	{
 		value: 0,
 		label: __('Force Block', 'acrossai-abilities-manager'),
-		cls: 'tc tc-block',
 	},
 	{
 		value: null,
-		label: __('Inherit (plugin default)', 'acrossai-abilities-manager'),
-		cls: 'tc',
+		label: __('Inherit', 'acrossai-abilities-manager'),
 	},
 	{
 		value: 1,
 		label: __('Force Allow', 'acrossai-abilities-manager'),
-		cls: 'tc tc-allow',
 	},
 ];
 
-function SitePermissionChips({ value, onChange }) {
-	// Normalize value for comparison (null=inherit, 0=block, 1=allow)
+function SitePermissionTGC({ value, onChange }) {
+	// Normalize: true→1, false→0
 	let normalized = value;
-	if (value === true) {
+	if (true === value) {
 		normalized = 1;
-	} else if (value === false) {
+	} else if (false === value) {
 		normalized = 0;
 	}
 	return (
-		<div className="tchips">
+		<div className="tgc">
 			{PERMISSION_CHIPS.map((chip) => {
 				let chipNorm = chip.value;
-				if (chip.value === true) {
+				if (true === chip.value) {
 					chipNorm = 1;
-				} else if (chip.value === false) {
+				} else if (false === chip.value) {
 					chipNorm = 0;
 				}
 				const isOn = chipNorm === normalized;
@@ -206,7 +185,7 @@ function SitePermissionChips({ value, onChange }) {
 					<button
 						key={String(chip.value)}
 						type="button"
-						className={`${chip.cls}${isOn ? ' on' : ''}`}
+						className={`tgc-opt${isOn ? ' on' : ''}`}
 						onClick={() => onChange(chip.value)}
 					>
 						{chip.label}
@@ -229,17 +208,50 @@ const CALLBACK_CHIPS = [
 
 function CallbackTypeChips({ value, onChange }) {
 	return (
-		<div className="tchips">
+		<div className="chips">
 			{CALLBACK_CHIPS.map((chip) => (
 				<button
 					key={chip.value}
 					type="button"
-					className={`tc${chip.value === value ? ' on' : ''}`}
+					className={`chip${chip.value === value ? ' on' : ''}`}
 					onClick={() => onChange(chip.value)}
 				>
 					{chip.label}
 				</button>
 			))}
+		</div>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Tri-state select (replaces DataForm for annotations)
+// ---------------------------------------------------------------------------
+function TriStateSelect({ id, value, onChange, label, hint }) {
+	return (
+		<div className="fr">
+			<label htmlFor={id} className="fl">
+				{label}
+			</label>
+			<div className="ff">
+				<select
+					id={id}
+					className="rs"
+					style={{ maxWidth: '180px' }}
+					value={ts2s(value)}
+					onChange={(e) => onChange(s2ts(e.target.value))}
+				>
+					<option value="null">
+						{__('inherit', 'acrossai-abilities-manager')}
+					</option>
+					<option value="true">
+						{__('yes', 'acrossai-abilities-manager')}
+					</option>
+					<option value="false">
+						{__('no', 'acrossai-abilities-manager')}
+					</option>
+				</select>
+				{hint && <div className="desc">{hint}</div>}
+			</div>
 		</div>
 	);
 }
@@ -477,7 +489,7 @@ export default function AbilityForm({ mode, id }) {
 	}
 
 	// ---------------------------------------------------------------------------
-	// Breadcrumb
+	// Derived state
 	// ---------------------------------------------------------------------------
 	const breadcrumbSlug =
 		savedAbility?.ability_slug ||
@@ -486,84 +498,7 @@ export default function AbilityForm({ mode, id }) {
 	const isEdit = 'edit' === mode;
 	const isOverride = 'override' === mode;
 
-	// ---------------------------------------------------------------------------
-	// DataForm fields for annotation tri-state (Constitution §III compliance)
-	// ---------------------------------------------------------------------------
-	const annotationFields = useMemo(
-		() => [
-			{
-				id: 'readonly',
-				label: __('Read Only', 'acrossai-abilities-manager'),
-				Edit: TriStateEditField,
-			},
-			{
-				id: 'destructive',
-				label: __('Destructive', 'acrossai-abilities-manager'),
-				Edit: TriStateEditField,
-			},
-			{
-				id: 'idempotent',
-				label: __('Idempotent', 'acrossai-abilities-manager'),
-				Edit: TriStateEditField,
-			},
-		],
-		[]
-	);
-
-	const ANNOTATION_FORM = {
-		type: 'regular',
-		fields: ['readonly', 'destructive', 'idempotent'],
-	};
-
-	// ---------------------------------------------------------------------------
-	// Override-mode DataForm fields (Constitution §III compliance)
-	// ---------------------------------------------------------------------------
-	const overrideAnnotationFields = useMemo(() => {
-		const base = annotationFields.map((f) => {
-			const declared = savedAbility ? savedAbility[f.id] : null;
-			return {
-				...f,
-				description:
-					null !== declared
-						? `${__('Declared:', 'acrossai-abilities-manager')} ${ts2s(declared)}`
-						: undefined,
-			};
-		});
-		return [
-			...base,
-			{
-				id: 'show_in_rest',
-				label: __('Show in REST', 'acrossai-abilities-manager'),
-				Edit: TriStateEditField,
-			},
-		];
-	}, [savedAbility, annotationFields]);
-
-	const OVERRIDE_ANNOTATION_FORM = {
-		type: 'regular',
-		fields: ['readonly', 'destructive', 'idempotent', 'show_in_rest'],
-	};
-
-	// ---------------------------------------------------------------------------
-	// Derived draft data subset for DataForm (only annotation fields)
-	const annotationDraft = useMemo(
-		() => ({
-			readonly: draftAbility.readonly ?? null,
-			destructive: draftAbility.destructive ?? null,
-			idempotent: draftAbility.idempotent ?? null,
-			show_in_rest: draftAbility.show_in_rest ?? null,
-		}),
-		[draftAbility]
-	);
-
-	function handleAnnotationChange(newData) {
-		patch(newData);
-	}
-
-	// ---------------------------------------------------------------------------
-	// Render
-	// ---------------------------------------------------------------------------
-	// Compute sticky-bar save button label (avoids no-nested-ternary rule).
+	// Save button label
 	let saveBtnLabel;
 	if (isSaving) {
 		saveBtnLabel = __('Saving…', 'acrossai-abilities-manager');
@@ -575,6 +510,9 @@ export default function AbilityForm({ mode, id }) {
 		saveBtnLabel = __('✓ Save Overrides', 'acrossai-abilities-manager');
 	}
 
+	// ---------------------------------------------------------------------------
+	// Render
+	// ---------------------------------------------------------------------------
 	return (
 		<div className="wrap">
 			{/* Breadcrumb */}
@@ -590,39 +528,69 @@ export default function AbilityForm({ mode, id }) {
 				<span className="bc-slug">{breadcrumbSlug}</span>
 			</div>
 
-			{/* Page title */}
+			{/* Page title row with inline hactions */}
 			<div className="abilities-page-title">
-				<h1>
-					{isCreate &&
-						__('Add New Ability', 'acrossai-abilities-manager')}
-					{isEdit && __('Edit Ability', 'acrossai-abilities-manager')}
-					{isOverride &&
-						__('Override Ability', 'acrossai-abilities-manager')}
-				</h1>
-				{savedAbility && (
-					<SourceBadge source={savedAbility.source || 'db'} />
-				)}
-				{isDirty && (
-					<span className="unsaved">
-						<span className="udot" />
-						{__('Unsaved changes', 'acrossai-abilities-manager')}
-					</span>
-				)}
+				<div>
+					<h1>
+						{isCreate &&
+							__('Add New Ability', 'acrossai-abilities-manager')}
+						{isEdit &&
+							__('Edit Ability', 'acrossai-abilities-manager')}
+						{isOverride &&
+							__('Override Ability', 'acrossai-abilities-manager')}
+						{(isEdit || isOverride) && savedAbility && (
+							<span className="h1-meta">
+								<SourceBadge source={savedAbility.source || 'db'} />
+								{isDirty && (
+									<span className="unsaved">
+										<span className="udot" />
+										{__('Unsaved changes', 'acrossai-abilities-manager')}
+									</span>
+								)}
+							</span>
+						)}
+					</h1>
+				</div>
+				<div className="hactions">
+					<button
+						type="button"
+						className="button"
+						onClick={handleCancel}
+					>
+						{__('Cancel', 'acrossai-abilities-manager')}
+					</button>
+					<button
+						type="button"
+						className="button button-primary"
+						disabled={isSaving || (!isCreate && !isDirty)}
+						onClick={() => handleSave(false)}
+					>
+						{saveBtnLabel}
+					</button>
+				</div>
 			</div>
+
+			{isCreate && (
+				<p className="abilities-subtitle">
+					{__(
+						'Define a new custom ability. Fields marked',
+						'acrossai-abilities-manager'
+					)}{' '}
+					<span style={{ color: '#d63638' }}>*</span>{' '}
+					{__('are required.', 'acrossai-abilities-manager')}
+				</p>
+			)}
 
 			{isOverride && savedAbility && (
 				<p className="abilities-subtitle">
 					{__('Identity defined by', 'acrossai-abilities-manager')}{' '}
 					<strong>
 						{savedAbility.provider ||
-							__(
-								'an external source',
-								'acrossai-abilities-manager'
-							)}
+							__('an external source', 'acrossai-abilities-manager')}
 					</strong>
 					{' — '}
 					{__(
-						'read-only. You can only override site permission, MCP exposure, and annotations.',
+						'read-only. You can override site permission, MCP exposure, annotations, and access control.',
 						'acrossai-abilities-manager'
 					)}
 				</p>
@@ -639,52 +607,48 @@ export default function AbilityForm({ mode, id }) {
 			<div className="form-layout">
 				{/* ===== MAIN COLUMN ===== */}
 				<div className="form-main">
-					{/* ——— VARIANT B: Locked identity card ——— */}
+					{/* ——— VARIANT B: Locked identity banner ——— */}
 					{isOverride && savedAbility && (
 						<LockedCard ability={savedAbility} />
 					)}
 
-					{/* ——— VARIANT A: Identity section ——— */}
-					{!isOverride && (
-						<div className="postbox">
-							<div className="pbhdr">
-								<h2>
-									{__(
-										'Identity',
-										'acrossai-abilities-manager'
-									)}
-								</h2>
-								{isCreate && (
-									<p className="description">
+					{/* ——— Unified panel ——— */}
+					<div className="panel">
+
+						{/* ── VARIANT A: Section 1 — Identity ── */}
+						{!isOverride && (
+							<div className="sect">
+								<div className="sect-hdr">
+									<div className="sect-title">
+										<span className="sect-num">1</span>
+										{__('Identity', 'acrossai-abilities-manager')}
+									</div>
+									<div className="sect-desc">
 										{__(
-											'Fill in the fields below to create a new custom ability.',
+											'What this ability is called and how it\'s looked up across REST routes and MCP manifests.',
 											'acrossai-abilities-manager'
 										)}
-									</p>
-								)}
-							</div>
-							<div className="pbody">
+									</div>
+								</div>
+
 								{/* Slug */}
 								<div className="fr">
-									<label htmlFor="ability-slug-suffix">
-										{__(
-											'Slug',
-											'acrossai-abilities-manager'
-										)}{' '}
-										<span className="required">*</span>
+									<label htmlFor="ability-slug-suffix" className="fl">
+										{__('Slug', 'acrossai-abilities-manager')}
+										<span className="req"> *</span>
 									</label>
-									<div>
-										<div className="px-wrap">
-											<span className="px-txt">
+									<div className="ff">
+										<div className="pxwrap">
+											<div className="pxtxt">
 												{SLUG_PREFIX}
-											</span>
+											</div>
 											<input
 												id="ability-slug-suffix"
 												type="text"
-												className="px-inp"
+												className="pxinp"
 												value={slugSuffix}
 												placeholder={__(
-													'my-ability',
+													'my-ability-name',
 													'acrossai-abilities-manager'
 												)}
 												onChange={handleSlugChange}
@@ -696,107 +660,108 @@ export default function AbilityForm({ mode, id }) {
 												{slugError}
 											</div>
 										)}
-										{isEdit && (
-											<p className="description">
+										{isEdit ? (
+											<div className="desc-warn">
+												⚠{' '}
 												{__(
-													'⚠ Changing the slug will break existing integrations.',
+													'Changing the slug will break existing integrations.',
 													'acrossai-abilities-manager'
 												)}
-											</p>
+											</div>
+										) : (
+											<div className="desc">
+												{__(
+													'Lowercase letters, numbers, and dashes only.',
+													'acrossai-abilities-manager'
+												)}
+											</div>
 										)}
 									</div>
 								</div>
 
 								{/* Label */}
 								<div className="fr">
-									<label htmlFor="ability-label">
-										{__(
-											'Label',
-											'acrossai-abilities-manager'
-										)}{' '}
-										<span className="required">*</span>
+									<label htmlFor="ability-label" className="fl">
+										{__('Label', 'acrossai-abilities-manager')}
+										<span className="req"> *</span>
 									</label>
-									<input
-										id="ability-label"
-										type="text"
-										className="rt"
-										value={draftAbility.label || ''}
-										onChange={(e) =>
-											patch({ label: e.target.value })
-										}
-									/>
+									<div className="ff">
+										<input
+											id="ability-label"
+											type="text"
+											className="ri"
+											placeholder={__(
+												'e.g. Summarize Post',
+												'acrossai-abilities-manager'
+											)}
+											value={draftAbility.label || ''}
+											onChange={(e) =>
+												patch({ label: e.target.value })
+											}
+										/>
+									</div>
 								</div>
 
 								{/* Category */}
 								<div className="fr">
-									<label htmlFor="ability-category">
-										{__(
-											'Category',
-											'acrossai-abilities-manager'
-										)}{' '}
-										<span className="required">*</span>
+									<label htmlFor="ability-category" className="fl">
+										{__('Category', 'acrossai-abilities-manager')}
+										<span className="req"> *</span>
 									</label>
-									<select
-										id="ability-category"
-										className="rs"
-										style={{ maxWidth: '260px' }}
-										value={draftAbility.category || ''}
-										onChange={(e) =>
-											patch({ category: e.target.value })
-										}
-									>
-										<option value="">
-											{__(
-												'— Select category —',
-												'acrossai-abilities-manager'
-											)}
-										</option>
-										{categories.map((cat) => (
-											<option
-												key={cat.slug}
-												value={cat.slug}
-											>
-												{cat.label || cat.slug}
+									<div className="ff">
+										<select
+											id="ability-category"
+											className="rs"
+											style={{ maxWidth: '280px' }}
+											value={draftAbility.category || ''}
+											onChange={(e) =>
+												patch({ category: e.target.value })
+											}
+										>
+											<option value="">
+												{__('— choose —', 'acrossai-abilities-manager')}
 											</option>
-										))}
-									</select>
+											{categories.map((cat) => (
+												<option key={cat.slug} value={cat.slug}>
+													{cat.label || cat.slug}
+												</option>
+											))}
+										</select>
+									</div>
 								</div>
 
 								{/* Description */}
 								<div className="fr">
-									<label htmlFor="ability-description">
-										{__(
-											'Description',
-											'acrossai-abilities-manager'
-										)}
+									<label htmlFor="ability-description" className="fl">
+										{__('Description', 'acrossai-abilities-manager')}
+										<span className="lopt">
+											{__('optional', 'acrossai-abilities-manager')}
+										</span>
 									</label>
-									<textarea
-										id="ability-description"
-										className="rt lt"
-										rows="3"
-										value={draftAbility.description || ''}
-										placeholder={__(
-											'Shown to end-users and surfaced to AI agents during ability discovery.',
-											'acrossai-abilities-manager'
-										)}
-										onChange={(e) =>
-											patch({
-												description: e.target.value,
-											})
-										}
-									/>
+									<div className="ff">
+										<textarea
+											id="ability-description"
+											className="rt"
+											rows="3"
+											placeholder={__(
+												'Describe what this ability does. This will appear to AI agents during discovery.',
+												'acrossai-abilities-manager'
+											)}
+											value={draftAbility.description || ''}
+											onChange={(e) =>
+												patch({ description: e.target.value })
+											}
+										/>
+									</div>
 								</div>
 
 								{/* Auto-register (status) */}
 								<div className="fr">
-									<label htmlFor="auto-register">
-										{__(
-											'Auto-register',
-											'acrossai-abilities-manager'
-										)}
+									<label htmlFor="auto-register" className="fl">
+										{__('Auto-register', 'acrossai-abilities-manager')}
 									</label>
 									<div className="ff">
-										<div className="trow">
+										<div className="togrow">
 											<button
 												type="button"
 												id="auto-register"
@@ -820,14 +785,11 @@ export default function AbilityForm({ mode, id }) {
 													})
 												}
 											/>
-											<span className="tog-lbl">
+											<span className="toglbl">
 												{'publish' === draftAbility.status ? (
 													<>
 														<strong>
-															{__(
-																'Enabled',
-																'acrossai-abilities-manager'
-															)}
+															{__('Enabled', 'acrossai-abilities-manager')}
 														</strong>
 														{' — '}
 														{__(
@@ -838,10 +800,7 @@ export default function AbilityForm({ mode, id }) {
 												) : (
 													<>
 														<strong>
-															{__(
-																'Disabled',
-																'acrossai-abilities-manager'
-															)}
+															{__('Disabled', 'acrossai-abilities-manager')}
 														</strong>
 														{' — '}
 														{__(
@@ -861,81 +820,81 @@ export default function AbilityForm({ mode, id }) {
 									</div>
 								</div>
 							</div>
-						</div>
-					)}
+						)}
 
-					{/* ——— VARIANT A: Callback section ——— */}
-					{!isOverride && (
-						<div className="postbox">
-							<div className="pbhdr">
-								<h2>
-									{__(
-										'Callback',
-										'acrossai-abilities-manager'
-									)}
-								</h2>
-								<p className="description">
-									{__(
-										'How this ability executes when called.',
-										'acrossai-abilities-manager'
-									)}
-								</p>
-							</div>
-							<div className="pbody">
-								<CallbackTypeChips
-									value={callbackType}
-									onChange={(type) =>
-										patch({
-											callback_type: type,
-											callback_config: {},
-										})
-									}
-								/>
-								<CallbackConfigField
-									callbackType={callbackType}
-									config={callbackConfig}
-									onChange={(cfg) =>
-										patch({ callback_config: cfg })
-									}
-								/>
-							</div>
-						</div>
-					)}
-
-					{/* ——— VARIANT A: Schema section (optional) ——— */}
-					{!isOverride && (
-						<div className="postbox">
-							<div className="pbhdr">
-								<h2>
-									{__('Schema', 'acrossai-abilities-manager')}
-								</h2>
-								<p className="description">
-									{__(
-										'Optional JSON Schema Draft 7 for input and output validation.',
-										'acrossai-abilities-manager'
-									)}
-								</p>
-							</div>
-							<div className="pbody">
-								<div className="fr">
-									<label htmlFor="input-schema">
+						{/* ── VARIANT A: Section 2 — Callback ── */}
+						{!isOverride && (
+							<div className="sect">
+								<div className="sect-hdr">
+									<div className="sect-title">
+										<span className="sect-num">2</span>
+										{__('Callback', 'acrossai-abilities-manager')}
+									</div>
+									<div className="sect-desc">
 										{__(
-											'Input Schema',
+											'How this ability resolves at runtime.',
 											'acrossai-abilities-manager'
 										)}
+									</div>
+								</div>
+								<div className="fr">
+									<label className="fl">
+										{__('Type', 'acrossai-abilities-manager')}
+										<span className="req"> *</span>
 									</label>
-									<div>
+									<div className="ff">
+										<CallbackTypeChips
+											value={callbackType}
+											onChange={(type) =>
+												patch({
+													callback_type: type,
+													callback_config: {},
+												})
+											}
+										/>
+										<CallbackConfigField
+											callbackType={callbackType}
+											config={callbackConfig}
+											onChange={(cfg) =>
+												patch({ callback_config: cfg })
+											}
+										/>
+									</div>
+								</div>
+							</div>
+						)}
+
+						{/* ── VARIANT A: Section 3 — Schema (optional) ── */}
+						{!isOverride && (
+							<div className="sect">
+								<div className="sect-hdr">
+									<div className="sect-title">
+										<span className="sect-num">3</span>
+										{__('Schema', 'acrossai-abilities-manager')}
+										<span className="sect-opt">
+											{__('optional', 'acrossai-abilities-manager')}
+										</span>
+									</div>
+									<div className="sect-desc">
+										{__(
+											'JSON Schema definitions for input and output. Used for validation and surfaced to MCP clients.',
+											'acrossai-abilities-manager'
+										)}
+									</div>
+								</div>
+
+								<div className="fr">
+									<label htmlFor="input-schema" className="fl">
+										{__('Input Schema', 'acrossai-abilities-manager')}
+									</label>
+									<div className="ff">
 										<textarea
 											id="input-schema"
-											className="code-lt"
+											className="rt code"
 											value={inputSchemaRaw}
-											placeholder={
-												'{ "param": { "type": "string" } }'
-											}
+											placeholder='{ "param": { "type": "string" } }'
 											onChange={(e) =>
-												setInputSchemaRaw(
-													e.target.value
-												)
+												setInputSchemaRaw(e.target.value)
 											}
 											onBlur={handleInputSchemaBlur}
 										/>
@@ -948,24 +907,17 @@ export default function AbilityForm({ mode, id }) {
 								</div>
 
 								<div className="fr">
-									<label htmlFor="output-schema">
-										{__(
-											'Output Schema',
-											'acrossai-abilities-manager'
-										)}
+									<label htmlFor="output-schema" className="fl">
+										{__('Output Schema', 'acrossai-abilities-manager')}
 									</label>
-									<div>
+									<div className="ff">
 										<textarea
 											id="output-schema"
-											className="code-lt"
+											className="rt code"
 											value={outputSchemaRaw}
-											placeholder={
-												'{ "result": { "type": "string" } }'
-											}
+											placeholder='{ "result": { "type": "string" } }'
 											onChange={(e) =>
-												setOutputSchemaRaw(
-													e.target.value
-												)
+												setOutputSchemaRaw(e.target.value)
 											}
 											onBlur={handleOutputSchemaBlur}
 										/>
@@ -977,131 +929,137 @@ export default function AbilityForm({ mode, id }) {
 									</div>
 								</div>
 							</div>
-						</div>
-					)}
+						)}
 
-					{/* ——— VARIANT A + B: MCP Exposure section ——— */}
-					<div className="postbox">
-						<div className="pbhdr">
-							<h2>
-								{isOverride
-									? __(
-											'MCP Exposure Override',
+						{/* ── Section 4 (A) / Section 2 (B) — MCP Exposure ── */}
+						<div className="sect">
+							<div className="sect-hdr">
+								<div className="sect-title">
+									<span className="sect-num">
+										{isOverride ? '2' : '4'}
+									</span>
+									{isOverride
+										? __('MCP Exposure', 'acrossai-abilities-manager')
+										: __('MCP Exposure', 'acrossai-abilities-manager')}
+								</div>
+								<div className="sect-desc">
+									{isOverride
+										? __(
+											'Override how this ability appears to MCP clients. Leave as "inherit" to use the plugin\'s declared values.',
 											'acrossai-abilities-manager'
-										)
-									: __(
-											'MCP Exposure',
+										  )
+										: __(
+											'How this ability appears to MCP clients.',
 											'acrossai-abilities-manager'
-										)}
-							</h2>
-						</div>
-						<div className="pbody">
+										  )}
+								</div>
+							</div>
+
+							{/* Show in MCP */}
 							<div className="fr">
-								<label htmlFor="show-in-mcp">
-									{__(
-										'Show in MCP',
-										'acrossai-abilities-manager'
-									)}
+								<label htmlFor="show-in-mcp" className="fl">
+									{__('Show in MCP', 'acrossai-abilities-manager')}
 								</label>
 								<div className="ff">
-									<div className="trow">
+									<div className="togrow">
 										<button
 											type="button"
 											id="show-in-mcp"
 											role="switch"
 											aria-checked={
-												draftAbility.show_in_mcp
-													? 'true'
-													: 'false'
+												draftAbility.show_in_mcp ? 'true' : 'false'
 											}
 											className={`wptog${
-												draftAbility.show_in_mcp
-													? ' on'
-													: ''
+												draftAbility.show_in_mcp ? ' on' : ''
 											}`}
 											onClick={() =>
 												patch({
-													show_in_mcp:
-														draftAbility.show_in_mcp
-															? null
-															: true,
+													show_in_mcp: draftAbility.show_in_mcp
+														? null
+														: true,
 												})
 											}
 										/>
-										<span className="tog-lbl">
-											{__(
-												'Expose this ability to MCP clients',
-												'acrossai-abilities-manager'
+										<span className="toglbl">
+											{draftAbility.show_in_mcp ? (
+												<>
+													<strong>
+														{__('Enabled', 'acrossai-abilities-manager')}
+													</strong>
+													{isOverride && savedAbility?.show_in_mcp !== undefined && (
+														<span className="soft-hint">
+															{' '}
+															{__('(plugin default: yes)', 'acrossai-abilities-manager')}
+														</span>
+													)}
+												</>
+											) : (
+												<strong>
+													{__('Disabled', 'acrossai-abilities-manager')}
+												</strong>
 											)}
 										</span>
 									</div>
 								</div>
 							</div>
 
+							{/* MCP Type */}
 							<div className="fr">
-								<label htmlFor="mcp-type">
-									{__(
-										'MCP Type',
-										'acrossai-abilities-manager'
-									)}
+								<label htmlFor="mcp-type" className="fl">
+									{__('MCP Type', 'acrossai-abilities-manager')}
 								</label>
-								<select
-									id="mcp-type"
-									className="rs"
-									style={{ maxWidth: '200px' }}
-									value={draftAbility.mcp_type || ''}
-									onChange={(e) =>
-										patch({
-											mcp_type: e.target.value || null,
-										})
-									}
-								>
-									{isOverride && (
-										<option value="">
-											{__(
-												'inherit',
-												'acrossai-abilities-manager'
-											)}
-											{savedAbility?.mcp_type
-												? ` (${savedAbility.mcp_type})`
-												: ''}
-										</option>
+								<div className="ff">
+									<select
+										id="mcp-type"
+										className="rs"
+										style={{ maxWidth: '220px' }}
+										value={draftAbility.mcp_type || ''}
+										onChange={(e) =>
+											patch({
+												mcp_type: e.target.value || null,
+											})
+										}
+									>
+										{isOverride ? (
+											<option value="">
+												{__('inherit', 'acrossai-abilities-manager')}
+												{savedAbility?.mcp_type
+													? ` (${savedAbility.mcp_type})`
+													: ''}
+											</option>
+										) : (
+											<option value="">
+												{__('— Select —', 'acrossai-abilities-manager')}
+											</option>
+										)}
+										<option value="tool">tool</option>
+										<option value="resource">resource</option>
+										<option value="prompt">prompt</option>
+									</select>
+									{isOverride && savedAbility?.mcp_type && (
+										<div className="desc">
+											{__('Plugin declares:', 'acrossai-abilities-manager')}{' '}
+											<strong>{savedAbility.mcp_type}</strong>
+										</div>
 									)}
-									{!isOverride && (
-										<option value="">
-											{__(
-												'— Select —',
-												'acrossai-abilities-manager'
-											)}
-										</option>
-									)}
-									<option value="tool">tool</option>
-									<option value="resource">resource</option>
-									<option value="prompt">prompt</option>
-								</select>
+								</div>
 							</div>
 
+							{/* Allowed Servers */}
 							<div className="fr">
-								<label htmlFor="mcp-servers">
-									{__(
-										'Allowed Servers',
-										'acrossai-abilities-manager'
-									)}
+								<label htmlFor="mcp-servers" className="fl">
+									{__('Allowed Servers', 'acrossai-abilities-manager')}
 								</label>
-								<div>
+								<div className="ff">
 									<input
 										id="mcp-servers"
 										type="text"
-										className="rt"
+										className="ri"
+										style={{ maxWidth: '220px' }}
 										value={
-											Array.isArray(
-												draftAbility.mcp_servers
-											)
-												? draftAbility.mcp_servers.join(
-														', '
-													)
-												: draftAbility.mcp_servers ||
-													'*'
+											Array.isArray(draftAbility.mcp_servers)
+												? draftAbility.mcp_servers.join(', ')
+												: draftAbility.mcp_servers || '*'
 										}
 										onChange={(e) => {
 											const raw = e.target.value.trim();
@@ -1117,91 +1075,130 @@ export default function AbilityForm({ mode, id }) {
 											}
 										}}
 									/>
-									<p className="description">
+									<div className="desc">
+										<code>*</code>
+										{' '}
 										{__(
-											'* = all servers. Comma-separate server IDs to restrict.',
+											'= all servers. Comma-separate server IDs to restrict.',
 											'acrossai-abilities-manager'
 										)}
-									</p>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
 
-					{/* ——— VARIANT B: Site Permission Override ——— */}
-					{isOverride && (
-						<div className="postbox">
-							<div className="pbhdr">
-								<h2>
-									{__(
-										'Site Permission Override',
-										'acrossai-abilities-manager'
-									)}
-								</h2>
-							</div>
-							<div className="pbody">
+						{/* ── VARIANT B: Section 1 — Site Permission ── */}
+						{isOverride && (
+							<div className="sect">
+								<div className="sect-hdr">
+									<div className="sect-title">
+										<span className="sect-num">1</span>
+										{__('Site Permission', 'acrossai-abilities-manager')}
+									</div>
+									<div className="sect-desc">
+										{__(
+											'Override whether this ability is allowed or blocked site-wide.',
+											'acrossai-abilities-manager'
+										)}
+									</div>
+								</div>
 								<div className="fr">
-									<span className="form-label">
-										{__(
-											'Permission',
-											'acrossai-abilities-manager'
-										)}
-									</span>
-									<SitePermissionChips
-										value={draftAbility.site_allowed}
-										onChange={(v) =>
-											patch({ site_allowed: v })
-										}
-									/>
+									<label className="fl">
+										{__('Site Access', 'acrossai-abilities-manager')}
+									</label>
+									<div className="ff">
+										<SitePermissionTGC
+											value={draftAbility.site_allowed}
+											onChange={(v) => patch({ site_allowed: v })}
+										/>
+										<div className="desc">
+											<strong>
+												{__('Inherit', 'acrossai-abilities-manager')}
+											</strong>{' '}
+											{__(
+												'respects the plugin\'s own setting. Force Allow/Block override regardless.',
+												'acrossai-abilities-manager'
+											)}
+										</div>
+									</div>
 								</div>
 							</div>
-						</div>
-					)}
+						)}
 
-					{/* ——— Annotations section (both variants) ——— */}
-					<div className="postbox">
-						<div className="pbhdr">
-							<h2>
-								{isOverride
-									? __(
-											'Annotation Overrides',
+						{/* ── Section 5 (A) / Section 3 (B) — Annotations ── */}
+						<div className="sect">
+							<div className="sect-hdr">
+								<div className="sect-title">
+									<span className="sect-num">
+										{isOverride ? '3' : '5'}
+									</span>
+									{isOverride
+										? __('Annotation Overrides', 'acrossai-abilities-manager')
+										: __('Annotations', 'acrossai-abilities-manager')}
+								</div>
+								<div className="sect-desc">
+									{isOverride
+										? __(
+											'inherit defers to the plugin\'s declared value; yes/no force the annotation regardless.',
 											'acrossai-abilities-manager'
-										)
-									: __(
-											'Annotations',
+										  )
+										: __(
+											'Tri-state metadata hints for MCP clients. inherit defers to the callback type\'s default.',
 											'acrossai-abilities-manager'
-										)}
-							</h2>
-						</div>
-						<div className="pbody">
-							{/* DataForm for tri-state annotation fields — Constitution §III */}
-							<DataForm
-								data={annotationDraft}
-								fields={
-									isOverride
-										? overrideAnnotationFields
-										: annotationFields
+										  )}
+								</div>
+							</div>
+
+							<TriStateSelect
+								id="ann-readonly"
+								value={draftAbility.readonly ?? null}
+								onChange={(v) => patch({ readonly: v })}
+								label={__('Readonly', 'acrossai-abilities-manager')}
+								hint={
+									isOverride && null !== savedAbility?.readonly
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${ts2s(savedAbility.readonly)}`
+										: __('Does this ability mutate state?', 'acrossai-abilities-manager')
 								}
-								form={
-									isOverride
-										? OVERRIDE_ANNOTATION_FORM
-										: ANNOTATION_FORM
-								}
-								onChange={handleAnnotationChange}
 							/>
-							{isOverride && savedAbility && (
-								<p
-									className="description"
-									style={{ marginTop: '8px' }}
-								>
-									{__(
-										'Use "Inherit (default)" to restore the plugin\'s declared value.',
-										'acrossai-abilities-manager'
-									)}
-								</p>
+							<TriStateSelect
+								id="ann-destructive"
+								value={draftAbility.destructive ?? null}
+								onChange={(v) => patch({ destructive: v })}
+								label={__('Destructive', 'acrossai-abilities-manager')}
+								hint={
+									isOverride && null !== savedAbility?.destructive
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${ts2s(savedAbility.destructive)}`
+										: __('Can data be permanently lost?', 'acrossai-abilities-manager')
+								}
+							/>
+							<TriStateSelect
+								id="ann-idempotent"
+								value={draftAbility.idempotent ?? null}
+								onChange={(v) => patch({ idempotent: v })}
+								label={__('Idempotent', 'acrossai-abilities-manager')}
+								hint={
+									isOverride && null !== savedAbility?.idempotent
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${ts2s(savedAbility.idempotent)}`
+										: __('Safe to call multiple times with the same input?', 'acrossai-abilities-manager')
+								}
+							/>
+							{isOverride && (
+								<TriStateSelect
+									id="ann-show-in-rest"
+									value={draftAbility.show_in_rest ?? null}
+									onChange={(v) => patch({ show_in_rest: v })}
+									label={__('Show in REST', 'acrossai-abilities-manager')}
+									hint={
+										null !== savedAbility?.show_in_rest
+											? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${ts2s(savedAbility?.show_in_rest)}`
+											: null
+									}
+								/>
 							)}
 						</div>
+
 					</div>
+					{/* end .panel */}
 				</div>
 				{/* end .form-main */}
 
@@ -1209,240 +1206,210 @@ export default function AbilityForm({ mode, id }) {
 				<div className="form-side">
 					{/* Add New: Publish box */}
 					{isCreate && (
-						<div className="sidebox">
+						<div className="sbox">
 							<div className="sbhdr">
+								<span className="sbhdr-ic">↑</span>
 								{__('Publish', 'acrossai-abilities-manager')}
 							</div>
-							<div className="sbody">
-								<button
-									type="button"
-									className="button button-primary button-large"
-									style={{
-										width: '100%',
-										marginBottom: '8px',
-									}}
-									disabled={isSaving}
-									onClick={() => handleSave(false)}
-								>
-									{isSaving
-										? __(
-												'Saving…',
-												'acrossai-abilities-manager'
-											)
-										: __(
-												'✓ Add Ability',
-												'acrossai-abilities-manager'
-											)}
-								</button>
-								<button
-									type="button"
-									className="button"
-									style={{ width: '100%' }}
-									disabled={isSaving}
-									onClick={() => handleSave(true)}
-								>
-									{__(
-										'Save as Draft',
-										'acrossai-abilities-manager'
-									)}
-								</button>
+							<div className="sbbody">
+								<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+									<button
+										type="button"
+										className="button button-primary button-large"
+										style={{ width: '100%', justifyContent: 'center' }}
+										disabled={isSaving}
+										onClick={() => handleSave(false)}
+									>
+										{isSaving
+											? __('Saving…', 'acrossai-abilities-manager')
+											: __('✓ Add Ability', 'acrossai-abilities-manager')}
+									</button>
+									<button
+										type="button"
+										className="button"
+										style={{ width: '100%', justifyContent: 'center', fontSize: '12px' }}
+										disabled={isSaving}
+										onClick={() => handleSave(true)}
+									>
+										{__('Save as Draft', 'acrossai-abilities-manager')}
+									</button>
+								</div>
 							</div>
 						</div>
 					)}
 
 					{/* Edit: Update box */}
 					{isEdit && (
-						<div className="sidebox">
+						<div className="sbox">
 							<div className="sbhdr">
+								<span className="sbhdr-ic">↑</span>
 								{__('Update', 'acrossai-abilities-manager')}
 							</div>
-							<div className="sbody">
-								<button
-									type="button"
-									className="button button-primary button-large"
-									style={{
-										width: '100%',
-										marginBottom: '8px',
-									}}
-									disabled={isSaving || !isDirty}
-									onClick={() => handleSave(false)}
-								>
-									{isSaving
-										? __(
-												'Saving…',
-												'acrossai-abilities-manager'
-											)
-										: __(
-												'✓ Save Changes',
-												'acrossai-abilities-manager'
-											)}
-								</button>
-								<button
-									type="button"
-									className="button"
-									style={{
-										width: '100%',
-										marginBottom: '8px',
-									}}
-									disabled={isSaving}
-									onClick={() => handleSave(true)}
-								>
-									{__(
-										'Save as Draft',
-										'acrossai-abilities-manager'
-									)}
-								</button>
-								<hr className="sbox-divider" />
-								<button
-									type="button"
-									className="link-delete"
-									onClick={handleDelete}
-								>
-									{__(
-										'🗑 Delete Ability',
-										'acrossai-abilities-manager'
-									)}
-								</button>
+							<div className="sbbody">
+								<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+									<button
+										type="button"
+										className="button button-primary button-large"
+										style={{ width: '100%', justifyContent: 'center' }}
+										disabled={isSaving || !isDirty}
+										onClick={() => handleSave(false)}
+									>
+										{isSaving
+											? __('Saving…', 'acrossai-abilities-manager')
+											: __('✓ Save Changes', 'acrossai-abilities-manager')}
+									</button>
+									<button
+										type="button"
+										className="button"
+										style={{ width: '100%', justifyContent: 'center', fontSize: '12px' }}
+										disabled={isSaving}
+										onClick={() => handleSave(true)}
+									>
+										{__('Save as Draft', 'acrossai-abilities-manager')}
+									</button>
+								</div>
+								<div style={{ borderTop: '1px dashed #ddd', marginTop: '14px', paddingTop: '12px', textAlign: 'center' }}>
+									<button
+										type="button"
+										className="button-link link-delete"
+										style={{ fontSize: '12px' }}
+										onClick={handleDelete}
+									>
+										{__('🗑 Delete Ability', 'acrossai-abilities-manager')}
+									</button>
+								</div>
 							</div>
 						</div>
 					)}
 
 					{/* Override: Actions box */}
 					{isOverride && (
-						<div className="sidebox">
+						<div className="sbox">
 							<div className="sbhdr">
+								<span className="sbhdr-ic">↑</span>
 								{__('Actions', 'acrossai-abilities-manager')}
 							</div>
-							<div className="sbody">
-								<button
-									type="button"
-									className="button button-primary button-large"
-									style={{
-										width: '100%',
-										marginBottom: '8px',
-									}}
-									disabled={isSaving || !isDirty}
-									onClick={() => handleSave(false)}
-								>
-									{isSaving
-										? __(
-												'Saving…',
-												'acrossai-abilities-manager'
-											)
-										: __(
-												'✓ Save Overrides',
-												'acrossai-abilities-manager'
-											)}
-								</button>
-								<button
-									type="button"
-									className="button-link"
-									onClick={handleClearOverrides}
-								>
-									{__(
-										'↩ Clear All Overrides',
-										'acrossai-abilities-manager'
-									)}
-								</button>
+							<div className="sbbody">
+								<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+									<button
+										type="button"
+										className="button button-primary button-large"
+										style={{ width: '100%', justifyContent: 'center' }}
+										disabled={isSaving || !isDirty}
+										onClick={() => handleSave(false)}
+									>
+										{isSaving
+											? __('Saving…', 'acrossai-abilities-manager')
+											: __('✓ Save Overrides', 'acrossai-abilities-manager')}
+									</button>
+								</div>
+								<div style={{ borderTop: '1px dashed #ddd', marginTop: '14px', paddingTop: '12px', textAlign: 'center' }}>
+									<button
+										type="button"
+										className="button-link"
+										style={{ fontSize: '12px' }}
+										onClick={handleClearOverrides}
+									>
+										{__('↩ Clear All Overrides', 'acrossai-abilities-manager')}
+									</button>
+								</div>
 							</div>
 						</div>
 					)}
 
 					{/* Preview box */}
-					<div className="sidebox">
+					<div className="sbox">
 						<div className="sbhdr">
+							<span className="sbhdr-ic">●</span>
 							{__('Preview', 'acrossai-abilities-manager')}
 						</div>
-						<div className="sbody">
-							<div className="prev-row">
-								<span className="prev-k">
-									{__('Slug', 'acrossai-abilities-manager')}
-								</span>
-								<span className="prev-v">
-									{draftAbility.ability_slug ? (
-										<code style={{ fontSize: '10px' }}>
-											{draftAbility.ability_slug}
-										</code>
-									) : (
-										<em style={{ color: '#646970' }}>
-											{__(
-												'(not set)',
-												'acrossai-abilities-manager'
-											)}
-										</em>
-									)}
-								</span>
-							</div>
-							{!isOverride && (
+						<div className="sbbody">
+							<div className="prev-grid">
 								<div className="prev-row">
-									<span className="prev-k">
-										{__(
-											'Type',
-											'acrossai-abilities-manager'
+									<div className="prk">
+										{__('Slug', 'acrossai-abilities-manager')}
+									</div>
+									<div className="prv mono">
+										{draftAbility.ability_slug ? (
+											<>{draftAbility.ability_slug}</>
+										) : (
+											<em style={{ color: '#646970' }}>
+												{__(
+													'(not set)',
+													'acrossai-abilities-manager'
+												)}
+											</em>
 										)}
-									</span>
-									<span className="prev-v">
-										{callbackType}
-									</span>
+									</div>
 								</div>
-							)}
-							<div className="prev-row">
-								<span className="prev-k">
-									{__(
-										'Source',
-										'acrossai-abilities-manager'
-									)}
-								</span>
-								<span className="prev-v">
-									<SourceBadge
-										source={
-											draftAbility.source ||
-											savedAbility?.source ||
-											'db'
-										}
-									/>
-								</span>
+								{(isEdit || isOverride) && savedAbility?.label && (
+									<div className="prev-row">
+										<div className="prk">
+											{__('Label', 'acrossai-abilities-manager')}
+										</div>
+										<div className="prv">{savedAbility.label}</div>
+									</div>
+								)}
+								<div className="prev-row">
+									<div className="prk">
+										{__('Source', 'acrossai-abilities-manager')}
+									</div>
+									<div className="prv">
+										<SourceBadge
+											source={
+												draftAbility.source ||
+												savedAbility?.source ||
+												'db'
+											}
+										/>
+									</div>
+								</div>
+								{!isOverride && (
+									<div className="prev-row">
+										<div className="prk">
+											{__('Callback', 'acrossai-abilities-manager')}
+										</div>
+										<div className="prv">
+											{callbackType}
+										</div>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>
 
 					{/* Activity box (edit mode only) */}
 					{isEdit && savedAbility && (
-						<div className="sidebox">
+						<div className="sbox">
 							<div className="sbhdr">
+								<span className="sbhdr-ic">⊙</span>
 								{__('Activity', 'acrossai-abilities-manager')}
 							</div>
-							<div className="sbody">
+							<div className="sbbody">
 								{savedAbility.updated_at && (
-									<div className="act-row">
-										<span className="act-dot updated" />
-										<span>
-											{__(
-												'Updated',
-												'acrossai-abilities-manager'
-											)}{' '}
-											<time className="act-d">
-												{formatDate(
-													savedAbility.updated_at
-												)}
-											</time>
-										</span>
+									<div className="aitem">
+										<div className="adot on" />
+										<div>
+											<div className="at">
+												{__('Updated', 'acrossai-abilities-manager')}
+											</div>
+											<div className="adt">
+												{formatDate(savedAbility.updated_at)}
+											</div>
+										</div>
 									</div>
 								)}
 								{savedAbility.created_at && (
-									<div className="act-row">
-										<span className="act-dot created" />
-										<span>
-											{__(
-												'Created',
-												'acrossai-abilities-manager'
-											)}{' '}
-											<time className="act-d">
-												{formatDate(
-													savedAbility.created_at
-												)}
-											</time>
-										</span>
+									<div className="aitem">
+										<div className="adot off" />
+										<div>
+											<div className="at muted">
+												{__('Created', 'acrossai-abilities-manager')}
+											</div>
+											<div className="adt">
+												{formatDate(savedAbility.created_at)}
+											</div>
+										</div>
 									</div>
 								)}
 							</div>
@@ -1451,14 +1418,15 @@ export default function AbilityForm({ mode, id }) {
 
 					{/* Active overrides box (override mode only) */}
 					{isOverride && (
-						<div className="sidebox">
+						<div className="sbox">
 							<div className="sbhdr">
+								<span className="sbhdr-ic">⊙</span>
 								{__(
 									'Active Overrides',
 									'acrossai-abilities-manager'
 								)}
 							</div>
-							<div className="sbody">
+							<div className="sbbody">
 								{(() => {
 									const overrideFields = [
 										'site_allowed',
@@ -1497,9 +1465,7 @@ export default function AbilityForm({ mode, id }) {
 												<li key={f}>
 													{f}:{' '}
 													<strong>
-														{String(
-															savedAbility[f]
-														)}
+														{String(savedAbility[f])}
 													</strong>
 												</li>
 											))}
@@ -1509,6 +1475,78 @@ export default function AbilityForm({ mode, id }) {
 							</div>
 						</div>
 					)}
+
+					{/* On Save box */}
+					<div className="sbox">
+						<div className="sbhdr">
+							<span className="sbhdr-ic">✓</span>
+							{__('On Save', 'acrossai-abilities-manager')}
+						</div>
+						<div className="sbbody">
+							<ul className="hlist">
+								{isCreate && (
+									<>
+										<li>
+											{__('Written to', 'acrossai-abilities-manager')}{' '}
+											<code>wp_acrossai_abilities</code>
+										</li>
+										<li>
+											{__(
+												'Registered every page load while Auto-register is on',
+												'acrossai-abilities-manager'
+											)}
+										</li>
+										<li>
+											{__(
+												'Appears in MCP manifest if enabled',
+												'acrossai-abilities-manager'
+											)}
+										</li>
+									</>
+								)}
+								{isEdit && (
+									<>
+										<li>
+											{__('Updated in', 'acrossai-abilities-manager')}{' '}
+											<code>wp_acrossai_abilities</code>
+										</li>
+										<li>
+											{__(
+												'MCP manifest refreshes on next request',
+												'acrossai-abilities-manager'
+											)}
+										</li>
+										<li>
+											{__(
+												'Existing integrations continue (slug unchanged)',
+												'acrossai-abilities-manager'
+											)}
+										</li>
+									</>
+								)}
+								{isOverride && (
+									<>
+										<li>
+											{__('Override saved to', 'acrossai-abilities-manager')}{' '}
+											<code>wp_acrossai_abilities</code>
+										</li>
+										<li>
+											{__(
+												"Plugin's own definition is not modified",
+												'acrossai-abilities-manager'
+											)}
+										</li>
+										<li>
+											{__(
+												'Overrides persist across plugin updates',
+												'acrossai-abilities-manager'
+											)}
+										</li>
+									</>
+								)}
+							</ul>
+						</div>
+					</div>
 				</div>
 				{/* end .form-side */}
 			</div>
@@ -1516,31 +1554,32 @@ export default function AbilityForm({ mode, id }) {
 
 			{/* Sticky save bar */}
 			<div className="sbar">
-				<div className="sbar-note">
+				<div className="snote">
 					{isDirty && !isCreate && (
 						<>
-							<span className="udot" />{' '}
+							<span className="udot" />
 							{isOverride
 								? __(
-										'Changes affect this site only — the plugin definition is not modified.',
-										'acrossai-abilities-manager'
-									)
+									'Changes affect this site only — the plugin definition is not modified.',
+									'acrossai-abilities-manager'
+								  )
 								: __(
-										'Unsaved changes — leaving this page will discard them.',
-										'acrossai-abilities-manager'
-									)}
+									'Unsaved changes — leaving this page will discard them.',
+									'acrossai-abilities-manager'
+								  )}
 						</>
 					)}
-					{isCreate && !isDirty && (
-						<span>
+					{isCreate && (
+						<>
+							💾{' '}
 							{__(
-								'Fill in required fields (*) before saving.',
+								'Fill in required fields to enable Save.',
 								'acrossai-abilities-manager'
 							)}
-						</span>
+						</>
 					)}
 				</div>
-				<div className="sbar-actions">
+				<div className="brow">
 					<button
 						type="button"
 						className="button"
