@@ -408,6 +408,12 @@ export default function AbilityForm({ mode, id }) {
 		}
 
 		if ('create' === mode) {
+			// REST create endpoint expects slug_suffix (without prefix), not ability_slug.
+			const fullSlug = data.ability_slug || '';
+			data.slug_suffix = fullSlug.startsWith(SLUG_PREFIX)
+				? fullSlug.slice(SLUG_PREFIX.length)
+				: fullSlug;
+			delete data.ability_slug;
 			const ability = await dispatch.createAbility(data);
 			if (ability) {
 				dispatch.setSaved(ability);
