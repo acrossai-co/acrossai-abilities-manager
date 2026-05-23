@@ -143,7 +143,8 @@ class Main {
 	public function enqueue_styles( string $hook_suffix ) {
 		$on_abilities = false !== strpos( $hook_suffix, 'acrossai-abilities-manager' );
 		$on_logs      = false !== strpos( $hook_suffix, 'acrossai-abilities-logs' );
-		if ( ! $on_abilities && ! $on_logs ) {
+		$on_custom    = false !== strpos( $hook_suffix, 'acrossai-abilities-custom' );
+		if ( ! $on_abilities && ! $on_logs && ! $on_custom ) {
 			return;
 		}
 
@@ -187,7 +188,8 @@ class Main {
 	public function enqueue_scripts( string $hook_suffix ) {
 		$on_abilities = false !== strpos( $hook_suffix, 'acrossai-abilities-manager' );
 		$on_logs      = false !== strpos( $hook_suffix, 'acrossai-abilities-logs' );
-		if ( ! $on_abilities && ! $on_logs ) {
+		$on_custom    = false !== strpos( $hook_suffix, 'acrossai-abilities-custom' );
+		if ( ! $on_abilities && ! $on_logs && ! $on_custom ) {
 			return;
 		}
 
@@ -236,7 +238,7 @@ class Main {
 		}
 
 		// Enqueue Custom Abilities scripts only on Custom Abilities submenu page (feature 010).
-		// if ( $this->abilities_asset_file && $this->is_abilities_custom_page( $hook_suffix ) ) {
+		if ( $this->abilities_asset_file && $this->is_abilities_custom_page( $hook_suffix ) ) {
 			wp_register_script(
 				'acrossai-abilities-manager-abilities',
 				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/js/abilities.js',
@@ -258,7 +260,7 @@ class Main {
 				) . ';',
 				'before'
 			);
-		// }
+		}
 	}
 
 	/**
