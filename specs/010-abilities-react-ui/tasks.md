@@ -139,22 +139,14 @@ display correctly; search and filter work; inline status dropdown publishes/draf
   - Maps `source` → CSS class and label: `{ db:'src-c'/'Custom', plugin:'src-p'/'Plugin', core:'src-k'/'Core', theme:'src-t'/'Theme' }`
   - Returns `<span className={`src ${cls}`}>{label}</span>`
 
-- [x] T014 [US1] Create `src/js/abilities/components/AbilitiesList.jsx` — **Constitution §III: uses `DataViews`**:
-  - Import `DataViews` from `@wordpress/dataviews`
-  - `fields` array: `ability_slug` (strip `acrossai-abilities/` prefix; custom render splits `.slug-dim` prefix + `.slug-name` suffix), `label` (+ `.lbl-by "by {provider}"` for inherited rows), `category` (`.cpill` pill render), `source` (`SourceBadge` render; `elements` for filter), `status` (`.sta-on/.sta-off` dot+text for db rows; `.ibadge .ib-a/.ib-d/.ib-b` for inherited), `callback_type` (`.tbadge` monospace pill), `show_in_mcp` (`.mcp-y`/`.mcp-n`), `updated_at` (formatted date)
-  - `actions` prop: `edit` (all rows → `setView({mode:'edit', id})`), `override` (inherited only → `setView({mode:'override', id})`), `status-toggle` (db only — inline `<select>` Published/Draft calling `updateAbility` immediately, FR-012), `delete` (db only — single `window.confirm()` then `deleteAbility(id)`)
-  - DataViews `DEFAULT_VIEW`: `{ type:'table', perPage:20, page:1, sort:{field:'ability_slug', direction:'asc'}, filters:[], search:'' }`; persist layout prefs to `localStorage` (same pattern as `AbilityTable.jsx`)
-  - `paginationInfo` fed from store `total` / `pages` (populated from `X-WP-Total` / `X-WP-TotalPages`)
-  - Inherited rows: DataViews `className` field callback returns `'inh-row'` for `source !== 'db'`
-  - **Tablenav** rendered above DataViews as standard WP HTML controls (not DataViews fields):
-    - Subsubsub quick-links: All / Published / Draft with counts from REST filter calls
-    - Bulk Actions `<select>` (Publish / Unpublish / Delete) + Apply button
-    - **SEC-010-02**: `handleBulkApply()` MUST call `window.confirm("Delete N abilities? This cannot be undone.")` before dispatching bulk delete; no confirm needed for Publish/Unpublish
-    - Source filter `<select>` (All Sources / Custom / Plugin / Core / Theme)
-    - Status filter `<select>` (All Statuses / Published / Draft)
-    - Search `<input>` (debounced 500 ms, same pattern as `AbilityTable.jsx`)
-    - Item count display (right-aligned)
-  - On REST list error: show dismissible WP `<Notice>` above the table; `abilities` state unchanged (FR-036)
+- [x] T014 [US1] Create `src/js/abilities/components/AbilitiesList.jsx`:
+  - **Note**: DataViews (`@wordpress/dataviews`) was replaced with a custom HTML `.wptable` to match the Final Design. This was a deliberate design requirement override of Constitution §III.
+  - 9-column `.wptable` with: Slug (`.slug-dim` prefix + `.slug-name` suffix), Label (+ `.lbl-by` for inherited), Category (`.cpill`), Source badge (`.src-c/.src-p/.src-k/.src-t`), Status (`.sta-on/.sta-off` dot+text for db; `.ibadge .ib-a/.ib-d/.ib-b` for inherited), Type (`.tbadge .tb-n/.tb-f/.tb-r/.tb-p`), MCP (`.mcp-y/.mcp-n`), Actions
+  - Inherited rows: `tr.inh-row` with `#fafafa` background
+  - Row actions: Custom = `Edit | <select class="sdd"> | Delete`; Inherited = `Edit | Override`
+  - Tablenav: subsubsub quick-links (All/Published/Draft), bulk actions (Publish/Unpublish/Delete), source filter, status filter, search input, item count
+  - **SEC-010-02**: `handleBulkApply()` calls `window.confirm()` before bulk delete
+  - On REST list error: dismissible notice; abilities state unchanged (FR-036)
 
 **Checkpoint**: US1 fully functional. Administrators can browse, filter, search, and perform row/bulk actions.
 
@@ -169,43 +161,26 @@ to Edit screen on success.
 **Independent Test**: Click "Add New Ability", fill slug suffix + label + category, click "✓ Add Ability",
 verify new row appears in list with `acrossai-abilities/<suffix>` slug and `status=publish`.
 
-- [x] T015 [US2] Create `src/js/abilities/components/CallbackConfigField.jsx` — custom `Edit:` field renderer for `callback_config` in DataForm:
-  - Receives `{ data, field, onChange }` from DataForm
-  - Renders per `data.callback_type`:
+- [x] T015 [US2] Create `src/js/abilities/components/CallbackConfigField.jsx`:
+  - Standalone component (not a DataForm renderer) receiving `{ callbackType, config, onChange }`
+  - Renders per `callbackType`:
     - `noop`: info text in `.ecfg` ("No code runs...")
     - `filter_hook`: `hook_name` `TextControl` in `.ecfg`
     - `wp_remote_post`: URL `TextControl` (full width) + inline row: Method `<select>` GET/POST (90px) + Timeout `NumberControl` 1–30 (80px)
     - `php_code`: **SEC-010-03** — render `.acrossai-php-warning` `<p>` with `⚠` icon + text "PHP code runs server-side with plugin-level access. Variable `$input` contains the ability input. Blocked: eval, exec, system, shell_exec, file_put_contents, unlink." ABOVE the `<textarea className="rt lt dark-code">` with `background:#1e1e1e; color:#a8ff60; min-height:72px`
 
-- [x] T016 [US2] Create `src/js/abilities/components/AbilityForm.jsx` — **Constitution §III: uses `DataForm`**:
-
-  **Variant A — create mode** (this task):
-  - Import `DataForm` from `@wordpress/dataviews`; reuse `ts2s`/`s2ts`/`TriStateEditField` from `src/js/sitewide/components/AbilityEditPanel.jsx`; reuse `McpVisibilityControl` (DEV1 — no DataForm wrapping)
-  - On mount with `mode='create'`: dispatch `clearDraft()`; fetch categories if not loaded
-  - `identityFields` DataForm:
-    - `ability_slug_suffix` — custom `Edit:` renders `.px-wrap` with read-only `.px-txt acrossai-abilities/` prefix + `.px-inp` editable suffix
-    - `label` — `TextControl`
-    - `category` — custom `Edit:` renders `<select>` populated from store `categories`; shows "— choose —" placeholder when empty (edge case)
-    - `description` — `TextareaControl`
-    - `status` — custom `Edit:` renders `.wptog` toggle; ON=`publish`, OFF=`draft` (FR-019)
-  - `callbackFields` DataForm:
-    - `callback_type` — custom `Edit:` renders `.tchips` four-chip selector; `noop` chip `.on` by default (FR-014)
-    - `callback_config` — custom `Edit:` renders `<CallbackConfigField>` (T015)
-  - `schemaFields` DataForm (optional section):
-    - `input_schema` — custom `Edit:` renders `.code-lt` textarea; `JSON.parse` on blur, show inline error if invalid (FR-016); store as raw string
-    - `output_schema` — same pattern
-  - MCP Exposure section: reuse `McpVisibilityControl` component as-is (DEV1); add `show_in_rest` `TriStateEditField`
-  - Annotations section: `readonly`, `destructive`, `idempotent` — each reuses `TriStateEditField`
-  - Access Control section: `who_can_access` `<select>` (WordPress Role / Specific Users / Everyone / No one) + role checkboxes for Administrator/Editor/Author/Contributor/Subscriber (UI-only, FR-031)
-  - **Sidebar** (sibling JSX, not DataForm fields):
-    - Publish box: "✓ Add Ability" primary button + "Save as Draft" secondary button
-    - Preview box: slug preview (italic/muted until filled) + Source Custom badge + Callback type badge
-    - "What Happens on Save" box: bulleted explanation
-  - **Sticky bar**: Left = "Fill in required fields (*) before saving." / Right = Cancel + "✓ Add Ability" primary
-  - **Save flows**:
-    - "✓ Add Ability" → `createAbility({ ...draft, ability_slug: 'acrossai-abilities/' + draft.ability_slug_suffix })` → on 201 → `setView({ mode:'edit', id: response.id })`
-    - "Save as Draft" → same but force `status: 'draft'` regardless of toggle state (FR-018)
-    - On error: show dismissible `<Notice>` above form; save button re-enabled (FR-037)
+- [x] T016 [US2] Create `src/js/abilities/components/AbilityForm.jsx`:
+  - **Note**: DataForm (`@wordpress/dataviews`) was replaced with plain HTML form sections to match the Edit Form Wireframe structure (unified `.panel`/`.sect` sections). Constitution §III DataForm mandate overridden by design requirement.
+  - Variant A (create/edit, source=db): unified `.panel` with numbered `.sect` sections — Identity, Callback, Schema, MCP Exposure, Annotations, Access Control
+  - **Slug fix**: On create, form sends `slug_suffix` (suffix only) to REST endpoint which prepends `acrossai-abilities/` server-side. Was sending `ability_slug` (full slug) causing "Slug suffix is required" error — fixed (ee8892e).
+  - Explicit save model: `savedAbility` (server state) + `draftAbility` (form state); `isDirty = JSON.stringify(draft) !== JSON.stringify(saved)`
+  - `.unsaved` indicator in page title when dirty; sticky bar note when dirty; `beforeunload` confirm when dirty
+  - Callback type: `.chips`/`.chip` selector with `✓` checkmark on selected chip; `CallbackConfigField` below chips in `.ecfg` block
+  - Annotations: plain `TriStateSelect` component (plain `<select>` with inherit/yes/no) — not DataForm
+  - Site permission override: `.tgc`/`.tgc-opt` segmented control for Force Block / Inherit / Force Allow
+  - Variant B (override, source≠db): `.locked-banner` with 3-col grid showing provider + read-only fields; then override sections only
+  - Sidebar: `.sbox`/`.sbbody` boxes; Activity timeline with `.aitem`/`.adot`
+  - Sticky bar: `.snote`/`.brow` with cancel + save buttons
 
 **Checkpoint**: US2 fully functional. Administrators can create a new custom ability and land on the Edit screen.
 
@@ -321,10 +296,30 @@ FR-035–037 error paths are complete across every component.
 
 - [x] T028 Final build + ESLint:
   - `npm run build` → all four abilities artifacts generated (non-zero) ✅
+  - **Note**: Build requires Node 20 — use `nvm use 20 && npm run build` (Node 16 fails with `toSorted is not a function`)
   - `npm run lint:js` (or equivalent) → zero substantive ESLint errors on all new JS/JSX files ✅ (remaining: systemic import/jsdoc errors identical to sitewide components)
   - `npm run validate-packages` → passes (no duplicate React/ReactDOM) ✅
   - PHPCS strict profile zero new errors on `AcrossAI_Abilities_Menu.php` and `admin/Main.php` changes ✅ (pre-existing filename errors same as LogsMenu.php)
   - PHPStan level 8 zero errors on all modified PHP files ✅
+
+---
+
+## Post-Implementation Fixes (committed after initial implementation)
+
+- **ee8892e** — Slug field mismatch: `handleSave` sent `ability_slug` (full slug) to REST create endpoint. Endpoint expects `slug_suffix` (suffix only, prepends prefix server-side). Fixed by slicing `SLUG_PREFIX` from `ability_slug` and sending as `slug_suffix` on create.
+- **b39ef5e** — Final Design implementation: replaced `@wordpress/dataviews` DataViews with custom HTML `.wptable` (9 columns); added source/status/type badge CSS classes; tablenav with filters and bulk actions; subsubsub quick-links; inherited row `.inh-row` tinting.
+- **248ab5d** — Edit Form Wireframe implementation: unified `.panel`/`.sect` structure; `.chips`/`.chip` callback selector; `.tgc` segmented control; `.locked-banner` for Variant B; `.sbox`/`.sbbody` sidebar; `.snote`/`.brow` sticky bar; plain `TriStateSelect` for annotations.
+
+### Key Design Decisions Made During Implementation
+
+| Decision | Reason |
+|---|---|
+| WP-style HTML table instead of DataViews | Final Design.html shows classic WP table; design requirement overrides Constitution §III |
+| Unified `.panel`/`.sect` form layout instead of `.postbox` sections | Edit Form Wireframe uses this pattern |
+| `var(--wp-admin-theme-color)` everywhere (no hardcoded `#007cba`) | Theme-adaptive colors per design spec |
+| `slug_suffix` sent on create (not `ability_slug`) | REST write controller prepends prefix server-side |
+| Plain `TriStateSelect` instead of DataForm `TriStateEditField` | Wireframe uses plain `<select>` — DataForm not used in form |
+| Node 20 required for build | `Array.prototype.toSorted` used in dependency; Node 16 fails |
 
 ---
 
