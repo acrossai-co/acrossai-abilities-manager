@@ -647,10 +647,14 @@ Do not implement DataViews for a feature and then have to rewrite it to match a 
 **Evidence**
 Feature 010 (2026-05-24): commits `b39ef5e` (DataViews replaced by `.wptable`) and `248ab5d` (DataForm replaced by `.panel`/`.sect` wireframe layout). Noted in `specs/010-abilities-react-ui/tasks.md` T014 and T016 as "design requirement overrides Constitution §III."
 
+**Feature 013 deepening (2026-05-25)**
+Feature 013 adds five new custom validation touch-points on top of the existing custom form: `formErrors` state, `validateRequiredFields` helper, four `onBlur` handlers, `hasRequiredErrors` derived value, and four inline `.field-error` divs — all implemented independently of DataForm. This deepens the deviation but does not introduce it; the deviation origin is Feature 010. Accepted as technical debt (P2) per `/speckit.architecture-guard.governed-plan` session 2026-05-25. A future migration spec should migrate `AbilityForm.jsx` to DataForm's native validation API. Track via GitHub issue.
+
 **Where to look next**
 `src/js/abilities/components/AbilitiesList.jsx` (custom `.wptable` example),
 `src/js/abilities/components/AbilityForm.jsx` (plain HTML sections without DataForm),
-`specs/010-abilities-react-ui/tasks.md` (T014/T016 deviation notes).
+`specs/010-abilities-react-ui/tasks.md` (T014/T016 deviation notes),
+`specs/013-abilities-four-field-required-validation/plan.md` (T009–T013 custom validation, P2 tech-debt deepening).
 
 ---
 
