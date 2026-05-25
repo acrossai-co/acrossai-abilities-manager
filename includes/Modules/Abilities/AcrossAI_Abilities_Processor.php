@@ -87,7 +87,7 @@ class AcrossAI_Abilities_Processor {
 			$args['execute_callback']    = $this->build_execute_callback( $row );
 			$args['permission_callback'] = array( $this, 'execution_permission_callback' );
 
-			wp_register_ability( $row->ability_slug, $args );
+			\wp_register_ability( $row->ability_slug, $args );
 		}
 	}
 
