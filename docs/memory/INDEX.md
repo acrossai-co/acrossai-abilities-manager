@@ -34,7 +34,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | AC-MENU-IN-PLACE | admin/Partials/Menu.php updated in-place; no new menu class | Admin | menu, partials | FR-020 |
 | AC-QUERY-LAYER-FILTERING | List filtering in query builder, not REST controller | REST/Utilities | filtering, query-builder, pagination | ARCHITECTURE.md |
 | AC-FILE-HEADER-PATTERN | @package AcrossAI_Abilities_Manager, @subpackage full/path, @since 0.1.0 | Plugin-wide | headers, phpcs, standards | ARCHITECTURE.md |
-| ARCH-UNIFIED-ABILITIES-STORAGE | Abilities and Sitewide DB wrappers share the unified abilities table; Sitewide override rows are identified by source semantics | Abilities/Sitewide | unified-table, berlinddb, source-boundary | ARCHITECTURE.md |
+| ARCH-UNIFIED-ABILITIES-STORAGE | Abilities module owns the unified abilities table; override rows identified by source semantics (Sitewide classes deleted in Feature 012) | Abilities | unified-table, berlinddb, source-boundary | ARCHITECTURE.md |
 
 ## Implementation Patterns
 | ID | Pattern | Scope | Tags | Source |
@@ -44,6 +44,8 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-FEATURE-ASSET-SEPARATION | Feature-specific asset separation from main manager assets | Logger/Admin | assets, modularity, decoupling | ARCHITECTURE.md |
 | PATTERN-ENQUEUE-PAGE-GUARD | `is_*_page()` helpers + Yoda `===`; no `strpos` variables in enqueue guards | Admin/Enqueue | enqueue, guards, is_page, strpos | ARCHITECTURE.md |
 | PATTERN-ASSET-DECOMMISSION-ORDER | Remove PHP `include` first, then webpack entry + source files, then clean build | Admin/Build | decommission, webpack, include, order | ARCHITECTURE.md |
+| PATTERN-MODULE-DECOMMISSION | 8-step ordered decommission: rename DB → port CRUD → update consumers → delete REST → grep-then-delete | Plugin-wide | decommission, module, berlinddb, cleanup | ARCHITECTURE.md |
+| PATTERN-BERLINDDB-QUERY-PORT | BerlinDB Query port only needs $table_schema/$item_shape + use-statement updates; no new Row/Schema classes | BerlinDB | berlinddb, port, rename, query | ARCHITECTURE.md |
 
 ## Bug Patterns
 | ID | Pattern | Affected Area | Tags | Source |
@@ -55,13 +57,15 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | BUG-LOOSE-COMPARISON-BYPASS | Type coercion in loose equality access checks | Access Control | type-safety, security, injection | BUGS.md |
 | BUG-SLUG-SUFFIX-MISMATCH | REST create expects slug_suffix (suffix only), not ability_slug (full slug) | Abilities REST | slug, prefix, create, form | BUGS.md |
 | BUG-UNCONDITIONAL-ASSET-INCLUDE | `include .asset.php` without `file_exists` guard causes PHP fatal on missing bundle | Admin/Enqueue | asset-include, fatal, build, constructor | BUGS.md |
+| BUG-PHPCS-DOCBLOCK-CAPITAL | PHPDoc long descriptions starting with function name must be manually prefixed with "The " — phpcbf won't capitalize | PHP/PHPCS | phpcs, docblock, capital, phpcbf | BUGS.md |
+| BUG-PHPCBF-TABS | phpcbf converts spaces→tabs; Python str_replace on PHP files must use \t not spaces | PHP/PHPCS | phpcbf, tabs, spaces, str_replace | BUGS.md |
 
 ## Security Constraints
 | ID | Constraint | Scope | Tags | Source |
 |---|---|---|---|---|
 | SEC-01 | `sanitize_ability_slug()` applied at every REST endpoint receiving a slug; max 255 chars | All REST endpoints | slug, sanitize, length | security-constraints.md |
 | SEC-02 | `before_save` hook fires on sanitized `$fields` only; re-apply bool→int before BerlinDB | Sitewide REST | hook, cast, berlinddb | security-constraints.md |
-| SEC-03 | `AcrossAI_Sitewide_Table::$global = false` — per-site prefix; multisite isolation explicit | Sitewide/DB | multisite, berlinddb, table-prefix | security-constraints.md |
+| SEC-03 | `AcrossAI_Abilities_Table::$global = false` — per-site prefix; multisite isolation explicit | Abilities/DB | multisite, berlinddb, table-prefix | security-constraints.md |
 | SEC-04 | Strict type comparison for access control checks | Access Control | type-safety, PHP, security | security-constraints.md |
 
 ## Accepted Deviations
@@ -75,6 +79,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 |---|---|---|---|---|
 | 2026-05-24 | Specs 008-010 delivered: unified table, REST CRUD, React admin UI (custom page live) | Abilities | spec-008, spec-009, spec-010, unified-table | WORKLOG.md |
 | 2026-05-20 | Feature 006 logger establishes hook parameter adaptation patterns | Logger | patterns, reusability, hook-adaption | WORKLOG.md |
+| 2026-05-25 | Feature 012: Sitewide module decommissioned; Abilities module is sole override owner (T001-T030 complete) | Abilities | feature-012, decommission, berlinddb, phpcs | WORKLOG.md |
 
 | DEC-STABLE-UPGRADE-WINDOW | Prioritize first stable releases (v1.0.0, v1.0.1) when upgrading from dev branches | Dependencies | stable-release, upgrade, risk-mitigation | DECISIONS.md |
 | DEC-REVALIDATE-SECURITY-POST-UPGRADE | Re-validate security constraints (SEC-04, SEC-03, DEC-PERM-CB, DEC-FAIL-OPEN-NOTICE) after library upgrades | Dependencies, Security | security-constraints, validation, post-upgrade | DECISIONS.md |

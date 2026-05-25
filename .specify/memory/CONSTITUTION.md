@@ -32,9 +32,9 @@ Shared logic MUST be extracted to `includes/Utilities/`.
 No code duplication between modules is permitted under any circumstance.
 
 **Rationale**: Enables parallel development, isolated testing, and safe iteration on any single feature
-without risking regressions in others. The five feature areas (Sitewide Management, Per-User Access
+without risking regressions in others. The four active feature areas (Per-User Access
 Control, MCP Server Management, Custom Ability Registration, WebMCP Integration) MUST each map to
-exactly one module.
+exactly one module. Ability override management is part of the `Abilities` module (Feature 012).
 
 ### II. WordPress Standards Compliance
 All PHP code MUST conform to WordPress Coding Standards (WPCS strict profile).
@@ -59,7 +59,7 @@ DataViews MUST provide: searchable lists, column sorting, pagination, and contex
 No custom form or table rendering that duplicates DataForm/DataViews functionality is permitted.
 
 **Rationale**: Consistency with WordPress core UI patterns reduces the learning curve for
-administrators and ensures a coherent, familiar admin experience across all five feature areas.
+administrators and ensures a coherent, familiar admin experience across all active feature areas.
 
 ### IV. Security First (NON-NEGOTIABLE)
 - All input MUST be sanitized at system boundaries using the most specific WordPress sanitization

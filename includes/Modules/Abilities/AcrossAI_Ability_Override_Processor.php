@@ -1,6 +1,6 @@
 <?php
 /**
- * Runtime override processor for sitewide ability management.
+ * Runtime override processor for Abilities module override management.
  *
  * Bridges DB-stored ability overrides (managed via the Abilities Manager UI) into live
  * WordPress ability registrations at request boot time.

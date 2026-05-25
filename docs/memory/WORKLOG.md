@@ -148,3 +148,11 @@ Customize Phase 1 tests based on library criticality and integration depth.
 - **Evidence**: Tasks T001–T015 complete. PHPCS exit 0, PHPStan L8 exit 0, webpack clean build (6027ms). Security review: Approved (SC-011-01 through SC-011-04 all pass). Architecture review: 0 constitution violations. GitHub issue #15 created for C1 (admin page enqueue double-registration advisory).
 - **Where to look**: `admin/Main.php` (`is_manager_page()`, enqueue guards), `docs/memory/BUGS.md` (BUG-UNCONDITIONAL-ASSET-INCLUDE), `docs/memory/ARCHITECTURE.md` (PATTERN-ASSET-DECOMMISSION-ORDER, PATTERN-ENQUEUE-PAGE-GUARD), `docs/memory/DECISIONS.md` (DEC-MENU-HOOK-SUFFIX), `specs/011-merge-abilities-ui/`.
 
+---
+
+### 2026-05-25 - Feature 012: Sitewide module decommissioned, Abilities module is now the sole override owner
+
+- **Why durable**: Feature 012 establishes the definitive module decommission pattern — moving DB, Processor, and Access Control from one module into another, deleting the old REST layer entirely, and updating Main.php wiring. The sequence (rename DB → port CRUD → update consumers → delete REST → grep-then-delete) will apply to any future module consolidation.
+- **Future mistake prevented**: (a) BerlinDB Query port only needs `$table_schema`/`$item_shape` + `use`-statement updates — do not create new Row/Schema/Table classes from scratch. (b) phpcbf converts spaces to tabs — Python str_replace must use `\t`. (c) PHPDoc long descriptions starting with function names must be manually prefixed with "The " after phpcbf. (d) Constitution `§I` must be updated when a feature area is decommissioned; update count and remove from active list.
+- **Evidence**: T001–T030 all complete; PHPCS exit 0; PHPStan L8 exit 0; 9 unit tests for override CRUD in `AcrossAI_Abilities_Query_Override_Test.php`. Commit `56139de` on branch `012-refactor-sitewide-abilities`.
+- **Where to look**: `includes/Modules/Abilities/Database/` (consolidated DB layer), `includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php`, `includes/Modules/Abilities/AcrossAI_Abilities_Access_Control.php`, `specs/012-refactor-sitewide-abilities/`, `docs/memory/ARCHITECTURE.md` (PATTERN-MODULE-DECOMMISSION, PATTERN-BERLINDDB-QUERY-PORT).

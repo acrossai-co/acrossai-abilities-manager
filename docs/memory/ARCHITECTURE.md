@@ -398,3 +398,35 @@ When decommissioning a webpack bundle, the PHP constructor `include` MUST be rem
 
 **Reference**: `specs/011-merge-abilities-ui/tasks.md` (T008, RISK-001), `admin/Main.php` constructor (correct `file_exists()` guard pattern).
 
+---
+
+## PATTERN-MODULE-DECOMMISSION
+
+When decommissioning a module and merging it into a target module, follow this ordered sequence:
+
+1. Create renamed DB layer classes (Table, Schema, Row) in the target module directory.
+2. Update target Query's `$table_schema`/`$item_shape` + all `use` statements and return types.
+3. Port CRUD methods from old Query into target Query (apply `sanitize_ability_slug()` as first statement per SEC-01).
+4. Update all consumers (Processor, Access Control, admin classes) to import from the target module.
+5. Remove old module bootstrap wiring from `Main.php`.
+6. Delete old REST controllers entirely — no porting needed if the target module already has REST coverage for the same data.
+7. Pre-deletion grep: confirm zero references to old class names before deleting any files.
+8. Delete the old module directory.
+
+**Never delete files before step 7 passes cleanly.**
+
+**Reference**: Feature 012 — Sitewide module decommission into Abilities module; tasks T002–T021 (commit `56139de`).
+
+---
+
+## PATTERN-BERLINDDB-QUERY-PORT
+
+When porting a BerlinDB Query class to a renamed module, do not create new Row/Schema/Table classes from scratch. Only update:
+
+- (a) the two `use` statements pointing to the old Row/Schema
+- (b) `$table_schema = NewSchema::class` and `$item_shape = NewRow::class`
+- (c) all method return types and closure parameter types: `OldRow` → `NewRow`
+
+The renamed DB classes are sufficient; no logic changes needed beyond the above three areas.
+
+**Reference**: Feature 012 T005 — `AcrossAI_Abilities_Query.php` ported from Sitewide to Abilities without new Row/Schema classes (commit `56139de`).

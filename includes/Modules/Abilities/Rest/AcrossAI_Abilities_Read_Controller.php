@@ -47,11 +47,11 @@ class AcrossAI_Abilities_Read_Controller {
 	private $db_query;
 
 	/**
-	 * Sitewide DB query instance (used for override lookups in registry merge).
+	 * Abilities DB query instance (used for override lookups in registry merge).
 	 *
 	 * @var AcrossAI_Abilities_Query
 	 */
-	private $sitewide_query;
+	private $abilities_query;
 
 	/**
 	 * Retrieve the singleton instance.

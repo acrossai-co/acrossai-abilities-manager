@@ -14,8 +14,8 @@ namespace AcrossAI_Abilities_Manager\Tests\PHPUnit\Abilities;
 
 use WP_UnitTestCase;
 use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Query;
-use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Table;
-use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Row;
+use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Table;
+use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Row;
 
 /**
  * Class AbilitiesQueryTest
@@ -38,7 +38,7 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	 */
 	public function setUp(): void {
 		parent::setUp();
-		( new AcrossAI_Sitewide_Table() )->maybe_upgrade();
+		( new AcrossAI_Abilities_Table() )->maybe_upgrade();
 		$this->query = AcrossAI_Abilities_Query::instance();
 	}
 
@@ -63,18 +63,18 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	 * @param  array $overrides Field overrides.
 	 * @return int  New row ID.
 	 */
-	private function insert_row( array $overrides = [] ): int {
+	private function insert_row( array $overrides = array() ): int {
 		static $counter = 0;
 		++$counter;
 
-		$defaults = [
+		$defaults = array(
 			'ability_slug'  => 'acrossai-abilities/test-' . $counter,
 			'label'         => 'Test Ability ' . $counter,
 			'category'      => 'general',
 			'status'        => 'draft',
 			'source'        => 'db',
 			'callback_type' => 'noop',
-		];
+		);
 
 		$id = $this->query->insert_ability( array_merge( $defaults, $overrides ) );
 		$this->assertIsInt( $id );
@@ -87,22 +87,27 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * insert_ability + get_ability_by_id round-trip.
+	 * Insert_ability + get_ability_by_id round-trip.
 	 *
 	 * @return void
 	 */
 	public function test_insert_and_get_by_id_round_trip() {
-		$id  = $this->insert_row( [ 'label' => 'My Ability', 'category' => 'custom' ] );
+		$id  = $this->insert_row(
+			array(
+				'label'    => 'My Ability',
+				'category' => 'custom',
+			)
+		);
 		$row = $this->query->get_ability_by_id( $id );
 
-		$this->assertInstanceOf( AcrossAI_Sitewide_Row::class, $row );
+		$this->assertInstanceOf( AcrossAI_Abilities_Row::class, $row );
 		$this->assertSame( 'My Ability', $row->label );
 		$this->assertSame( 'custom', $row->category );
 		$this->assertSame( 'db', $row->source );
 	}
 
 	/**
-	 * get_ability_by_id returns null for unknown ID.
+	 * Get_ability_by_id returns null for unknown ID.
 	 *
 	 * @return void
 	 */
@@ -112,12 +117,12 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * get_ability_by_slug returns the matching row.
+	 * Get_ability_by_slug returns the matching row.
 	 *
 	 * @return void
 	 */
 	public function test_get_by_slug_returns_correct_row() {
-		$id  = $this->insert_row( [ 'ability_slug' => 'acrossai-abilities/test-slug-lookup' ] );
+		$id  = $this->insert_row( array( 'ability_slug' => 'acrossai-abilities/test-slug-lookup' ) );
 		$row = $this->query->get_ability_by_slug( 'acrossai-abilities/test-slug-lookup' );
 
 		$this->assertNotNull( $row );
@@ -125,17 +130,17 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * slug_exists returns true for an existing slug.
+	 * Slug_exists returns true for an existing slug.
 	 *
 	 * @return void
 	 */
 	public function test_slug_exists_returns_true_for_existing() {
-		$this->insert_row( [ 'ability_slug' => 'acrossai-abilities/test-exists' ] );
+		$this->insert_row( array( 'ability_slug' => 'acrossai-abilities/test-exists' ) );
 		$this->assertTrue( $this->query->slug_exists( 'acrossai-abilities/test-exists' ) );
 	}
 
 	/**
-	 * slug_exists returns false for a non-existent slug.
+	 * Slug_exists returns false for a non-existent slug.
 	 *
 	 * @return void
 	 */
@@ -144,14 +149,19 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * update_ability sparse-updates only supplied fields.
+	 * Update_ability sparse-updates only supplied fields.
 	 *
 	 * @return void
 	 */
 	public function test_update_ability_preserves_untouched_fields() {
-		$id = $this->insert_row( [ 'label' => 'Original', 'category' => 'original-cat' ] );
+		$id = $this->insert_row(
+			array(
+				'label'    => 'Original',
+				'category' => 'original-cat',
+			)
+		);
 
-		$updated = $this->query->update_ability( $id, [ 'label' => 'Updated' ] );
+		$updated = $this->query->update_ability( $id, array( 'label' => 'Updated' ) );
 		$this->assertTrue( $updated );
 
 		$row = $this->query->get_ability_by_id( $id );
@@ -160,7 +170,7 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * update_ability never overwrites created_at or created_by.
+	 * Update_ability never overwrites created_at or created_by.
 	 *
 	 * @return void
 	 */
@@ -172,11 +182,14 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 		$original_created_by = $row->created_by;
 
 		// Attempt to change audit fields via update.
-		$this->query->update_ability( $id, [
-			'created_at' => '1970-01-01 00:00:00',
-			'created_by' => 9999,
-			'label'      => 'Changed',
-		] );
+		$this->query->update_ability(
+			$id,
+			array(
+				'created_at' => '1970-01-01 00:00:00',
+				'created_by' => 9999,
+				'label'      => 'Changed',
+			)
+		);
 
 		$refreshed = $this->query->get_ability_by_id( $id );
 		$this->assertSame( $original_created_at, $refreshed->created_at );
@@ -184,7 +197,7 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * delete_ability removes the row.
+	 * Delete_ability removes the row.
 	 *
 	 * @return void
 	 */
@@ -199,13 +212,13 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * by_source returns only rows of the requested source.
+	 * By_source returns only rows of the requested source.
 	 *
 	 * @return void
 	 */
 	public function test_by_source_filters_correctly() {
-		$this->insert_row( [ 'source' => 'db' ] );
-		$this->insert_row( [ 'source' => 'plugin' ] );
+		$this->insert_row( array( 'source' => 'db' ) );
+		$this->insert_row( array( 'source' => 'plugin' ) );
 
 		$db_rows     = $this->query->by_source( 'db' );
 		$plugin_rows = $this->query->by_source( 'plugin' );
@@ -219,7 +232,7 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * by_source with empty string returns an empty array (guard).
+	 * By_source with empty string returns an empty array (guard).
 	 *
 	 * @return void
 	 */
@@ -231,14 +244,29 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * published_db_abilities returns only source=db + status=publish rows.
+	 * Published_db_abilities returns only source=db + status=publish rows.
 	 *
 	 * @return void
 	 */
 	public function test_published_db_abilities_filters_source_and_status() {
-		$this->insert_row( [ 'source' => 'db',     'status' => 'publish' ] );
-		$this->insert_row( [ 'source' => 'db',     'status' => 'draft'   ] );
-		$this->insert_row( [ 'source' => 'plugin', 'status' => 'publish' ] );
+		$this->insert_row(
+			array(
+				'source' => 'db',
+				'status' => 'publish',
+			)
+		);
+		$this->insert_row(
+			array(
+				'source' => 'db',
+				'status' => 'draft',
+			)
+		);
+		$this->insert_row(
+			array(
+				'source' => 'plugin',
+				'status' => 'publish',
+			)
+		);
 
 		$rows = $this->query->published_db_abilities();
 
@@ -250,14 +278,32 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * by_mcp_type filters by mcp_type and restricts to show_in_mcp=1 when $mcp_only=true.
+	 * By_mcp_type filters by mcp_type and restricts to show_in_mcp=1 when $mcp_only=true.
 	 *
 	 * @return void
 	 */
 	public function test_by_mcp_type_filters_type_and_show_in_mcp() {
-		$this->insert_row( [ 'mcp_type' => 'tool',     'show_in_mcp' => 1, 'status' => 'publish' ] );
-		$this->insert_row( [ 'mcp_type' => 'tool',     'show_in_mcp' => 0, 'status' => 'publish' ] );
-		$this->insert_row( [ 'mcp_type' => 'resource', 'show_in_mcp' => 1, 'status' => 'publish' ] );
+		$this->insert_row(
+			array(
+				'mcp_type'    => 'tool',
+				'show_in_mcp' => 1,
+				'status'      => 'publish',
+			)
+		);
+		$this->insert_row(
+			array(
+				'mcp_type'    => 'tool',
+				'show_in_mcp' => 0,
+				'status'      => 'publish',
+			)
+		);
+		$this->insert_row(
+			array(
+				'mcp_type'    => 'resource',
+				'show_in_mcp' => 1,
+				'status'      => 'publish',
+			)
+		);
 
 		$tools = $this->query->by_mcp_type( 'tool', true );
 
@@ -272,21 +318,28 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * get_paginated returns correct page slice and accurate total count.
+	 * Get_paginated returns correct page slice and accurate total count.
 	 *
 	 * @return void
 	 */
 	public function test_get_paginated_returns_correct_total_and_slice() {
 		for ( $i = 0; $i < 5; $i++ ) {
-			$this->insert_row( [ 'source' => 'db', 'status' => 'draft' ] );
+			$this->insert_row(
+				array(
+					'source' => 'db',
+					'status' => 'draft',
+				)
+			);
 		}
 
-		$result = $this->query->get_paginated( [
-			'page'     => 1,
-			'per_page' => 2,
-			'source'   => 'db',
-			'status'   => 'draft',
-		] );
+		$result = $this->query->get_paginated(
+			array(
+				'page'     => 1,
+				'per_page' => 2,
+				'source'   => 'db',
+				'status'   => 'draft',
+			)
+		);
 
 		$this->assertArrayHasKey( 'items', $result );
 		$this->assertArrayHasKey( 'total', $result );
@@ -298,24 +351,29 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * get_paginated with number=>0 equivalent (via large per_page) fetches all rows.
+	 * Get_paginated with number=>0 equivalent (via large per_page) fetches all rows.
 	 *
 	 * @return void
 	 */
 	public function test_get_paginated_per_page_100_cap_applied() {
-		$result = $this->query->get_paginated( [ 'per_page' => 999 ] );
+		$result = $this->query->get_paginated( array( 'per_page' => 999 ) );
 		// per_page is capped at 100 internally — the method should not error.
 		$this->assertIsArray( $result['items'] );
 	}
 
 	/**
-	 * published_db_abilities uses number=>0 and returns all matching rows (not just first page).
+	 * Published_db_abilities uses number=>0 and returns all matching rows (not just first page).
 	 *
 	 * @return void
 	 */
 	public function test_published_db_abilities_unlimited_fetch() {
 		for ( $i = 0; $i < 25; $i++ ) {
-			$this->insert_row( [ 'source' => 'db', 'status' => 'publish' ] );
+			$this->insert_row(
+				array(
+					'source' => 'db',
+					'status' => 'publish',
+				)
+			);
 		}
 
 		$rows = $this->query->published_db_abilities();
@@ -323,25 +381,34 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * get_paginated page 2 returns second slice and total is accurate.
+	 * Get_paginated page 2 returns second slice and total is accurate.
 	 *
 	 * @return void
 	 */
 	public function test_get_paginated_page_2_returns_second_slice() {
 		for ( $i = 0; $i < 4; $i++ ) {
-			$this->insert_row( [ 'source' => 'db', 'label' => 'Page2Test' . $i ] );
+			$this->insert_row(
+				array(
+					'source' => 'db',
+					'label'  => 'Page2Test' . $i,
+				)
+			);
 		}
 
-		$page1 = $this->query->get_paginated( [
-			'page'     => 1,
-			'per_page' => 2,
-			'search'   => 'Page2Test',
-		] );
-		$page2 = $this->query->get_paginated( [
-			'page'     => 2,
-			'per_page' => 2,
-			'search'   => 'Page2Test',
-		] );
+		$page1 = $this->query->get_paginated(
+			array(
+				'page'     => 1,
+				'per_page' => 2,
+				'search'   => 'Page2Test',
+			)
+		);
+		$page2 = $this->query->get_paginated(
+			array(
+				'page'     => 2,
+				'per_page' => 2,
+				'search'   => 'Page2Test',
+			)
+		);
 
 		$ids1 = array_map( static fn( $r ) => (int) $r->id, $page1['items'] );
 		$ids2 = array_map( static fn( $r ) => (int) $r->id, $page2['items'] );

@@ -4,15 +4,14 @@
  *
  * Self-contained query class for the Abilities module. Owns all DB interactions
  * with the acrossai_abilities table. Supersedes the Spec 009 design decision that
- * reused the Sitewide module Schema and Row classes (Feature 012 clarification Q3).
+ * reused the Sitewide module Schema and Row classes (superseded by Feature 012 — Q3).
  *
  * Architecture contract:
  *   $table_name   = 'acrossai_abilities'
- *   $table_schema = AcrossAI_Abilities_Schema::class  ← reused, no duplication
- *   $item_shape   = AcrossAI_Abilities_Row::class     ← reused, no duplication
+ *   $table_schema = AcrossAI_Abilities_Schema::class
+ *   $item_shape   = AcrossAI_Abilities_Row::class
  *
- * No new Row, Schema, or Table classes are created. JSON encode/decode uses
- * AcrossAI_Abilities_Row::get_json_fields() — shared registry, zero duplication.
+ * JSON encode/decode uses AcrossAI_Abilities_Row::get_json_fields() as the shared field registry.
  *
  * AUTHORIZATION CONTRACT (DEC-BY-SOURCE-AUTHZ):
  * All public methods here are authorization-free DB helpers.
@@ -70,7 +69,7 @@ class AcrossAI_Abilities_Query extends Query {
 	protected static $_instance = null;
 
 	/**
-	 * Maximum JSON field size in bytes (64 KB — consistent with Sitewide Query guard).
+	 * Maximum JSON field size in bytes (64 KB — consistent with original Query guard (Feature 009)).
 	 *
 	 * @var int
 	 */
