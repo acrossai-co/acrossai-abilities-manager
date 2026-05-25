@@ -17,7 +17,7 @@ namespace AcrossAI_Abilities_Manager\Tests\PHPUnit\Abilities;
 use WP_UnitTestCase;
 use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Processor;
 use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Query;
-use AcrossAI_Abilities_Manager\Includes\Modules\Sitewide\Database\AcrossAI_Sitewide_Table;
+use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Table;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Abilities_Formatter;
 
 /**
@@ -41,7 +41,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	 */
 	public function setUp(): void {
 		parent::setUp();
-		( new AcrossAI_Sitewide_Table() )->maybe_upgrade();
+		( new AcrossAI_Abilities_Table() )->maybe_upgrade();
 		$this->processor = AcrossAI_Abilities_Processor::instance();
 	}
 
@@ -67,18 +67,18 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	 * @param  array $overrides Field overrides.
 	 * @return int  New row ID.
 	 */
-	private function insert_published_db( array $overrides = [] ): int {
+	private function insert_published_db( array $overrides = array() ): int {
 		static $counter = 0;
 		++$counter;
 
-		$defaults = [
+		$defaults = array(
 			'ability_slug'  => 'acrossai-abilities/proc-test-' . $counter,
 			'label'         => 'Processor Test ' . $counter,
 			'category'      => 'general',
 			'status'        => 'publish',
 			'source'        => 'db',
 			'callback_type' => 'noop',
-		];
+		);
 
 		$id = AcrossAI_Abilities_Query::instance()->insert_ability( array_merge( $defaults, $overrides ) );
 		$this->assertIsInt( $id );
@@ -90,7 +90,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * execution_permission_callback returns false when no user is logged in.
+	 * Execution_permission_callback returns false when no user is logged in.
 	 *
 	 * @return void
 	 */
@@ -100,12 +100,12 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * execution_permission_callback returns true when a user is logged in.
+	 * Execution_permission_callback returns true when a user is logged in.
 	 *
 	 * @return void
 	 */
 	public function test_execution_permission_callback_true_when_logged_in() {
-		$user_id = $this->factory->user->create( [ 'role' => 'subscriber' ] );
+		$user_id = $this->factory->user->create( array( 'role' => 'subscriber' ) );
 		wp_set_current_user( $user_id );
 		$this->assertTrue( $this->processor->execution_permission_callback() );
 	}
@@ -115,7 +115,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * register_abilities is a no-op when wp_register_ability() does not exist.
+	 * Register_abilities is a no-op when wp_register_ability() does not exist.
 	 *
 	 * This test verifies the function-exists guard does not fatal when the
 	 * WordPress Abilities API is unavailable.
@@ -136,7 +136,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * register_abilities registers only source=db + status=publish rows and
+	 * Register_abilities registers only source=db + status=publish rows and
 	 * uses nested `meta` key in registry args (BUG-FLAT-ARGS-PATH).
 	 *
 	 * @return void
@@ -146,9 +146,19 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 			$this->markTestSkipped( 'wp_register_ability not available.' );
 		}
 
-		$pub_id  = $this->insert_published_db( [ 'label' => 'Published DB' ] );
-		$draft   = $this->insert_published_db( [ 'label' => 'Draft DB', 'status' => 'draft' ] );
-		$plugin  = $this->insert_published_db( [ 'label' => 'Plugin Row', 'source' => 'plugin' ] );
+		$pub_id = $this->insert_published_db( array( 'label' => 'Published DB' ) );
+		$draft  = $this->insert_published_db(
+			array(
+				'label'  => 'Draft DB',
+				'status' => 'draft',
+			)
+		);
+		$plugin = $this->insert_published_db(
+			array(
+				'label'  => 'Plugin Row',
+				'source' => 'plugin',
+			)
+		);
 
 		// Build registry args for the published row using the Formatter.
 		$row  = AcrossAI_Abilities_Query::instance()->get_ability_by_id( $pub_id );
@@ -160,7 +170,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * register_abilities skips rows with empty slug.
+	 * Register_abilities skips rows with empty slug.
 	 *
 	 * @return void
 	 */
@@ -174,7 +184,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		global $wpdb;
 		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prefix . 'acrossai_abilities',
-			[
+			array(
 				'ability_slug'  => '',
 				'label'         => 'No Slug',
 				'category'      => 'general',
@@ -183,14 +193,20 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 				'callback_type' => 'noop',
 				'created_at'    => current_time( 'mysql', true ),
 				'updated_at'    => current_time( 'mysql', true ),
-			]
+			)
 		);
 
 		$this->processor->register_abilities();
 		$this->assertTrue( true ); // No fatal = skip worked.
 
 		// Clean up the empty-slug row.
-		$wpdb->delete( $wpdb->prefix . 'acrossai_abilities', [ 'ability_slug' => '', 'label' => 'No Slug' ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->delete(
+			$wpdb->prefix . 'acrossai_abilities',
+			array(
+				'ability_slug' => '',
+				'label'        => 'No Slug',
+			)
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 
 	// -------------------------------------------------------------------------
@@ -198,13 +214,13 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * noop callback returns an empty array.
+	 * Noop callback returns an empty array.
 	 *
 	 * @return void
 	 */
 	public function test_noop_callback_returns_empty_array() {
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [ 'callback_type' => 'noop' ] )
+			$this->insert_published_db( array( 'callback_type' => 'noop' ) )
 		);
 
 		// Access the noop closure via the build_execute_callback path (test through reflection).
@@ -213,7 +229,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		$callback = $method->invoke( $this->processor, $row );
-		$result   = $callback( [] );
+		$result   = $callback( array() );
 
 		$this->assertIsArray( $result );
 		$this->assertEmpty( $result );
@@ -224,16 +240,18 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * php_code callback executes code and returns result.
+	 * Php_code callback executes code and returns result.
 	 *
 	 * @return void
 	 */
 	public function test_php_code_callback_executes_and_returns_result() {
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'php_code',
-				'callback_config' => [ 'code' => 'return strtoupper( $input );' ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'php_code',
+					'callback_config' => array( 'code' => 'return strtoupper( $input );' ),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -247,16 +265,18 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * php_code callback isolates per-invocation Throwable — returns WP_Error, not fatal.
+	 * Php_code callback isolates per-invocation Throwable — returns WP_Error, not fatal.
 	 *
 	 * @return void
 	 */
 	public function test_php_code_callback_throwable_isolation() {
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'php_code',
-				'callback_config' => [ 'code' => 'throw new \RuntimeException("boom");' ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'php_code',
+					'callback_config' => array( 'code' => 'throw new \RuntimeException("boom");' ),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -264,23 +284,25 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		$callback = $method->invoke( $this->processor, $row );
-		$result   = $callback( [] );
+		$result   = $callback( array() );
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		$this->assertSame( 'ability_exec_error', $result->get_error_code() );
 	}
 
 	/**
-	 * php_code callback with empty code returns empty array (not WP_Error).
+	 * Php_code callback with empty code returns empty array (not WP_Error).
 	 *
 	 * @return void
 	 */
 	public function test_php_code_callback_empty_code_returns_empty_array() {
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'php_code',
-				'callback_config' => [ 'code' => '' ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'php_code',
+					'callback_config' => array( 'code' => '' ),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -288,7 +310,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		$callback = $method->invoke( $this->processor, $row );
-		$result   = $callback( [] );
+		$result   = $callback( array() );
 
 		$this->assertIsArray( $result );
 		$this->assertEmpty( $result );
@@ -299,16 +321,18 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * wp_remote_post callback returns WP_Error for non-HTTPS URL.
+	 * Wp_remote_post callback returns WP_Error for non-HTTPS URL.
 	 *
 	 * @return void
 	 */
 	public function test_wp_remote_post_callback_rejects_non_https_url() {
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'wp_remote_post',
-				'callback_config' => [ 'url' => 'http://insecure.example.com/api' ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'wp_remote_post',
+					'callback_config' => array( 'url' => 'http://insecure.example.com/api' ),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -316,22 +340,24 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		$callback = $method->invoke( $this->processor, $row );
-		$result   = $callback( [] );
+		$result   = $callback( array() );
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 	}
 
 	/**
-	 * wp_remote_post callback returns WP_Error for empty URL.
+	 * Wp_remote_post callback returns WP_Error for empty URL.
 	 *
 	 * @return void
 	 */
 	public function test_wp_remote_post_callback_rejects_empty_url() {
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'wp_remote_post',
-				'callback_config' => [ 'url' => '' ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'wp_remote_post',
+					'callback_config' => array( 'url' => '' ),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -339,32 +365,40 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		$callback = $method->invoke( $this->processor, $row );
-		$result   = $callback( [] );
+		$result   = $callback( array() );
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 	}
 
 	/**
-	 * wp_remote_post callback enforces timeout clamping (max 30s).
+	 * Wp_remote_post callback enforces timeout clamping (max 30s).
 	 *
 	 * Uses add_filter on http_request_args to capture the actual args passed to wp_remote_post.
 	 *
 	 * @return void
 	 */
 	public function test_wp_remote_post_callback_clamps_timeout() {
-		$captured_args = [];
+		$captured_args = array();
 
-		add_filter( 'http_request_args', static function ( $args ) use ( &$captured_args ) {
-			$captured_args = $args;
-			// Short-circuit: return WP_Error to avoid actual HTTP request.
-			return new \WP_Error( 'short_circuit', 'Test short circuit' );
-		} );
+		add_filter(
+			'http_request_args',
+			static function ( $args ) use ( &$captured_args ) {
+				$captured_args = $args;
+				// Short-circuit: return WP_Error to avoid actual HTTP request.
+				return new \WP_Error( 'short_circuit', 'Test short circuit' );
+			}
+		);
 
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'wp_remote_post',
-				'callback_config' => [ 'url' => 'https://example.com', 'timeout' => 999 ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'wp_remote_post',
+					'callback_config' => array(
+						'url'     => 'https://example.com',
+						'timeout' => 999,
+					),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -372,7 +406,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		$callback = $method->invoke( $this->processor, $row );
-		$callback( [] );
+		$callback( array() );
 
 		remove_all_filters( 'http_request_args' );
 
@@ -381,23 +415,28 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * wp_remote_post callback sets redirection=>0 (no redirects, PD-002).
+	 * Wp_remote_post callback sets redirection=>0 (no redirects, PD-002).
 	 *
 	 * @return void
 	 */
 	public function test_wp_remote_post_callback_sets_no_redirect() {
-		$captured_args = [];
+		$captured_args = array();
 
-		add_filter( 'http_request_args', static function ( $args ) use ( &$captured_args ) {
-			$captured_args = $args;
-			return new \WP_Error( 'short_circuit', 'Test short circuit' );
-		} );
+		add_filter(
+			'http_request_args',
+			static function ( $args ) use ( &$captured_args ) {
+				$captured_args = $args;
+				return new \WP_Error( 'short_circuit', 'Test short circuit' );
+			}
+		);
 
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'wp_remote_post',
-				'callback_config' => [ 'url' => 'https://example.com' ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'wp_remote_post',
+					'callback_config' => array( 'url' => 'https://example.com' ),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -405,7 +444,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		$callback = $method->invoke( $this->processor, $row );
-		$callback( [] );
+		$callback( array() );
 
 		remove_all_filters( 'http_request_args' );
 
@@ -413,29 +452,34 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * wp_remote_post callback does not propagate caller headers (PD-002).
+	 * Wp_remote_post callback does not propagate caller headers (PD-002).
 	 *
 	 * Only Content-Type should appear in the request headers.
 	 *
 	 * @return void
 	 */
 	public function test_wp_remote_post_callback_no_caller_header_propagation() {
-		$captured_args = [];
+		$captured_args = array();
 
-		add_filter( 'http_request_args', static function ( $args ) use ( &$captured_args ) {
-			$captured_args = $args;
-			return new \WP_Error( 'short_circuit', 'Test short circuit' );
-		} );
+		add_filter(
+			'http_request_args',
+			static function ( $args ) use ( &$captured_args ) {
+				$captured_args = $args;
+				return new \WP_Error( 'short_circuit', 'Test short circuit' );
+			}
+		);
 
 		// Set a current user (to simulate a logged-in context with cookies).
-		$user_id = $this->factory->user->create( [ 'role' => 'administrator' ] );
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'wp_remote_post',
-				'callback_config' => [ 'url' => 'https://example.com' ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'wp_remote_post',
+					'callback_config' => array( 'url' => 'https://example.com' ),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -443,13 +487,13 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		$callback = $method->invoke( $this->processor, $row );
-		$callback( [] );
+		$callback( array() );
 
 		remove_all_filters( 'http_request_args' );
 
-		$sent_headers = array_map( 'strtolower', array_keys( (array) ( $captured_args['headers'] ?? [] ) ) );
+		$sent_headers = array_map( 'strtolower', array_keys( (array) ( $captured_args['headers'] ?? array() ) ) );
 
-		$this->assertNotContains( 'cookie',        $sent_headers, 'Cookies must not be propagated' );
+		$this->assertNotContains( 'cookie', $sent_headers, 'Cookies must not be propagated' );
 		$this->assertNotContains( 'authorization', $sent_headers, 'Authorization header must not be propagated' );
 	}
 
@@ -458,23 +502,30 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * filter_hook callback applies the correct WordPress filter.
+	 * Filter_hook callback applies the correct WordPress filter.
 	 *
 	 * @return void
 	 */
 	public function test_filter_hook_callback_applies_correct_filter() {
 		$hook_fired = false;
 
-		add_filter( 'acrossai_ability_execute_test_hook', static function ( $result, $input ) use ( &$hook_fired ) {
-			$hook_fired = true;
-			return [ 'processed' => $input ];
-		}, 10, 2 );
+		add_filter(
+			'acrossai_ability_execute_test_hook',
+			static function ( $result, $input ) use ( &$hook_fired ) {
+				$hook_fired = true;
+				return array( 'processed' => $input );
+			},
+			10,
+			2
+		);
 
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'filter_hook',
-				'callback_config' => [ 'hook_name' => 'test_hook' ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'filter_hook',
+					'callback_config' => array( 'hook_name' => 'test_hook' ),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -487,20 +538,22 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		remove_all_filters( 'acrossai_ability_execute_test_hook' );
 
 		$this->assertTrue( $hook_fired, 'The filter hook must have been applied' );
-		$this->assertSame( [ 'processed' => 'my-input' ], $result );
+		$this->assertSame( array( 'processed' => 'my-input' ), $result );
 	}
 
 	/**
-	 * filter_hook callback with empty hook_name returns empty array without firing any hook.
+	 * Filter_hook callback with empty hook_name returns empty array without firing any hook.
 	 *
 	 * @return void
 	 */
 	public function test_filter_hook_callback_empty_hook_name_returns_empty_array() {
 		$row = AcrossAI_Abilities_Query::instance()->get_ability_by_id(
-			$this->insert_published_db( [
-				'callback_type'   => 'filter_hook',
-				'callback_config' => [ 'hook_name' => '' ],
-			] )
+			$this->insert_published_db(
+				array(
+					'callback_type'   => 'filter_hook',
+					'callback_config' => array( 'hook_name' => '' ),
+				)
+			)
 		);
 
 		$reflection = new \ReflectionClass( $this->processor );
@@ -508,7 +561,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$method->setAccessible( true );
 
 		$callback = $method->invoke( $this->processor, $row );
-		$result   = $callback( [] );
+		$result   = $callback( array() );
 
 		$this->assertIsArray( $result );
 		$this->assertEmpty( $result );
