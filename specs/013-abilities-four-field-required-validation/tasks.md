@@ -19,6 +19,7 @@
 - **BUG-PHPCS-DOCBLOCK-CAPITAL**: PHP docblock long descriptions must start with "The "
 - **BUG-PHPCBF-TABS**: PHP file edits must use tabs (not spaces)
 - **SCSS no-op confirmed**: `.field-error` exists at `admin.scss:1258` — T018 is a no-op
+- **DEC-DESIGN-OVERRIDES-DATAVIEWS (accepted deviation)**: Phase 4 tasks (T009–T016) use the custom `formErrors` / `validateRequiredFields` / `.field-error` validation pattern — NOT `@wordpress/dataforms`. This is the pre-existing approved pattern per `DEC-DESIGN-OVERRIDES-DATAVIEWS` (DECISIONS.md) and GitHub issue #16. Do NOT replace with DataForm.
 
 ---
 
@@ -201,3 +202,4 @@ All phases complete = **US1 + US2 + US3 complete**: all three user stories imple
 | 13 | Description field label in Add New form | Shows red `*` (not "optional") | FR-007 |
 | 14 | Primary save button when any required field is empty | Dimmed (opacity 0.5); click has no effect | FR-004 |
 | 15 | "Save as Draft" button when required fields empty | Button remains visually enabled; click shows inline errors, no API request | FR-005 |
+| 16 | `PATCH /abilities/{id}` with explicit `label: ""` | HTTP 400, `invalid_label` — intended; prevents clearing required fields via partial update (plan.md Risk Register) | T003, T006 |
