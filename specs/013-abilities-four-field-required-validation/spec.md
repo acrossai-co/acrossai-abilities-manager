@@ -66,10 +66,12 @@ The PHP REST API returns HTTP 400 errors when a POST /abilities request omits or
   → Treated as empty — client trims before checking, PHP uses `trim()` before comparison. Both reject whitespace-only values.
 - How does the system handle an update (PATCH) that omits description?  
   → Partial updates are valid; absence of `description` in the PATCH body is allowed. The presence check only applies to the create handler.
+- What happens when "Save as Draft" is clicked with empty required fields?  
+  → The button remains clickable (no client-side disable applied to the draft button). However, the POST /abilities request will still be made and the server will return HTTP 400 with `missing_label`, `missing_description`, or `missing_category` if any required field is empty. The server applies the same four-field rule regardless of `status`.
 - What if `validate_label` receives `null` for an update row that inherits its label from the plugin registration?  
   → `null` is still accepted (nullable for update/override rows); only empty string `''` is newly rejected.
 - What if the admin opens Edit mode for an existing published ability that was saved before this feature (i.e., it has an empty description in the DB)?  
-  → The edit form will show the description error on load/blur; the admin must fill it before "Save Changes" works. "Save as Draft" remains available.
+  → The edit form does NOT show errors immediately on page load. Errors appear only when the admin blurs an empty required field or attempts to save (consistent with FR-002). The admin must fill the field before "Save Changes" works. "Save as Draft" button remains visually enabled (FR-005), but the save will fail server-side if fields remain empty (FR-013).
 - What happens when `mb_strlen` is unavailable?  
   → `mbstring` is a WordPress hard dependency; `mb_strlen` is always available in a WP context.
 
@@ -80,8 +82,8 @@ The PHP REST API returns HTTP 400 errors when a POST /abilities request omits or
 - **FR-001**: The Add New and Edit ability forms MUST prevent submission when any of the four fields (ability_slug, label, description, category) is empty, displaying an inline error below the offending field.
 - **FR-002**: Each required field MUST display its inline error immediately on blur (focus-out) if the field is empty, without requiring a save attempt.
 - **FR-003**: Each required field MUST clear its inline error immediately when the user types a non-empty value (onChange).
-- **FR-004**: The primary save buttons ("Add Ability" / "Save Changes" and the sticky bar equivalent) MUST be visually disabled (opacity 0.5, pointer-events none) when any required field is empty, without using the HTML `disabled` attribute.
-- **FR-005**: The "Save as Draft" button MUST remain fully clickable even when required fields are empty.
+- **FR-004**: The primary save buttons ("Add Ability" / "Save Changes" and the sticky bar equivalent) MUST be visually disabled (opacity 0.5, pointer-events none) and MUST set `aria-disabled={hasRequiredErrors}` when any required field is empty, without using the HTML `disabled` attribute (tab order must be preserved).
+- **FR-005**: The "Save as Draft" button MUST remain visually enabled (not dimmed, pointer-events intact) even when required fields are empty. Clicking it triggers the same required-field validation gate as the primary save button — if any required field is empty, inline errors appear and no API request is made. Both client and server enforce the four-field requirement; the draft pathway does not exempt fields.
 - **FR-006**: The Override Inherited form (mode=override) MUST NOT show required-field errors or apply save-button disabling.
 - **FR-007**: The description field label MUST display a required asterisk (*) instead of the current "optional" text.
 - **FR-008**: The PHP `is_row_registrable()` method MUST return `false` for rows with an empty `description`, preventing them from being registered with the WordPress Abilities API.
@@ -93,6 +95,7 @@ The PHP REST API returns HTTP 400 errors when a POST /abilities request omits or
 - **FR-014**: The REST update handler MUST NOT require description, label, or category to be present (partial PATCH remains valid).
 - **FR-015**: All new user-visible strings MUST be wrapped in `__( '...', 'acrossai-abilities-manager' )`.
 - **FR-016**: The `formErrors` state MUST be reset to empty when the component loads a new or freshly-created ability.
+- **FR-017**: The description `<textarea>` in `AbilityForm.jsx` MUST carry `maxLength={1000}` to enforce the server-side character limit at the browser level. No character counter is required.
 
 ### Key Entities
 
@@ -109,7 +112,7 @@ The PHP REST API returns HTTP 400 errors when a POST /abilities request omits or
 - **SC-002**: Zero network requests are made when the admin clicks "Add Ability" while any required field is empty.
 - **SC-003**: The REST API returns HTTP 400 for 100% of create requests missing label, description, or category.
 - **SC-004**: Abilities with empty descriptions are never registered with the WordPress Abilities API during processor boot.
-- **SC-005**: The "Save as Draft" workflow completes successfully regardless of empty required fields (no client-side block).
+- **SC-005**: The "Save as Draft" button is not visually disabled; clicking it with empty required fields shows inline field-level errors and makes no API request — identical client behaviour to clicking the primary save button.
 - **SC-006**: The Override Inherited form remains unaffected — no new error states, no save button changes.
 - **SC-007**: The build succeeds with zero errors (`nvm use 20 && npm run build`).
 - **SC-008**: PHPCS and PHPStan level 8 pass with zero errors on changed PHP files.
@@ -123,3 +126,12 @@ The PHP REST API returns HTTP 400 errors when a POST /abilities request omits or
 - `mbstring` PHP extension is always available in the WordPress environment.
 - The description 1000-character limit is sufficient for AI agent capability descriptions; no product requirement conflicts with this limit.
 - The `.field-error` CSS class may already exist from Feature 011; if so, no SCSS change is needed.
+## Clarifications
+
+### Session 2026-05-25
+
+- Q: Should FR-013/SC-003 server-side presence checks exempt `status: 'draft'` creates, or apply unconditionally to all creates? → A: Server-strict (Option B) — all creates, including draft-status, require non-empty label, description, and category. FR-005/SC-005 updated to reflect that "Save as Draft" remains clickable client-side only; the server still rejects empty required fields.
+- Q: When an admin opens Edit mode for an existing ability with an empty description in the DB, should errors appear immediately on page load or only on blur/save? → A: Blur/save only — errors appear on blur or save attempt, never on initial page load. Edge case updated accordingly.
+- Q: Should `aria-disabled={hasRequiredErrors}` be required in FR-004 or left as an implementation detail? → A: Required in FR-004 — screen readers must not announce a visually-disabled button as active. FR-004 updated.
+- Q: Should AbilityForm.jsx enforce the 1000-character description limit client-side? → A: `maxLength={1000}` on the textarea only (no character counter). FR-017 added.
+- Q: Should the `forceDraft` bypass in `handleSave()` be removed so "Save as Draft" also triggers client-side required-field validation? → A: Yes — remove bypass (Option A). Both buttons now run the same validation gate; FR-005/SC-005 updated. T010 plan updated.

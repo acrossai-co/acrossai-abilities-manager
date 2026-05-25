@@ -238,27 +238,23 @@ if ( '' === trim( (string) $row->description ) ) {
 **Position**: Inside `create_ability()`, after `$fields = AcrossAI_Abilities_Sanitizer::sanitize_create_request($request)` and **before** `$valid = AcrossAI_Abilities_Validator::validate_ability($fields, true)`
 
 ```php
-// Presence guards (create only, publish-only): label, description, and category
-// are required for published abilities. Draft creates are allowed with empty fields
-// (FR-005/SC-005 — "Save as Draft" must succeed with empty fields).
-// SEC-04: strict comparison '' === trim() throughout.
-$is_draft = isset( $fields['status'] ) && 'draft' === $fields['status'];
-if ( ! $is_draft ) {
-    if ( '' === trim( (string) ( $fields['label'] ?? '' ) ) ) {
-        return new \WP_Error( 'missing_label', __( 'Ability label is required.', 'acrossai-abilities-manager' ), array( 'status' => 400 ) );
-    }
-    if ( '' === trim( (string) ( $fields['description'] ?? '' ) ) ) {
-        return new \WP_Error( 'missing_description', __( 'Ability description is required.', 'acrossai-abilities-manager' ), array( 'status' => 400 ) );
-    }
-    if ( '' === trim( (string) ( $fields['category'] ?? '' ) ) ) {
-        return new \WP_Error( 'missing_category', __( 'Ability category is required.', 'acrossai-abilities-manager' ), array( 'status' => 400 ) );
-    }
+// Presence guards (create only): label, description, and category are required
+// for ALL creates, including draft-status creates (server-strict per FR-013/SC-003).
+// SEC-04: strict comparison '' === trim() throughout. SEC-02: after sanitize, before validate.
+if ( '' === trim( (string) ( $fields['label'] ?? '' ) ) ) {
+    return new \WP_Error( 'missing_label', __( 'Ability label is required.', 'acrossai-abilities-manager' ), array( 'status' => 400 ) );
+}
+if ( '' === trim( (string) ( $fields['description'] ?? '' ) ) ) {
+    return new \WP_Error( 'missing_description', __( 'Ability description is required.', 'acrossai-abilities-manager' ), array( 'status' => 400 ) );
+}
+if ( '' === trim( (string) ( $fields['category'] ?? '' ) ) ) {
+    return new \WP_Error( 'missing_category', __( 'Ability category is required.', 'acrossai-abilities-manager' ), array( 'status' => 400 ) );
 }
 ```
 
 **Why before `validate_ability()`**: `validate_label(null)`, `validate_category(null)`, and the new `validate_description(null)` all return `true` (null-tolerant). A create request that omits these fields would produce null values after sanitization and pass the validator. The presence guards close this gap explicitly, matching spec FR-013 and the `missing_*` error codes.
 
-**Why conditional on `$is_draft`**: FR-005/SC-005 mandates that "Save as Draft" succeeds with empty required fields. When the client sends `status: 'draft'` (the "Save as Draft" path), the server accepts incomplete rows. The validator's null-tolerance already handles this correctly. Presence guards only gate non-draft creates.
+**Why unconditional**: FR-013/SC-003 requires HTTP 400 for all creates with empty required fields, including draft-status creates. The "Save as Draft" button remains visually enabled client-side (FR-005), but the server enforces the same rule regardless of status.
 
 **`update_ability()` unchanged**: Partial PATCH does not require these fields. The update path already uses `validate_ability($fields, false)` which is null-tolerant for all three. No changes to `update_ability()`.
 
@@ -310,14 +306,15 @@ function validateRequiredFields(draft, slugSuffix) {
 
 ---
 
-#### T010 — Modify `handleSave()`: validate before dispatch in create/edit when not forcing draft
+#### T010 — Modify `handleSave()`: validate before dispatch in create/edit (all save paths)
 
 **Position**: Inside `handleSave()`, at the top of the function body, before the `const data = { ...draftAbility }` line
 
 ```jsx
-// Required-field gate: runs in create/edit mode when not saving as draft.
-// forceDraft=true (Save as Draft) bypasses validation so partial abilities can be saved.
-if (!forceDraft && ('create' === mode || 'edit' === mode)) {
+// Required-field gate: runs in create/edit mode for ALL save paths, including
+// "Save as Draft" (forceDraft=true). Server enforces the same four-field rule
+// unconditionally (FR-013/SC-003); blocking client-side first gives faster UX.
+if ('create' === mode || 'edit' === mode) {
     const errors = validateRequiredFields(draftAbility, slugSuffix);
     setFormErrors(errors);
     if (Object.values(errors).some(Boolean)) {
@@ -459,6 +456,16 @@ And add `onBlur={handleDescriptionBlur}` to the description `<textarea>`.
     {__('Description', 'acrossai-abilities-manager')}
     <span className="req"> *</span>
 </label>
+```
+
+Also add `maxLength={AcrossAI_Abilities_Validator::DESCRIPTION_MAX_LENGTH}` — since this is JS, use the numeric constant directly:
+
+```jsx
+<textarea
+    id="ability-description"
+    maxLength={1000}
+    {/* …existing props unchanged… */}
+/>
 ```
 
 The `.req` class already exists in `admin.scss:433` with `color: $red; font-weight: 400; margin-left: 2px;`. No SCSS change needed.
