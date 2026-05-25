@@ -630,6 +630,7 @@ No new WordPress hooks are introduced by this feature. The existing hooks (`acro
 |------|-----------|
 | Existing abilities saved before this feature have empty descriptions — edit form loads without errors (CLARIFY-Q2/B) | No errors shown on page load; errors appear only on blur or save attempt. Admin must fill description before "Save Changes" works. "Save as Draft" button visually enabled but gate applies. |
 | `validate_description(null)` must remain true for partial-update PATCH flows | The null early-return is explicit in T004; UPDATE path in write controller is untouched |
+| PATCH with `label: ""` (or `description: ""` / `category: ""`) explicitly submitted | `validate_label()` (T002), `validate_category()` (T003), and `validate_description()` (T004) each reject empty string with 400 — intended behavior; prevents an authenticated admin from clearing a required field to empty via a partial update. No mitigation needed. |
 | `trim()` on `$row->description` in Processor may trip if `description` is not a string in the Row object | Cast to `(string)` before trim: `'' === trim( (string) $row->description )` — SEC-04 compliant; handles null and non-string values safely |
 | CSS-only disable on primary button: keyboard users can still tab to button (pointer-events only blocks mouse) | Acceptable for this iteration; the `handleSave()` gate provides the actual enforcement |
 | PHPStan: `$fields['label'] ?? ''` with nullable string type | Nullish coalescing to `''` + explicit cast `(string)` satisfies PHPStan strict typing |
