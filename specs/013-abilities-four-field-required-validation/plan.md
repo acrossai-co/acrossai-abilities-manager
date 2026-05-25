@@ -484,6 +484,7 @@ The primary save buttons are located in two places: the `.hactions` header area 
     type="button"
     className="button button-primary"
     style={hasRequiredErrors ? { opacity: 0.5, pointerEvents: 'none' } : undefined}
+    aria-disabled={hasRequiredErrors}
     disabled={isSaving || (!isCreate && !isDirty)}
     onClick={() => handleSave(false)}
 >
@@ -501,6 +502,7 @@ The primary save buttons are located in two places: the `.hactions` header area 
         justifyContent: 'center',
         ...(hasRequiredErrors ? { opacity: 0.5, pointerEvents: 'none' } : {}),
     }}
+    aria-disabled={hasRequiredErrors}
     disabled={isSaving}
     onClick={() => handleSave(false)}
 >
@@ -516,6 +518,7 @@ The primary save buttons are located in two places: the `.hactions` header area 
         justifyContent: 'center',
         ...(hasRequiredErrors ? { opacity: 0.5, pointerEvents: 'none' } : {}),
     }}
+    aria-disabled={hasRequiredErrors}
     disabled={isSaving || !isDirty}
     onClick={() => handleSave(false)}
 >
