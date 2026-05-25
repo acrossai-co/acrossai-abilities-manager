@@ -90,7 +90,7 @@ function formatDate(iso) {
  * @param {string} slugSuffix Current slug suffix local state.
  * @return {Object} Error map for slug_suffix, label, description, category.
  */
-function validateRequiredFields(ability, slugSuffix) {
+export function validateRequiredFields(ability, slugSuffix) {
 	const required = __('This field is required.', 'acrossai-abilities-manager');
 	return {
 		slug_suffix: (slugSuffix || '').trim() ? '' : required,

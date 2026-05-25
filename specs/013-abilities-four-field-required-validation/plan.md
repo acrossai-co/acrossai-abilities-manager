@@ -541,9 +541,9 @@ This ensures that when an ability loads (or a new ability is saved and the view 
 
 ---
 
-### CHANGE 5 — `admin.scss`
+### VERIFICATION 5 — `admin.scss`
 
-#### T017 — No SCSS change required
+#### T017 — Confirm SCSS pre-conditions met (no change required)
 
 `.field-error` already exists at `admin.scss:1258`:
 ```scss

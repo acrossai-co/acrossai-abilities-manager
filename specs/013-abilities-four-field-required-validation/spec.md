@@ -67,7 +67,7 @@ The PHP REST API returns HTTP 400 errors when a POST /abilities request omits or
 - How does the system handle an update (PATCH) that omits description?  
   → Partial updates are valid; absence of `description` in the PATCH body is allowed. The presence check only applies to the create handler.
 - What happens when "Save as Draft" is clicked with empty required fields?  
-  → The button remains clickable (no client-side disable applied to the draft button). However, the POST /abilities request will still be made and the server will return HTTP 400 with `missing_label`, `missing_description`, or `missing_category` if any required field is empty. The server applies the same four-field rule regardless of `status`.
+  → The button remains clickable (not visually dimmed). Clicking it with empty required fields triggers the same client-side validation gate as the primary save button — inline errors appear immediately and **no API request is made** (forceDraft bypass removed per Clarifications). If the client is bypassed directly, the server still returns HTTP 400 with `missing_label`, `missing_description`, or `missing_category`. The server applies the same four-field rule regardless of `status`.
 - What if `validate_label` receives `null` for an update row that inherits its label from the plugin registration?  
   → `null` is still accepted (nullable for update/override rows); only empty string `''` is newly rejected.
 - What if the admin opens Edit mode for an existing published ability that was saved before this feature (i.e., it has an empty description in the DB)?  
