@@ -89,6 +89,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 
 ## Architecture Patterns (continued)
 | ARCH-ZERO-CODE-DEPENDENCY-UPGRADE | Singleton + service locator pattern enables dependency upgrades without plugin code changes | Dependencies | architecture, singleton, service-locator, upgrades | ARCHITECTURE.md |
+| PATTERN-NAMED-EXPORT-JEST | Named export of pure helper from JSX component enables Jest unit tests without rendering | React/JS | jest, named-export, pure-helper, testability | ARCHITECTURE.md |
 
 ## Bug Patterns (continued)
 | BUG-AC-NULL-RETURN-SILENT-FAIL | Access control permission checks silently fail when library returns null instead of false | Access Control | type-safety, null-return, silent-fail | BUGS.md |
