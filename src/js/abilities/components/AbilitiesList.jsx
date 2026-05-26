@@ -246,13 +246,7 @@ export default function AbilitiesList() {
 				<h1 className="wp-heading-inline">
 					{ __( 'Custom Abilities', 'acrossai-abilities-manager' ) }
 				</h1>
-				<button
-					type="button"
-					className="title-action"
-					onClick={ () => dispatch.setView( { mode: 'create' } ) }
-				>
-					{ __( '+ Add New Ability', 'acrossai-abilities-manager' ) }
-				</button>
+
 			</div>
 
 			<p className="abilities-subtitle">

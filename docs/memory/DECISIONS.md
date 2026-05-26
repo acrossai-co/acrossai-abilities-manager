@@ -850,3 +850,22 @@ Placed before `$this->prepare_fields_for_write( $fields )`.
 **Where to look next**
 `includes/Modules/Abilities/Database/AcrossAI_Abilities_Query.php` (save_override — SEC-002 comment),
 `includes/Utilities/AcrossAI_Abilities_Sanitizer.php` (strip_protected_fields_for_non_db — upstream caller).
+
+---
+
+### 2026-05-27 — `save_override()` returns `AcrossAI_Abilities_Row|false`, not `bool` (DEC-SAVE-OVERRIDE-RETURN-ROW)
+
+**Context**
+Bug 4 (Feature 015): The Write Controller called `save_override()` (which returned `bool`), then immediately called `get_override_by_slug()` for the fresh row. On first-ever INSERT, BerlinDB's stale slug cache returned null for the re-query, producing `has_override: false` in the REST response.
+
+**Decision**
+`save_override()` returns the freshly re-read `AcrossAI_Abilities_Row` on success, `false` on failure. The row is re-read via ID-based query (cache bypass) inside `save_override()` itself. The Write Controller uses the returned row directly — no post-save slug re-query needed.
+
+**PHP 7.4 note**: Union return types (`AcrossAI_Abilities_Row|false`) cannot be expressed as an inline method signature in PHP 7.4. Omit the inline return type hint; express the union via `@return AcrossAI_Abilities_Row|false` in the PHPDoc block. PHPStan level 8 accepts this form.
+
+**Rule**
+Any DB helper that performs an INSERT or UPDATE and is immediately consumed by a REST controller SHOULD return the saved object (not a bool). Callers MUST use strict `false === $result` comparison to detect failure.
+
+**Where to look next**
+`includes/Modules/Abilities/Database/AcrossAI_Abilities_Query.php` (`save_override` — return pattern),
+`includes/Modules/Abilities/Rest/AcrossAI_Abilities_Write_Controller.php` (strict `false ===` check).

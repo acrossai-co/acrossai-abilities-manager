@@ -26,6 +26,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | DEC-DESCRIPTION-VALIDATION-PATTERN | Description: DESCRIPTION_MAX_LENGTH=1000, validate_description(), maxLength={1000} | Abilities/Validator | description, validation, max-length, sec-04 | Active | DECISIONS.md |
 | DEC-HACTIONS-BUTTON-DEPTH | AbilityForm.jsx: .hactions button=5-tab, sbox button=9-tab | React/UI | abilityform, button, tabs, str_replace | Active | DECISIONS.md |
 | DEC-DB-WRITE-BOUNDARY-GUARD | DB write methods must enforce source-discriminant guards at method level, not via caller ordering | DB/Security | db-write, source, boundary-guard, injection | Active | DECISIONS.md |
+| DEC-SAVE-OVERRIDE-RETURN-ROW | save_override() returns Row\|false (not bool); Write Controller uses row directly; PHP 7.4 union via @return docblock only | DB/BerlinDB | save_override, return-type, berlinddb, php74 | Active | DECISIONS.md |
 
 ## Architecture Constraints
 | ID | Constraint | Scope | Tags | Source |
@@ -100,7 +101,11 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | BUG-PHPSTAN-SILENT-PASS | PHPStan: exit 0 + no output = clean pass; exit 1 = failure | PHP/Tooling | phpstan, exit-code, silent, pass | BUGS.md |
 | BUG-RAWURLDECODE-CONSECUTIVE-SLASHES | rawurldecode + allowlist regex needs consecutive-slash normalization | Utilities/Security | slug, sanitize, rawurldecode, consecutive-slash | BUGS.md |
 | BUG-REST-ROUTE-ORDER-LITERAL-BEFORE-WILDCARD | WP REST API: literal-segment routes must register before wildcard `[^/]+` routes | REST/Routing | rest, route-order, literal, wildcard, shadowing | BUGS.md |
+| BUG-BERLINDB-STALE-SLUG-CACHE | After INSERT, get_override_by_slug() hits stale slug cache → null; re-read via ID inside save_override() | DB/BerlinDB | berlinddb, cache, save_override, INSERT | BUGS.md |
+| BUG-MCP-PUBLIC-KEY-MAPPING | meta.mcp.public → show_in_mcp (canonical); mcp_public is a stray key the Merger never reads | Abilities/Merger | mcp, show_in_mcp, normalize_registry, registry | BUGS.md |
+| BUG-DRAFT-SEEDED-FROM-MERGED | SET_SAVED must seed draftAbility from _override[field] (null=inherit), not merged top-level | React/Store | redux, set-saved, trichip, override, draftAbility | BUGS.md |
 
 ## Worklog Milestones (continued)
 | 2026-05-20 | 4-Phase library upgrade workflow validated; zero-code dependency upgrade with 100% test pass rate | Feature 007 | workflow, library-upgrade, zero-code, testing | WORKLOG.md |
 | 2026-05-26 | Feature 014: edit+override routing unified, REST split pattern validated, SEC-001/002/003 hardening | Feature 014 | feature-014, override, rest-split, security | WORKLOG.md |
+| 2026-05-27 | Feature 015: override layer hardened; BerlinDB cache bypass, mcp.public mapping, SET_SAVED seeding — 4 new patterns | Feature 015 | feature-015, override, berlinddb, mcp, redux | WORKLOG.md |
