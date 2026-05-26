@@ -32,9 +32,9 @@ Shared logic MUST be extracted to `includes/Utilities/`.
 No code duplication between modules is permitted under any circumstance.
 
 **Rationale**: Enables parallel development, isolated testing, and safe iteration on any single feature
-without risking regressions in others. The five feature areas (Sitewide Management, Per-User Access
+without risking regressions in others. The four active feature areas (Per-User Access
 Control, MCP Server Management, Custom Ability Registration, WebMCP Integration) MUST each map to
-exactly one module.
+exactly one module. Ability override management is part of the `Abilities` module (Feature 012).
 
 ### II. WordPress Standards Compliance
 All PHP code MUST conform to WordPress Coding Standards (WPCS strict profile).
@@ -59,7 +59,7 @@ DataViews MUST provide: searchable lists, column sorting, pagination, and contex
 No custom form or table rendering that duplicates DataForm/DataViews functionality is permitted.
 
 **Rationale**: Consistency with WordPress core UI patterns reduces the learning curve for
-administrators and ensures a coherent, familiar admin experience across all five feature areas.
+administrators and ensures a coherent, familiar admin experience across all active feature areas.
 
 ### IV. Security First (NON-NEGOTIABLE)
 - All input MUST be sanitized at system boundaries using the most specific WordPress sanitization
@@ -140,7 +140,6 @@ admin/
 includes/
 ├── Utilities/      # Shared utility functions, helpers, formatters
 └── Modules/        # One subdirectory per feature module (self-contained)
-    ├── Sitewide/
     ├── PerUser/
     ├── McpServer/
     ├── Abilities/
@@ -158,7 +157,6 @@ tests/
 - `includes/Modules/Logger/AcrossAI_Ability_Logger.php` → `AcrossAI_Abilities_Manager\Includes\Modules\Logger`
 - `includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Query.php` → `AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database`
 - `includes/Modules/Logger/Rest/AcrossAI_Logger_Controller.php` → `AcrossAI_Abilities_Manager\Includes\Modules\Logger\Rest`
-- `includes/Modules/Sitewide/AcrossAI_Sitewide_Rest_Controller.php` → `AcrossAI_Abilities_Manager\Includes\Modules\Sitewide`
 - `includes/Utilities/AcrossAI_Logger_Formatter.php` → `AcrossAI_Abilities_Manager\Includes\Utilities`
 - `admin/Partials/Menu.php` → `AcrossAI_Abilities_Manager\Admin\Partials`
 Never invent short namespaces like `AcrossAI\Abilities\Logger` — always derive from the full path.
@@ -189,14 +187,14 @@ No hook-registering code MAY run inside `load_dependencies()`.
 **REST Controller Pattern**: A feature module's REST controller MUST be split into per-domain
 sub-controllers whenever it would otherwise exceed roughly 400 lines or own more than one user
 story's handlers. The split places sub-controllers in a `Rest/` subdirectory inside the module
-directory (e.g. `includes/Modules/Sitewide/Rest/`). The module's top-level controller becomes
+directory (e.g. `includes/Modules/Abilities/Rest/`). The module's top-level controller becomes
 a thin **orchestrator** responsible for exactly three things: (a) the `REST_NAMESPACE` constant,
 (b) a `register_routes()` method that calls each sub-controller's `register_routes()`, and (c)
 the shared `check_permission()` callback. Sub-controllers MUST use the singleton pattern, MUST
 reference the orchestrator's `check_permission` as:
 `array( MyOrchestrator::instance(), 'check_permission' )`, and MUST NOT register any WordPress
 hooks themselves — only the orchestrator is wired in `Main.php` via the Loader. This is the
-canonical decomposition for the four planned sibling modules (`PerUser`, `McpServer`,
+canonical decomposition for the planned sibling modules (`PerUser`, `McpServer`,
 `CustomAbility`, `Webmcp`). See `specs/002-rest-controller-modularization/` for reference.
 
 **Module Contract**: Every feature class MUST:

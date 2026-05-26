@@ -25,7 +25,7 @@ Fixed in `includes/Modules/Sitewide/Database/AcrossAI_Sitewide_Query.php::get_al
 Code review: grep for `'number' => -1` in BerlinDB query() calls.
 
 **Where to look next**
-`includes/Modules/Sitewide/Database/AcrossAI_Sitewide_Query.php` (get_all_overrides),
+`includes/Modules/Abilities/Database/AcrossAI_Abilities_Query.php` (get_all_overrides),
 `specs/004-ability-override-processor/spec.md` (SC-004).
 
 ---
@@ -75,8 +75,8 @@ Fixed in commit `5c6fce6` — `AcrossAI_Sitewide_Bulk_Controller::bulk_action()`
 When adding any new partial-save REST endpoint: grep for `do_action( 'acrossai_abilities_sitewide_after_save'` and verify the second arg is a full 9-field array, not a subset.
 
 **Where to look next**
-`includes/Modules/Sitewide/Rest/AcrossAI_Sitewide_Bulk_Controller.php` (bulk_action allow/disallow path),
-`includes/Modules/Sitewide/Rest/AcrossAI_Sitewide_Override_Controller.php` (toggle_ability).
+`includes/Modules/Abilities/Rest/` (apply pattern to Abilities REST write paths — Sitewide deleted in Feature 012),
+`includes/Modules/Abilities/Rest/AcrossAI_Abilities_Write_Controller.php` (any partial-save path).
 
 ---
 
@@ -136,8 +136,8 @@ Before writing any new field read from a BerlinDB Row object, grep `__construct(
 class for `json_decode` to confirm whether the field is already decoded.
 
 **Where to look next**
-`includes/Modules/Sitewide/Database/AcrossAI_Sitewide_Row.php` (__construct, mcp_servers decode),
-`includes/Modules/Sitewide/AcrossAI_Ability_Override_Processor.php` (inject_override_args — is_array guard),
+`includes/Modules/Abilities/Database/AcrossAI_Abilities_Row.php` (__construct, mcp_servers decode),
+`includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php` (inject_override_args — is_array guard),
 `specs/004-ability-override-processor/spec.md` (FR-009 mcp_servers note).
 
 
@@ -309,3 +309,51 @@ Feature 007 (2026-05-20): T011 validated that wpb-access-control `user_has_acces
 
 **Future Prevention**:
 When reviewing access control library upgrades or integrations, make T011-style type validation a mandatory Phase 1 test. Treat return type regressions as Phase blockers.
+
+---
+
+### 2026-05-25 — PHPDoc long description must start with a capital letter (BUG-PHPCS-DOCBLOCK-CAPITAL)
+
+**Status**: Active
+
+**Symptoms**
+PHPCS reports `Doc comment long description must start with a capital letter` even after phpcbf auto-fixes other docblock issues. The test file appears clean from phpcbf but still has 1 error.
+
+**Root Cause**
+phpcbf handles short description capitalization automatically but does NOT rewrite long descriptions. A long description starting with a function name (e.g. `sanitize_ability_slug() enforces…`) is non-capitalized in phpcbf's view and must be manually prefixed.
+
+**Future mistake prevented**
+After any phpcbf pass, check long descriptions starting with function names or lowercase words. Rewrite as `The functionName() function …` or any sentence-case phrasing. Grep: `grep -n '^ \* [a-z]' FILE.php` to spot remaining violations.
+
+**Evidence**
+Feature 012 T030 — `AcrossAI_Abilities_Query_Override_Test.php` line 121: `sanitize_ability_slug() enforces a 255-char maximum…` → fixed to `The sanitize_ability_slug() function enforces…` (2026-05-25).
+
+**Prevention / Detection**
+After phpcbf: run `./vendor/bin/phpcs FILE.php` and look for `long description must start with a capital letter`. Python str_replace to prepend `The `.
+
+**Where to look next**
+Any test file with BerlinDB method docblocks after phpcbf.
+
+---
+
+### 2026-05-25 — phpcbf converts space indentation to tabs; Python str_replace must use \t (BUG-PHPCBF-TABS)
+
+**Status**: Active
+
+**Symptoms**
+Python `str_replace` on a PHP file returns "not found" after phpcbf has already run on that file, even though the target string looks correct in the editor.
+
+**Root Cause**
+phpcbf enforces tab indentation in PHP files. If a file was drafted with space indentation (e.g., 9 leading spaces), phpcbf converts them to tabs. Any Python string literal using spaces to match indentation will fail to find the string post-phpcbf.
+
+**Future mistake prevented**
+When using Python str_replace on PHP files that have been or will be processed by phpcbf, always use `\t` (tab) for indentation in both `old` and `new` strings.
+
+**Evidence**
+Feature 012 T030 — multiple Python str_replace calls failed with "not found" after phpcbf; re-attempted using `\t` and succeeded (2026-05-25).
+
+**Prevention / Detection**
+Before Python str_replace on any PHP file: read the raw bytes of one line (e.g. `sed -n 'Np' FILE.php | hexdump -C | head -2`) to confirm tab vs space. Use `\t` in Python string literals accordingly.
+
+**Where to look next**
+Any PHP test file that phpcbf has processed.
