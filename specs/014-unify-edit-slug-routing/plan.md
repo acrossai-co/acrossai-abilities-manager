@@ -172,6 +172,7 @@ JS (no new components):
 - `getAbility(id)` → `getAbility(slug)` — path: `` `${BASE}/${encodeURIComponent(slug)}` ``
 - `updateAbility(id, data)` → `updateAbility(slug, data)` — same slug path, method POST
 - `deleteAbility(id)` → `deleteAbility(slug)` — same slug path, method DELETE
+- Add `deleteOverride(slug)` — DELETE `${BASE}/${encodeURIComponent(slug)}/override` — removes the override row for a non-db ability
 - `createAbility`, `getAbilities`, `getCategories`: unchanged
 
 #### T-JS-C2 — store/index.js: slug-keyed reducers and thunks
@@ -180,7 +181,7 @@ JS (no new components):
 - `fetchAbility(id)` → `fetchAbility(slug)`: calls `api.getAbility(slug)`
 - `updateAbility(id, data)` → `updateAbility(slug, data)`: calls `api.updateAbility(slug, data)`; on success `dispatch({ type: PATCH_ABILITY, slug, patch: ability })`
 - `deleteAbility(id)` → `deleteAbility(slug)`: calls `api.deleteAbility(slug)`; on success `dispatch({ type: REMOVE_ABILITY, slug })`
-- `clearOverrides(id)` → `clearOverrides(slug)`: add `label: null, description: null, category: null` to `nullOverrides`; calls `api.updateAbility(slug, nullOverrides)`
+- `clearOverrides(id)` → `clearOverrides(slug)`: calls `api.deleteOverride(slug)` (DELETE `/abilities/{slug}/override`) — deletes the override row entirely, returning the fresh registry-merged data. The old null-based `api.updateAbility(slug, nullOverrides)` pattern is replaced.
 - `bulkDeleteAbilities(ids)` → `bulkDeleteAbilities(slugs)`: `slugs.map(slug => api.deleteAbility(slug))`
 - `bulkUpdateStatus(ids, status)` → `bulkUpdateStatus(slugs, status)`: `slugs.map(slug => api.updateAbility(slug, { status }))`
 

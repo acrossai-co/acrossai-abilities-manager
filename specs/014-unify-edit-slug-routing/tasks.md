@@ -115,7 +115,7 @@
   - `fetchAbility(id)` → `fetchAbility(slug)`: calls `api.getAbility(slug)`, dispatches with slug
   - `updateAbility(id, data)` → `updateAbility(slug, data)`: calls `api.updateAbility(slug, data)`; on success `dispatch({ type: PATCH_ABILITY, slug, patch: ability })`
   - `deleteAbility(id)` → `deleteAbility(slug)`: calls `api.deleteAbility(slug)`; on success `dispatch({ type: REMOVE_ABILITY, slug })`
-  - `clearOverrides(id)` → `clearOverrides(slug)`: add `label: null, description: null, category: null` to `nullOverrides` (FR-012 — must clear all three new overridable fields); calls `api.updateAbility(slug, nullOverrides)`
+  - `clearOverrides(id)` → `clearOverrides(slug)`: calls `api.deleteOverride(slug)` (DELETE `/abilities/{slug}/override`) — deletes the override row, returns fresh registry-merged data (FR-012). The null-update approach is replaced.
   - `bulkDeleteAbilities(ids)` → `bulkDeleteAbilities(slugs)`: map over slugs array
   - `bulkUpdateStatus(ids, status)` → `bulkUpdateStatus(slugs, status)`: map over slugs array
 
@@ -153,25 +153,25 @@
 
 ### Phase 6a — Props, useEffect, Derived State (T-JS-E1)
 
-- [ ] T017 [US1][US2] Update props in `src/js/abilities/components/AbilityForm.jsx`: remove `id` prop; add `slug: string` and `abilityData: object|undefined` props. Update prop destructuring and PropTypes.
+- [x] T017 [US1][US2] Update props in `src/js/abilities/components/AbilityForm.jsx`: remove `id` prop; add `slug: string` and `abilityData: object|undefined` props. Update prop destructuring and PropTypes.
 
-- [ ] T018 [US1][US2] Update `useEffect` in `src/js/abilities/components/AbilityForm.jsx`: on `mode === 'edit'` and `slug` defined — call `dispatch.setSaved(abilityData)` first (if abilityData present, seeds form immediately, preventing blank flash — FR-002 SC-002), then call `dispatch.fetchAbility(slug)`. Add error handling for 404 response: on fetch 404, call `dispatch.setView({ mode: 'list' })` and display dismissible error notice "Ability not found. It may have been removed or the plugin deactivated." (FR-002).
+- [x] T018 [US1][US2] Update `useEffect` in `src/js/abilities/components/AbilityForm.jsx`: on `mode === 'edit'` and `slug` defined — call `dispatch.setSaved(abilityData)` first (if abilityData present, seeds form immediately, preventing blank flash — FR-002 SC-002), then call `dispatch.fetchAbility(slug)`. Add error handling for 404 response: on fetch 404, call `dispatch.setView({ mode: 'list' })` and display dismissible error notice "Ability not found. It may have been removed or the plugin deactivated." (FR-002).
 
-- [ ] T019 [US1][US2] Update derived state in `src/js/abilities/components/AbilityForm.jsx`: add `isNonDb = Boolean(savedAbility?.source && 'db' !== savedAbility.source)`; remove `isOverride`. Keep `isCreate`, `isEdit` as-is.
+- [x] T019 [US1][US2] Update derived state in `src/js/abilities/components/AbilityForm.jsx`: add `isNonDb = Boolean(savedAbility?.source && 'db' !== savedAbility.source)`; remove `isOverride`. Keep `isCreate`, `isEdit` as-is.
 
 ### Phase 6b — Save, Delete, ClearOverrides Handlers (T-JS-E2)
 
-- [ ] T020 [US3] Update `handleSave` create path in `src/js/abilities/components/AbilityForm.jsx`: set `data.status = 'publish'` when `!forceDraft && !data.status` before calling createAbility. After success, navigate to edit mode: `dispatch.setView({ mode: 'edit', slug: ability.ability_slug, ability })` (FR-010).
+- [x] T020 [US3] Update `handleSave` create path in `src/js/abilities/components/AbilityForm.jsx`: set `data.status = 'publish'` when `!forceDraft && !data.status` before calling createAbility. After success, navigate to edit mode: `dispatch.setView({ mode: 'edit', slug: ability.ability_slug, ability })` (FR-010).
 
-- [ ] T021 [US1][US2] Update `handleSave` edit path in `src/js/abilities/components/AbilityForm.jsx`: if `isNonDb`, build payload with only overridable fields: `label`, `description`, `category`, `site_allowed`, `show_in_rest`, `show_in_mcp`, `mcp_type`, `mcp_servers`, `readonly`, `destructive`, `idempotent`; else send full `data`. Call `dispatch.updateAbility(slug, payload)`. Remove the override-mode block entirely.
+- [x] T021 [US1][US2] Update `handleSave` edit path in `src/js/abilities/components/AbilityForm.jsx`: if `isNonDb`, build payload with only overridable fields: `label`, `description`, `category`, `site_allowed`, `show_in_rest`, `show_in_mcp`, `mcp_type`, `mcp_servers`, `readonly`, `destructive`, `idempotent`; else send full `data`. Call `dispatch.updateAbility(slug, payload)`. Remove the override-mode block entirely.
 
-- [ ] T022 [US1][US2][US5] Update `handleDelete` and `handleClearOverrides` in `src/js/abilities/components/AbilityForm.jsx`:
+- [x] T022 [US1][US2][US5] Update `handleDelete` and `handleClearOverrides` in `src/js/abilities/components/AbilityForm.jsx`:
   - `handleDelete`: call `dispatch.deleteAbility(slug)` (was `dispatch.deleteAbility(id)`)
   - `handleClearOverrides`: call `dispatch.clearOverrides(slug)` (was `dispatch.clearOverrides(id)`)
 
 ### Phase 6c — Section Visibility + Validation (T-JS-E3)
 
-- [ ] T023 [US2] Replace all `isOverride` references with `isNonDb` in `src/js/abilities/components/AbilityForm.jsx` for section visibility:
+- [x] T023 [US2] Replace all `isOverride` references with `isNonDb` in `src/js/abilities/components/AbilityForm.jsx` for section visibility:
   - Callback section: `{!isNonDb && ...}` (FR-005)
   - Schema section: `{!isNonDb && ...}` (FR-005)
   - Auto-register toggle: `{!isNonDb && ...}` (FR-005)
@@ -179,22 +179,22 @@
   - `show_in_rest` TriStateSelect: `{isNonDb && ...}`
   - Preview sidebar Callback row: `{!isNonDb && ...}`
 
-- [ ] T024 [US2] Update required-field validation guards in `src/js/abilities/components/AbilityForm.jsx`: skip `validateRequiredFields` when `isNonDb && isEdit` (non-custom abilities have no required field constraints in edit mode — FR-003 allows empty label to fall back to registry). `hasRequiredErrors` must be `false` when `isNonDb && isEdit`. Blur validators for slug, label, description, category must add `!isNonDb` guard to prevent false errors on non-custom ability edit.
+- [x] T024 [US2] Update required-field validation guards in `src/js/abilities/components/AbilityForm.jsx`: skip `validateRequiredFields` when `isNonDb && isEdit` (non-custom abilities have no required field constraints in edit mode — FR-003 allows empty label to fall back to registry). `hasRequiredErrors` must be `false` when `isNonDb && isEdit`. Blur validators for slug, label, description, category must add `!isNonDb` guard to prevent false errors on non-custom ability edit.
 
 ### Phase 6d — UI Text, Slug, LockedCard, Provider Info, Sidebar (T-JS-E4)
 
-- [ ] T025 [US1][US4] Update static text in `src/js/abilities/components/AbilityForm.jsx`:
+- [x] T025 [US1][US4] Update static text in `src/js/abilities/components/AbilityForm.jsx`:
   - Page title: remove override branch; all edit shows "Edit Ability" (FR-001 unification)
   - Save button: "✓ Save Changes" for all edit modes — remove "✓ Save Overrides" variant
   - Slug field `readOnly` attribute: change to `{!isCreate}` (was `{isEdit}`) (FR-011)
   - Remove "⚠ Changing the slug will break existing integrations." warning text entirely (FR-011)
   - Add "Once saved, this slug cannot be changed." note shown only when `{isCreate}` (FR-011)
 
-- [ ] T026 [US2] Remove LockedCard component and its render block from `src/js/abilities/components/AbilityForm.jsx` entirely (FR-002 — non-custom abilities now open with full form, not locked). Verify no import of LockedCard remains.
+- [x] T026 [US2] Remove LockedCard component and its render block from `src/js/abilities/components/AbilityForm.jsx` entirely (FR-002 — non-custom abilities now open with full form, not locked). Verify no import of LockedCard remains.
 
-- [ ] T027 [US2] Add provider info row in `src/js/abilities/components/AbilityForm.jsx` inside Identity section: `{isNonDb && savedAbility && (<div className="fr provider-info-row">Registered by {savedAbility._registry?.registered_by || savedAbility.source} <span className="source-badge">{savedAbility.source}</span></div>)}` (FR-006).
+- [x] T027 [US2] Add provider info row in `src/js/abilities/components/AbilityForm.jsx` inside Identity section: `{isNonDb && savedAbility && (<div className="fr provider-info-row">Registered by {savedAbility._registry?.registered_by || savedAbility.source} <span className="source-badge">{savedAbility.source}</span></div>)}` (FR-006).
 
-- [ ] T028 [US1][US2][US5] Update sidebar guards in `src/js/abilities/components/AbilityForm.jsx`:
+- [x] T028 [US1][US2][US5] Update sidebar guards in `src/js/abilities/components/AbilityForm.jsx`:
   - Update box: show for `{!isCreate}` (not only isEdit)
   - Delete link: `{!isNonDb && !isCreate && ...}` — only custom abilities can be deleted (FR-013)
   - Clear All Overrides button: `{isNonDb && savedAbility?.has_override && ...}` — visible only for non-custom abilities with at least one active override (FR-012)
@@ -208,33 +208,33 @@
 
 **Purpose**: Ensure full test coverage for new slug-based paths and validate all quality gates pass.
 
-- [ ] T029 [P] [US1][US5] Write PHPUnit tests for Write Controller slug routes in `tests/phpunit/`:
+- [x] T029 [P] [US1][US5] Write PHPUnit tests for Write Controller slug routes in `tests/phpunit/`:
   - `PUT /abilities/core%2Fget-user-info` on first-time non-db ability creates override record (upsert path)
   - `PUT /abilities/core%2Fget-user-info` on existing override row updates the record
   - `DELETE /abilities/{slug}` on `source=db` ability returns 200 and is removed
   - `DELETE /abilities/{slug}` on `source=plugin` ability returns 403
   - `GET /abilities/categories` still returns categories array (not 404) — validates orchestrator reorder
 
-- [ ] T030 [P] [US1][US2][US5] Write Jest tests for store and AbilityForm in `tests/jest/`:
+- [x] T030 [P] [US1][US2][US5] Write Jest tests for store and AbilityForm in `tests/jest/`:
   - `PATCH_ABILITY` reducer matches by `ability_slug`, not `id`
   - `bulkDeleteAbilities` with mixed selection (custom + non-custom slugs) is blocked and emits warning
   - `clearOverrides` payload includes `label: null`, `description: null`, `category: null`
   - Existing `validateRequiredFields` tests still pass
   - `fetchAbility` 404 causes `setView({ mode: 'list' })` dispatch
 
-- [ ] T031 PHPCS zero errors: `./vendor/bin/phpcs --standard=WordPress includes/Modules/Abilities/Rest/ includes/Utilities/AcrossAI_Ability_Merger.php includes/Utilities/AcrossAI_Abilities_Sanitizer.php includes/Utilities/AcrossAI_Abilities_Formatter.php`
+- [x] T031 PHPCS zero errors: `./vendor/bin/phpcs --standard=WordPress includes/Modules/Abilities/Rest/ includes/Utilities/AcrossAI_Ability_Merger.php includes/Utilities/AcrossAI_Abilities_Sanitizer.php includes/Utilities/AcrossAI_Abilities_Formatter.php`
 
-- [ ] T032 PHPStan level 8 zero errors: `./vendor/bin/phpstan analyse`
+- [x] T032 PHPStan level 8 zero errors: `./vendor/bin/phpstan analyse`
 
-- [ ] T033 JS quality gates: `nvm use 20 && npm run lint:js && npm run build && npm run validate-packages` — all must exit 0
+- [x] T033 JS quality gates: `nvm use 20 && npm run lint:js && npm run build && npm run validate-packages` — all must exit 0
 
 **Checkpoint — Definition of Done (§VII)**:
 - [ ] All 33 tasks checked
-- [ ] T031: PHPCS zero errors
-- [ ] T032: PHPStan level 8 zero errors
-- [ ] T033: ESLint zero, build clean, validate-packages pass
-- [ ] T029: PHPUnit tests green
-- [ ] T030: Jest tests green
+- [x] T031: PHPCS zero errors
+- [x] T032: PHPStan level 8 zero errors
+- [x] T033: ESLint zero, build clean, validate-packages pass
+- [x] T029: PHPUnit tests green
+- [x] T030: Jest tests green
 - [ ] Security review complete (security-constraints.md satisfied)
 - [ ] No new hook wiring in Main.php
 - [ ] `AcrossAI_Ability_Override_Processor` unmodified (SEC-GUARDRAIL-01)
@@ -259,3 +259,26 @@
 | FR-012 (Clear All Overrides) | T004, T014, T022, T028 |
 | FR-013 (Delete only for custom) | T011 (403), T028 |
 | FR-014 (merged read endpoint) | T012 |
+
+---
+
+## Architecture Guard Remediation Tasks (Post-Review)
+
+| Task | Violation | Status |
+|------|-----------|--------|
+| RT-1 | V1/V2/V3: sanitize_callback rawurldecode + validate_callback | ✅ Done |
+| RT-2 | V4: allDbIds ReferenceError → allDbSlugs | ✅ Done |
+| RT-3 | V5: status:'publish' not set on create | ✅ Done |
+| RT-4 | V6/V7: bust_cache after DB update path + after delete | ✅ Done |
+| RT-5 | V8: protected slug exclusion check at top of update_ability() | ✅ Done |
+| RT-6 | V9: after_update hook on non-db override upsert path | ✅ Done |
+| RT-7 | V10: after_delete hook signature → single slug arg only | ✅ Done |
+| RT-8 | V11/V13: Remove stale slug warning; fix heading dual-render | ✅ Done |
+| RT-9 | V12: Pre-seed savedAbility from list row to prevent blank flash | ✅ Done |
+| RT-10 | V14: DELETE returns 200 + body instead of 204 | ✅ Done |
+| RT-11 | V15: Rename fetchAbility(id) → fetchAbility(slug) param | ✅ Done |
+| RT-12 | Callback section for non-DB: show all 4 chips + "Keep as default" chip; remove locked single chip | ✅ Done |
+| RT-13 | Default "Keep as default" selected when `draftAbility.callback_type` is null/undefined for non-DB | ✅ Done |
+| RT-14 | PHP: remove `callback_type` + `callback_config` from `strip_protected_fields_for_non_db()`; add both to `$overridable_fields` in Merger | ✅ Done |
+| RT-15 | Convert 6 annotation/visibility fields from dropdowns/toggles to TriChips: Show in MCP (null/true/false), MCP Type (null/"tool"/"resource"/"prompt"), Readonly/Destructive/Idempotent/Show in REST (null/true/false each); remove dead `ts2s`, `s2ts`, `TriStateSelect` | ✅ Done |
+| RT-16 | FR-012 Clear All Overrides: replace null-update with `DELETE /abilities/{slug}/override` that deletes the override row; add `delete_override()` PHP handler + `deleteOverride(slug)` client func; `clearOverrides` store thunk calls `api.deleteOverride` | ✅ Done |
