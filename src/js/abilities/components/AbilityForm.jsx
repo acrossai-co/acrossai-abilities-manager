@@ -1012,292 +1012,60 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 							</div>
 						</div>
 
-						{/* ── VARIANT A: Section 2 — Callback ── */}
-						<div className="sect">
-							<div className="sect-hdr">
-								<div className="sect-title">
-									<span className="sect-num">2</span>
-									{__(
-										'Callback',
-										'acrossai-abilities-manager'
-									)}
+						{/* ── VARIANT B: Section 1 — Site Permission ── */}
+						{isNonDb && (
+							<div className="sect">
+								<div className="sect-hdr">
+									<div className="sect-title">
+										<span className="sect-num">1</span>
+										{__(
+											'Site Permission',
+											'acrossai-abilities-manager'
+										)}
+									</div>
+									<div className="sect-desc">
+										{__(
+											'Override whether this ability is allowed or blocked site-wide.',
+											'acrossai-abilities-manager'
+										)}
+									</div>
 								</div>
-								<div className="sect-desc">
-									{__(
-										'How this ability resolves at runtime.',
-										'acrossai-abilities-manager'
-									)}
-								</div>
-							</div>
-							<div className="fr">
-								<label className="fl">
-									{__('Type', 'acrossai-abilities-manager')}
-									{!isNonDb && (
-										<span className="req"> *</span>
-									)}
-								</label>
-								<div className="ff">
-									{isNonDb ? (
-										<>
-											<div className="chips">
-												{CALLBACK_CHIPS.map((chip) => (
-													<button
-														key={chip.value}
-														type="button"
-														className={`chip${chip.value === draftAbility.callback_type ? ' on' : ''}`}
-														onClick={() =>
-															patch({
-																callback_type:
-																	chip.value,
-																callback_config:
-																	{},
-															})
-														}
-													>
-														{chip.label}
-													</button>
-												))}
-												<button
-													type="button"
-													className={`chip${!draftAbility.callback_type ? ' on' : ''}`}
-													onClick={() =>
-														patch({
-															callback_type: null,
-															callback_config: {},
-														})
-													}
-												>
-													{__(
-														'Keep as default',
-														'acrossai-abilities-manager'
-													)}
-												</button>
-											</div>
-											{draftAbility.callback_type && (
-												<CallbackConfigField
-													callbackType={
-														draftAbility.callback_type
-													}
-													config={callbackConfig}
-													onChange={(cfg) =>
-														patch({
-															callback_config:
-																cfg,
-														})
-													}
-												/>
-											)}
-											{savedAbility?._registry
-												?.callback_type && (
-												<div className="desc">
-													{__(
-														'Registered type',
-														'acrossai-abilities-manager'
-													)}
-													{': '}
-													<code>
-														{
-															savedAbility
-																._registry
-																.callback_type
-														}
-													</code>
-												</div>
-											)}
-										</>
-									) : (
-										<>
-											<CallbackTypeChips
-												value={callbackType}
-												onChange={(type) =>
-													patch({
-														callback_type: type,
-														callback_config: {},
-													})
-												}
-											/>
-											<CallbackConfigField
-												callbackType={callbackType}
-												config={callbackConfig}
-												onChange={(cfg) =>
-													patch({
-														callback_config: cfg,
-													})
-												}
-											/>
-										</>
-									)}
-								</div>
-							</div>
-						</div>
-
-						{/* ── VARIANT A: Section 3 — Schema (optional) ── */}
-						{(() => {
-							const regInput =
-								savedAbility?._registry?.input_schema ?? null;
-							const regOutput =
-								savedAbility?._registry?.output_schema ?? null;
-							return (
-								<div className="sect">
-									<div className="sect-hdr">
-										<div className="sect-title">
-											<span className="sect-num">3</span>
+								<div className="fr">
+									<label className="fl">
+										{__(
+											'Site Access',
+											'acrossai-abilities-manager'
+										)}
+									</label>
+									<div className="ff">
+										<SitePermissionTGC
+											value={draftAbility.site_allowed}
+											onChange={(v) =>
+												patch({ site_allowed: v })
+											}
+										/>
+										<div className="desc">
+											<strong>
+												{__(
+													'Inherit',
+													'acrossai-abilities-manager'
+												)}
+											</strong>{' '}
 											{__(
-												'Schema',
-												'acrossai-abilities-manager'
-											)}
-											{!isNonDb && (
-												<span className="sect-opt">
-													{__(
-														'optional',
-														'acrossai-abilities-manager'
-													)}
-												</span>
-											)}
-										</div>
-										<div className="sect-desc">
-											{__(
-												'JSON Schema definitions for input and output. Used for validation and surfaced to MCP clients.',
+												"respects the plugin's own setting. Force Allow/Block override regardless.",
 												'acrossai-abilities-manager'
 											)}
 										</div>
 									</div>
-
-									{isNonDb ? (
-										<>
-											<div className="fr">
-												<label className="fl">
-													{__(
-														'Input Schema',
-														'acrossai-abilities-manager'
-													)}
-												</label>
-												<div className="ff">
-													{regInput !== null ? (
-														<pre className="rt code readonly-schema">
-															{JSON.stringify(
-																regInput,
-																null,
-																2
-															)}
-														</pre>
-													) : (
-														<span className="desc">
-															{__(
-																'Not defined',
-																'acrossai-abilities-manager'
-															)}
-														</span>
-													)}
-												</div>
-											</div>
-											<div className="fr">
-												<label className="fl">
-													{__(
-														'Output Schema',
-														'acrossai-abilities-manager'
-													)}
-												</label>
-												<div className="ff">
-													{regOutput !== null ? (
-														<pre className="rt code readonly-schema">
-															{JSON.stringify(
-																regOutput,
-																null,
-																2
-															)}
-														</pre>
-													) : (
-														<span className="desc">
-															{__(
-																'Not defined',
-																'acrossai-abilities-manager'
-															)}
-														</span>
-													)}
-												</div>
-											</div>
-										</>
-									) : (
-										<>
-											<div className="fr">
-												<label
-													htmlFor="input-schema"
-													className="fl"
-												>
-													{__(
-														'Input Schema',
-														'acrossai-abilities-manager'
-													)}
-												</label>
-												<div className="ff">
-													<textarea
-														id="input-schema"
-														className="rt code"
-														value={inputSchemaRaw}
-														placeholder='{ "param": { "type": "string" } }'
-														onChange={(e) =>
-															setInputSchemaRaw(
-																e.target.value
-															)
-														}
-														onBlur={
-															handleInputSchemaBlur
-														}
-													/>
-													{inputSchemaError && (
-														<div className="field-error">
-															{inputSchemaError}
-														</div>
-													)}
-												</div>
-											</div>
-
-											<div className="fr">
-												<label
-													htmlFor="output-schema"
-													className="fl"
-												>
-													{__(
-														'Output Schema',
-														'acrossai-abilities-manager'
-													)}
-												</label>
-												<div className="ff">
-													<textarea
-														id="output-schema"
-														className="rt code"
-														value={outputSchemaRaw}
-														placeholder='{ "result": { "type": "string" } }'
-														onChange={(e) =>
-															setOutputSchemaRaw(
-																e.target.value
-															)
-														}
-														onBlur={
-															handleOutputSchemaBlur
-														}
-													/>
-													{outputSchemaError && (
-														<div className="field-error">
-															{outputSchemaError}
-														</div>
-													)}
-												</div>
-											</div>
-										</>
-									)}
 								</div>
-							);
-						})()}
+							</div>
+						)}
 
-						{/* ── Section 4 (A) / Section 2 (B) — MCP Exposure ── */}
+						{/* ── Section 2 — MCP Exposure ── */}
 						<div className="sect">
 							<div className="sect-hdr">
 								<div className="sect-title">
-									<span className="sect-num">
-										{isNonDb ? '2' : '4'}
-									</span>
+									<span className="sect-num">2</span>
 									{isNonDb
 										? __(
 												'MCP Exposure',
@@ -1544,62 +1312,11 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 							</div>
 						</div>
 
-						{/* ── VARIANT B: Section 1 — Site Permission ── */}
-						{isNonDb && (
-							<div className="sect">
-								<div className="sect-hdr">
-									<div className="sect-title">
-										<span className="sect-num">1</span>
-										{__(
-											'Site Permission',
-											'acrossai-abilities-manager'
-										)}
-									</div>
-									<div className="sect-desc">
-										{__(
-											'Override whether this ability is allowed or blocked site-wide.',
-											'acrossai-abilities-manager'
-										)}
-									</div>
-								</div>
-								<div className="fr">
-									<label className="fl">
-										{__(
-											'Site Access',
-											'acrossai-abilities-manager'
-										)}
-									</label>
-									<div className="ff">
-										<SitePermissionTGC
-											value={draftAbility.site_allowed}
-											onChange={(v) =>
-												patch({ site_allowed: v })
-											}
-										/>
-										<div className="desc">
-											<strong>
-												{__(
-													'Inherit',
-													'acrossai-abilities-manager'
-												)}
-											</strong>{' '}
-											{__(
-												"respects the plugin's own setting. Force Allow/Block override regardless.",
-												'acrossai-abilities-manager'
-											)}
-										</div>
-									</div>
-								</div>
-							</div>
-						)}
-
-						{/* ── Section 5 (A) / Section 3 (B) — Annotations ── */}
+						{/* ── Section 3 — Annotations ── */}
 						<div className="sect">
 							<div className="sect-hdr">
 								<div className="sect-title">
-									<span className="sect-num">
-										{isNonDb ? '3' : '5'}
-									</span>
+									<span className="sect-num">3</span>
 									{isNonDb
 										? __(
 												'Annotation Overrides',
@@ -1781,6 +1498,285 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 							)}
 						</div>
 					</div>
+						{/* ── VARIANT A: Section 4 — Callback ── */}
+						<div className="sect">
+							<div className="sect-hdr">
+								<div className="sect-title">
+									<span className="sect-num">4</span>
+									{__(
+										'Callback',
+										'acrossai-abilities-manager'
+									)}
+								</div>
+								<div className="sect-desc">
+									{__(
+										'How this ability resolves at runtime.',
+										'acrossai-abilities-manager'
+									)}
+								</div>
+							</div>
+							<div className="fr">
+								<label className="fl">
+									{__('Type', 'acrossai-abilities-manager')}
+									{!isNonDb && (
+										<span className="req"> *</span>
+									)}
+								</label>
+								<div className="ff">
+									{isNonDb ? (
+										<>
+											<div className="chips">
+												{CALLBACK_CHIPS.map((chip) => (
+													<button
+														key={chip.value}
+														type="button"
+														className={`chip${chip.value === draftAbility.callback_type ? ' on' : ''}`}
+														onClick={() =>
+															patch({
+																callback_type:
+																	chip.value,
+																callback_config:
+																	{},
+															})
+														}
+													>
+														{chip.label}
+													</button>
+												))}
+												<button
+													type="button"
+													className={`chip${!draftAbility.callback_type ? ' on' : ''}`}
+													onClick={() =>
+														patch({
+															callback_type: null,
+															callback_config: {},
+														})
+													}
+												>
+													{__(
+														'Keep as default',
+														'acrossai-abilities-manager'
+													)}
+												</button>
+											</div>
+											{draftAbility.callback_type && (
+												<CallbackConfigField
+													callbackType={
+														draftAbility.callback_type
+													}
+													config={callbackConfig}
+													onChange={(cfg) =>
+														patch({
+															callback_config:
+																cfg,
+														})
+													}
+												/>
+											)}
+											{savedAbility?._registry
+												?.callback_type && (
+												<div className="desc">
+													{__(
+														'Registered type',
+														'acrossai-abilities-manager'
+													)}
+													{': '}
+													<code>
+														{
+															savedAbility
+																._registry
+																.callback_type
+														}
+													</code>
+												</div>
+											)}
+										</>
+									) : (
+										<>
+											<CallbackTypeChips
+												value={callbackType}
+												onChange={(type) =>
+													patch({
+														callback_type: type,
+														callback_config: {},
+													})
+												}
+											/>
+											<CallbackConfigField
+												callbackType={callbackType}
+												config={callbackConfig}
+												onChange={(cfg) =>
+													patch({
+														callback_config: cfg,
+													})
+												}
+											/>
+										</>
+									)}
+								</div>
+							</div>
+						</div>
+
+						{/* ── VARIANT A: Section 5 — Schema (optional) ── */}
+						{(() => {
+							const regInput =
+								savedAbility?._registry?.input_schema ?? null;
+							const regOutput =
+								savedAbility?._registry?.output_schema ?? null;
+							return (
+								<div className="sect">
+									<div className="sect-hdr">
+										<div className="sect-title">
+											<span className="sect-num">5</span>
+											{__(
+												'Schema',
+												'acrossai-abilities-manager'
+											)}
+											{!isNonDb && (
+												<span className="sect-opt">
+													{__(
+														'optional',
+														'acrossai-abilities-manager'
+													)}
+												</span>
+											)}
+										</div>
+										<div className="sect-desc">
+											{__(
+												'JSON Schema definitions for input and output. Used for validation and surfaced to MCP clients.',
+												'acrossai-abilities-manager'
+											)}
+										</div>
+									</div>
+
+									{isNonDb ? (
+										<>
+											<div className="fr">
+												<label className="fl">
+													{__(
+														'Input Schema',
+														'acrossai-abilities-manager'
+													)}
+												</label>
+												<div className="ff">
+													{regInput !== null ? (
+														<pre className="rt code readonly-schema">
+															{JSON.stringify(
+																regInput,
+																null,
+																2
+															)}
+														</pre>
+													) : (
+														<span className="desc">
+															{__(
+																'Not defined',
+																'acrossai-abilities-manager'
+															)}
+														</span>
+													)}
+												</div>
+											</div>
+											<div className="fr">
+												<label className="fl">
+													{__(
+														'Output Schema',
+														'acrossai-abilities-manager'
+													)}
+												</label>
+												<div className="ff">
+													{regOutput !== null ? (
+														<pre className="rt code readonly-schema">
+															{JSON.stringify(
+																regOutput,
+																null,
+																2
+															)}
+														</pre>
+													) : (
+														<span className="desc">
+															{__(
+																'Not defined',
+																'acrossai-abilities-manager'
+															)}
+														</span>
+													)}
+												</div>
+											</div>
+										</>
+									) : (
+										<>
+											<div className="fr">
+												<label
+													htmlFor="input-schema"
+													className="fl"
+												>
+													{__(
+														'Input Schema',
+														'acrossai-abilities-manager'
+													)}
+												</label>
+												<div className="ff">
+													<textarea
+														id="input-schema"
+														className="rt code"
+														value={inputSchemaRaw}
+														placeholder='{ "param": { "type": "string" } }'
+														onChange={(e) =>
+															setInputSchemaRaw(
+																e.target.value
+															)
+														}
+														onBlur={
+															handleInputSchemaBlur
+														}
+													/>
+													{inputSchemaError && (
+														<div className="field-error">
+															{inputSchemaError}
+														</div>
+													)}
+												</div>
+											</div>
+
+											<div className="fr">
+												<label
+													htmlFor="output-schema"
+													className="fl"
+												>
+													{__(
+														'Output Schema',
+														'acrossai-abilities-manager'
+													)}
+												</label>
+												<div className="ff">
+													<textarea
+														id="output-schema"
+														className="rt code"
+														value={outputSchemaRaw}
+														placeholder='{ "result": { "type": "string" } }'
+														onChange={(e) =>
+															setOutputSchemaRaw(
+																e.target.value
+															)
+														}
+														onBlur={
+															handleOutputSchemaBlur
+														}
+													/>
+													{outputSchemaError && (
+														<div className="field-error">
+															{outputSchemaError}
+														</div>
+													)}
+												</div>
+											</div>
+										</>
+									)}
+								</div>
+							);
+						})()}
+
 					{/* end .panel */}
 				</div>
 				{/* end .form-main */}
