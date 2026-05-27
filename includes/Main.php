@@ -287,7 +287,7 @@ final class Main {
 		// WARNING: Do NOT hook `wpb_mcp_servers_list_rest_capability` to lower the required
 		// capability below `manage_options`. The vendor filter is an external attack surface.
 		$mcp_servers_rest = \WPBoilerplate\McpServersList\RestEndpoint::class;
-		$this->loader->add_action( 'rest_api_init', $mcp_servers_rest, 'register', 20 );
+		$this->loader->add_action( 'rest_api_init', $mcp_servers_rest, 'register', 20, 0 );
 
 		// Register Access Control REST routes and admin notice for absent library (SAC-01).
 		$abilities_ac = \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control::instance();
