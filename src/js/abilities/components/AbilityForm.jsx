@@ -1012,12 +1012,12 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 							</div>
 						</div>
 
-						{/* ── VARIANT B: Section 1 — Site Permission ── */}
+						{/* ── VARIANT B: Section 2 — Site Permission ── */}
 						{isNonDb && (
 							<div className="sect">
 								<div className="sect-hdr">
 									<div className="sect-title">
-										<span className="sect-num">1</span>
+										<span className="sect-num">2</span>
 										{__(
 											'Site Permission',
 											'acrossai-abilities-manager'
@@ -1061,11 +1061,11 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 							</div>
 						)}
 
-						{/* ── Section 2 — MCP Exposure ── */}
+						{/* ── Section 3 — MCP Exposure ── */}
 						<div className="sect">
 							<div className="sect-hdr">
 								<div className="sect-title">
-									<span className="sect-num">2</span>
+									<span className="sect-num">3</span>
 									{isNonDb
 										? __(
 												'MCP Exposure',
@@ -1312,11 +1312,11 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 							</div>
 						</div>
 
-						{/* ── Section 3 — Annotations ── */}
+						{/* ── Section 4 — Annotations ── */}
 						<div className="sect">
 							<div className="sect-hdr">
 								<div className="sect-title">
-									<span className="sect-num">3</span>
+									<span className="sect-num">4</span>
 									{isNonDb
 										? __(
 												'Annotation Overrides',
@@ -1498,11 +1498,11 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 							)}
 						</div>
 					</div>
-						{/* ── VARIANT A: Section 4 — Callback ── */}
-						<div className="sect">
+						{/* ── VARIANT A: Section 5 — Callback ── */}
+						<div className="sect sect-secondary">
 							<div className="sect-hdr">
 								<div className="sect-title">
-									<span className="sect-num">4</span>
+									<span className="sect-num">5</span>
 									{__(
 										'Callback',
 										'acrossai-abilities-manager'
@@ -1617,17 +1617,17 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 							</div>
 						</div>
 
-						{/* ── VARIANT A: Section 5 — Schema (optional) ── */}
+						{/* ── VARIANT A: Section 6 — Schema (optional) ── */}
 						{(() => {
 							const regInput =
 								savedAbility?._registry?.input_schema ?? null;
 							const regOutput =
 								savedAbility?._registry?.output_schema ?? null;
 							return (
-								<div className="sect">
+								<div className="sect sect-secondary">
 									<div className="sect-hdr">
 										<div className="sect-title">
-											<span className="sect-num">5</span>
+											<span className="sect-num">6</span>
 											{__(
 												'Schema',
 												'acrossai-abilities-manager'

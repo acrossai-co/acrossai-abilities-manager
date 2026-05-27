@@ -100,6 +100,9 @@ Both must be done before any JS work is tested end-to-end.
 - [x] T019 [SEC-MCP-001] Add `MAX_MCP_SERVERS = 100` and `MAX_SERVER_ID_LENGTH = 255` constants to `AcrossAI_Sanitizer` and enforce them in `sanitize_mcp_servers_array()` (array_slice + substr). Addresses security LOW finding: unbounded storage on admin write. PHPUnit T017 re-run confirms 6/6 pass.
 - [x] T020 [SEC-MCP-001] Add `mcp_servers` REST `args` schema (type: array, items: {type: string, maxLength: 255}, maxItems: 100, validate_callback, sanitize_callback) to both the Create (POST /abilities) and Update (POST /abilities/{slug}) routes in `AcrossAI_Abilities_Write_Controller`. Provides WP-layer defence-in-depth validation. PHPStan --level=8 confirms exit 0.
 
+- [x] T021 Reorder form sections in `src/js/abilities/components/AbilityForm.jsx` to match the canonical order Identity → Site Permission → MCP Exposure → Annotation Overrides → Callback → Schema. Move Site Permission (Variant B) before MCP Exposure in the DOM; move Callback and Schema to after Annotations. Update section-number badges to reflect global position numbers across both variants (Identity=1, Site Permission=2, MCP Exposure=3, Annotations=4, Callback=5, Schema=6). Run `npm run build` to confirm no webpack errors.
+- [x] T022 Add `.sect-secondary { background: $bg; }` rule to `src/scss/abilities/admin.scss` immediately after the `.sect` block and apply `className="sect sect-secondary"` to the Callback (Section 5) and Schema (Section 6) `<div className="sect">` wrappers in `src/js/abilities/components/AbilityForm.jsx` to visually distinguish advanced/implementation-detail sections with a light-grey background (`$bg = #f6f7f7`). Run `npm run build` to confirm compiled successfully.
+
 **Checkpoint**: All quality gates pass clean (build, PHPCS, PHPStan, ESLint, validate-packages, PHPUnit, Jest). Security review PASS WITH NOTES — both LOW findings (T019, T020) resolved. Feature is complete.
 
 ---
