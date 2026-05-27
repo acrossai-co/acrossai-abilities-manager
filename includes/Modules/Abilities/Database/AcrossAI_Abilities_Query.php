@@ -145,9 +145,11 @@ class AcrossAI_Abilities_Query extends Query {
 	/**
 	 * Retrieve a single ability row by integer ID.
 	 *
-	 * @since  0.1.0
-	 * @param  int $id Row primary key.
-	 * @return AcrossAI_Abilities_Row|null
+	 * @internal Used internally by save_override() to bypass the BerlinDB slug cache (Bug 4 fix).
+	 *           Also used in create_ability().
+	 * @since    0.1.0
+	 * @param    int $id Row primary key.
+	 * @return   AcrossAI_Abilities_Row|null
 	 */
 	public function get_ability_by_id( int $id ): ?AcrossAI_Abilities_Row {
 		$results = $this->query(
@@ -270,6 +272,7 @@ class AcrossAI_Abilities_Query extends Query {
 	 *
 	 * On INSERT: sets created_at and created_by.
 	 * On UPDATE: sets updated_at and updated_by only — does NOT overwrite created_at/created_by (A1/A2).
+	 * On success, returns the freshly re-read row (bypasses BerlinDB slug cache — Bug 4 fix).
 	 *
 	 * AUTHORIZATION CONTRACT (DEC-BY-SOURCE-AUTHZ):
 	 * This is a raw DB-layer helper. It performs no capability check.
@@ -280,9 +283,9 @@ class AcrossAI_Abilities_Query extends Query {
 	 * @since  0.1.0
 	 * @param  string $slug   Ability slug.
 	 * @param  array  $fields Field values to save.
-	 * @return bool
+	 * @return AcrossAI_Abilities_Row|false The saved row on success, false on failure.
 	 */
-	public function save_override( string $slug, array $fields ): bool {
+	public function save_override( string $slug, array $fields ) {
 		$slug = AcrossAI_Sanitizer::sanitize_ability_slug( $slug );
 		// SEC-002: save_override is exclusively for non-db (registry) abilities.
 		// Strip source='db' to prevent source-injection via call-site ordering errors
@@ -303,8 +306,21 @@ class AcrossAI_Abilities_Query extends Query {
 			$fields['created_by']   = $user_id;
 			$fields['updated_at']   = $now;
 
+			// Bug 5: explicitly null out fields not meaningful for override rows so
+			// MySQL does not substitute the former NOT NULL DEFAULT values.
+			if ( ! array_key_exists( 'callback_type', $fields ) ) {
+				$fields['callback_type'] = null;
+			}
+			if ( ! array_key_exists( 'status', $fields ) ) {
+				$fields['status'] = null;
+			}
+
 			$result = $this->add_item( $fields );
-			return false !== $result && (int) $result > 0;
+			if ( false === $result || (int) $result <= 0 ) {
+				return false;
+			}
+			// Bug 4: re-read via ID to bypass BerlinDB's slug-keyed internal cache.
+			return $this->get_ability_by_id( (int) $result ) ?? false;
 		}
 
 		// UPDATE path — update_item() returns the updated item object or false.
@@ -315,7 +331,11 @@ class AcrossAI_Abilities_Query extends Query {
 		unset( $fields['created_at'], $fields['created_by'] );
 
 		$result = $this->update_item( $existing->id, $fields );
-		return false !== $result;
+		if ( false === $result ) {
+			return false;
+		}
+		// Bug 4: re-read via ID to bypass BerlinDB's slug-keyed internal cache.
+		return $this->get_ability_by_id( $existing->id ) ?? false;
 	}
 
 	/**

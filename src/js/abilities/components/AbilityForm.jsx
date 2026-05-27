@@ -729,6 +729,11 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 												{formErrors.label}
 											</div>
 										)}
+										{isNonDb && (
+											<div className="desc">
+												{`${__('Default declares as:', 'acrossai-abilities-manager')} ${savedAbility?._registry?.label ?? __('not set', 'acrossai-abilities-manager')}`}
+											</div>
+										)}
 									</div>
 								</div>
 
@@ -764,6 +769,11 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 												{formErrors.category}
 											</div>
 										)}
+										{isNonDb && (
+											<div className="desc">
+												{`${__('Default declares as:', 'acrossai-abilities-manager')} ${savedAbility?._registry?.category ?? __('not set', 'acrossai-abilities-manager')}`}
+											</div>
+										)}
 									</div>
 								</div>
 
@@ -795,24 +805,21 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 												{formErrors.description}
 											</div>
 										)}
+										{isNonDb && (
+											<div className="desc">
+												{`${__('Default declares as:', 'acrossai-abilities-manager')} ${savedAbility?._registry?.description ?? __('not set', 'acrossai-abilities-manager')}`}
+											</div>
+										)}
 									</div>
 								</div>
 
-								{/* Status (publish/draft) */}
+								{/* Status (publish/draft) — db abilities only */}
+								{!isNonDb && (
 								<div className="fr">
 									<label htmlFor="ability-status" className="fl">
 										{__('Status', 'acrossai-abilities-manager')}
 									</label>
 									<div className="ff">
-										{isNonDb ? (
-											<div className="togrow">
-												<span className="toglbl">
-													<strong>
-														{__('Published', 'acrossai-abilities-manager')}
-													</strong>
-												</span>
-											</div>
-										) : (
 											<>
 												<div className="togrow">
 													<button
@@ -871,16 +878,241 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 													)}
 												</div>
 											</>
+									</div>
+								</div>
+								)}
+							</div>
+
+						{/* ── VARIANT B: Section 2 — Site Permission ── */}
+						{isNonDb && (
+							<div className="sect">
+								<div className="sect-hdr">
+									<div className="sect-title">
+										<span className="sect-num">2</span>
+										{__('Site Permission', 'acrossai-abilities-manager')}
+									</div>
+									<div className="sect-desc">
+										{__(
+											'Override whether this ability is allowed or blocked site-wide.',
+											'acrossai-abilities-manager'
+										)}
+									</div>
+								</div>
+								<div className="fr">
+									<label className="fl">
+										{__('Site Access', 'acrossai-abilities-manager')}
+									</label>
+									<div className="ff">
+										<SitePermissionTGC
+											value={draftAbility.site_allowed}
+											onChange={(v) => patch({ site_allowed: v })}
+										/>
+										<div className="desc">
+											<strong>
+												{__('Inherit', 'acrossai-abilities-manager')}
+											</strong>{' '}
+											{__(
+												'respects the plugin\'s own setting. Force Allow/Block override regardless.',
+												'acrossai-abilities-manager'
+											)}
+										</div>
+									</div>
+								</div>
+							</div>
+						)}
+
+						{/* ── Section 2 (A) / Section 3 (B) — MCP Exposure ── */}
+						<div className="sect">
+							<div className="sect-hdr">
+								<div className="sect-title">
+									<span className="sect-num">
+										{isNonDb ? '3' : '2'}
+									</span>
+									{isNonDb
+										? __('MCP Exposure', 'acrossai-abilities-manager')
+										: __('MCP Exposure', 'acrossai-abilities-manager')}
+								</div>
+								<div className="sect-desc">
+									{isNonDb
+										? __(
+											'Override how this ability appears to MCP clients. Leave as "inherit" to use the plugin\'s declared values.',
+											'acrossai-abilities-manager'
+										  )
+										: __(
+											'How this ability appears to MCP clients.',
+											'acrossai-abilities-manager'
+										  )}
+								</div>
+							</div>
+
+							{/* Show in MCP */}
+							<TriChips
+								label={__('Show in MCP', 'acrossai-abilities-manager')}
+								value={draftAbility.show_in_mcp ?? null}
+								onChange={(v) => patch({ show_in_mcp: v })}
+								options={[
+									{ value: null,  label: __('default', 'acrossai-abilities-manager') },
+									{ value: true,  label: __('enable',  'acrossai-abilities-manager') },
+									{ value: false, label: __('disable', 'acrossai-abilities-manager') },
+								]}
+								hint={
+									isNonDb
+										? `${__('Default declares as:', 'acrossai-abilities-manager')} ${null == savedAbility?._registry?.show_in_mcp ? __('not set', 'acrossai-abilities-manager') : (true === savedAbility._registry.show_in_mcp ? 'yes' : 'no')}`
+										: null
+								}
+							/>
+
+							{/* MCP Type */}
+							<TriChips
+								label={__('MCP Type', 'acrossai-abilities-manager')}
+								value={draftAbility.mcp_type ?? null}
+								onChange={(v) => patch({ mcp_type: v })}
+								options={[
+									{ value: null,       label: __('default',  'acrossai-abilities-manager') },
+									{ value: 'tool',     label: 'tool'     },
+									{ value: 'resource', label: 'resource' },
+									{ value: 'prompt',   label: 'prompt'   },
+								]}
+								hint={
+									isNonDb
+										? `${__('Default declares as:', 'acrossai-abilities-manager')} ${savedAbility?._registry?.mcp_type ?? __('not set', 'acrossai-abilities-manager')} · ${__('If \'Show in MCP\' is enabled and MCP Type is not set, it defaults to \'tool\'.', 'acrossai-abilities-manager')}`
+										: __('If \'Show in MCP\' is enabled and MCP Type is not set, it defaults to \'tool\'.', 'acrossai-abilities-manager')
+								}
+							/>
+
+							{/* Allowed Servers */}
+							<div className="fr">
+								<label htmlFor="mcp-servers" className="fl">
+									{__('Allowed Servers', 'acrossai-abilities-manager')}
+								</label>
+								<div className="ff">
+									<input
+										id="mcp-servers"
+										type="text"
+										className="ri"
+										style={{ maxWidth: '220px' }}
+										value={
+											Array.isArray(draftAbility.mcp_servers)
+												? draftAbility.mcp_servers.join(', ')
+												: draftAbility.mcp_servers || '*'
+										}
+										onChange={(e) => {
+											const raw = e.target.value.trim();
+											if (!raw || '*' === raw) {
+												patch({ mcp_servers: null });
+											} else {
+												patch({
+													mcp_servers: raw
+														.split(',')
+														.map((s) => s.trim())
+														.filter(Boolean),
+												});
+											}
+										}}
+									/>
+									<div className="desc">
+										<code>*</code>
+										{' '}
+										{__(
+											'= all servers. Comma-separate server IDs to restrict.',
+											'acrossai-abilities-manager'
 										)}
 									</div>
 								</div>
 							</div>
+						</div>
 
-						{/* ── VARIANT A: Section 2 — Callback ── */}
+						{/* ── Section 3 (A) / Section 4 (B) — Annotations ── */}
+						<div className="sect">
+							<div className="sect-hdr">
+								<div className="sect-title">
+									<span className="sect-num">
+										{isNonDb ? '4' : '3'}
+									</span>
+									{isNonDb
+										? __('Annotation Overrides', 'acrossai-abilities-manager')
+										: __('Annotations', 'acrossai-abilities-manager')}
+								</div>
+								<div className="sect-desc">
+									{isNonDb
+										? __(
+											'inherit defers to the plugin\'s declared value; yes/no force the annotation regardless.',
+											'acrossai-abilities-manager'
+										  )
+										: __(
+											'Tri-state metadata hints for MCP clients. inherit defers to the callback type\'s default.',
+											'acrossai-abilities-manager'
+										  )}
+								</div>
+							</div>
+
+							<TriChips
+								label={__('Readonly', 'acrossai-abilities-manager')}
+								value={draftAbility.readonly ?? null}
+								onChange={(v) => patch({ readonly: v })}
+								options={[
+									{ value: null,  label: __('default', 'acrossai-abilities-manager') },
+									{ value: true,  label: __('yes',     'acrossai-abilities-manager') },
+									{ value: false, label: __('no',      'acrossai-abilities-manager') },
+								]}
+								hint={
+									isNonDb
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${null == savedAbility?._registry?.readonly ? __('not set', 'acrossai-abilities-manager') : (true === savedAbility._registry.readonly ? 'yes' : 'no')}`
+										: __('Does this ability mutate state?', 'acrossai-abilities-manager')
+								}
+							/>
+							<TriChips
+								label={__('Destructive', 'acrossai-abilities-manager')}
+								value={draftAbility.destructive ?? null}
+								onChange={(v) => patch({ destructive: v })}
+								options={[
+									{ value: null,  label: __('default', 'acrossai-abilities-manager') },
+									{ value: true,  label: __('yes',     'acrossai-abilities-manager') },
+									{ value: false, label: __('no',      'acrossai-abilities-manager') },
+								]}
+								hint={
+									isNonDb
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${null == savedAbility?._registry?.destructive ? __('not set', 'acrossai-abilities-manager') : (true === savedAbility._registry.destructive ? 'yes' : 'no')}`
+										: __('Can data be permanently lost?', 'acrossai-abilities-manager')
+								}
+							/>
+							<TriChips
+								label={__('Idempotent', 'acrossai-abilities-manager')}
+								value={draftAbility.idempotent ?? null}
+								onChange={(v) => patch({ idempotent: v })}
+								options={[
+									{ value: null,  label: __('default', 'acrossai-abilities-manager') },
+									{ value: true,  label: __('yes',     'acrossai-abilities-manager') },
+									{ value: false, label: __('no',      'acrossai-abilities-manager') },
+								]}
+								hint={
+									isNonDb
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${null == savedAbility?._registry?.idempotent ? __('not set', 'acrossai-abilities-manager') : (true === savedAbility._registry.idempotent ? 'yes' : 'no')}`
+										: __('Safe to call multiple times with the same input?', 'acrossai-abilities-manager')
+								}
+							/>
+							{isNonDb && (
+								<TriChips
+									label={__('Show in REST', 'acrossai-abilities-manager')}
+									value={draftAbility.show_in_rest ?? null}
+									onChange={(v) => patch({ show_in_rest: v })}
+									options={[
+										{ value: null,  label: __('default', 'acrossai-abilities-manager') },
+										{ value: true,  label: __('yes',     'acrossai-abilities-manager') },
+										{ value: false, label: __('no',      'acrossai-abilities-manager') },
+									]}
+									hint={
+										`${__('Plugin declares:', 'acrossai-abilities-manager')} ${null == savedAbility?._registry?.show_in_rest ? __('not set', 'acrossai-abilities-manager') : (true === savedAbility._registry.show_in_rest ? 'yes' : 'no')}`
+									}
+								/>
+							)}
+						</div>
+
+						{/* ── Section 4 (A) / Section 5 (B) — Callback ── */}
 						<div className="sect">
 								<div className="sect-hdr">
 									<div className="sect-title">
-										<span className="sect-num">2</span>
+										<span className="sect-num">{isNonDb ? '5' : '4'}</span>
 										{__('Callback', 'acrossai-abilities-manager')}
 									</div>
 									<div className="sect-desc">
@@ -968,7 +1200,7 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								</div>
 							</div>
 
-						{/* ── VARIANT A: Section 3 — Schema (optional) ── */}
+						{/* ── Section 5 (A) / Section 6 (B) — Schema (optional) ── */}
 						{(() => {
 							const regInput = savedAbility?._registry?.input_schema ?? null;
 							const regOutput = savedAbility?._registry?.output_schema ?? null;
@@ -976,7 +1208,7 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								<div className="sect">
 									<div className="sect-hdr">
 										<div className="sect-title">
-											<span className="sect-num">3</span>
+											<span className="sect-num">{isNonDb ? '6' : '5'}</span>
 											{__('Schema', 'acrossai-abilities-manager')}
 											{! isNonDb && (
 												<span className="sect-opt">
@@ -1079,233 +1311,6 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								</div>
 							);
 						})()}
-
-						{/* ── Section 4 (A) / Section 2 (B) — MCP Exposure ── */}
-						<div className="sect">
-							<div className="sect-hdr">
-								<div className="sect-title">
-									<span className="sect-num">
-										{isNonDb ? '2' : '4'}
-									</span>
-									{isNonDb
-										? __('MCP Exposure', 'acrossai-abilities-manager')
-										: __('MCP Exposure', 'acrossai-abilities-manager')}
-								</div>
-								<div className="sect-desc">
-									{isNonDb
-										? __(
-											'Override how this ability appears to MCP clients. Leave as "inherit" to use the plugin\'s declared values.',
-											'acrossai-abilities-manager'
-										  )
-										: __(
-											'How this ability appears to MCP clients.',
-											'acrossai-abilities-manager'
-										  )}
-								</div>
-							</div>
-
-							{/* Show in MCP */}
-							<TriChips
-								label={__('Show in MCP', 'acrossai-abilities-manager')}
-								value={draftAbility.show_in_mcp ?? null}
-								onChange={(v) => patch({ show_in_mcp: v })}
-								options={[
-									{ value: null,  label: __('default', 'acrossai-abilities-manager') },
-									{ value: true,  label: __('enable',  'acrossai-abilities-manager') },
-									{ value: false, label: __('disable', 'acrossai-abilities-manager') },
-								]}
-								hint={
-									isNonDb && null !== savedAbility?.show_in_mcp
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.show_in_mcp ? 'yes' : 'no'}`
-										: null
-								}
-							/>
-
-							{/* MCP Type */}
-							<TriChips
-								label={__('MCP Type', 'acrossai-abilities-manager')}
-								value={draftAbility.mcp_type ?? null}
-								onChange={(v) => patch({ mcp_type: v })}
-								options={[
-									{ value: null,       label: __('default',  'acrossai-abilities-manager') },
-									{ value: 'tool',     label: 'tool'     },
-									{ value: 'resource', label: 'resource' },
-									{ value: 'prompt',   label: 'prompt'   },
-								]}
-								hint={
-									isNonDb && savedAbility?.mcp_type
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${savedAbility.mcp_type}`
-										: null
-								}
-							/>
-
-							{/* Allowed Servers */}
-							<div className="fr">
-								<label htmlFor="mcp-servers" className="fl">
-									{__('Allowed Servers', 'acrossai-abilities-manager')}
-								</label>
-								<div className="ff">
-									<input
-										id="mcp-servers"
-										type="text"
-										className="ri"
-										style={{ maxWidth: '220px' }}
-										value={
-											Array.isArray(draftAbility.mcp_servers)
-												? draftAbility.mcp_servers.join(', ')
-												: draftAbility.mcp_servers || '*'
-										}
-										onChange={(e) => {
-											const raw = e.target.value.trim();
-											if (!raw || '*' === raw) {
-												patch({ mcp_servers: null });
-											} else {
-												patch({
-													mcp_servers: raw
-														.split(',')
-														.map((s) => s.trim())
-														.filter(Boolean),
-												});
-											}
-										}}
-									/>
-									<div className="desc">
-										<code>*</code>
-										{' '}
-										{__(
-											'= all servers. Comma-separate server IDs to restrict.',
-											'acrossai-abilities-manager'
-										)}
-									</div>
-								</div>
-							</div>
-						</div>
-
-						{/* ── VARIANT B: Section 1 — Site Permission ── */}
-						{isNonDb && (
-							<div className="sect">
-								<div className="sect-hdr">
-									<div className="sect-title">
-										<span className="sect-num">1</span>
-										{__('Site Permission', 'acrossai-abilities-manager')}
-									</div>
-									<div className="sect-desc">
-										{__(
-											'Override whether this ability is allowed or blocked site-wide.',
-											'acrossai-abilities-manager'
-										)}
-									</div>
-								</div>
-								<div className="fr">
-									<label className="fl">
-										{__('Site Access', 'acrossai-abilities-manager')}
-									</label>
-									<div className="ff">
-										<SitePermissionTGC
-											value={draftAbility.site_allowed}
-											onChange={(v) => patch({ site_allowed: v })}
-										/>
-										<div className="desc">
-											<strong>
-												{__('Inherit', 'acrossai-abilities-manager')}
-											</strong>{' '}
-											{__(
-												'respects the plugin\'s own setting. Force Allow/Block override regardless.',
-												'acrossai-abilities-manager'
-											)}
-										</div>
-									</div>
-								</div>
-							</div>
-						)}
-
-						{/* ── Section 5 (A) / Section 3 (B) — Annotations ── */}
-						<div className="sect">
-							<div className="sect-hdr">
-								<div className="sect-title">
-									<span className="sect-num">
-										{isNonDb ? '3' : '5'}
-									</span>
-									{isNonDb
-										? __('Annotation Overrides', 'acrossai-abilities-manager')
-										: __('Annotations', 'acrossai-abilities-manager')}
-								</div>
-								<div className="sect-desc">
-									{isNonDb
-										? __(
-											'inherit defers to the plugin\'s declared value; yes/no force the annotation regardless.',
-											'acrossai-abilities-manager'
-										  )
-										: __(
-											'Tri-state metadata hints for MCP clients. inherit defers to the callback type\'s default.',
-											'acrossai-abilities-manager'
-										  )}
-								</div>
-							</div>
-
-							<TriChips
-								label={__('Readonly', 'acrossai-abilities-manager')}
-								value={draftAbility.readonly ?? null}
-								onChange={(v) => patch({ readonly: v })}
-								options={[
-									{ value: null,  label: __('default', 'acrossai-abilities-manager') },
-									{ value: true,  label: __('yes',     'acrossai-abilities-manager') },
-									{ value: false, label: __('no',      'acrossai-abilities-manager') },
-								]}
-								hint={
-									isNonDb && null !== savedAbility?.readonly
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.readonly ? 'yes' : 'no'}`
-										: __('Does this ability mutate state?', 'acrossai-abilities-manager')
-								}
-							/>
-							<TriChips
-								label={__('Destructive', 'acrossai-abilities-manager')}
-								value={draftAbility.destructive ?? null}
-								onChange={(v) => patch({ destructive: v })}
-								options={[
-									{ value: null,  label: __('default', 'acrossai-abilities-manager') },
-									{ value: true,  label: __('yes',     'acrossai-abilities-manager') },
-									{ value: false, label: __('no',      'acrossai-abilities-manager') },
-								]}
-								hint={
-									isNonDb && null !== savedAbility?.destructive
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.destructive ? 'yes' : 'no'}`
-										: __('Can data be permanently lost?', 'acrossai-abilities-manager')
-								}
-							/>
-							<TriChips
-								label={__('Idempotent', 'acrossai-abilities-manager')}
-								value={draftAbility.idempotent ?? null}
-								onChange={(v) => patch({ idempotent: v })}
-								options={[
-									{ value: null,  label: __('default', 'acrossai-abilities-manager') },
-									{ value: true,  label: __('yes',     'acrossai-abilities-manager') },
-									{ value: false, label: __('no',      'acrossai-abilities-manager') },
-								]}
-								hint={
-									isNonDb && null !== savedAbility?.idempotent
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.idempotent ? 'yes' : 'no'}`
-										: __('Safe to call multiple times with the same input?', 'acrossai-abilities-manager')
-								}
-							/>
-							{isNonDb && (
-								<TriChips
-									label={__('Show in REST', 'acrossai-abilities-manager')}
-									value={draftAbility.show_in_rest ?? null}
-									onChange={(v) => patch({ show_in_rest: v })}
-									options={[
-										{ value: null,  label: __('default', 'acrossai-abilities-manager') },
-										{ value: true,  label: __('yes',     'acrossai-abilities-manager') },
-										{ value: false, label: __('no',      'acrossai-abilities-manager') },
-									]}
-									hint={
-										null !== savedAbility?.show_in_rest
-											? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.show_in_rest ? 'yes' : 'no'}`
-											: null
-									}
-								/>
-							)}
-						</div>
 
 					</div>
 					{/* end .panel */}

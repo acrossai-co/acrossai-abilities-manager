@@ -509,3 +509,69 @@ Architecture review checklist: for every REST orchestrator, confirm all literal-
 **Where to look next**
 `includes/Modules/Abilities/Rest/AcrossAI_Abilities_Rest_Controller.php` (register_routes — correct insertion order),
 `includes/Modules/Abilities/Rest/AcrossAI_Abilities_Category_Controller.php` (/abilities/categories — must register first).
+
+---
+
+### 2026-05-27 — BerlinDB stale slug cache after INSERT causes first-save to return no row
+
+**Status**: Active
+
+**Symptoms**
+First save of a non-db ability override returns `has_override: false` in the REST response. On page reload the override appears correctly.
+
+**Root Cause**
+BerlinDB's Query base class maintains an internal per-request slug cache. Before the INSERT, `save_override()` calls `get_override_by_slug()` to check for an existing row — BerlinDB caches a null result for that slug (no row exists yet). After `add_item()` inserts the new row, any further `get_override_by_slug()` call in the same request hits the stale cache and returns null. The Write Controller's post-save re-query thus returned null → `has_override: false`.
+
+**Future mistake prevented**
+After any `add_item()` INSERT in `save_override()`, re-read the row via an ID-based `query(['id' => $new_id, 'number' => 1])` call — ID-based queries bypass the slug cache entirely. Encapsulate this in `get_ability_by_id(int $id)`. All external callers remain slug-oriented and are unaware of the cache bypass. Never rely on `get_override_by_slug()` immediately after a first-ever INSERT in the same request.
+
+**Evidence**
+`AcrossAI_Abilities_Query::save_override()` — Bug 4 fix (Feature 015): `return $this->get_ability_by_id( (int) $result ) ?? false;` after `add_item()`. Same pattern applied to UPDATE path.
+
+**Where to look next**
+`includes/Modules/Abilities/Database/AcrossAI_Abilities_Query.php` (`save_override` — ID re-read after INSERT/UPDATE),
+`includes/Modules/Abilities/Rest/AcrossAI_Abilities_Write_Controller.php` (uses returned row directly).
+
+---
+
+### 2026-05-27 — `meta.mcp.public` maps to `show_in_mcp`; never to a separate `mcp_public` key
+
+**Status**: Active
+
+**Symptoms**
+`show_in_mcp` field is `null` in the REST response for abilities registered with the mcp-adapter nested convention (`meta['mcp']['public'] = true`), even though the plugin declares `public: true`.
+
+**Root Cause**
+`normalize_registry()` mapped `meta.mcp.public` to a stray `mcp_public` key. `AcrossAI_Ability_Merger::merge()` reads `show_in_mcp` only — it never reads `mcp_public`. The stray key was silently ignored, leaving `show_in_mcp: null`.
+
+**Future mistake prevented**
+The canonical bidirectional contract is `meta.mcp.public` ↔ `show_in_mcp`. Always verify new MCP field mappings in `normalize_registry()` against `AcrossAI_Ability_Override_Processor`, which writes `show_in_mcp` → `meta.mcp.public` as the authoritative reference direction. Never introduce a `mcp_public` key.
+
+**Evidence**
+`AcrossAI_Ability_Merger.php` — Bug 1 hotfix (Feature 015): `'show_in_mcp' => (null !== $mcp_meta && array_key_exists('public', $mcp_meta)) ? $mcp_meta['public'] : $ann_or_meta('show_in_mcp')`. Resolves real-world `ai/get-post-terms` ability returning `show_in_mcp: null`.
+
+**Where to look next**
+`includes/Utilities/AcrossAI_Ability_Merger.php` (`normalize_registry` — mcp field mapping),
+`includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php` (canonical write direction: `show_in_mcp` → `meta.mcp.public`).
+
+---
+
+### 2026-05-27 — Redux `SET_SAVED` must seed `draftAbility` from `_override`, not merged top-level
+
+**Status**: Active
+
+**Symptoms**
+TriChip controls for non-db abilities show the effective ("yes"/"no") value instead of "default/inherit" when the user has not explicitly set an override. After first save, TriChips revert to merged values rather than reflecting the saved override state.
+
+**Root Cause**
+The `SET_SAVED` reducer seeded `draftAbility = { ...saved }`, spreading all merged top-level fields. For non-db abilities, merged values inherit from the registry (e.g., `readonly: true` from the plugin declaration), which pre-populated TriChips incorrectly. `_override` values (`null` = inherit/not set) were never used.
+
+**Future mistake prevented**
+Always seed overridable fields in `draftAbility` from `saved._override[field]` (null = "inherit/default"). Use the `OVERRIDABLE_FIELDS` constant (13 fields, mirrors PHP `$overridable_fields`) to enumerate them. If `saved._override` is absent, default to `null` for all overridable fields. Never spread merged top-level values for these fields.
+
+**Evidence**
+`src/js/abilities/store/index.js` — Bug 3 fix (Feature 015): `OVERRIDABLE_FIELDS.forEach((f) => { draft[f] = saved._override[f] !== undefined ? saved._override[f] : null; })` inside `SET_SAVED`.
+
+**Where to look next**
+`src/js/abilities/store/index.js` (`SET_SAVED` case, `OVERRIDABLE_FIELDS` constant),
+`includes/Utilities/AcrossAI_Ability_Merger.php` (`$overridable_fields` — PHP mirror).

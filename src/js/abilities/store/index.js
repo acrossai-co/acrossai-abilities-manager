@@ -29,6 +29,25 @@ const REMOVE_ABILITY = 'REMOVE_ABILITY';
 const PATCH_ABILITY = 'PATCH_ABILITY';
 
 // ---------------------------------------------------------------------------
+// Overridable fields (mirrors AcrossAI_Ability_Merger::$overridable_fields)
+// ---------------------------------------------------------------------------
+const OVERRIDABLE_FIELDS = [
+	'label',
+	'description',
+	'category',
+	'callback_type',
+	'callback_config',
+	'site_allowed',
+	'readonly',
+	'destructive',
+	'idempotent',
+	'show_in_rest',
+	'show_in_mcp',
+	'mcp_type',
+	'mcp_servers',
+];
+
+// ---------------------------------------------------------------------------
 // Initial state
 // ---------------------------------------------------------------------------
 const DEFAULT_STATE = {
@@ -94,7 +113,21 @@ function reducer(state = DEFAULT_STATE, action) {
 			return {
 				...state,
 				savedAbility: saved,
-				draftAbility: saved ? { ...saved } : {},
+				draftAbility: (() => {
+					if (!saved) { return {}; }
+					const draft = { ...saved };
+					// Bug 3: seed overridable fields from _override (null = Inherit)
+					// so TriChip controls show the correct DB state, not merged values.
+					if (saved._override) {
+						OVERRIDABLE_FIELDS.forEach((f) => {
+							draft[f] =
+								saved._override[f] !== undefined
+									? saved._override[f]
+									: null;
+						});
+					}
+					return draft;
+				})(),
 				isDirty: false,
 				isSaving: false,
 				saveError: null,

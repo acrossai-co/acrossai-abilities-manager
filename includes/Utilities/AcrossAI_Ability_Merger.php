@@ -154,10 +154,11 @@ class AcrossAI_Ability_Merger {
 			return array();
 		}
 
-		$name        = $ability->get_name();
-		$slash_pos   = strpos( $name, '/' );
-		$provider    = false !== $slash_pos ? substr( $name, 0, $slash_pos ) : '';
-		$annotations = $ability->get_meta_item( 'annotations', array() );
+		$name            = $ability->get_name();
+		$slash_pos       = strpos( $name, '/' );
+		$provider        = false !== $slash_pos ? substr( $name, 0, $slash_pos ) : '';
+		$annotations_raw = $ability->get_meta_item( 'annotations', array() );
+		$annotations     = is_array( $annotations_raw ) ? $annotations_raw : array();
 
 		// Reads a field from the annotations array first (external plugin convention),
 		// then falls back to a top-level meta item (internal build_registry_args convention).
@@ -166,6 +167,12 @@ class AcrossAI_Ability_Merger {
 				? $annotations[ $key ]
 				: $ability->get_meta_item( $key, null );
 		};
+
+		$mcp_meta_raw = $ability->get_meta_item( 'mcp', null );
+		$mcp_meta     = is_array( $mcp_meta_raw ) ? $mcp_meta_raw : null;
+
+		$input_schema_raw  = $ability->get_input_schema();
+		$output_schema_raw = $ability->get_output_schema();
 
 		return array(
 			'slug'            => $name,
@@ -177,14 +184,14 @@ class AcrossAI_Ability_Merger {
 			'show_in_rest'    => $ability->get_meta_item( 'show_in_rest', false ),
 			'callback_type'   => $ann_or_meta( 'callback_type' ),
 			'callback_config' => null, // execution config — not stored in WP_Ability.
-			'input_schema'    => $ability->get_meta_item( 'input_schema', null ),
-			'output_schema'   => $ability->get_meta_item( 'output_schema', null ),
+			'input_schema'    => ( is_array( $input_schema_raw ) && empty( $input_schema_raw ) ) ? null : $input_schema_raw,
+			'output_schema'   => ( is_array( $output_schema_raw ) && empty( $output_schema_raw ) ) ? null : $output_schema_raw,
 			'readonly'        => $ann_or_meta( 'readonly' ),
 			'destructive'     => $ann_or_meta( 'destructive' ),
 			'idempotent'      => $ann_or_meta( 'idempotent' ),
-			'show_in_mcp'     => $ann_or_meta( 'show_in_mcp' ),
-			'mcp_type'        => $ann_or_meta( 'mcp_type' ),
-			'mcp_servers'     => $ann_or_meta( 'mcp_servers' ),
+			'show_in_mcp'     => ( null !== $mcp_meta && array_key_exists( 'public', $mcp_meta ) ) ? $mcp_meta['public'] : $ann_or_meta( 'show_in_mcp' ),
+			'mcp_type'        => ( null !== $mcp_meta && array_key_exists( 'type', $mcp_meta ) ) ? $mcp_meta['type'] : $ann_or_meta( 'mcp_type' ),
+			'mcp_servers'     => ( null !== $mcp_meta && array_key_exists( 'servers', $mcp_meta ) ) ? $mcp_meta['servers'] : $ann_or_meta( 'mcp_servers' ),
 			'site_allowed'    => $ann_or_meta( 'site_allowed' ),
 		);
 	}
