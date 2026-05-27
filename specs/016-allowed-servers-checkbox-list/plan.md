@@ -62,10 +62,7 @@ src/js/abilities/components/
 └── AbilityForm.jsx      # Replace ~4-line <input type="text"> block with
                          # checkbox list component (~60 new JSX lines).
                          # Section order reordered + section numbers updated (T021).
-                         # Callback and Schema get .sect-secondary class (T022).
-
-src/scss/abilities/
-└── admin.scss           # +1 rule: .sect-secondary { background: $bg; } (T022)
+                         # All 6 sections confirmed inside single .panel (T023).
 ```
 
 ### Form Section Order (Canonical)
@@ -82,8 +79,7 @@ Skipped positions are not shown for a given variant (numbers are non-sequential 
 | 5 | Callback | A (db) only — `.sect-secondary` (grey bg) |
 | 6 | Schema | A (db) only — `.sect-secondary` (grey bg) |
 
-Callback and Schema (sections 5–6) use `.sect-secondary { background: $bg }` to
-visually indicate they are advanced/implementation-detail sections.
+All six sections are children of a single `.panel` div. Callback and Schema (sections 5–6) are conditionally rendered for Variant A (db) only but remain inside the same `.panel` as the other sections.
 
 No new files. No DB migrations. No composer/npm changes.
 
