@@ -575,3 +575,54 @@ Always seed overridable fields in `draftAbility` from `saved._override[field]` (
 **Where to look next**
 `src/js/abilities/store/index.js` (`SET_SAVED` case, `OVERRIDABLE_FIELDS` constant),
 `includes/Utilities/AcrossAI_Ability_Merger.php` (`$overridable_fields` — PHP mirror).
+`AbilitiesValidationTest::test_strip_protected_fields_removes_identity_fields` fails. The test asserts that `label`, `description`, `category`, and other fields are removed by `strip_protected_fields_for_non_db()`, but the implementation only strips a narrower set.
+
+**Root Cause**
+The test was written with a broader expectation than the current implementation supports. This is a pre-existing mismatch unrelated to Feature 016. The test was present before Feature 016 and the implementation has never matched this assertion.
+
+**Future mistake prevented**
+This failure is not caused by Feature 016 sanitizer changes. Do not attempt to "fix" this by expanding `strip_protected_fields_for_non_db()` scope unless a spec explicitly requires it. The failing test line is `AbilitiesValidationTest.php:470`.
+
+**Evidence**
+Feature 016 security-hardening tasks (T019, T020) confirmed this failure was pre-existing. PHPUnit run of Feature 016's own 6 tests (`sanitize_mcp_servers_array` tests) pass 6/6 clean.
+
+**Prevention / Detection**
+When running the full `AbilitiesValidationTest.php` suite, expect this one pre-existing failure. Track it separately from Feature 016 quality gates.
+
+**Where to look next**
+`tests/phpunit/abilities/AbilitiesValidationTest.php` (line 470 — strip_protected_fields test),
+`includes/Utilities/AcrossAI_Abilities_Validator.php` (strip_protected_fields_for_non_db — current scope).
+
+---
+
+### 2026-05-27 — Script-based JSX line edits can misplace .panel closing tag (BUG-ABILITYFORM-PANEL-PREMATURE-CLOSE)
+After any Python/script-based line deletion or insertion in `AbilityForm.jsx`, a `</div>` at 5-tab indent can be silently left in the wrong position, prematurely closing `.panel` before Callback and Schema sections. The bug produces no JSX syntax error and is only discoverable via browser HTML inspection.
+
+**Root Cause**
+When a Python script deletes or moves line ranges in `AbilityForm.jsx`, the closing `</div>` that terminates the `.panel` (5-tab indent) can end up after the last `.sect` that was moved, instead of after all sections. The remaining sections become siblings of `.panel` in the rendered HTML.
+
+**Future mistake prevented**
+After any script-based section reorder in `AbilityForm.jsx`, verify: run `grep -n "panel\|end .panel"` and confirm the 5-tab `</div>` for `.panel` appears AFTER the last `.sect` div. Use `python3 -c "tab count check"` on the lines around the panel close comment.
+
+**Evidence**
+Feature 016 (2026-05-27): `git diff 161d1d4..e341d1a` — line 1500 was `\t\t\t\t\t</div>` (5 tabs) between Section 4 close and Section 5 open. Removed the errant div, added correct panel close after Schema (commit `e341d1a`).
+
+**Where to look next**
+`src/js/abilities/components/AbilityForm.jsx` (lines around `{/* end .panel */}` comment — 5-tab `</div>` must immediately precede it).
+
+---
+
+### 2026-05-27 — Rebase onto main scrambles AbilityForm.jsx section DOM order (BUG-ABILITYFORM-REBASE-SECTION-SCRAMBLE)
+When a feature branch that edits `AbilityForm.jsx` is rebased onto a branch containing structural section changes, the `.sect` div order can be silently scrambled. There is no merge conflict and no build error — the wrong order only becomes apparent by reading the file or inspecting the rendered form.
+
+**Root Cause**
+Git rebase applies patches line-by-line. If both the base branch and the feature branch moved sections in `AbilityForm.jsx`, the result can place sections in an inconsistent order that satisfies neither branch's intent.
+
+**Future mistake prevented**
+After every rebase that touches `AbilityForm.jsx`, immediately verify: `grep -n "VARIANT\|Section [0-9]"` shows the canonical order **Identity(1) → Site Permission(2) → MCP Exposure(3) → Annotation Overrides(4) → Callback(5) → Schema(6)**. If the order is wrong, correct it before any further commits.
+
+**Evidence**
+Feature 016 (2026-05-27): Rebase onto `origin/main` (commit `2cfb80a`) moved Callback and Schema before MCP Exposure. Fixed in commit `5de0307`.
+
+**Where to look next**
+`src/js/abilities/components/AbilityForm.jsx` — section comment markers (`{/* ── VARIANT A: Section N ── */}`) show order at a glance.

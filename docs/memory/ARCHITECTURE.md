@@ -453,3 +453,46 @@ const { validateRequiredFields } = require('../../../src/js/abilities/components
 ```
 
 **Reference**: Feature 013 — `export function validateRequiredFields(ability, slugSuffix)` in `src/js/abilities/components/AbilityForm.jsx`, tested in `tests/jest/abilities/validateRequiredFields.test.js` (15 tests). Commit `35e9003`.
+
+---
+
+## ARCH-SANITIZER-TWO-CLASS
+
+The sanitization layer has two classes. Always use the correct one.
+
+- **`AcrossAI_Sanitizer`** (`includes/Utilities/AcrossAI_Sanitizer.php`): Base class. Owns `sanitize_mcp_servers_array()` and the `MAX_MCP_SERVERS` / `MAX_SERVER_ID_LENGTH` constants. FQCN: `\AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer`.
+- **`AcrossAI_Abilities_Sanitizer`** (`includes/Utilities/AcrossAI_Abilities_Sanitizer.php`): Thin wrapper. Owns `sanitize_mcp_servers()` which delegates to the base class.
+
+**Rule**: PHPUnit tests for MCP-server sanitization MUST use `AcrossAI_Sanitizer::sanitize_mcp_servers_array()` via its FQCN. Using `AcrossAI_Abilities_Sanitizer` is valid at call sites but the method signature differs; tests targeting boundary constants must target the base class.
+
+**Evidence**: Feature 016 (2026-05-27) — `AbilitiesValidationTest.php` T017 tests use `\AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer::sanitize_mcp_servers_array()` directly. All 6 pass.
+
+---
+
+## ARCH-PHPUNIT-BOOTSTRAP
+
+PHPUnit bootstrap for this plugin requires two specific preconditions:
+
+1. **ABSPATH before autoloader**: `define('ABSPATH', dirname(__DIR__) . '/')` must appear in `tests/bootstrap.php` before `require_once vendor/autoload.php`. The `defined('ABSPATH') || exit` guard in every plugin file will silently exit and produce 0 tests if this order is wrong.
+2. **Narrow `phpunit.xml.dist` scope**: Only include test files that do NOT transitively load BerlinDB Table subclasses. BerlinDB Table constructors call `add_action()` / `get_option()` — functions absent from stub bootstrap. DB-dependent test files (`AbilitiesQueryTest`, `AbilitiesWriteControllerTest`, `AbilitiesReadControllerTest`, `AbilitiesProcessorTest`, `AbilitiesExposureControllerTest`) require a real WP environment and must be excluded from the stub-bootstrap suite.
+
+**Reference**: `tests/bootstrap.php`, `phpunit.xml.dist`.
+
+---
+
+## ARCH-ABILITYFORM-SECTION-ORDER
+
+The canonical `AbilityForm.jsx` section DOM order is:
+
+| # | Section | Variant |
+|---|---------|---------|
+| 1 | Identity | A (db) only |
+| 2 | Site Permission | B (non-db) only |
+| 3 | MCP Exposure | A + B |
+| 4 | Annotation Overrides | A + B |
+| 5 | Callback | A (db) only |
+| 6 | Schema | A (db) only |
+
+Numbers are global across both variants; sections not applicable to a variant simply do not render. All six `.sect` divs must be children of a single `.panel` div. New features adding sections must insert between Annotation Overrides (4) and Callback (5), or after Schema (6) — never outside the `.panel`.
+
+**Evidence**: Feature 016 (2026-05-27) — commits `5de0307`, `161d1d4`, `e341d1a` restored order, corrected numbers 1–6, and confirmed all sections inside `.panel`. Plan section table documents this layout.
