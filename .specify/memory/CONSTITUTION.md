@@ -32,8 +32,8 @@ Shared logic MUST be extracted to `includes/Utilities/`.
 No code duplication between modules is permitted under any circumstance.
 
 **Rationale**: Enables parallel development, isolated testing, and safe iteration on any single feature
-without risking regressions in others. The four active feature areas (Per-User Access
-Control, MCP Server Management, Custom Ability Registration, WebMCP Integration) MUST each map to
+without risking regressions in others. The five active feature areas (Per-User Access
+Control, MCP Server Management, Custom Ability Registration, WebMCP Integration, Ability Execution Logging) MUST each map to
 exactly one module. Ability override management is part of the `Abilities` module (Feature 012).
 
 ### II. WordPress Standards Compliance
@@ -143,6 +143,7 @@ includes/
     ├── PerUser/
     ├── McpServer/
     ├── Abilities/
+    ├── Logger/
     └── Webmcp/
 src/
 ├── js/             # JavaScript/React source files
@@ -248,4 +249,4 @@ constitution. Any implementation that appears to violate a principle MUST either
 include documented justification in the feature plan explaining why a compliant approach was not
 feasible.
 
-**Version**: 1.4.1 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-15
+**Version**: 1.4.2 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-28
