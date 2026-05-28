@@ -19,6 +19,11 @@ principle added.
 Previous sync impact (v1.3.0 → v1.4.0): Boot Flow Rule — variable-first instantiation requirement added;
 REST Controller Pattern subsection added under Architecture & UI Standards.
 Previous sync impact (v1.2.0 → v1.3.0): §I Base/ removed, Boot Flow Rule updated to singleton + direct wiring, Module Contract updated to replace abstract base class + register_hooks() with singleton pattern.
+
+Version change: 1.4.1 → 1.4.2
+Modified sections: Directory Layout (Logger/ added), §I (module count corrected)
+Rationale: Logger module existed but was omitted from the module list;
+namespace examples already referenced it correctly.
 -->
 
 # AcrossAI Abilities Manager Constitution
