@@ -211,14 +211,16 @@ Hooks in `boot()` are invisible to the Loader's hook inventory. Acceptable here 
 
 **Future mistake prevented**
 Do not move `wp_register_ability_args` or `wp_abilities_api_init` registration into Main.php via the Loader — they would fire on PATH A (Manager REST) and corrupt the `_registry` layer shown in the Manager UI.
+`ARCH-ADV-001` applies **only** to `AcrossAI_Ability_Override_Processor` — it is not a recognized exemption for any other class. `AcrossAI_Ability_Logger::boot()` had an `"ARCH-ADV-001 Exception"` comment; Feature 017 FIX-1 removed `boot()` entirely as a Boot Flow Rule violation. Do not add a `boot()` method with direct `add_filter`/`add_action` calls to any other feature class and cite ARCH-ADV-001 as justification.
 
 **Evidence**
-`includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php::boot()`. Reviewed in governed-plan session 2026-05-17. `mcp_adapter_expose_ability` added in T016 (commit `2c9442e`, 2026-05-17).
+`includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php::boot()`. Reviewed in governed-plan session 2026-05-17. `mcp_adapter_expose_ability` added in T016 (commit `2c9442e`, 2026-05-17). Logger `boot()` removed in Feature 017 FIX-1 (commit `cc3cd8f`, 2026-05-28).
 
 **Where to look next**
 `includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php` (boot, is_manager_rest_request),
 `includes/Main.php` (define_public_hooks — Loader wires only),
-`specs/004-ability-override-processor/plan.md` (ARCH-ADV-001 note).
+`specs/004-ability-override-processor/plan.md` (ARCH-ADV-001 note),
+`specs/017-logger-constitution-fix/spec.md` (FIX-1 — Boot Flow Rule violation in Logger).
 
 
 ### 2026-05-17 — Fail-open library absence must be paired with an admin notice (DEC-FAIL-OPEN-NOTICE)
