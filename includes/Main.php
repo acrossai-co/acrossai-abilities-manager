@@ -214,7 +214,6 @@ final class Main {
 	 * Include the following files that make up the plugin:
 	 *
 	 * - AcrossAI_Abilities_Manager\Admin\Loader. Orchestrates the hooks of the plugin.
-	 * - AcrossAI_Abilities_Manager\Admin\I18n. Defines internationalization functionality.
 	 * - AcrossAI_Abilities_Manager\Admin\Main. Defines all hooks for the admin area.
 	 * - AcrossAI_Abilities_Manager_Public. Defines all hooks for the public side of the site.
 	 *

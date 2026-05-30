@@ -150,8 +150,14 @@ class AcrossAI_Abilities_Processor {
 				return $this->make_wp_remote_post_callback( $row );
 
 			case 'registered_callback':
-				// Trust boundary: only version-controlled plugin/theme code registers callables here.
-				// $input is caller-controlled (untrusted) — registered callbacks must treat it as untrusted.
+				/*
+				 * Security boundary: only version-controlled plugin/theme code may register
+				 * callables via this filter. The DB row stores only a sanitized key; it never
+				 * stores or executes arbitrary PHP. $input is caller-controlled (untrusted) —
+				 * registered callbacks must treat it as untrusted input.
+				 *
+				 * @see DEC-PLUGIN-CHECK-PRODUCTION-SURFACE in docs/memory/DECISIONS.md
+				 */
 				$callbacks = apply_filters( 'acrossai_abilities_registered_callbacks', array() );
 				$callback  = isset( $row->callback_config['callback'] )
 					? sanitize_key( (string) $row->callback_config['callback'] )
