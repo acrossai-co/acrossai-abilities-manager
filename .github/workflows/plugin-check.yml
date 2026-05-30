@@ -23,6 +23,9 @@ jobs:
 
       - run: composer install --no-dev --prefer-dist --no-progress
 
+      - name: Remove local wp-env config
+        run: rm -f .wp-env.json
+
       - uses: WordPress/plugin-check-action@18573eb38f13543484a1f095672dae3849a4fbb0 # v1
         with:
           build-dir: '.'
