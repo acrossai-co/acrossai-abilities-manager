@@ -241,3 +241,12 @@ Customize Phase 1 tests based on library criticality and integration depth.
 - **Future mistake prevented**: (1) Future features won't attempt to suppress `eval()` via `ignore-codes` — they'll see `BUG-EVAL-NOT-SUPPRESSIBLE` and `PATTERN-REGISTERED-CALLBACK-TRUST`. (2) Future query builders won't interpolate table names — they'll use `%i`. (3) Plugin Check CI won't scan Spec Kit/test/dev artifacts — the `--exclude-directories`/`--exclude-files` pattern is documented.
 - **Evidence**: Branch `021-plugin-check-cleanup`, commits `ec358de`–`8d2cdef`. 30/31 tasks complete (T030 optional local run). PHPStan level 8: exit 0. Architecture review: 0 CRITICAL/HIGH violations. Security review: no findings.
 - **Where to look**: `includes/Modules/Abilities/AcrossAI_Abilities_Processor.php` (registered_callback case), `.github/workflows/plugin-check.yml` (--exclude-directories/--exclude-files flags), `docs/memory/DECISIONS.md` (DEC-PLUGIN-CHECK-PRODUCTION-SURFACE), `docs/memory/ARCHITECTURE.md` (PATTERN-REGISTERED-CALLBACK-TRUST).
+
+---
+
+### 2026-05-31 — Feature 022: PHPCS baseline resolved; CI quality gate split; singleton PSR2 fix
+
+- **Why durable**: `composer run phpcs` now exits 0 across all 49 scanned production files — the first time the PHPCS baseline is clean. Three dedicated CI workflows (`phpcs.yml`, `phpstan.yml`, `phpcompat.yml`) gate every PHP PR. The PSR2 underscore-property issue (21 singleton classes) is permanently resolved.
+- **Future mistake prevented**: (1) Future classes must use `$instance` not `$_instance` — see DEC-SINGLETON-PSR2-PROPERTY. (2) PHPCompatibility belongs in `phpcompat.yml` (production dirs), not in `phpcs.xml.dist`. (3) All three CI jobs follow the same hardening pattern: SHA pins, `permissions: {}`, `timeout-minutes: 10`.
+- **Evidence**: Branch `022-ci-workflows-phpcs-cleanup`, commit `9da22d7`. 21 singleton classes renamed. `composer run phpcs`: 0 errors. AGENTS.md `$_instance` code example is now stale and should be updated in a future governance pass.
+- **Where to look**: `phpcs.xml.dist` (exclude-patterns), `.github/workflows/phpcs.yml`, `phpcompat.yml`, `phpstan.yml`, `docs/memory/DECISIONS.md` (DEC-SINGLETON-PSR2-PROPERTY), `docs/memory/ARCHITECTURE.md` (PATTERN-CI-QUALITY-GATE-SPLIT).

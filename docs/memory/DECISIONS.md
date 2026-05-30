@@ -1066,3 +1066,17 @@ repo-wide `composer run phpcs` baseline is not clean, so required PR checks shou
 the production plugin surface or wait until the baseline is fixed.
 
 ---
+
+---
+
+### 2026-05-31 — Singleton property renamed from $_instance to $instance (DEC-SINGLETON-PSR2-PROPERTY)
+
+`PSR2.Classes.PropertyDeclaration.Underscore` flags any protected/private property whose name starts with an underscore. The longstanding project convention `protected static $_instance = null` violated this rule in all 21 singleton classes.
+
+**Decision**: Rename `$_instance` to `$instance` (and `$_overrides_cache`, `$_checked`, `$_is_manager` to their non-underscore equivalents) across all singleton and class-property sites. Update reflection strings in unit tests to match.
+
+**Why now**: Feature 022 resolves the entire PHPCS baseline (`composer run phpcs` exits 0). Keeping the underscore property would leave PSR2 warnings in every singleton class.
+
+**Impact on AGENTS.md**: The `$_instance` example in the Singleton pattern block is now stale. Future features must use `$instance` (no underscore). Update AGENTS.md code examples when next editing that section.
+
+**Evidence**: `9da22d7` — 21 production classes + `AbilityOverrideProcessorTest.php` updated. `composer run phpcs`: 0 errors across 49 files.
