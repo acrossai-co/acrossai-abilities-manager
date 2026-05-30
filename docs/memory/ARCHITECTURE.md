@@ -671,3 +671,24 @@ The canonical CI pattern for running Plugin Check is to inline the steps manuall
 **Why**: Eliminates `eval()` (OWASP A03) while preserving extensibility. Trust boundary is version control, not the database.
 
 **Evidence**: `includes/Modules/Abilities/AcrossAI_Abilities_Processor.php` `registered_callback` case; `includes/Utilities/AcrossAI_Abilities_Sanitizer.php`; `includes/Modules/Abilities/Database/AcrossAI_Abilities_Query.php`; Feature 021 commits `ec358de`–`8d2cdef`.
+
+---
+
+### PATTERN-CI-QUALITY-GATE-SPLIT (Feature 022, 2026-05-31)
+
+**Pattern**: Split PHP quality gates into three dedicated CI workflows, each with a single concern:
+
+| Workflow | Standard | Scope |
+|----------|----------|-------|
+| `phpcs.yml` | WPCS (`phpcs.xml.dist`) | All PHP paths scanned by `phpcs.xml.dist` |
+| `phpstan.yml` | PHPStan level 8 | All PHP paths in `phpstan.neon.dist` |
+| `phpcompat.yml` | PHPCompatibility `testVersion 7.4-` | Production dirs only: `acrossai-abilities-manager.php`, `uninstall.php`, `includes/`, `admin/`, `public/` |
+
+**Key rules**:
+- PHPCompatibility is in `phpcompat.yml` only — it was removed from `phpcs.xml.dist` to prevent double-counting and allow different scan scopes.
+- All three workflows use `permissions: {}` at workflow level, `permissions: contents: read` at job level, SHA-pinned `actions/checkout` and `shivammathur/setup-php`, and `timeout-minutes: 10`.
+- `phpcs.xml.dist` excludes `tests/`, `.specify/`, `docs/`, `specs/`, `src/`, `.claude/`, `.agents/`, `.github/` via `<exclude-pattern>` entries.
+
+**Why**: One workflow per concern means failures are immediately attributable; PHPCompatibility scoped to production dirs avoids false positives from test stubs.
+
+**Evidence**: `.github/workflows/phpcs.yml`, `phpstan.yml`, `phpcompat.yml`; commit `9da22d7` on branch `022-ci-workflows-phpcs-cleanup`.

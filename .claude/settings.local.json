@@ -26,7 +26,20 @@
       "Bash(composer require *)",
       "mcp__procureco-mcp-adapter-default-server__mcp-adapter-discover-abilities",
       "mcp__procureco-mcp-adapter-default-server__mcp-adapter-execute-ability",
-      "mcp__procureco-mcp-adapter-default-server__mcp-adapter-get-ability-info"
+      "mcp__procureco-mcp-adapter-default-server__mcp-adapter-get-ability-info",
+      "Bash(gh api *)",
+      "Bash(composer run *)",
+      "Bash(vendor/bin/phpcbf --standard=phpcs.xml.dist)",
+      "Bash(grep -v \"^--$\")",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(grep -rn '$_instance' /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/includes/ /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/admin/ /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/public/ '--include=*.php')",
+      "Bash(grep *)",
+      "Bash(vendor/bin/phpcbf *)",
+      "Bash(vendor/bin/phpcs --standard=/tmp/phpcs-test.xml.dist)",
+      "Bash(vendor/bin/phpcs --standard=/tmp/phpcs-test.xml.dist .)",
+      "Bash(vendor/bin/phpcs --standard=/tmp/phpcs-test.xml.dist --report=full .)",
+      "Bash(vendor/bin/phpcs --standard=phpcs.xml.dist admin/)",
+      "Bash(gh pr *)"
     ]
   }
 }
