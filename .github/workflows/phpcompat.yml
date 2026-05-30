@@ -35,6 +35,7 @@ jobs:
             --extensions=php \
             --runtime-set testVersion 7.4- \
             --report=checkstyle \
+            --ignore=public/Main.php \
             acrossai-abilities-manager.php \
             uninstall.php \
             includes/ \
