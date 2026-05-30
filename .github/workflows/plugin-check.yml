@@ -11,7 +11,7 @@ jobs:
   plugin-check:
     name: WordPress Plugin Check
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -23,12 +23,19 @@ jobs:
 
       - run: composer install --no-dev --prefer-dist --no-progress
 
-      - name: Create CI wp-env config
+      - name: Install @wordpress/env
+        run: npm install -g --no-fund @wordpress/env
+
+      # URL-based plugins in wp-env.json trigger a silent-exit-0 bug in
+      # @wordpress/env on Node 24.16 (ubuntu-latest ≥ 2026-05-25).
+      # Fix: omit plugin-check from plugins array; install via WP-CLI post-boot.
+      # Tracking: https://github.com/WordPress/plugin-check-action/issues/579
+      - name: Create wp-env config
         run: |
           cat > .wp-env.json << 'EOF'
           {
             "core": null,
-            "plugins": [ "https://downloads.wordpress.org/plugin/plugin-check.zip" ],
+            "plugins": [],
             "testsEnvironment": false,
             "mappings": {
               "wp-content/plugins/acrossai-abilities-manager": "."
@@ -36,9 +43,15 @@ jobs:
           }
           EOF
 
-      - uses: WordPress/plugin-check-action@18573eb38f13543484a1f095672dae3849a4fbb0 # v1
-        with:
-          build-dir: '.'
-          ignore-codes: 'WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_eval'
-          include-experimental: true
-          ignore-warnings: false
+      - name: Start WordPress environment
+        run: wp-env start
+
+      - name: Install Plugin Check
+        run: wp-env run cli wp plugin install plugin-check --activate
+
+      - name: Run Plugin Check
+        run: |
+          wp-env run cli wp plugin activate acrossai-abilities-manager
+          wp-env run cli wp plugin check acrossai-abilities-manager \
+            --ignore-codes=WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_eval \
+            --include-experimental
