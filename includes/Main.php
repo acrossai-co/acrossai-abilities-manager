@@ -294,7 +294,7 @@ final class Main {
 	 */
 	private function define_public_hooks() {
 
-		$plugin_public = new \AcrossAI_Abilities_Manager\PublicFacing\Main( $this->get_plugin_name(), $this->get_version() );
+		$plugin_public = new \AcrossAI_Abilities_Manager\Front\Main( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 

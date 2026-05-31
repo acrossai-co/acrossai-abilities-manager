@@ -8,7 +8,7 @@
 This plan has two parts:
 
 1. **Commit the pre-existing manual changes** already on the working tree (rebrand, uninstall gate, logger cleanup, plugin-check.yml deletion). These are done but uncommitted.
-2. **Apply the namespace fix** (`\Public` → `\PublicFacing`) — the only change not yet made — then regenerate autoload and remove the CI workaround.
+2. **Apply the namespace fix** (`\Public` → `\Front`) — the only change not yet made — then regenerate autoload and remove the CI workaround.
 
 ## Files Changed (complete list)
 
@@ -33,15 +33,15 @@ uninstall.php                         — delete_option calls moved inside gate
 ```text
 public/Main.php
   Line 12: namespace AcrossAI_Abilities_Manager\Public;
-         → namespace AcrossAI_Abilities_Manager\PublicFacing;
+         → namespace AcrossAI_Abilities_Manager\Front;
 
 includes/Main.php
   Line 297: new \AcrossAI_Abilities_Manager\Public\Main(...)
-           → new \AcrossAI_Abilities_Manager\PublicFacing\Main(...)
+           → new \AcrossAI_Abilities_Manager\Front\Main(...)
 
 composer.json
   "AcrossAI_Abilities_Manager\\Public\\": "public/"
-→ "AcrossAI_Abilities_Manager\\PublicFacing\\": "public/"
+→ "AcrossAI_Abilities_Manager\\Front\\": "public/"
 
 .github/workflows/phpcompat.yml
   Remove: --ignore=public/Main.php
@@ -53,8 +53,8 @@ Stage and commit all working-tree changes except the namespace files (which are 
 
 ## Phase 2 — Namespace Rename
 
-1. Edit `public/Main.php` line 12: `\Public` → `\PublicFacing`
-2. Edit `includes/Main.php` line 297: `\Public\Main(` → `\PublicFacing\Main(`
+1. Edit `public/Main.php` line 12: `\Public` → `\Front`
+2. Edit `includes/Main.php` line 297: `\Public\Main(` → `\Front\Main(`
 3. Edit `composer.json` autoload: rename PSR-4 key
 
 ## Phase 3 — Autoload Regeneration

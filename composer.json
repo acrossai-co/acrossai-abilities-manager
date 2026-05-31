@@ -28,7 +28,7 @@
         "psr-4": {
             "AcrossAI_Abilities_Manager\\Includes\\": "includes/",
             "AcrossAI_Abilities_Manager\\Admin\\": "admin/",
-            "AcrossAI_Abilities_Manager\\PublicFacing\\": "public/"
+            "AcrossAI_Abilities_Manager\\Front\\": "public/"
         }
     },
     "require-dev": {

@@ -9,7 +9,7 @@
  * @subpackage AcrossAI_Abilities_Manager/public
  */
 
-namespace AcrossAI_Abilities_Manager\PublicFacing;
+namespace AcrossAI_Abilities_Manager\Front;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;

@@ -28,9 +28,9 @@ description: "Task list for Feature 023 — Rebrand, Cleanup, and Namespace Fix"
 
 ## Phase 3: Namespace Rename
 
-- [ ] T005 Edit `public/Main.php` line 12: `namespace AcrossAI_Abilities_Manager\Public;` → `namespace AcrossAI_Abilities_Manager\PublicFacing;`
-- [ ] T006 Edit `includes/Main.php` line 297: `new \AcrossAI_Abilities_Manager\Public\Main(` → `new \AcrossAI_Abilities_Manager\PublicFacing\Main(`
-- [ ] T007 Edit `composer.json` autoload PSR-4: `"AcrossAI_Abilities_Manager\\Public\\"` → `"AcrossAI_Abilities_Manager\\PublicFacing\\"`
+- [ ] T005 Edit `public/Main.php` line 12: `namespace AcrossAI_Abilities_Manager\Public;` → `namespace AcrossAI_Abilities_Manager\Front;`
+- [ ] T006 Edit `includes/Main.php` line 297: `new \AcrossAI_Abilities_Manager\Public\Main(` → `new \AcrossAI_Abilities_Manager\Front\Main(`
+- [ ] T007 Edit `composer.json` autoload PSR-4: `"AcrossAI_Abilities_Manager\\Public\\"` → `"AcrossAI_Abilities_Manager\\Front\\"`
 
 ---
 

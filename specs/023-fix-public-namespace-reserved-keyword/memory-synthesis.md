@@ -2,7 +2,7 @@
 
 ## Current Scope
 
-Feature 023 bundles a full rebrand from WPBoilerplate → AcrossWP (10 PHP files + composer.json + README.txt), an uninstall-gate behavior fix, a Logger query variable-naming cleanup (spread operator), deletion of the `plugin-check.yml` workflow, and a permanent namespace rename: `AcrossAI_Abilities_Manager\Public` → `AcrossAI_Abilities_Manager\PublicFacing`.
+Feature 023 bundles a full rebrand from WPBoilerplate → AcrossWP (10 PHP files + composer.json + README.txt), an uninstall-gate behavior fix, a Logger query variable-naming cleanup (spread operator), deletion of the `plugin-check.yml` workflow, and a permanent namespace rename: `AcrossAI_Abilities_Manager\Public` → `AcrossAI_Abilities_Manager\Front`.
 
 ## Why This Exists
 
@@ -41,12 +41,12 @@ All of the following changes are in the working tree but NOT yet committed:
 ## Still Pending (namespace fix — the actual 023 change)
 
 - **Affected files (exact)**:
-  - `public/Main.php:12` — `namespace AcrossAI_Abilities_Manager\Public;` → `namespace AcrossAI_Abilities_Manager\PublicFacing;`
-  - `includes/Main.php:297` — `new \AcrossAI_Abilities_Manager\Public\Main(` → `new \AcrossAI_Abilities_Manager\PublicFacing\Main(`
+  - `public/Main.php:12` — `namespace AcrossAI_Abilities_Manager\Public;` → `namespace AcrossAI_Abilities_Manager\Front;`
+  - `includes/Main.php:297` — `new \AcrossAI_Abilities_Manager\Public\Main(` → `new \AcrossAI_Abilities_Manager\Front\Main(`
   - `composer.json:31` — autoload PSR-4 key rename
   - `.github/workflows/phpcompat.yml` — remove `--ignore=public/Main.php`
 
-- **Chosen rename**: `PublicFacing` — avoids all PHP reserved keywords, follows common WordPress plugin conventions.
+- **Chosen rename**: `Front` — avoids all PHP reserved keywords, follows common WordPress plugin conventions.
 
 - **Autoload**: After editing `composer.json`, `composer dump-autoload` must be run. Do NOT manually edit vendor files.
 
