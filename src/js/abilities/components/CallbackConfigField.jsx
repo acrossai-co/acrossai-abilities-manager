@@ -50,13 +50,8 @@ function FilterHookConfig({ config, onChange }) {
 					}
 				/>
 				<div className="desc">
-					{__(
-						'WordPress filter hook.',
-						'acrossai-abilities-manager'
-					)}{' '}
-					<code>
-						{'apply_filters()'}
-					</code>{' '}
+					{__('WordPress filter hook.', 'acrossai-abilities-manager')}{' '}
+					<code>{'apply_filters()'}</code>{' '}
 					{__(
 						'is called with the input args.',
 						'acrossai-abilities-manager'
@@ -110,7 +105,10 @@ function RemotePostConfig({ config, onChange }) {
 								style={{ width: '100px' }}
 								value={config.method || 'POST'}
 								onChange={(e) =>
-									onChange({ ...config, method: e.target.value })
+									onChange({
+										...config,
+										method: e.target.value,
+									})
 								}
 							>
 								<option value="POST">POST</option>
@@ -121,7 +119,10 @@ function RemotePostConfig({ config, onChange }) {
 						</div>
 						<div className="cluster-f">
 							<div className="cluster-l">
-								{__('Timeout (sec)', 'acrossai-abilities-manager')}
+								{__(
+									'Timeout (sec)',
+									'acrossai-abilities-manager'
+								)}
 							</div>
 							<input
 								id="cb-timeout"
@@ -190,7 +191,11 @@ const LABEL_MAP = {
  * @param {Function} props.onChange     Called with new config object on any change.
  * @return {JSX.Element}
  */
-export default function CallbackConfigField({ callbackType, config, onChange }) {
+export default function CallbackConfigField({
+	callbackType,
+	config,
+	onChange,
+}) {
 	const cfg = config || {};
 
 	return (

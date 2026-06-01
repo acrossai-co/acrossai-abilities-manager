@@ -81,7 +81,11 @@ export async function createAbility(data) {
  * @return {Promise<Object>}
  */
 export async function updateAbility(slug, data) {
-	return apiFetch({ path: `${BASE}/${encodeURIComponent(slug)}`, method: 'POST', data });
+	return apiFetch({
+		path: `${BASE}/${encodeURIComponent(slug)}`,
+		method: 'POST',
+		data,
+	});
 }
 
 /**
@@ -91,7 +95,10 @@ export async function updateAbility(slug, data) {
  * @return {Promise<void>}
  */
 export async function deleteAbility(slug) {
-	return apiFetch({ path: `${BASE}/${encodeURIComponent(slug)}`, method: 'DELETE' });
+	return apiFetch({
+		path: `${BASE}/${encodeURIComponent(slug)}`,
+		method: 'DELETE',
+	});
 }
 
 /**

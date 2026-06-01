@@ -267,6 +267,9 @@ final class AcrossAI_Ability_Override_Processor {
 	 *
 	 * Field path map (FR-009):
 	 *   site_allowed              → $args['site_allowed']  (top-level WP Abilities API field)
+	 *   label                     → $args['label']           (top-level WP Abilities API field)
+	 *   description               → $args['description']     (top-level WP Abilities API field)
+	 *   category                  → $args['category']        (top-level WP Abilities API field)
 	 *   readonly/destructive/
 	 *     idempotent              → $args['meta']['annotations']['<key>']
 	 *   show_in_rest              → $args['meta']['show_in_rest']
@@ -294,9 +297,18 @@ final class AcrossAI_Ability_Override_Processor {
 		if ( isset( self::$overrides_cache[ $slug ] ) ) {
 			$row = self::$overrides_cache[ $slug ];
 
-			// Top-level field — skip null to preserve Inherit semantics (FR-006).
+			// Top-level fields — skip null/empty to preserve Inherit semantics (FR-006).
 			if ( null !== $row->site_allowed ) {
 				$args['site_allowed'] = $row->site_allowed;
+			}
+			if ( null !== $row->label && '' !== $row->label ) {
+				$args['label'] = $row->label;
+			}
+			if ( null !== $row->description && '' !== $row->description ) {
+				$args['description'] = $row->description;
+			}
+			if ( null !== $row->category && '' !== $row->category ) {
+				$args['category'] = $row->category;
 			}
 
 			// Initialize meta array once if any nested override is present.

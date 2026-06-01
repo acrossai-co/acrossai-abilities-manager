@@ -44,7 +44,8 @@
 		"glob": "^13.0.6",
 		"mini-css-extract-plugin": "latest",
 		"path": "latest",
-		"webpack-remove-empty-scripts": "latest"
+		"webpack-remove-empty-scripts": "latest",
+		"zod": "^3.25.76"
 	},
 	"dependencies": {
 		"@wordpress/dataviews": "^14.2.0",

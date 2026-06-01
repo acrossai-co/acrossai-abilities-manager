@@ -881,3 +881,75 @@ After editing `uninstall.php`, grep for `delete_option\|delete_post_meta\|drop t
 
 **Where to look next**
 `uninstall.php` (data gate — canonical correct form), `docs/memory/ARCHITECTURE.md` (`PATTERN-UNINSTALL-DATA-GATE`).
+
+---
+
+### 2026-06-02 — BUG-MERGER-BOOL-STRING-CAST: `(string) false === ''` silently drops boolean-false tri-state overrides
+
+**Status**: Active
+
+**Symptoms**
+Force Block (`site_allowed = false`) set in the admin form did not persist after save. The override was written to DB correctly but was silently discarded when `AcrossAI_Ability_Merger::merge()` read the row back.
+
+**Root Cause**
+Both `merge()` and `has_any_non_null_field()` guarded with `'' !== (string) $override->{$field}` in addition to `null !== $override->{$field}`. PHP casts `false` to `''`, so `'' !== (string) false` evaluates to `false`, causing every boolean-false tri-state override to be treated as "not set" and silently dropped. Affected fields: all 6 tri-state columns (`site_allowed`, `readonly`, `destructive`, `idempotent`, `show_in_rest`, `show_in_mcp`).
+
+**Future mistake prevented**
+Never use a string-cast guard (`'' !== (string) $value`) on typed tri-state boolean fields. `null !== $value` is sufficient — BerlinDB row properties are `?bool`; a non-null value is always `true` or `false`, never `''`.
+
+**Evidence**
+Fixed in `includes/Utilities/AcrossAI_Ability_Merger.php` lines ~60 and ~101 (Feature 024). Two PHPUnit regression tests added: `test_merger_site_allowed_false_override_is_applied`, `test_merger_boolean_false_overrides_survive_for_all_tri_state_fields` — 12/12 pass.
+
+**Prevention / Detection**
+Before adding any guard to a field retrieved from a BerlinDB row, check its PHP type. If it is `?bool` or `?int`, the null check alone is correct. Grep for `(string) $override` as a warning sign.
+
+**Where to look next**
+`includes/Utilities/AcrossAI_Ability_Merger.php` (`merge()`, `has_any_non_null_field()`), `tests/phpunit/abilities/AbilityOverrideInjectVariantATest.php` (regression tests).
+
+---
+
+### 2026-06-02 — BUG-INJECT-MISSING-TOP-LEVEL-FIELDS: `inject_override_args()` missed `label`, `description`, `category` top-level args
+
+**Status**: Active
+
+**Symptoms**
+Saving a label, description, or category override for a non-db ability via the admin form had no effect on the live `WP_Ability` object (outside REST responses). The merger applied the values to REST output, but the WP registry object never received them.
+
+**Root Cause**
+`inject_override_args()` injected `site_allowed` and nested `meta` fields but omitted the three top-level WP Abilities API fields `label`, `description`, and `category`. These share the same arg level as `site_allowed` and must be written to `$args['label']` etc., not nested anywhere.
+
+**Future mistake prevented**
+For every new overridable field: (1) check the FR-009 field-path table in `specs/004-ability-override-processor/spec.md` to confirm the correct `$args` write path, (2) update the `inject_override_args()` docblock field map, (3) verify the live WP registry object reflects the value (not only the REST response). The merger and DB pipeline are independent of `inject_override_args()`.
+
+**Evidence**
+Added three injection blocks in `includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php::inject_override_args()` after the `site_allowed` block (Feature 024 CHANGE-5).
+
+**Prevention / Detection**
+When `$overridable_fields` gains a new top-level field, immediately add a matching block in `inject_override_args()` and update the docblock field map. Grep `$overridable_fields` vs `inject_override_args()` injection blocks to detect gaps.
+
+**Where to look next**
+`includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php` (`inject_override_args()` — canonical injection list + docblock), `specs/004-ability-override-processor/spec.md` (FR-009 field-path table).
+
+---
+
+### 2026-06-02 — BUG-NORMALIZE-REGISTRY-SOURCE-DEFAULT: `normalize_registry()` string-cast prevented Source Detector from firing
+
+**Status**: Active
+
+**Symptoms**
+All WordPress core abilities (`core/*` slug prefix) showed Source badge "Plugin" instead of "Core" in the Abilities list admin view.
+
+**Root Cause**
+`normalize_registry()` returned `source` as `(string) $ability->get_meta_item('source', 'plugin')`. The cast plus `'plugin'` default meant `source` was always non-empty (`'plugin'` for any ability without an explicit source meta item). The `empty($merged['source'])` guard in `AcrossAI_Ability_Registry_Query::get_ability()` was therefore never true, so `AcrossAI_Ability_Source_Detector::detect()` was never called for core abilities.
+
+**Future mistake prevented**
+The default for `get_meta_item('source', ...)` must be `null` so `empty()` can fire the detector for abilities that don't declare a source. Never use a non-null default for optional meta fields that are expected to be auto-detected.
+
+**Evidence**
+Fixed in `includes/Utilities/AcrossAI_Ability_Merger.php` line 183: changed `(string) $ability->get_meta_item('source', 'plugin')` to `$ability->get_meta_item('source', null)` (Feature 024 CHANGE-1).
+
+**Prevention / Detection**
+When adding auto-detection logic gated by `empty()`, trace every upstream writer of that field and confirm none set a non-null/non-empty default that would short-circuit the guard.
+
+**Where to look next**
+`includes/Utilities/AcrossAI_Ability_Merger.php` (`normalize_registry()` line ~183), `includes/Utilities/AcrossAI_Ability_Registry_Query.php` (line ~79, `empty()` guard), `includes/Utilities/AcrossAI_Ability_Source_Detector.php` (`detect()` — correct, no change needed).

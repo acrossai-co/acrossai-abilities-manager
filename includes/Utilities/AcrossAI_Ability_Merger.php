@@ -57,7 +57,7 @@ class AcrossAI_Ability_Merger {
 		$has_override = null !== $override;
 
 		foreach ( self::$overridable_fields as $field ) {
-			if ( $has_override && null !== $override->{$field} && '' !== (string) $override->{$field} ) {
+			if ( $has_override && null !== $override->{$field} ) {
 				$result[ $field ] = $override->{$field};
 			} else {
 				// Fall back to registry value; use null if registry does not define it.
@@ -98,7 +98,7 @@ class AcrossAI_Ability_Merger {
 	private static function has_any_non_null_field( object $override ): bool {
 		foreach ( self::$overridable_fields as $field ) {
 			// @phpstan-ignore-next-line (dynamic property access on BerlinDB row)
-			if ( null !== $override->{$field} && '' !== (string) $override->{$field} ) {
+			if ( null !== $override->{$field} ) {
 				return true;
 			}
 		}
@@ -180,7 +180,7 @@ class AcrossAI_Ability_Merger {
 			'description'     => $ability->get_description(),
 			'category'        => $ability->get_category(),
 			'provider'        => $provider,
-			'source'          => (string) $ability->get_meta_item( 'source', 'plugin' ),
+			'source'          => $ability->get_meta_item( 'source', null ),
 			'show_in_rest'    => $ability->get_meta_item( 'show_in_rest', false ),
 			'callback_type'   => $ann_or_meta( 'callback_type' ),
 			'callback_config' => null, // execution config — not stored in WP_Ability.

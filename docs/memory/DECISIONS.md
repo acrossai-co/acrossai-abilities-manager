@@ -1116,3 +1116,105 @@ Feature 023 T004: `AcrossAI_Logger_Query.php` — both `$count_values` → `...$
 
 **Where to look next**
 `includes/Modules/Logger/AcrossAI_Logger_Query.php` (`get_logs_paginated` — count and select queries, canonical spread example).
+
+---
+
+## DEC-ESLINT-BASELINE-024
+
+**Date**: 2026-06-02
+**Feature**: 024-ability-form-display-fixes
+**Decision**: ESLint is scoped to new/modified files only until the pre-existing baseline is remediated.
+
+**Context**
+The project has a pre-existing ESLint baseline (~279 errors) in modified JSX files before Feature 024. Root causes:
+1. `@wordpress/element`, `@wordpress/data`, `@wordpress/i18n` listed as `import/no-extraneous-dependencies` — these are WordPress-externalized packages that must NOT be in `package.json` `dependencies`; the ESLint rule is misconfigured for WordPress plugin context.
+2. `jsx-a11y/label-has-associated-control` on pre-existing read-only schema `<label>` elements in Section 7 (Input Schema, Output Schema) and the Callback Type `<label>`.
+3. `jsdoc/*`, `no-shadow`, `no-unused-vars` on pre-existing code.
+4. `import/no-unresolved` for `@wordpress/api-fetch` and `@wpb/access-control` (path aliases not configured for ESLint resolver).
+
+**What Feature 024 did**
+- Ran `eslint --fix` on `src/js/abilities/components/AbilityForm.jsx` and `src/js/abilities/components/AbilitiesList.jsx` to fix all auto-fixable prettier formatting issues introduced by CHANGE-3/CHANGE-4 (and pre-existing ones in those files).
+- Fixed the only new `jsx-a11y/label-has-associated-control` error from CHANGE-4 by changing the read-only Config `<label>` to `<span>`.
+- Fixed the `zod@3.23.8` → `zod@^3.25.0` peer dep upgrade that caused `eslint-plugin-react-hooks → zod-validation-error@4.0.2` to crash with `ERR_PACKAGE_PATH_NOT_EXPORTED: Package subpath './v4/core'`. Added `zod@^3.25.0` as devDependency.
+- ESLint now runs without crashing. Remaining 21 errors in those two files are pre-existing and tracked here.
+
+**Remediation path**
+- Configure ESLint `import/no-extraneous-dependencies` to ignore `@wordpress/*` packages (they are Webpack externals, not Node deps).
+- Fix or suppress `jsx-a11y` on read-only display labels (change `<label>` to `<span>` for non-interactive rows).
+- Fix `jsdoc/*` type annotations on component JSDoc.
+- Target: zero ESLint errors in a dedicated ESLint cleanup feature (suggested: Feature 025-eslint-baseline-fix).
+
+**Where to look next**
+`src/js/abilities/components/AbilityForm.jsx` — 20 pre-existing ESLint errors; `src/js/abilities/components/AbilitiesList.jsx` — 1 pre-existing ESLint error.
+
+---
+
+## DEC-TYPECELL-REGISTRY-FALLBACK
+
+**Date**: 2026-06-02
+**Feature**: 024-ability-form-display-fixes
+**Decision**: DataViews cell renderers for registry-declared fields must read `item.field` first and fall back to `item._registry?.field` for non-db abilities.
+
+**Context**
+Non-db abilities (core abilities, plugin-registered abilities without a DB override row) have `null` for every merged top-level field because there is no override row. Their registry-declared values live exclusively in `item._registry`. A cell renderer that reads only `item.field` renders `—` for every non-db ability.
+
+**Rule**
+```jsx
+// Correct — merged value wins; registry value is the fallback:
+const type = item.callback_type || item._registry?.callback_type;
+
+// Wrong — silently renders '—' for all non-db abilities:
+if (!item.callback_type) return <span>—</span>;
+```
+
+**Tradeoffs**
+The merged value always takes precedence. The registry fallback is only reached when the top-level merged field is `null`/`undefined` (i.e. no override exists). This preserves override semantics while making non-db rows meaningful.
+
+**Future mistake prevented**
+Any new `DataViews` field or cell renderer that reads an ability field must follow this two-step pattern. Single-source reads will silently render blanks for non-db abilities — there is no runtime warning.
+
+**Evidence**
+`TypeCell` in `src/js/abilities/components/AbilitiesList.jsx` — CHANGE-2. Feature 024.
+
+**Where to look next**
+`src/js/abilities/components/AbilitiesList.jsx` (`TypeCell` — canonical fallback example), `src/js/abilities/components/AbilityForm.jsx` (`isNonDb` checks throughout).
+
+---
+
+## DEC-FORM-HINT-REGISTRY-PATH
+
+**Date**: 2026-06-02
+**Feature**: 024-ability-form-display-fixes
+**Decision**: "Plugin declares" hints in the admin form MUST read `savedAbility._registry.field`, never `savedAbility.field`.
+
+**Context**
+The admin form shows hints of the form "Plugin declares: X" to tell the admin what value the plugin registered, so they can see what their override is changing. Reading `savedAbility.field` (the merged value) shows the admin their own override rather than the plugin default — the hint becomes useless and potentially misleading.
+
+**Rule**
+```jsx
+// Correct — reads what the plugin declared:
+hint={
+    isNonDb && null !== savedAbility?._registry?.readonly
+        ? `Plugin declares: ${savedAbility._registry.readonly ? 'yes' : 'no'}`
+        : null
+}
+
+// Wrong — reads the admin's own override back to them:
+hint={
+    isNonDb && null !== savedAbility?.readonly
+        ? `Plugin declares: ${savedAbility.readonly ? 'yes' : 'no'}`
+        : null
+}
+```
+
+**Tradeoffs**
+`_registry` holds the value as the plugin registered it before any override was applied. For a non-db ability, `savedAbility.field` and `savedAbility._registry.field` may look the same when no override exists, which hides the bug. The error only surfaces when an override is saved — by which point the hint already shows wrong information.
+
+**Future mistake prevented**
+Any new form field that shows a "Plugin declares" hint must reference `savedAbility._registry.{field}`. Code review should grep `"Plugin declares"` and verify every adjacent property access uses `._registry.`.
+
+**Evidence**
+Six hint props fixed in `src/js/abilities/components/AbilityForm.jsx` (CHANGE-3: show_in_mcp, mcp_type, readonly, destructive, idempotent, show_in_rest). Feature 024.
+
+**Where to look next**
+`src/js/abilities/components/AbilityForm.jsx` (all `hint=` props that contain `'Plugin declares:'` — verify each uses `._registry.`).
