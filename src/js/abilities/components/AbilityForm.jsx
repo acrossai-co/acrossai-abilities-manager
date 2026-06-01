@@ -19,7 +19,13 @@
  *
  * @since 0.2.0
  */
-import { useState, useEffect, useCallback, useMemo, useRef } from '@wordpress/element';
+import {
+	useState,
+	useEffect,
+	useCallback,
+	useMemo,
+	useRef,
+} from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
@@ -136,21 +142,23 @@ function SitePermissionTGC({ value, onChange }) {
 // Callback type chips for Variant A
 // ---------------------------------------------------------------------------
 const CALLBACK_CHIPS = [
+	{ value: null, label: 'keep as default' },
 	{ value: 'noop', label: 'noop' },
 	{ value: 'filter_hook', label: 'filter_hook' },
 	{ value: 'wp_remote_post', label: 'wp_remote_post' },
 	{ value: 'php_code', label: 'php_code' },
 ];
 
-function CallbackTypeChips({ value, onChange }) {
+function CallbackTypeChips({ value, onChange, disabled = false }) {
 	return (
 		<div className="chips">
 			{CALLBACK_CHIPS.map((chip) => (
 				<button
 					key={chip.value}
 					type="button"
-					className={`chip${chip.value === value ? ' on' : ''}`}
-					onClick={() => onChange(chip.value)}
+					className={`chip${chip.value === value ? ' on' : ''}${disabled ? ' chip--locked' : ''}`}
+					disabled={disabled}
+					onClick={disabled ? undefined : () => onChange(chip.value)}
 				>
 					{chip.label}
 				</button>
@@ -195,8 +203,9 @@ function TriChips({ label, value, onChange, hint, options }) {
  * AbilityForm component.
  *
  * @param {Object} props
- * @param {string} props.mode 'create' | 'edit'
- * @param {string} [props.slug] Ability slug (required for edit mode)
+ * @param {string} props.mode           'create' | 'edit'
+ * @param {string} [props.slug]         Ability slug (required for edit mode)
+ * @param          props.initialAbility
  * @return {JSX.Element}
  */
 export default function AbilityForm({ mode, slug, initialAbility }) {
@@ -316,7 +325,7 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 				setMcpServersError(true);
 				setMcpServers([]);
 			});
-	}, []); // eslint-disable-line react-hooks/exhaustive-deps
+	}, []);
 
 	// ---------------------------------------------------------------------------
 	// Patch helpers
@@ -340,7 +349,7 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 			const initOpts = acInitialRef.current.options;
 			setIsAcDirty(
 				key !== initKey ||
-				JSON.stringify(options) !== JSON.stringify(initOpts)
+					JSON.stringify(options) !== JSON.stringify(initOpts)
 			);
 		}
 	}, []);
@@ -534,7 +543,10 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 						await apiFetch({
 							url: acUrl,
 							method: 'PUT',
-							data: { ac_key: acState.key, ac_options: acState.options },
+							data: {
+								ac_key: acState.key,
+								ac_options: acState.options,
+							},
 						});
 					}
 					acSaveOk = true;
@@ -550,8 +562,6 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 					setIsAcDirty(false);
 				}
 			}
-
-			return;
 		}
 	}
 
@@ -709,7 +719,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								: undefined
 						}
 						aria-disabled={hasRequiredErrors}
-						disabled={isSaving || (!isCreate && !isDirty && !isAcDirty)}
+						disabled={
+							isSaving || (!isCreate && !isDirty && !isAcDirty)
+						}
 						onClick={() => handleSave(false)}
 					>
 						{saveBtnLabel}
@@ -847,11 +859,12 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 										value={draftAbility.label || ''}
 										onChange={(e) => {
 											patch({ label: e.target.value });
-											if (e.target.value.trim())
+											if (e.target.value.trim()) {
 												setFormErrors((prev) => ({
 													...prev,
 													label: '',
 												}));
+											}
 										}}
 										onBlur={handleLabelBlur}
 									/>
@@ -863,6 +876,16 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 												aria-live="polite"
 											>
 												{formErrors.label}
+											</div>
+										)}
+									{isNonDb &&
+										savedAbility?._registry?.label && (
+											<div className="desc">
+												{__(
+													'Plugin declares:',
+													'acrossai-abilities-manager'
+												)}{' '}
+												{savedAbility._registry.label}
 											</div>
 										)}
 								</div>
@@ -888,17 +911,18 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 										value={draftAbility.category || ''}
 										onChange={(e) => {
 											patch({ category: e.target.value });
-											if (e.target.value.trim())
+											if (e.target.value.trim()) {
 												setFormErrors((prev) => ({
 													...prev,
 													category: '',
 												}));
+											}
 										}}
 										onBlur={handleCategoryBlur}
 									>
 										<option value="">
 											{__(
-												'— choose —',
+												'Default',
 												'acrossai-abilities-manager'
 											)}
 										</option>
@@ -919,6 +943,19 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 												aria-live="polite"
 											>
 												{formErrors.category}
+											</div>
+										)}
+									{isNonDb &&
+										savedAbility?._registry?.category && (
+											<div className="desc">
+												{__(
+													'Plugin declares:',
+													'acrossai-abilities-manager'
+												)}{' '}
+												{
+													savedAbility._registry
+														.category
+												}
 											</div>
 										)}
 								</div>
@@ -951,11 +988,12 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 											patch({
 												description: e.target.value,
 											});
-											if (e.target.value.trim())
+											if (e.target.value.trim()) {
 												setFormErrors((prev) => ({
 													...prev,
 													description: '',
 												}));
+											}
 										}}
 										onBlur={handleDescriptionBlur}
 									/>
@@ -967,6 +1005,20 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 												aria-live="polite"
 											>
 												{formErrors.description}
+											</div>
+										)}
+									{isNonDb &&
+										savedAbility?._registry
+											?.description && (
+											<div className="desc">
+												{__(
+													'Plugin declares:',
+													'acrossai-abilities-manager'
+												)}{' '}
+												{
+													savedAbility._registry
+														.description
+												}
 											</div>
 										)}
 								</div>
@@ -1177,8 +1229,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								]}
 								hint={
 									isNonDb &&
-									null !== savedAbility?.show_in_mcp
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.show_in_mcp ? 'yes' : 'no'}`
+									null !==
+										savedAbility?._registry?.show_in_mcp
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility._registry.show_in_mcp ? 'yes' : 'no'}`
 										: null
 								}
 							/>
@@ -1204,8 +1257,8 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 									{ value: 'prompt', label: 'prompt' },
 								]}
 								hint={
-									isNonDb && savedAbility?.mcp_type
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${savedAbility.mcp_type}`
+									isNonDb && savedAbility?._registry?.mcp_type
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${savedAbility._registry.mcp_type}`
 										: null
 								}
 							/>
@@ -1426,8 +1479,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 									},
 								]}
 								hint={
-									isNonDb && null !== savedAbility?.readonly
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.readonly ? 'yes' : 'no'}`
+									isNonDb &&
+									null !== savedAbility?._registry?.readonly
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility._registry.readonly ? 'yes' : 'no'}`
 										: __(
 												'Does this ability mutate state?',
 												'acrossai-abilities-manager'
@@ -1466,8 +1520,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								]}
 								hint={
 									isNonDb &&
-									null !== savedAbility?.destructive
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.destructive ? 'yes' : 'no'}`
+									null !==
+										savedAbility?._registry?.destructive
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility._registry.destructive ? 'yes' : 'no'}`
 										: __(
 												'Can data be permanently lost?',
 												'acrossai-abilities-manager'
@@ -1505,8 +1560,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 									},
 								]}
 								hint={
-									isNonDb && null !== savedAbility?.idempotent
-										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.idempotent ? 'yes' : 'no'}`
+									isNonDb &&
+									null !== savedAbility?._registry?.idempotent
+										? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility._registry.idempotent ? 'yes' : 'no'}`
 										: __(
 												'Safe to call multiple times with the same input?',
 												'acrossai-abilities-manager'
@@ -1545,8 +1601,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 										},
 									]}
 									hint={
-										null !== savedAbility?.show_in_rest
-											? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility.show_in_rest ? 'yes' : 'no'}`
+										null !==
+										savedAbility?._registry?.show_in_rest
+											? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${true === savedAbility._registry.show_in_rest ? 'yes' : 'no'}`
 											: null
 									}
 								/>
@@ -1557,10 +1614,16 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 							<div className="sect-hdr">
 								<div className="sect-title">
 									<span className="sect-num">5</span>
-									{__('User Access', 'acrossai-abilities-manager')}
+									{__(
+										'User Access',
+										'acrossai-abilities-manager'
+									)}
 								</div>
 								<div className="sect-desc">
-									{__('Who can use this ability.', 'acrossai-abilities-manager')}
+									{__(
+										'Who can use this ability.',
+										'acrossai-abilities-manager'
+									)}
 								</div>
 							</div>
 
@@ -1573,26 +1636,32 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								</p>
 							)}
 
-							{!isCreate && !abilitiesConfig.access_control_available && (
-								<p className="notice notice-warning inline-notice">
-									{__(
-										'User Access is inactive — the wpb-access-control library is not loaded.',
-										'acrossai-abilities-manager'
-									)}
-								</p>
-							)}
+							{!isCreate &&
+								!abilitiesConfig.access_control_available && (
+									<p className="notice notice-warning inline-notice">
+										{__(
+											'User Access is inactive — the wpb-access-control library is not loaded.',
+											'acrossai-abilities-manager'
+										)}
+									</p>
+								)}
 
-							{!isCreate && savedAbility?.ability_slug && abilitiesConfig.access_control_available && (
-								<AccessControl
-									namespace="acrossai-abilities"
-									resourceKey={savedAbility.ability_slug}
-									restApiRoot={abilitiesConfig.rest_url || '/wp-json'}
-									nonce={abilitiesConfig.nonce || ''}
-									hideHeader={true}
-									hideSaveButton={true}
-									onChange={handleAcChange}
-								/>
-							)}
+							{!isCreate &&
+								savedAbility?.ability_slug &&
+								abilitiesConfig.access_control_available && (
+									<AccessControl
+										namespace="acrossai-abilities"
+										resourceKey={savedAbility.ability_slug}
+										restApiRoot={
+											abilitiesConfig.rest_url ||
+											'/wp-json'
+										}
+										nonce={abilitiesConfig.nonce || ''}
+										hideHeader={true}
+										hideSaveButton={true}
+										onChange={handleAcChange}
+									/>
+								)}
 						</div>
 						{/* ── VARIANT A: Section 6 — Callback ── */}
 						<div className="sect">
@@ -1621,69 +1690,37 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								<div className="ff">
 									{isNonDb ? (
 										<>
-											<div className="chips">
-												{CALLBACK_CHIPS.map((chip) => (
-													<button
-														key={chip.value}
-														type="button"
-														className={`chip${chip.value === draftAbility.callback_type ? ' on' : ''}`}
-														onClick={() =>
-															patch({
-																callback_type:
-																	chip.value,
-																callback_config:
-																	{},
-															})
-														}
-													>
-														{chip.label}
-													</button>
-												))}
-												<button
-													type="button"
-													className={`chip${!draftAbility.callback_type ? ' on' : ''}`}
-													onClick={() =>
-														patch({
-															callback_type: null,
-															callback_config: {},
-														})
-													}
-												>
-													{__(
-														'Keep as default',
-														'acrossai-abilities-manager'
-													)}
-												</button>
-											</div>
-											{draftAbility.callback_type && (
-												<CallbackConfigField
-													callbackType={
-														draftAbility.callback_type
-													}
-													config={callbackConfig}
-													onChange={(cfg) =>
-														patch({
-															callback_config:
-																cfg,
-														})
-													}
-												/>
-											)}
+											<CallbackTypeChips
+												value={
+													savedAbility?._registry
+														?.callback_type ?? null
+												}
+												onChange={() => {}}
+												disabled={true}
+											/>
 											{savedAbility?._registry
 												?.callback_type && (
-												<div className="desc">
-													{__(
-														'Registered type',
-														'acrossai-abilities-manager'
-													)}
-													{': '}
-													<code>
-														{
+												<div
+													className="ecfg-disabled"
+													style={{
+														pointerEvents: 'none',
+														opacity: 0.7,
+													}}
+												>
+													<CallbackConfigField
+														callbackType={
 															savedAbility
 																._registry
 																.callback_type
 														}
-													</code>
+														config={
+															savedAbility
+																._registry
+																.callback_config ||
+															{}
+														}
+														onChange={() => {}}
+													/>
 												</div>
 											)}
 										</>
@@ -1872,7 +1909,6 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								</div>
 							);
 						})()}
-
 					</div>
 					{/* end .panel */}
 				</div>
@@ -1981,7 +2017,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 															'center',
 													}
 										}
-										disabled={isSaving || (!isDirty && !isAcDirty)}
+										disabled={
+											isSaving || (!isDirty && !isAcDirty)
+										}
 										aria-disabled={hasRequiredErrors}
 										onClick={() => handleSave(false)}
 									>
@@ -2058,7 +2096,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 											width: '100%',
 											justifyContent: 'center',
 										}}
-										disabled={isSaving || (!isDirty && !isAcDirty)}
+										disabled={
+											isSaving || (!isDirty && !isAcDirty)
+										}
 										onClick={() => handleSave(false)}
 									>
 										{isSaving
@@ -2409,7 +2449,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 					<button
 						type="button"
 						className="button button-primary"
-						disabled={isSaving || (!isCreate && !isDirty && !isAcDirty)}
+						disabled={
+							isSaving || (!isCreate && !isDirty && !isAcDirty)
+						}
 						onClick={() => handleSave(false)}
 					>
 						{saveBtnLabel}

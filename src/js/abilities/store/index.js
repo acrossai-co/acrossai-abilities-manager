@@ -114,7 +114,9 @@ function reducer(state = DEFAULT_STATE, action) {
 				...state,
 				savedAbility: saved,
 				draftAbility: (() => {
-					if (!saved) { return {}; }
+					if (!saved) {
+						return {};
+					}
 					const draft = { ...saved };
 					// Bug 3: seed overridable fields from _override (null = Inherit)
 					// so TriChip controls show the correct DB state, not merged values.
