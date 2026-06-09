@@ -9,13 +9,17 @@
 		{
 			"type": "vcs",
 			"url": "https://github.com/WPBoilerplate/wpb-addons-page"
+		},
+		{
+			"type": "vcs",
+			"url": "https://github.com/WPBoilerplate/wpb-access-control"
 		}
 	],
 	"require": {
 		"php": ">=7.4",
 		"automattic/jetpack-autoloader": "^5.0",
-		"wpboilerplate/wpb-access-control": "^1.1.1",
-		"berlindb/core": "^2.0",
+		"wpboilerplate/wpb-access-control": "dev-main",
+		"berlindb/core": "^3.0.0",
 		"wpboilerplate/wpb-mcp-servers-list": "^0.0.1",
 		"wpboilerplate/addons-page": "^0.0.17"
 	},
