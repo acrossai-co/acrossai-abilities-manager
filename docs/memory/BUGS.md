@@ -1123,3 +1123,99 @@ The ABSPATH guard is per-file, not per-instantiation. Static utility classes are
 
 **Where to look next**
 `includes/Modules/Library/AcrossAI_Ability_Library_Config.php` (fixed); compare with `AcrossAI_Ability_Library_Registry.php` and `AcrossAI_Ability_Library_Processor.php` as reference patterns.
+
+---
+
+### 2026-06-10 — BUG-BERLINDB-V3-DOUBLE-PRIMARY: BerlinDB v3 double primary key declaration causes silent DDL generation failure
+
+**Status**: Active
+
+**Symptoms**
+`CREATE TABLE` silently fails — table is never created, no PHP exception is thrown. WordPress debug log shows MySQL error: `Incorrect table definition; there can be only one auto column and it must be defined as a key`.
+
+**Root Cause**
+`Column::get_create_string()` in BerlinDB v3 does not emit `PRIMARY KEY` from `'primary' => true` on the column definition; the correct mechanism is an explicit `$indexes` entry with `'type' => 'primary'`. However, if **both** `'primary' => true` on the column AND a `'type' => 'primary'` index entry are present, `Schema::is_valid()` counts 2 primary keys → `get_create_table_string()` returns `''` → `create()` silently returns false.
+
+**Future mistake prevented**
+In BerlinDB v3 Schema subclasses, declare PRIMARY KEY only via `$indexes`. Remove `'primary' => true` from `$columns` entirely. Having both causes the silent DDL failure.
+
+**Evidence**
+`includes/Modules/Abilities/Database/AcrossAI_Abilities_Schema.php`, `includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Schema.php` — Feature 028.
+
+**Prevention / Detection**
+When upgrading from BerlinDB v2 to v3: grep for `'primary' => true` in all `$columns` arrays. If a matching `'type' => 'primary'` index also exists in `$indexes`, remove the column-level flag.
+
+**Where to look next**
+`includes/Modules/Abilities/Database/AcrossAI_Abilities_Schema.php` (`$indexes` PRIMARY KEY entry, no column-level `'primary'` flag) — reference pattern.
+
+---
+
+### 2026-06-10 — BUG-BERLINDB-V3-TIMESTAMP-QUOTING: BerlinDB v3 quotes all column defaults, breaking CURRENT_TIMESTAMP
+
+**Status**: Active
+
+**Symptoms**
+`CREATE TABLE` fails with MySQL error: `Incorrect table definition` or `Invalid default value for 'created_at'`. The generated DDL contains `datetime not null default 'CURRENT_TIMESTAMP'` — the string literal, not the MySQL function.
+
+**Root Cause**
+`Column::get_default_sql()` in BerlinDB v3 wraps every `'default'` value in single quotes before any special-value check. `'default' => 'CURRENT_TIMESTAMP'` generates `default 'CURRENT_TIMESTAMP'`, which MySQL rejects for `datetime` columns.
+
+**Future mistake prevented**
+Never set `'default' => 'CURRENT_TIMESTAMP'` on a datetime/timestamp column in BerlinDB v3. Use `'created' => true` or `'modified' => true` column flags for auto-timestamping. Remove `'default'` from datetime columns entirely.
+
+**Evidence**
+`includes/Modules/Abilities/Database/AcrossAI_Abilities_Schema.php` — `created_at`/`updated_at` columns fixed. Feature 028.
+
+**Prevention / Detection**
+Grep for `'default' => 'CURRENT_TIMESTAMP'` in all BerlinDB Schema subclasses. Replace with `'created' => true` or `'modified' => true` as appropriate.
+
+**Where to look next**
+`includes/Modules/Abilities/Database/AcrossAI_Abilities_Schema.php` (`created_at` column with `'created' => true`, no `'default'` key) — reference pattern.
+
+---
+
+### 2026-06-10 — BUG-PERMISSION-CALLBACK-TRUTHY-RESPONSE: Returning WP_REST_Response from permission_callback silently grants access to all callers
+
+**Status**: Active
+
+**Symptoms**
+REST endpoint is accessible to all authenticated (or even unauthenticated) callers. No PHP error or warning. The 403 status embedded in the response object is never evaluated — access is granted regardless.
+
+**Root Cause**
+WordPress REST dispatcher evaluates `permission_callback` via `is_wp_error($result)` then `! $result`. A `WP_REST_Response` object: (1) is not a `WP_Error`, (2) is truthy. Both checks pass → access granted regardless of the HTTP status code in the response.
+
+**Future mistake prevented**
+`permission_callback` MUST return only `true`, `false`, or `WP_Error`. Never return `WP_REST_Response` from `permission_callback`, even with a 403 status. The CONSTITUTION.md MUST rule records the canonical `check_permission()` pattern.
+
+**Evidence**
+`includes/Modules/Logger/Rest/AcrossAI_Logger_Controller.php` — was returning `new WP_REST_Response(..., 403)`; fixed to return `new \WP_Error('rest_forbidden', ..., ['status' => 403])`. Feature 028.
+
+**Prevention / Detection**
+Grep for `new WP_REST_Response` and `new \WP_REST_Response` in all files containing `permission_callback`. Verify return type declarations use `true|\WP_Error`, not `\WP_REST_Response`.
+
+**Where to look next**
+`includes/Modules/Logger/Rest/AcrossAI_Logger_Controller.php` (`check_permission()`) — correct pattern. `.specify/memory/CONSTITUTION.md` — MUST rule with canonical code example.
+
+---
+
+### 2026-06-10 — BUG-GITATTRIBUTES-EXPORT-IGNORE: Removing a directory from composer.json archive.exclude does not fix Composer VCS installs from GitHub tags
+
+**Status**: Active
+
+**Symptoms**
+After removing a directory from `composer.json archive.exclude`, running `composer update` still installs the package without that directory. The directory is present in the local repo checkout but absent from the installed vendor copy.
+
+**Root Cause**
+GitHub builds tag ZIPs using `git archive`, which respects `.gitattributes export-ignore` directives — not `composer.json archive.exclude`. `archive.exclude` only affects `composer archive` (the CLI packaging command). When Composer resolves a VCS (`github`) source, it downloads the `git archive`-generated ZIP from GitHub, so `.gitattributes` is the effective exclusion gate.
+
+**Future mistake prevented**
+To include a directory in Composer VCS installs from GitHub tags: remove its `export-ignore` line from `.gitattributes`, not just from `composer.json archive.exclude`. Both files serve different distribution mechanisms.
+
+**Evidence**
+`wpb-access-control` repo: v1.2.2 removed `/js` from `composer.json archive.exclude` only — ineffective. v1.2.3 removed `/js export-ignore` from `.gitattributes` — fixed vendor install of `js/AccessControl.js`. Feature 028.
+
+**Prevention / Detection**
+If a vendor directory is missing after `composer update` from a GitHub tag: inspect `.gitattributes` in the upstream repo before touching `archive.exclude`. Download the GitHub release ZIP directly and verify directory presence.
+
+**Where to look next**
+`wpb-access-control` `.gitattributes` (v1.2.3) — reference of corrected state with `/js export-ignore` line removed.
