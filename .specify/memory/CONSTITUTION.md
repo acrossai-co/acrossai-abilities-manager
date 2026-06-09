@@ -1,5 +1,18 @@
 <!--
 SYNC IMPACT REPORT
+Version change: 1.4.5 → 1.4.6
+Modified sections: §II WordPress Standards Compliance — PHP minimum floor raised from 7.4 to 8.1
+Rationale: Feature 028 raises the declared PHP minimum to 8.1. PHP 7.4 reached end-of-life
+November 2022. phpunit/phpunit ^13.2 already requires PHP 8.2+, making the 7.4 declaration
+misleading. PHPUnit CI matrix now covers PHP 8.1–8.5.
+Templates reviewed:
+  - .specify/templates/plan-template.md ✅ reviewed — no outdated references
+  - .specify/templates/spec-template.md ✅ reviewed — no outdated references
+  - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
+  - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
+Deferred TODOs: None
+
+SYNC IMPACT REPORT
 Version change: 1.4.4 → 1.4.5
 Modified sections: §I Modular Architecture — added AbilityAPI Registration Management as sixth active feature area; Directory Layout updated to include AbilityAPI/ module directory
 Rationale: Feature 027 introduces the AbilityAPI module (includes/Modules/AbilityAPI/) as a standalone feature area for add-on ability registration management. The previous §I listed exactly five areas; this patch adds the sixth. No principle was changed — the module list is corrected to match implementation reality, mirroring the v1.4.2 Logger/ addition pattern.
@@ -114,7 +127,7 @@ single-line production-code findings.
 PHPCS is part of the quality gate via Composer and WPCS. Required CI checks MUST either run PHPCS
 against a clean production plugin surface or first eliminate the repo-wide PHPCS baseline. A failing
 baseline MUST NOT be added as a required PR check without a documented remediation plan.
-The plugin MUST be compatible with WordPress 6.9+ and PHP 7.4+.
+The plugin MUST be compatible with WordPress 6.9+ and PHP 8.1+.
 The plugin MUST be multisite-compatible unless a feature is explicitly scoped to single-site with
 documented justification.
 

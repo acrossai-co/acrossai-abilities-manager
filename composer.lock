@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9c32298a64578059ae6e89cf53831240",
+    "content-hash": "0d3fe81c525312e99f24c27c654eb792",
     "packages": [
         {
             "name": "automattic/jetpack-autoloader",
@@ -73,20 +73,37 @@
         },
         {
             "name": "berlindb/core",
-            "version": "2.0.2",
+            "version": "3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/berlindb/core.git",
-                "reference": "6a9383ab2dad726bf2d6dbda6687da848eda22ea"
+                "reference": "2e17399d5b397a25a9061d75811bdcdd00c051d4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/berlindb/core/zipball/6a9383ab2dad726bf2d6dbda6687da848eda22ea",
-                "reference": "6a9383ab2dad726bf2d6dbda6687da848eda22ea",
+                "url": "https://api.github.com/repos/berlindb/core/zipball/2e17399d5b397a25a9061d75811bdcdd00c051d4",
+                "reference": "2e17399d5b397a25a9061d75811bdcdd00c051d4",
                 "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan": "^2",
+                "phpunit/phpunit": "^9.6",
+                "squizlabs/php_codesniffer": "^3.9",
+                "szepeviktor/phpstan-wordpress": "^2.0.3",
+                "wp-coding-standards/wpcs": "^3.1",
+                "yoast/phpunit-polyfills": "^1.1.0",
+                "yoast/wp-test-utils": "^1.2"
             },
             "type": "library",
             "autoload": {
+                "files": [
+                    "autoloader.php"
+                ],
                 "psr-4": {
                     "BerlinDB\\": "src/"
                 }
@@ -96,11 +113,19 @@
                 "MIT"
             ],
             "description": "A collection of PHP classes and functions that aims to provide an ORM-like experience and interface to WordPress database tables.",
+            "homepage": "https://github.com/berlindb/core",
+            "keywords": [
+                "custom-tables",
+                "database",
+                "orm",
+                "wordpress",
+                "wpdb"
+            ],
             "support": {
                 "issues": "https://github.com/berlindb/core/issues",
-                "source": "https://github.com/berlindb/core/tree/2.0.2"
+                "source": "https://github.com/berlindb/core"
             },
-            "time": "2025-10-23T20:00:35+00:00"
+            "time": "2026-05-28T15:32:55+00:00"
         },
         {
             "name": "freemius/wordpress-sdk",
@@ -203,22 +228,22 @@
         },
         {
             "name": "wpboilerplate/wpb-access-control",
-            "version": "v1.1.1",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WPBoilerplate/wpb-access-control.git",
-                "reference": "b57baa755be39c9129fa3b4bc1c455f82dd065a8"
+                "reference": "be711a68d63106782314342529240bf89a9a588e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WPBoilerplate/wpb-access-control/zipball/b57baa755be39c9129fa3b4bc1c455f82dd065a8",
-                "reference": "b57baa755be39c9129fa3b4bc1c455f82dd065a8",
+                "url": "https://api.github.com/repos/WPBoilerplate/wpb-access-control/zipball/be711a68d63106782314342529240bf89a9a588e",
+                "reference": "be711a68d63106782314342529240bf89a9a588e",
                 "shasum": ""
             },
             "require": {
                 "automattic/jetpack-autoloader": "^5.0",
-                "berlindb/core": "^2.0",
-                "php": ">=7.4"
+                "berlindb/core": "^3.0",
+                "php": ">=8.1"
             },
             "require-dev": {
                 "brain/monkey": "^2.6",
@@ -230,7 +255,35 @@
                     "WPBoilerplate\\AccessControl\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "WPBoilerplate\\AccessControl\\Tests\\": "tests/"
+                }
+            },
+            "archive": {
+                "exclude": [
+                    "/.claude",
+                    "/.github",
+                    "/.gitattributes",
+                    "/.gitignore",
+                    "/.phpunit.result.cache",
+                    "/AGENTS.md",
+                    "/composer.lock",
+                    "/js",
+                    "/node_modules",
+                    "/package.json",
+                    "/package-lock.json",
+                    "/phpunit.xml",
+                    "/tests",
+                    "/vendor",
+                    "/webpack.config.js"
+                ]
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ]
+            },
             "license": [
                 "GPL-2.0-or-later"
             ],
@@ -253,7 +306,7 @@
                 "issues": "https://github.com/WPBoilerplate/wpb-access-control/issues",
                 "source": "https://github.com/WPBoilerplate/wpb-access-control"
             },
-            "time": "2026-05-28T19:39:38+00:00"
+            "time": "2026-06-09T14:53:59+00:00"
         },
         {
             "name": "wpboilerplate/wpb-mcp-servers-list",
@@ -968,8 +1021,8 @@
             "version": "2.2.x-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/1574314bc7bfb11897e2538b9a971bd006a5b51d",
-                "reference": "1574314bc7bfb11897e2538b9a971bd006a5b51d",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/ffc9cd5484a34de0cf7ce684b7c7f0c13eeabe4c",
+                "reference": "ffc9cd5484a34de0cf7ce684b7c7f0c13eeabe4c",
                 "shasum": ""
             },
             "require": {
@@ -1026,7 +1079,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-08T15:33:01+00:00"
+            "time": "2026-06-09T12:31:06+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -2955,7 +3008,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.4"
+        "php": ">=8.1"
     },
     "platform-dev": {},
     "plugin-api-version": "2.6.0"

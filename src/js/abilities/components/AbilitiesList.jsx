@@ -575,12 +575,6 @@ export default function AbilitiesList() {
 					)}
 				</div>
 
-				<div className="tn-pages">
-					{isLoading
-						? __('Loading…', 'acrossai-abilities-manager')
-						: `${abilities.length} ${__('of', 'acrossai-abilities-manager')} ${total} ${__('items', 'acrossai-abilities-manager')}`}
-				</div>
-
 				<div className="tablenav-pages">
 					<span className="displaying-num">
 						{total} {__('items', 'acrossai-abilities-manager')}

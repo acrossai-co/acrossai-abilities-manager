@@ -13,7 +13,7 @@ permissions: {}
 
 jobs:
   phpcompat:
-    name: PHP 7.4+ Compatibility
+    name: PHP 8.1+ Compatibility
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -33,7 +33,7 @@ jobs:
           vendor/bin/phpcs \
             --standard=PHPCompatibility \
             --extensions=php \
-            --runtime-set testVersion 7.4- \
+            --runtime-set testVersion 8.1- \
             --report=checkstyle \
             acrossai-abilities-manager.php \
             uninstall.php \

@@ -306,7 +306,8 @@ $warn:    #dba617;
 }
 
 .tablenav-pages-below {
-	margin-top: 8px;
+	margin-top:  8px;
+	text-align:  right;
 }
 
 // Column visibility toggle panel
@@ -1372,4 +1373,4 @@ $warn:    #dba617;
 
 	h1 { margin: 0; }
 }
-@import '../../../vendor/wpboilerplate/wpb-access-control/js/AccessControl';
+// wpb-access-control CSS is enqueued separately via PHP (v1.2.0 ships compiled assets only, no SCSS source).
