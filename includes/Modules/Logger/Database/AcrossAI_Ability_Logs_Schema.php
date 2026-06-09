@@ -7,6 +7,8 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database;
 
 use BerlinDB\Database\Kern\Schema;
@@ -135,24 +137,28 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 		// Index for filtering/sorting by ability_slug and created_at (SC-002).
 		array(
 			'name'    => 'idx_ability_slug_created',
+			'type'    => 'key',
 			'columns' => array( 'ability_slug', 'created_at' ),
 		),
 
 		// Index for filtering/sorting by source and created_at (SC-002).
 		array(
 			'name'    => 'idx_source_created',
+			'type'    => 'key',
 			'columns' => array( 'source', 'created_at' ),
 		),
 
 		// Index for filtering/sorting by user_id and created_at (SC-002).
 		array(
 			'name'    => 'idx_user_id_created',
+			'type'    => 'key',
 			'columns' => array( 'user_id', 'created_at' ),
 		),
 
 		// Index for filtering/sorting by status and created_at (SC-002).
 		array(
 			'name'    => 'idx_status_created',
+			'type'    => 'key',
 			'columns' => array( 'status', 'created_at' ),
 		),
 	);

@@ -23,6 +23,8 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database;
 
 use BerlinDB\Database\Kern\Query;
@@ -60,6 +62,13 @@ class AcrossAI_Abilities_Query extends Query {
 	 * @var string
 	 */
 	protected $table_name = 'acrossai_abilities';
+
+	/**
+	 * SQL alias used in JOIN expressions (first letter of each table-name segment).
+	 *
+	 * @var string
+	 */
+	protected $table_alias = 'aa';
 
 	/**
 	 * Singular item name — used for BerlinDB hook name generation.

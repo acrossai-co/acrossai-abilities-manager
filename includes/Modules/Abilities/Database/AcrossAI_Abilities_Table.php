@@ -7,6 +7,8 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database;
 
 use BerlinDB\Database\Kern\Table;
@@ -45,8 +47,7 @@ class AcrossAI_Abilities_Table extends Table {
 	protected $db_version_key = 'acrossai_abilities_db_version';
 
 	/**
-	 * Schema class for this table (BerlinDB v3: property, not overridden method).
-	 * The parent's private set_schema() reads this and instantiates the class.
+	 * Schema class for this table.
 	 *
 	 * @var string
 	 */

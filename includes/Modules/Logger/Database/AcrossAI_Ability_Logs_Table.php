@@ -7,6 +7,8 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database;
 
 use BerlinDB\Database\Kern\Table;
@@ -47,7 +49,7 @@ class AcrossAI_Ability_Logs_Table extends Table {
 	protected $db_version_key = 'acrossai_ability_logs_db_version';
 
 	/**
-	 * Schema class for this table (BerlinDB v3: property, not overridden method).
+	 * Schema class for this table.
 	 *
 	 * @var string
 	 */
@@ -71,8 +73,8 @@ class AcrossAI_Ability_Logs_Table extends Table {
 	/**
 	 * Get the singleton instance of this table.
 	 *
-	 * Note: constructor is intentionally NOT private. BerlinDB\Database\Table
-	 * performs table-registration side-effects in parent::__construct().
+	 * Note: constructor is intentionally NOT private. The BerlinDB Table base
+	 * class performs table-registration side-effects in parent::__construct().
 	 * A private constructor would prevent those from running and break table
 	 * registration. Justified exception to the Module Contract.
 	 *

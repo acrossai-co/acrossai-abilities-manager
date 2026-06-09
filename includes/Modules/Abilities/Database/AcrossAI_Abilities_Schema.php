@@ -7,6 +7,8 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database;
 
 use BerlinDB\Database\Kern\Schema;
