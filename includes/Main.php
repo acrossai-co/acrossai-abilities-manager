@@ -315,6 +315,21 @@ final class Main {
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
 		$abilities_rest = \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Rest\AcrossAI_Abilities_Rest_Controller::instance();
 		$this->loader->add_action( 'rest_api_init', $abilities_rest, 'register_routes' );
+
+		// Library Registry — collect add-on definitions at init P99 (Feature 027).
+		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
+		$ability_library_registry = \AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Registry::instance();
+		$this->loader->add_action( 'init', $ability_library_registry, 'collect', 99 );
+
+		// Library REST orchestrator — acrossai-abilities-library/v1 namespace (Feature 027).
+		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
+		$ability_library_rest = \AcrossAI_Abilities_Manager\Includes\Modules\Library\Rest\AcrossAI_Ability_Library_Rest_Controller::instance();
+		$this->loader->add_action( 'rest_api_init', $ability_library_rest, 'register_routes' );
+
+		// Library submenu page (Feature 027).
+		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
+		$ability_library_menu = \AcrossAI_Abilities_Manager\Admin\Partials\LibraryMenu::instance();
+		$this->loader->add_action( 'admin_menu', $ability_library_menu, 'register_submenu' );
 	}
 
 	/**
@@ -359,6 +374,12 @@ final class Main {
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
 		$abilities_processor = \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Processor::instance();
 		$this->loader->add_action( 'wp_abilities_api_init', $abilities_processor, 'register_abilities', 10 );
+
+		// Library Processor — registers add-on abilities at wp_abilities_api_init P5 (Feature 027).
+		// Runs before the DB processor at P10 so add-on abilities are gated first.
+		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
+		$ability_library_processor = \AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Processor::instance();
+		$this->loader->add_action( 'wp_abilities_api_init', $ability_library_processor, 'register_abilities', 5 );
 	}
 
 	/**

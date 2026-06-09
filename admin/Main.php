@@ -93,6 +93,15 @@ class Main {
 	private $abilities_asset_file;
 
 	/**
+	 * Asset manifest for the Ability Library JS/CSS bundle.
+	 *
+	 * @since    0.1.0
+	 * @access   private
+	 * @var      array|null
+	 */
+	private $library_asset_file;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    0.0.1
@@ -122,6 +131,12 @@ class Main {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'acrossai-abilities-manager: build/js/abilities.asset.php not found — run npm run build.' );
 		}
+
+		// Load Ability Library asset file if it exists (built by @wordpress/scripts build).
+		$library_asset_path = \ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH . 'build/js/ability-library.asset.php';
+		if ( file_exists( $library_asset_path ) ) {
+			$this->library_asset_file = include $library_asset_path;
+		}
 	}
 
 	/**
@@ -133,7 +148,8 @@ class Main {
 	public function enqueue_styles( string $hook_suffix ) {
 		if ( ! $this->is_manager_page( $hook_suffix )
 			&& ! $this->is_logs_page( $hook_suffix )
-			&& ! $this->is_settings_page( $hook_suffix ) ) {
+			&& ! $this->is_settings_page( $hook_suffix )
+			&& ! $this->is_library_page( $hook_suffix ) ) {
 			return;
 		}
 
@@ -158,6 +174,17 @@ class Main {
 			);
 			wp_enqueue_style( 'acrossai-abilities-manager-abilities' );
 		}
+
+		// Enqueue Ability Library styles only on Library submenu page (Feature 027).
+		if ( $this->library_asset_file && $this->is_library_page( $hook_suffix ) ) {
+			wp_register_style(
+				'acrossai-ability-library-css',
+				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/css/ability-library.css',
+				array(),
+				$this->library_asset_file['version']
+			);
+			wp_enqueue_style( 'acrossai-ability-library-css' );
+		}
 	}
 
 	/**
@@ -169,7 +196,8 @@ class Main {
 	public function enqueue_scripts( string $hook_suffix ) {
 		if ( ! $this->is_manager_page( $hook_suffix )
 			&& ! $this->is_logs_page( $hook_suffix )
-			&& ! $this->is_settings_page( $hook_suffix ) ) {
+			&& ! $this->is_settings_page( $hook_suffix )
+			&& ! $this->is_library_page( $hook_suffix ) ) {
 			return;
 		}
 
@@ -188,7 +216,7 @@ class Main {
 				'acrossai-abilities-logger',
 				'window.acrossaiAbilitiesLogger = ' . wp_json_encode(
 					array(
-						'restEndpoint' => untrailingslashit( rest_url( 'acrossai-abilities/v1/logger/logs' ) ),
+						'restEndpoint' => untrailingslashit( rest_url( 'acrossai-abilities-log/v1/logger/logs' ) ),
 						'nonce'        => wp_create_nonce( 'wp_rest' ),
 					)
 				) . ';',
@@ -222,6 +250,20 @@ class Main {
 				) . ';',
 				'before'
 			);
+		}
+
+		// Enqueue Ability Library scripts only on Library submenu page (Feature 027).
+		// LibraryMenu::render() calls localize_data() to inject window.acrossaiAbilityLibraryData
+		// after this script is registered with the 'acrossai-ability-library-js' handle.
+		if ( $this->library_asset_file && $this->is_library_page( $hook_suffix ) ) {
+			wp_register_script(
+				'acrossai-ability-library-js',
+				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/js/ability-library.js',
+				$this->library_asset_file['dependencies'],
+				$this->library_asset_file['version'],
+				true
+			);
+			wp_enqueue_script( 'acrossai-ability-library-js' );
 		}
 	}
 
@@ -259,6 +301,20 @@ class Main {
 	 */
 	private function is_settings_page( string $hook_suffix ): bool {
 		return 'acrossai-abilities-manager_page_acrossai-abilities-settings' === $hook_suffix;
+	}
+
+	/**
+	 * Checks whether the current admin screen is the Ability Library page.
+	 *
+	 * Hook suffix formula: {parent-slug}_page_{submenu-slug} (DEC-MENU-HOOK-SUFFIX).
+	 * Literal is hardcoded — do NOT store add_submenu_page() return value (DEC-MENU-HOOK-SUFFIX).
+	 *
+	 * @since    0.1.0
+	 * @param string $hook_suffix The hook suffix for the current admin screen.
+	 * @return bool
+	 */
+	private function is_library_page( string $hook_suffix ): bool {
+		return 'acrossai-abilities-manager_page_acrossai-abilities-library' === $hook_suffix;
 	}
 
 	/**

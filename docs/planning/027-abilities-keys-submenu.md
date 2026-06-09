@@ -33,7 +33,7 @@ The main goal is strict:
 
 The admin UI uses `@wordpress/dataviews` for the grid/list and DataForm-compatible controls
 from WordPress packages for editable state. Saves are debounced through a dedicated REST API
-namespace: `acrossai-abilities/v1`.
+namespace: `acrossai-abilities-api/v1`.
 
 ---
 
@@ -62,7 +62,7 @@ wp_abilities_api_categories_init. Abilities are registered by this manager on
 wp_abilities_api_init after filtering disabled keys.
 
 Admin UI uses @wordpress/dataviews ^14.2.0 (already installed), debounced auto-save via
-apiFetch to a dedicated REST controller at acrossai-abilities/v1/abilities/config."
+apiFetch to a dedicated REST controller at acrossai-abilities-api/v1/abilities/config."
 ```
 
 ---
@@ -72,16 +72,17 @@ apiFetch to a dedicated REST controller at acrossai-abilities/v1/abilities/confi
 | # | Fact | How to verify |
 |---|------|---------------|
 | B-1 | `@wordpress/dataviews ^14.2.0` is already declared in `package.json`; no `npm install` is required | `grep dataviews package.json` |
-| B-2 | New JS/CSS entries are explicit in `webpack.config.js`; this repo does **not** auto-discover `src/js/keys/index.js` | read `webpack.config.js` |
+| B-2 | New JS/CSS entries are explicit in `webpack.config.js`; this repo does **not** auto-discover `src/js/ability-api/index.js` | read `webpack.config.js` |
 | B-3 | DataViews reference pattern lives at `src/js/components/LogsTable.js` | read `src/js/components/LogsTable.js` |
 | B-4 | Parent admin menu slug `acrossai-abilities-manager` is registered in `admin/Partials/Menu.php:63` | read `admin/Partials/Menu.php` |
 | B-5 | Existing `AcrossAI_Abilities_Processor::register_abilities()` registers DB-backed abilities; it does **not** contain a legacy callback-row loop | read `includes/Modules/Abilities/AcrossAI_Abilities_Processor.php` |
-| B-6 | Existing manager REST namespace is `acrossai-abilities-manager/v1`; Feature 027 intentionally adds a separate namespace `acrossai-abilities/v1` | read `includes/Modules/Abilities/Rest/AcrossAI_Abilities_Rest_Controller.php` |
-| B-7 | Singleton + Loader pattern for admin partials is established (`admin/Partials/LogsMenu.php`, `admin/Partials/SettingsMenu.php`) | read both files |
-| B-8 | `ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE`, `ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH`, and `ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL` are available constants | read `includes/Main.php::define_constants()` |
-| B-9 | Constitution v1.4.4 forbids abstract module base classes and `includes/Base/`; hooks must be wired in `includes/Main.php` via the Loader | read `.specify/memory/CONSTITUTION.md` |
-| B-10 | Admin assets must be enqueued only from `admin/Main.php`, gated by hook suffix | read `.agents/skills/wp-plugin-development/references/admin.md` |
-| B-11 | Options not needed on every request should use `autoload=false` | read `.agents/skills/wp-plugin-development/SKILL.md` settings section |
+| B-6 | Existing manager REST namespace is `acrossai-abilities-manager/v1`; Feature 027 intentionally adds a separate namespace `acrossai-abilities-api/v1` | read `includes/Modules/Abilities/Rest/AcrossAI_Abilities_Rest_Controller.php` |
+| B-7 | Existing logger logs currently use `acrossai-abilities/v1`; Feature 027 migrates them to `acrossai-abilities-log/v1` | read `includes/Modules/Logger/Rest/AcrossAI_Logger_Logs_Controller.php` |
+| B-8 | Singleton + Loader pattern for admin partials is established (`admin/Partials/LogsMenu.php`, `admin/Partials/SettingsMenu.php`) | read both files |
+| B-9 | `ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE`, `ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH`, and `ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL` are available constants | read `includes/Main.php::define_constants()` |
+| B-10 | Constitution v1.4.4 forbids abstract module base classes and `includes/Base/`; hooks must be wired in `includes/Main.php` via the Loader | read `.specify/memory/CONSTITUTION.md` |
+| B-11 | Admin assets must be enqueued only from `admin/Main.php`, gated by hook suffix | read `.agents/skills/wp-plugin-development/references/admin.md` |
+| B-12 | Options not needed on every request should use `autoload=false` | read `.agents/skills/wp-plugin-development/SKILL.md` settings section |
 | B-12 | Categories must be registered on `wp_abilities_api_categories_init`; abilities on `wp_abilities_api_init` | read `wp-includes/abilities-api.php` |
 
 ---
@@ -120,31 +121,31 @@ Future compatibility:
 Create a new module:
 
 ```text
-includes/Modules/AbilityKeys/
+includes/Modules/AbilityAPI/
 ```
 
 Use this namespace:
 
 ```php
-AcrossAI_Abilities_Manager\Includes\Modules\AbilityKeys
+AcrossAI_Abilities_Manager\Includes\Modules\AbilityAPI
 ```
 
 Recommended class names:
 
 | Concern | Class |
 |---|---|
-| Definition collection/normalization | `AcrossAI_Ability_Keys_Definitions` |
-| Saved config and enable predicate | `AcrossAI_Ability_Keys_Config` |
-| Runtime ability registration | `AcrossAI_Ability_Keys_Registrar` |
-| REST namespace orchestrator | `Rest\AcrossAI_Ability_Keys_Rest_Controller` |
-| REST config route | `Rest\AcrossAI_Ability_Keys_Config_Controller` |
+| Definition collection/normalization | `AcrossAI_Ability_API_Definitions` |
+| Saved config and enable predicate | `AcrossAI_Ability_API_Config` |
+| Runtime ability registration | `AcrossAI_Ability_API_Registrar` |
+| REST namespace orchestrator | `Rest\AcrossAI_Ability_API_Rest_Controller` |
+| REST config route | `Rest\AcrossAI_Ability_API_Config_Controller` |
 
 Admin/UI stays outside the module:
 
 ```text
-admin/Partials/AbilitiesKeysMenu.php
-src/js/keys/
-src/scss/keys/
+admin/Partials/AbilityAPIMenu.php
+src/js/ability-api/
+src/scss/ability-api/
 ```
 
 ---
@@ -257,7 +258,7 @@ require add-ons to extend `WP_Ability`.
 
 ### Definition registry
 
-`AcrossAI_Ability_Keys_Definitions` owns:
+`AcrossAI_Ability_API_Definitions` owns:
 
 - applying `acrossai_abilities_api_init` once per request,
 - validating each definition,
@@ -269,9 +270,9 @@ require add-ons to extend `WP_Ability`.
 Class shape:
 
 ```php
-namespace AcrossAI_Abilities_Manager\Includes\Modules\AbilityKeys;
+namespace AcrossAI_Abilities_Manager\Includes\Modules\AbilityAPI;
 
-class AcrossAI_Ability_Keys_Definitions {
+class AcrossAI_Ability_API_Definitions {
 	const FILTER_NAME = 'acrossai_abilities_api_init';
 
 	protected static $instance = null;
@@ -345,12 +346,12 @@ Storage rules:
 - Missing sub_key in `specific` mode defaults to disabled unless explicitly true.
 - Keep stale config entries when an add-on is deactivated so reactivation restores prior state.
 
-`AcrossAI_Ability_Keys_Config` owns:
+`AcrossAI_Ability_API_Config` owns:
 
 ```php
-namespace AcrossAI_Abilities_Manager\Includes\Modules\AbilityKeys;
+namespace AcrossAI_Abilities_Manager\Includes\Modules\AbilityAPI;
 
-class AcrossAI_Ability_Keys_Config {
+class AcrossAI_Ability_API_Config {
 	const OPTION_KEY = 'acrossai_ability_keys_config';
 
 	protected static $instance = null;
@@ -375,7 +376,7 @@ Registration rule:
 
 ## Implementation Changes
 
-### CHANGE-1 — NEW `includes/Modules/AbilityKeys/AcrossAI_Ability_Keys_Definitions.php`
+### CHANGE-1 — NEW `includes/Modules/AbilityAPI/AcrossAI_Ability_API_Definitions.php`
 
 Create the singleton definition service described above.
 
@@ -392,7 +393,7 @@ Key rules:
   - `sub_key_label`
 - Does not store definitions in the database.
 
-### CHANGE-2 — NEW `includes/Modules/AbilityKeys/AcrossAI_Ability_Keys_Config.php`
+### CHANGE-2 — NEW `includes/Modules/AbilityAPI/AcrossAI_Ability_API_Config.php`
 
 Create the singleton config service described above.
 
@@ -400,20 +401,20 @@ Key rules:
 
 - Uses `get_option( self::OPTION_KEY, array() )`.
 - Uses `update_option( self::OPTION_KEY, $config, false )` so the option is not autoloaded.
-- Sanitizes and validates config against `AcrossAI_Ability_Keys_Definitions::get_keys()`.
+- Sanitizes and validates config against `AcrossAI_Ability_API_Definitions::get_keys()`.
 - Drops unknown submitted keys while preserving already-stored stale keys from deactivated add-ons.
 - No hook calls inside this class.
 
-### CHANGE-3 — NEW `includes/Modules/AbilityKeys/AcrossAI_Ability_Keys_Registrar.php`
+### CHANGE-3 — NEW `includes/Modules/AbilityAPI/AcrossAI_Ability_API_Registrar.php`
 
 Registers enabled filter-provided abilities at runtime.
 
 Class shape:
 
 ```php
-namespace AcrossAI_Abilities_Manager\Includes\Modules\AbilityKeys;
+namespace AcrossAI_Abilities_Manager\Includes\Modules\AbilityAPI;
 
-class AcrossAI_Ability_Keys_Registrar {
+class AcrossAI_Ability_API_Registrar {
 	protected static $instance = null;
 
 	public static function instance(): self;
@@ -431,8 +432,8 @@ public function register_enabled_abilities(): void {
 		return;
 	}
 
-	$definitions = AcrossAI_Ability_Keys_Definitions::instance();
-	$config      = AcrossAI_Ability_Keys_Config::instance();
+	$definitions = AcrossAI_Ability_API_Definitions::instance();
+	$config      = AcrossAI_Ability_API_Config::instance();
 
 	foreach ( $definitions->get_definitions() as $ability_name => $definition ) {
 		$main_key = (string) $definition['main_key'];
@@ -454,21 +455,21 @@ Key rules:
 - Does not modify `AcrossAI_Abilities_Processor`; DB-backed abilities remain owned by the existing Abilities module.
 - Does not touch `acrossai_abilities_registered_callbacks`.
 
-### CHANGE-4 — NEW `includes/Modules/AbilityKeys/Rest/AcrossAI_Ability_Keys_Rest_Controller.php`
+### CHANGE-4 — NEW `includes/Modules/AbilityAPI/Rest/AcrossAI_Ability_API_Rest_Controller.php`
 
 Dedicated REST orchestrator for the separate namespace:
 
 ```php
-const REST_NAMESPACE = 'acrossai-abilities/v1';
+const REST_NAMESPACE = 'acrossai-abilities-api/v1';
 ```
 
 Responsibilities:
 
 - Own `REST_NAMESPACE`.
-- Delegate route registration to `AcrossAI_Ability_Keys_Config_Controller`.
+- Delegate route registration to `AcrossAI_Ability_API_Config_Controller`.
 - Own shared `check_permission()` requiring `manage_options` and a valid REST nonce.
 
-### CHANGE-5 — NEW `includes/Modules/AbilityKeys/Rest/AcrossAI_Ability_Keys_Config_Controller.php`
+### CHANGE-5 — NEW `includes/Modules/AbilityAPI/Rest/AcrossAI_Ability_API_Config_Controller.php`
 
 REST controller for config reads/writes.
 
@@ -481,13 +482,13 @@ Routes:
 
 Key rules:
 
-- Use `AcrossAI_Ability_Keys_Rest_Controller::REST_NAMESPACE`.
+- Use `AcrossAI_Ability_API_Rest_Controller::REST_NAMESPACE`.
 - Register request args/schema with sanitize/validate callbacks.
-- Delegate save validation to `AcrossAI_Ability_Keys_Config::update_config()`.
+- Delegate save validation to `AcrossAI_Ability_API_Config::update_config()`.
 - Return `WP_Error` with appropriate HTTP status on malformed payload.
 - Do not expose secrets; this feature stores ability toggle config only.
 
-### CHANGE-6 — NEW `admin/Partials/AbilitiesKeysMenu.php`
+### CHANGE-6 — NEW `admin/Partials/AbilityAPIMenu.php`
 
 Admin partial that registers the submenu and renders the React root container.
 
@@ -496,7 +497,7 @@ Class shape:
 ```php
 namespace AcrossAI_Abilities_Manager\Admin\Partials;
 
-class AbilitiesKeysMenu {
+class AbilityAPIMenu {
 	const MENU_SLUG = 'acrossai-abilities-keys';
 
 	protected static $instance = null;
@@ -540,22 +541,22 @@ Key rules:
 Inside `define_admin_hooks()`, after existing submenu registrations:
 
 ```php
-$keys_menu = \AcrossAI_Abilities_Manager\Admin\Partials\AbilitiesKeysMenu::instance();
-$this->loader->add_action( 'admin_menu', $keys_menu, 'register_submenu' );
+$ability_api_menu = \AcrossAI_Abilities_Manager\Admin\Partials\AbilityAPIMenu::instance();
+$this->loader->add_action( 'admin_menu', $ability_api_menu, 'register_submenu' );
 ```
 
 Inside REST registration area:
 
 ```php
-$ability_keys_rest = \AcrossAI_Abilities_Manager\Includes\Modules\AbilityKeys\Rest\AcrossAI_Ability_Keys_Rest_Controller::instance();
-$this->loader->add_action( 'rest_api_init', $ability_keys_rest, 'register_routes' );
+$ability_api_rest = \AcrossAI_Abilities_Manager\Includes\Modules\AbilityAPI\Rest\AcrossAI_Ability_API_Rest_Controller::instance();
+$this->loader->add_action( 'rest_api_init', $ability_api_rest, 'register_routes' );
 ```
 
 Inside public hooks with other Abilities runtime registration:
 
 ```php
-$ability_keys_registrar = \AcrossAI_Abilities_Manager\Includes\Modules\AbilityKeys\AcrossAI_Ability_Keys_Registrar::instance();
-$this->loader->add_action( 'wp_abilities_api_init', $ability_keys_registrar, 'register_enabled_abilities', 10 );
+$ability_api_registrar = \AcrossAI_Abilities_Manager\Includes\Modules\AbilityAPI\AcrossAI_Ability_API_Registrar::instance();
+$this->loader->add_action( 'wp_abilities_api_init', $ability_api_registrar, 'register_enabled_abilities', 10 );
 ```
 
 Key rules:
@@ -572,8 +573,8 @@ Key rules:
 
 - Load asset manifests in constructor with `file_exists()` guards, matching the existing optional feature asset pattern.
 - Use `ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH`, not `ACROSSAI_ABILITIES_MANAGER_PLUGIN_DIR`.
-- Gate with `$hook_suffix === AbilitiesKeysMenu::instance()->get_hook_suffix()`.
-- Enqueue `build/js/keys.js` and `build/css/keys.css` only on the keys page.
+- Gate with `$hook_suffix === AbilityAPIMenu::instance()->get_hook_suffix()`.
+- Enqueue `build/js/ability-api.js` and `build/css/ability-api.css` only on the keys page.
 - Enqueue `wp-components` styles for WordPress controls.
 - Pass REST root/namespace/nonce to JS with `wp_add_inline_script()` or existing apiFetch nonce setup.
 
@@ -582,41 +583,41 @@ Key rules:
 Add explicit entries:
 
 ```js
-'js/keys': path.resolve( process.cwd(), 'src/js/keys', 'index.js' ),
-'css/keys': path.resolve( process.cwd(), 'src/scss/keys', 'admin.scss' ),
+'js/ability-api': path.resolve( process.cwd(), 'src/js/ability-api', 'index.js' ),
+'css/ability-api': path.resolve( process.cwd(), 'src/scss/ability-api', 'admin.scss' ),
 ```
 
 Key rules:
 
-- This repo does not auto-discover `src/js/keys/index.js`.
+- This repo does not auto-discover `src/js/ability-api/index.js`.
 - `npm run build` must emit:
-  - `build/js/keys.js`
-  - `build/js/keys.asset.php`
+  - `build/js/ability-api.js`
+  - `build/js/ability-api.asset.php`
   - `build/css/keys.css`
   - `build/css/keys.asset.php`
 
-### CHANGE-10 — NEW `src/js/keys/index.js`
+### CHANGE-10 — NEW `src/js/ability-api/index.js`
 
 React entry point that mounts the app on the partial root container.
 
 ```js
 import { createRoot } from '@wordpress/element';
-import { AbilitiesKeysApp } from './AbilitiesKeysApp';
+import { AbilityAPIApp } from './AbilityAPIApp';
 
 const root = document.getElementById( 'acrossai-abilities-keys-root' );
 
 if ( root ) {
-	createRoot( root ).render( <AbilitiesKeysApp /> );
+	createRoot( root ).render( <AbilityAPIApp /> );
 }
 ```
 
-### CHANGE-11 — NEW `src/js/keys/AbilitiesKeysApp.js`
+### CHANGE-11 — NEW `src/js/ability-api/AbilityAPIApp.js`
 
 Top-level React component.
 
 Key rules:
 
-- Loads `{ keys, config }` from `/acrossai-abilities/v1/abilities/config`.
+- Loads `{ keys, config }` from `/acrossai-abilities-api/v1/abilities/config`.
 - Uses DataViews for the grouped list/grid.
 - Uses WordPress controls for editable state.
 - Supports search/pagination/lazy rendering so 300-1000 definitions do not render as one expanded page.
@@ -632,7 +633,7 @@ Initial-load save guard pattern:
 const didLoad = useRef( false );
 
 useEffect( () => {
-	apiFetch( { path: '/acrossai-abilities/v1/abilities/config' } ).then( ( res ) => {
+	apiFetch( { path: '/acrossai-abilities-api/v1/abilities/config' } ).then( ( res ) => {
 		setKeys( res.keys );
 		setConfig( res.config );
 		didLoad.current = true;
@@ -652,7 +653,7 @@ useEffect( () => {
 }, [ config ] );
 ```
 
-### CHANGE-12 — NEW `src/js/keys/save-config.js`
+### CHANGE-12 — NEW `src/js/ability-api/save-config.js`
 
 Small helper wrapping the REST POST.
 
@@ -661,14 +662,14 @@ import apiFetch from '@wordpress/api-fetch';
 
 export function saveConfig( config ) {
 	return apiFetch( {
-		path: '/acrossai-abilities/v1/abilities/config',
+		path: '/acrossai-abilities-api/v1/abilities/config',
 		method: 'POST',
 		data: { config },
 	} );
 }
 ```
 
-### CHANGE-13 — NEW `src/scss/keys/admin.scss`
+### CHANGE-13 — NEW `src/scss/ability-api/admin.scss`
 
 Feature-specific styles for the keys grid/cards.
 
@@ -690,7 +691,8 @@ Key rules:
 - Do **not** modify the existing DB-backed `AcrossAI_Abilities_Processor` registration flow unless a direct integration bug is found during implementation.
 - Do **not** modify or rename `acrossai_abilities_registered_callbacks`.
 - Do **not** change the existing manager REST namespace `acrossai-abilities-manager/v1`.
-- Do **not** change the new dedicated namespace `acrossai-abilities/v1` without a documented decision.
+- Do **not** change the new dedicated namespace `acrossai-abilities-api/v1` without a documented decision.
+- Change the logger logs namespace from `acrossai-abilities/v1` to `acrossai-abilities-log/v1`.
 - Do **not** enqueue assets from Partials or module classes.
 - Do **not** add a hard dependency on a new Composer or npm package.
 
@@ -698,7 +700,7 @@ Key rules:
 
 ## Constraints
 
-- New module folder: `includes/Modules/AbilityKeys/`.
+- New module folder: `includes/Modules/AbilityAPI/`.
 - Admin page class stays in `admin/Partials/`.
 - Asset enqueue stays in `admin/Main.php`.
 - Hook wiring stays in `includes/Main.php`.
@@ -710,16 +712,16 @@ Key rules:
 
 Expected file changes:
 
-- NEW `includes/Modules/AbilityKeys/AcrossAI_Ability_Keys_Definitions.php`
-- NEW `includes/Modules/AbilityKeys/AcrossAI_Ability_Keys_Config.php`
-- NEW `includes/Modules/AbilityKeys/AcrossAI_Ability_Keys_Registrar.php`
-- NEW `includes/Modules/AbilityKeys/Rest/AcrossAI_Ability_Keys_Rest_Controller.php`
-- NEW `includes/Modules/AbilityKeys/Rest/AcrossAI_Ability_Keys_Config_Controller.php`
-- NEW `admin/Partials/AbilitiesKeysMenu.php`
-- NEW `src/js/keys/index.js`
-- NEW `src/js/keys/AbilitiesKeysApp.js`
-- NEW `src/js/keys/save-config.js`
-- NEW `src/scss/keys/admin.scss`
+- NEW `includes/Modules/AbilityAPI/AcrossAI_Ability_API_Definitions.php`
+- NEW `includes/Modules/AbilityAPI/AcrossAI_Ability_API_Config.php`
+- NEW `includes/Modules/AbilityAPI/AcrossAI_Ability_API_Registrar.php`
+- NEW `includes/Modules/AbilityAPI/Rest/AcrossAI_Ability_API_Rest_Controller.php`
+- NEW `includes/Modules/AbilityAPI/Rest/AcrossAI_Ability_API_Config_Controller.php`
+- NEW `admin/Partials/AbilityAPIMenu.php`
+- NEW `src/js/ability-api/index.js`
+- NEW `src/js/ability-api/AbilityAPIApp.js`
+- NEW `src/js/ability-api/save-config.js`
+- NEW `src/scss/ability-api/admin.scss`
 - MOD `includes/Main.php`
 - MOD `admin/Main.php`
 - MOD `webpack.config.js`
@@ -784,7 +786,7 @@ npm run build
 
 ### REST controller
 
-- [ ] `GET /wp-json/acrossai-abilities/v1/abilities/config` returns `{ keys, config }` for `manage_options`.
+- [ ] `GET /wp-json/acrossai-abilities-api/v1/abilities/config` returns `{ keys, config }` for `manage_options`.
 - [ ] Same GET returns `401` / `403` for unauthorized users.
 - [ ] `POST` with valid payload updates the option and returns updated config.
 - [ ] `POST` with malformed payload returns `WP_Error` with appropriate HTTP status.
@@ -795,7 +797,7 @@ npm run build
 - [ ] `wp-admin -> Abilities Manager -> Abilities` renders without PHP error.
 - [ ] Page source contains `<div id="acrossai-abilities-keys-root"></div>`.
 - [ ] Submenu does not appear for users without `manage_options`.
-- [ ] On the keys page, network tab shows `build/js/keys.js` and `build/css/keys.css`.
+- [ ] On the keys page, network tab shows `build/js/ability-api.js` and `build/css/ability-api.css`.
 - [ ] On unrelated admin pages, keys assets are not loaded.
 
 ### React app

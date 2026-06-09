@@ -722,3 +722,39 @@ The canonical CI pattern for running Plugin Check is to inline the steps manuall
 **Why**: `@wordpress/jest-preset-default` configures jsdom and also sets up `@wordpress/jest-console` and other WP-specific test utilities. Running outside `wp-scripts` loses all of this setup.
 
 **Evidence**: `tests/jest/abilities/column-prefs.test.js` — 8 tests fail with `ReferenceError: localStorage is not defined` under plain `npx jest`; all 8 pass under `npx wp-scripts test-unit-js`. Feature 025.
+
+---
+
+### 2026-06-06 — Add-on registration filters MUST fire at init P99, not early priority (PATTERN-ADDON-FILTER-LATE-INIT)
+
+**Status**: Active
+
+**Why this is durable**
+When the plugin exposes a filter that add-ons use to register definitions (e.g., `acrossai_abilities_api_init`), the filter must be applied late in `init` (P99) — not early (P10–P20). Add-ons typically hook at the default `init` priority (10). If the plugin fires the collection filter at P20, any add-on that hooks at P21–P99 silently misses registration with no error.
+
+**Decision**
+Plugin-defined filters whose purpose is to collect definitions or registrations from add-ons MUST be fired at `init` priority 99 (or the highest feasible late priority). Applying the filter early forces add-on developers to know the plugin's internal priority and hook earlier — an undocumented contract violation. Late firing gives add-ons the full `init` window.
+
+**Pattern**
+```php
+// In the Registry::collect() method, wired via Loader at init P99:
+public function collect(): void {
+    if ( ! is_null( self::$definitions ) ) return; // idempotent
+    $raw = apply_filters( 'acrossai_abilities_api_init', array() );
+    self::$definitions = self::validate_and_normalize( $raw );
+}
+// In Main.php define_public_hooks():
+$keys_registry = AcrossAI_Keys_Registry::instance();
+$this->loader->add_action( 'init', $keys_registry, 'collect', 99 );
+```
+
+**Tradeoffs**
+- Gained: add-ons can hook at any `init` priority ≤ 98 without coordination.
+- Made harder: nothing meaningful — the Registry's static cache makes subsequent calls idempotent regardless of when collection runs.
+- Reconsider: if a downstream consumer needs definitions before `init P99` completes (it does not — `wp_abilities_api_init` fires after `init`).
+
+**Future mistake prevented**
+Do not pick an early `init` priority (P10–P20) for collection filters. A future developer writing a new add-on who hooks at default P10 would appear to work, then break for any add-on hooking at P21+, creating silent, hard-to-diagnose missed registrations.
+
+**Evidence**
+Feature 027: plan.md initially proposed `init P20`; corrected to P99 by Security Review finding SEC-004 / SC-027-04 (specs/027-keys-submenu/security-constraints.md).

@@ -106,6 +106,9 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | DEC-AC-SAVE-FLOW-PATTERN | acSaveOk flag: reset dirty state only on confirmed AC save success; failure never blocks ability save | Abilities/React | ac, dirty-state, save-flow, acSaveOk, rt-ar-001 | DECISIONS.md |
 | DEC-ACINITIAL-REF-BASELINE | acInitialRef.current set on first onChange (initial data load), not on mount | Abilities/React | ac, dirty-tracking, useRef, onChange, baseline | DECISIONS.md |
 | DEC-REVALIDATE-SECURITY-POST-UPGRADE | Re-validate security constraints (SEC-04, SEC-03, DEC-PERM-CB, DEC-FAIL-OPEN-NOTICE) after library upgrades | Dependencies, Security | security-constraints, validation, post-upgrade | DECISIONS.md |
+| DEC-ABILITYAPI-NAMESPACE | AbilityAPI module REST namespace is acrossai-abilities-api/v1; never share namespaces across modules | AbilityAPI/Plugin-wide | namespace, rest, abilityapi, isolation | Active | DECISIONS.md |
+| DEC-LOGGER-NAMESPACE-MIGRATION | Logger REST namespace moved to acrossai-abilities-log/v1 (Feature 027); all 5 touch-points must be updated atomically | Logger/Plugin-wide | namespace, logger, migration, rest, breaking-change | Active | DECISIONS.md |
+| DEC-FEATURE-027-NO-TESTS | Feature 027 ships without unit tests (accepted deviation from §VII); AcrossAI_Ability_API_Config and Processor are tech-debt test candidates | AbilityAPI | no-tests, constitution-deviation, unit-tests, phpunit | Active | DECISIONS.md |
 
 ## Architecture Patterns (continued)
 | ARCH-ZERO-CODE-DEPENDENCY-UPGRADE | Singleton + service locator pattern enables dependency upgrades without plugin code changes | Dependencies | architecture, singleton, service-locator, upgrades | ARCHITECTURE.md |
@@ -117,6 +120,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-WORDPRESS-PEER-DEPENDENCIES | @wordpress/* globals go in peerDependencies (not devDependencies) to satisfy import/no-extraneous-dependencies | Build | package.json, peer-dependencies, eslint, wordpress-globals | ARCHITECTURE.md |
 | PATTERN-JESTENV-WPSCRIPTS | Browser-API tests (localStorage) must use npx wp-scripts test-unit-js, not plain npx jest | Testing/Jest | jest, wp-scripts, jsdom, localstorage, test-environment | ARCHITECTURE.md |
 | ARCH-PHPUNIT-BOOTSTRAP | ABSPATH define MUST precede autoloader; phpunit.xml.dist must exclude BerlinDB-loading test files | Testing | phpunit, bootstrap, abspath, berlinddb | ARCHITECTURE.md |
+| PATTERN-ADDON-FILTER-LATE-INIT | Add-on registration filters MUST fire at init P99; early priority silently drops add-ons that hook later | Plugin-wide | filter, init, add-on, registration, priority | ARCHITECTURE.md |
 
 ## Bug Patterns (continued)
 | BUG-AC-NULL-RETURN-SILENT-FAIL | Access control permission checks silently fail when library returns null instead of false | Access Control | type-safety, null-return, silent-fail | BUGS.md |
@@ -150,6 +154,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | BUG-ADMIN-POST-NONCE-PARAM | check_admin_referer() uses _wpnonce by default; pass the actual URL nonce key as second arg | Admin/WP | admin-post, nonce, check_admin_referer | BUGS.md |
 | BUG-EXTERNAL-PACKAGE-CTOR-SILENT | External constructor in bare try/catch registers nothing silently; catch must add admin_notices | Plugin-wide | external-package, try-catch, admin-notices, silent-fail | BUGS.md |
 | BUG-FREEMIUS-CONNECT-AGAIN-LOOP | Freemius connect_again() redirects internally; wrapping in admin-post redirect causes infinite loop | Admin/Freemius | freemius, connect_again, redirect-loop, admin-post | BUGS.md |
+| BUG-ABSPATH-STATIC-CLASS | Static utility classes still need defined(ABSPATH) guard; per-file, not per-instantiation | PHP/Security | abspath, static-class, utility | BUGS.md |
 | ARCH-ABILITYFORM-SECTION-ORDER | Canonical AbilityForm.jsx section order 1-6 (Identity→SitePerm→MCP→Annotations→Callback→Schema); all inside single .panel | Architecture | abilityform, section-order, panel, jsx | ARCHITECTURE.md |
 
 | 2026-05-29 | Feature 018: User Access section + AC integration pattern + 4 Jest gotchas | Abilities | feature-018, access-control, jest, react18 | WORKLOG.md |
@@ -182,3 +187,4 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | 2026-06-03 | Feature 025: Pagination, per-page Settings API option, CSS tab hide, Clear All Overrides row action, Description/Show-in-REST columns, column visibility toggle — 34 tasks, 0 security findings | Abilities/Admin | feature-025, pagination, column-visibility, localstorage, settings-api, security-pass | WORKLOG.md |
 | 2026-06-04 | Feature 026: wpboilerplate/addons-page Composer path integration; DEC-EXTERNAL-PACKAGE-HOOK-CTOR accepted deviation recorded; 0 security findings; PHPStan+PHPCS clean | Admin/Composer | feature-026, addons-page, composer-path, boot-flow-rule, freemius, readme | WORKLOG.md |
 | 2026-06-06 | Feature 026 UX: Freemius SDK fixes (v0.0.6→v0.0.16), deactivate button, inline confirmation flash — 4 new patterns | Admin/Freemius | feature-026, freemius, deactivate, confirmation-flash | WORKLOG.md |
+| 2026-06-09 | Feature 027: Library module, Ability_Definition API, Logger ns migration, DataViews grid — 0 security findings | Library/AbilityAPI | feature-027, library, ability-definition, rest, react, security-pass | WORKLOG.md |

@@ -90,7 +90,7 @@ const FIELDS = [
  * @return {JSX.Element} Rendered component
  */
 export default function LogsTable({
-	restEndpoint = '/wp-json/acrossai-abilities/v1/logger/logs',
+	restEndpoint = '/wp-json/acrossai-abilities-log/v1/logger/logs',
 }) {
 	const [logs, setLogs] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);

@@ -39,4 +39,7 @@ if ( $acrossai_delete_data ) {
 	// Remove plugin settings options on uninstall.
 	\delete_option( 'acrossai_abilities_log_retention_days' );
 	\delete_option( 'acrossai_abilities_uninstall_delete_data' );
+
+	// Remove Library config on uninstall (Feature 027).
+	\delete_site_option( 'acrossai_library_config' );
 }

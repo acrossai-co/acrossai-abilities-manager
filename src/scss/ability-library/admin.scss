@@ -1,0 +1,102 @@
+/**
+ * Ability Library admin page styles.
+ *
+ * @since 0.1.0
+ */
+
+$border:    #e0e0e0;
+$border-dk: #c3c4c7;
+$txt:       #1e1e1e;
+$muted:     #646970;
+$bg:        #f6f7f7;
+
+// ---------------------------------------------------------------------------
+// Library page wrapper
+// ---------------------------------------------------------------------------
+.acrossai-library-page {
+	padding-top: 8px;
+	position:    relative;
+	max-width:   900px;
+}
+
+// Saving indicator
+.acrossai-library-page__saving {
+	display:     flex;
+	align-items: center;
+	gap:         8px;
+	font-size:   13px;
+	color:       $muted;
+	margin-bottom: 10px;
+}
+
+.acrossai-library-page__empty {
+	color: $muted;
+}
+
+// ---------------------------------------------------------------------------
+// Library card
+// ---------------------------------------------------------------------------
+.acrossai-library-card {
+	background:    #fff;
+	border:        1px solid $border-dk;
+	border-radius: 6px;
+	padding:       16px 20px;
+	margin-bottom: 12px;
+	box-shadow:    0 1px 2px rgba(0, 0, 0, 0.05);
+
+	&__header {
+		display:         flex;
+		align-items:     center;
+		justify-content: space-between;
+
+		// Stretch the toggle label to fill available space.
+		.components-toggle-control {
+			flex:          1;
+			margin-bottom: 0;
+
+			.components-base-control__field {
+				align-items: center;
+				margin-bottom: 0;
+			}
+		}
+	}
+
+	// Radio buttons displayed inline (horizontal) in the header.
+	&__mode {
+		flex-shrink: 0;
+
+		.components-base-control__field {
+			flex-direction: row;
+			gap:            16px;
+			margin-bottom:  0;
+		}
+
+		.components-radio-control__option {
+			display:     flex;
+			align-items: center;
+			gap:         4px;
+			margin:      0;
+		}
+
+		// Hide the fieldset legend; the toggle label already identifies the group.
+		.components-base-control__label,
+		legend {
+			display: none;
+		}
+	}
+
+	// Sub-key checkbox list, shown when mode = "specific".
+	&__sub-keys {
+		margin-top:  12px;
+		padding:     14px 16px;
+		background:  $bg;
+		border-radius: 4px;
+		display:     flex;
+		flex-direction: column;
+		gap:         8px;
+
+		.components-checkbox-control__label {
+			font-size: 13px;
+		}
+	}
+}

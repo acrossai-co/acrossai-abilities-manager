@@ -104,6 +104,9 @@ As a site administrator, I want my toggle changes saved automatically after I st
 - **FR-020**: The admin page MUST be accessible only to users with the `manage_options` capability.
 - **FR-021**: The configuration read/write endpoint MUST require `manage_options` capability and a valid REST nonce.
 - **FR-022**: Add-ons remain responsible for registering their own ability categories; the manager does not register categories.
+- **FR-023**: The new feature implementation MUST use the `AbilityAPI` module naming convention, not `AbilityKeys`.
+- **FR-024**: The configuration read/write REST endpoint MUST use the dedicated `acrossai-abilities-api/v1` namespace.
+- **FR-025**: The existing logger REST controller namespace in `includes/Modules/Logger/Rest/AcrossAI_Logger_Logs_Controller.php` MUST be changed from `acrossai-abilities/v1` to `acrossai-abilities-log/v1` to avoid namespace collision with the new Ability API surface.
 
 ### Key Entities
 
@@ -134,5 +137,6 @@ As a site administrator, I want my toggle changes saved automatically after I st
 - The admin grid's search and pagination targets a reasonable response for up to 1,000 ability definitions on standard WordPress hosting.
 - Configuration is stored as a site option (not per-user), so toggle changes apply globally.
 - Auto-save failure surfaces a visible error notice to the admin; no silent failure is acceptable.
-- The configuration read/write REST endpoint is at `/acrossai-abilities/v1/abilities/config`, separate from the existing plugin REST namespace.
+- The configuration read/write REST endpoint is at `/acrossai-abilities-api/v1/abilities/config`, separate from the existing plugin REST namespace.
+- Logger REST logs move to `/acrossai-abilities-log/v1/logger/logs`; existing client code that reads logger logs must be updated with that namespace.
 - No new Composer or npm packages are required; all dependencies are already declared in the project.

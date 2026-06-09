@@ -70,7 +70,25 @@
       "Read(//Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-includes/abilities-api/**)",
       "Read(//Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-includes/**)",
       "Bash(.specify/extensions/git/scripts/bash/create-new-feature.sh *)",
-      "Bash(.specify/extensions/git/scripts/bash/auto-commit.sh after_specify *)"
+      "Bash(.specify/extensions/git/scripts/bash/auto-commit.sh after_specify *)",
+      "Bash(vendor/bin/phpcs --standard=phpcs.xml includes/Modules/AbilityAPI/ admin/Partials/AbilityAPIMenu.php)",
+      "Bash(vendor/bin/phpcs --standard=phpcs.xml.dist includes/Modules/AbilityAPI/ admin/Partials/AbilityAPIMenu.php)",
+      "Bash(vendor/bin/phpcs --standard=phpcs.xml.dist includes/Main.php admin/Main.php includes/Modules/Logger/Rest/ uninstall.php)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npx eslint *)",
+      "Bash(npx prettier *)",
+      "Read(//Users/raftaar1191/local-sites/wordpress-7-0/app/public/**)",
+      "Bash(wp plugin *)",
+      "Bash(sort -t: -k1,1 -k2,2n)",
+      "Bash(vendor/bin/phpcs *)",
+      "Bash(./vendor/bin/phpcs *)",
+      "Bash(curl *)",
+      "Bash(./vendor/bin/phpcbf admin/Partials/LibraryMenu.php)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh auth *)",
+      "Bash(npx wp-env *)",
+      "Bash(wp --version)"
     ]
   }
 }

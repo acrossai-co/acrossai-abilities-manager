@@ -5,6 +5,21 @@ This is not a changelog. Do not record routine releases, version bumps, or imple
 
 ---
 
+### 2026-06-09 — Feature 027: Ability Library module, Ability_Definition API, Logger namespace migration
+
+Feature 027 complete (T001–T029 + architecture review + staged security review: 0 findings).
+
+- **Delivered**: `includes/Modules/Library/` — Registry (`init P99`), Config (100% static), Processor (`wp_abilities_api_init P5`), REST orchestrator + Config sub-controller (`acrossai-abilities-library/v1`)
+- **Ability_Definition abstract base class**: self-registers `acrossai_abilities_api_init` filter; five abstract methods; add-ons extend and instantiate at `plugins_loaded P20` with `class_exists()` guard (DEC-EXTERNAL-PACKAGE-HOOK-CTOR)
+- **React DataViews grid**: `LibraryPage.js` + `LibraryCard.js`; auto-save 1 s debounce; sparse site option storage (`acrossai_library_config`)
+- **Logger REST namespace migrated atomically** (5 files): `acrossai-abilities/v1` → `acrossai-abilities-log/v1`
+- **`acrossai-core-abilities` companion**: three ability classes extending `Ability_Definition` (Transient_Flush, Debug_Log_Reader, Debug_Log_Reset)
+- **Architecture review fixes**: 1 HIGH (ABSPATH guard missing on static Config class), 1 MEDIUM (hook-suffix anti-pattern in LibraryMenu), 1 LOW (file header) — all clean post-fix; DEC-MENU-HOOK-SUFFIX violation caught and fixed
+- **Security review**: 0 exploitable findings; SC-027-01 through SC-027-06 all satisfied
+- **T028 (Plugin Check)**: pending CI (Docker not running locally); all other DoD gates passed
+
+---
+
 ### 2026-06-04 — Feature 026: wpboilerplate/addons-page Composer path integration
 
 - **What happened**: Integrated `wpboilerplate/addons-page` via a Composer path repository pointing at a local clone. Instantiated `AddonsPage` inside `define_admin_hooks()` with a `class_exists()` guard. Appended three README.txt sections (Installation, External Services, Privacy Policy) verbatim from the package template.

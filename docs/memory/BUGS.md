@@ -1101,3 +1101,25 @@ For any Freemius activation/connect flow: call the SDK method directly and let F
 
 **Where to look next**
 `wpb-addons-page/src/FreemiusBridge.php` (`trigger_connect_again()`), `wpb-addons-page/src/AddonsPage.php` (`handle_connect_again()`).
+
+---
+
+### 2026-06-09 — BUG-ABSPATH-STATIC-CLASS: Static utility classes must include ABSPATH guard
+
+**Status**: Active
+
+**Symptoms**
+`AcrossAI_Ability_Library_Config.php` (100% static, never instantiated) shipped without `defined( 'ABSPATH' ) || exit;`. The file compiled fine and the plugin worked, but the guard was missing — caught only during architecture review.
+
+**Root Cause**
+The misperception that pure-static utility classes don't need the ABSPATH guard because "nothing executes them directly." All sibling files in the same module had the guard; Config was the only one missing it.
+
+**Future mistake prevented**
+The ABSPATH guard is per-file, not per-instantiation. Static utility classes are still PHP files that can be loaded directly by a URL scanner or misconfigured web server. Every PHP file in the plugin must start (after namespace) with `defined( 'ABSPATH' ) || exit;`, regardless of whether it has a constructor or instantiation pattern.
+
+**Prevention / Detection**
+- After writing a `100% static` utility class, add the ABSPATH guard immediately after the namespace declaration — same position as sibling files in the same module.
+- Architecture review: verify ABSPATH guard presence in all new PHP files, not just singleton/non-static classes.
+
+**Where to look next**
+`includes/Modules/Library/AcrossAI_Ability_Library_Config.php` (fixed); compare with `AcrossAI_Ability_Library_Registry.php` and `AcrossAI_Ability_Library_Processor.php` as reference patterns.
