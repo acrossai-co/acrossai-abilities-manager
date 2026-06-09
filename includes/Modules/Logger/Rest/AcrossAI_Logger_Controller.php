@@ -87,7 +87,7 @@ class AcrossAI_Logger_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request REST request object.
 	 * @return true|\WP_Error True if allowed, WP_Error on denial
 	 */
-	public function check_permission( \WP_REST_Request $request ) {
+	public function check_permission( WP_REST_Request $request ) {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return new \WP_Error(
 				'rest_forbidden',
