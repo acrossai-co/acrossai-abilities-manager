@@ -9,7 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database;
 
-use BerlinDB\Database\Table;
+use BerlinDB\Database\Kern\Table;
 use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Schema;
 
 // Exit if accessed directly.

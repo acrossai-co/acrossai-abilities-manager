@@ -9,7 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database;
 
-use BerlinDB\Database\Schema;
+use BerlinDB\Database\Kern\Schema;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;

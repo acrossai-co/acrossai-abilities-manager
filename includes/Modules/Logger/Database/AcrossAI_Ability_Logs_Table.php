@@ -9,7 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database;
 
-use BerlinDB\Database\Table;
+use BerlinDB\Database\Kern\Table;
 use AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database\AcrossAI_Ability_Logs_Schema;
 
 // Exit if accessed directly.
