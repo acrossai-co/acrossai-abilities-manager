@@ -9,7 +9,7 @@ version: "1.0.0"
 ## Environment
 
 ```yaml
-php_min_version: "7.4"
+php_min_version: "8.1"
 wordpress_min_version: "6.9"
 node_version: "18.0"
 npm_version: "9.0"

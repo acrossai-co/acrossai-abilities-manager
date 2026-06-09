@@ -1,0 +1,486 @@
+# Implementation Plan: BerlinDB Upgrade, PHP 8.1 Minimum, REST Audit, Abilities UI Fixes
+
+**Branch**: `028-berlindb-upgrade-rest-audit-ui-fixes` | **Date**: 2026-06-09 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from `/specs/028-berlindb-upgrade-rest-audit-ui-fixes/spec.md`
+
+---
+
+## Summary
+
+Five parallel maintenance tasks: (1) upgrade `berlindb/core` to ^3.0.0 via `wpb-access-control v1.2.0`, (2) bump PHP minimum from 7.4 to 8.1 across all declaration sites and add a PHPUnit CI matrix covering PHP 8.1–8.5, (3) audit REST `permission_callback` compliance and document results, (4) remove the redundant `X of Y items` label from the abilities table top tablenav, (5) right-align both the top and bottom pagination. No new feature modules are introduced; all changes are maintenance, configuration, and targeted UI cleanup.
+
+**Post-implementation discoveries** (discovered during testing, fixed on same branch):
+- **BerlinDB v3 `set_schema()` breaking change**: BerlinDB v3 made `Table::set_schema()` `private`, silently ignoring all subclass overrides. Both `AcrossAI_Abilities_Table` and `AcrossAI_Ability_Logs_Table` were migrated from the v2 `protected function set_schema()` pattern to the v3 `protected $schema = SchemaClass::class` property pattern. Tables were not being created on plugin activation until this fix.
+- **CSS specificity conflict**: WordPress `list-tables.css` declares `.tablenav .tablenav-pages { margin: 0 0 9px }` (specificity 20), which zeroed out our `.tablenav-pages { margin-left: auto }` (specificity 10). Fixed by adding a nested `.tablenav .tablenav-pages` override rule. Also changed `text-align: right` to `justify-content: flex-end` as the correct CSS property for aligning flex children.
+- **BerlinDB v3 `'null'` column key deprecated**: Schema column definitions used `'null' => false`. BerlinDB v3's `Base` trait sets `$column->null = false` dynamically; `Column` only declares `$allow_null`, so the old key triggered PHP 8.2 dynamic property deprecation. Removed `'null' => false` from all affected columns in both Schema classes (`allow_null` defaults to `false` — NOT NULL constraint preserved).
+- **BerlinDB v3 "phantom version" bug — table not recreated after manual drop**: `maybe_upgrade()` calls `needs_upgrade()` which reads the `db_version_key` WP option. When a table is manually dropped but the option persists, `needs_upgrade()` returns `false` and skips installation. Fixed by overriding `maybe_upgrade()` in both Table subclasses to call `delete_option($this->db_version_key)` when `$this->exists()` returns false, then delegating to `parent::maybe_upgrade()`. Also added the logger table to `AcrossAI_Activator::activate()` so both tables are created on plugin (re)activation.
+- **Full BerlinDB 3.0 API adoption** (prompted by reading the BerlinDB v3 wiki): Updated all 8 Database-layer files to the canonical `BerlinDB\Database\Kern\*` namespace (v3 provides `class_alias` shims for old paths, so they worked, but `Kern\*` is the authoritative v3 surface). Added `declare(strict_types=1)` matching BerlinDB v3 source convention. Added missing Query properties (`$item_name`, `$item_name_plural`, `$cache_group`, `$table_alias`) for correct hook-name generation and caching. Added explicit `'type' => 'key'` to all composite indexes in the Logs Schema. Removed v2-migration comments from Table class docblocks.
+
+---
+
+## Technical Context
+
+**Language/Version**: PHP ≥8.1, JavaScript (ES2020+), SCSS
+**Primary Dependencies**: `berlindb/core ^3.0.0`, `wpboilerplate/wpb-access-control ^1.2.0`, GitHub Actions (`shivammathur/setup-php`, `actions/checkout`)
+**Storage**: N/A (no schema changes)
+**Testing**: PHPUnit 13.x (stub bootstrap), Jest (no new tests required for this feature), GitHub Actions matrix (PHP 8.1–8.5)
+**Target Platform**: WordPress 6.9+, PHP 8.1–8.5, multisite-compatible
+**Project Type**: WordPress plugin maintenance
+**Performance Goals**: N/A
+**Constraints**: CI matrix must pass with `fail-fast: false`; no changes to REST API response shapes, database schemas, or test files
+
+---
+
+## Constitution Check
+
+| Rule | Status | Notes |
+|------|--------|-------|
+| §I Modular Architecture | ✅ | No new modules; changes are cross-cutting config edits |
+| §II WordPress Standards — PHP floor | ✅ | CONSTITUTION.md §II line 117 declares `PHP 7.4+`; **this plan explicitly updates it to `PHP 8.1+`** as part of CHANGE-2 |
+| §II Plugin Check compliance | ✅ | CHANGE-3 REST audit confirms no `permission_callback` gaps |
+| §IV Security First | ✅ | DEC-REVALIDATE-SECURITY-POST-UPGRADE triggers post-upgrade check of SEC-03, SEC-04, DEC-PERM-CB |
+| §VII DoD — unit tests | ✅ | No new business logic introduced; the PHPUnit CI matrix is the new test gate for CHANGE-2 |
+| PATTERN-CI-WORKFLOW-HARDENING | ✅ | New `phpunit.yml` must use same SHA-pinned actions, `permissions: {}`, `timeout-minutes: 15` |
+| DEC-TABLE-SOFT-SINGLETON | ✅ | `AcrossAI_Abilities_Table` retains soft singleton (no private constructor) post-upgrade |
+
+**CONSTITUTION UPDATE REQUIRED**: §II line 117 must change from `PHP 7.4+` to `PHP 8.1+` as part of CHANGE-2. This is an intentional and planned update, not a violation.
+
+---
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/028-berlindb-upgrade-rest-audit-ui-fixes/
+├── spec.md
+├── plan.md              ← this file
+├── memory-synthesis.md
+├── checklists/
+│   └── requirements.md
+└── tasks.md             ← created by /speckit-tasks
+```
+
+### Source files changed by this feature
+
+```text
+# CHANGE-1 — BerlinDB upgrade
+composer.json                                    ← add VCS entry, bump constraints
+composer.lock                                    ← regenerated by composer update
+webpack.config.js                                ← update wpb-access-control asset alias (v1.2.0 path change)
+admin/Main.php                                   ← enqueue wpb-access-control compiled CSS (v1.2.0 path change)
+
+# CHANGE-1 (post-upgrade fix A) — BerlinDB v3 Table class migration
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Table.php  ← $schema property replaces set_schema()
+includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Table.php  ← same
+
+# CHANGE-1 (post-upgrade fix B) — BerlinDB v3 Schema 'null' key removal
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Schema.php  ← remove 'null' => false from 4 columns
+includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Schema.php  ← same, 4 columns
+
+# CHANGE-1 (post-upgrade fix C) — phantom version / table-not-recreated
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Table.php  ← override maybe_upgrade() with exists() guard
+includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Table.php  ← same
+includes/AcrossAI_Activator.php                                    ← add logger table to activate()
+
+# CHANGE-1 (post-upgrade fix D) — full BerlinDB 3.0 API adoption
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Schema.php  ← declare(strict_types=1), Kern namespace
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Table.php   ← declare(strict_types=1), Kern namespace, clean docblocks
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Query.php   ← declare(strict_types=1), Kern namespace, $item_name/$item_name_plural/$cache_group/$table_alias
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Row.php     ← declare(strict_types=1), Kern namespace
+includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Schema.php  ← declare(strict_types=1), Kern namespace, explicit 'type' => 'key' on indexes
+includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Table.php   ← declare(strict_types=1), Kern namespace, clean docblocks
+includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Query.php   ← declare(strict_types=1), Kern namespace, $item_name/$item_name_plural/$cache_group/$table_alias
+includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Row.php     ← declare(strict_types=1), Kern namespace
+
+# CHANGE-2 — PHP 8.1 minimum + PHPUnit matrix
+acrossai-abilities-manager.php                   ← Requires PHP: 8.1
+README.txt                                       ← Requires PHP: 8.1
+composer.json                                    ← "php": ">=8.1"
+AGENTS.md                                        ← php_min_version: "8.1"
+.github/workflows/phpcompat.yml                  ← testVersion 8.1-, job name
+.github/workflows/phpunit.yml                    ← NEW: matrix [8.1,8.2,8.3,8.4,8.5]
+.specify/memory/CONSTITUTION.md                  ← §II PHP 7.4+ → 8.1+
+.agents/skills/wp-packages-strategy/SKILL.md    ← PHP 7.4+ → 8.1+
+
+# CHANGE-3 — REST permission_callback audit (documentation only unless gap found)
+# No file changes expected; result documented in PR description
+
+# CHANGE-4 — Remove X of Y items label
+src/js/abilities/components/AbilitiesList.jsx    ← remove <div className="tn-pages">…</div>
+
+# CHANGE-5 — Right-align both pagination bars
+src/scss/abilities/admin.scss                    ← justify-content:flex-end on .tablenav-pages;
+                                                 ← .tablenav .tablenav-pages override (specificity fix);
+                                                 ← text-align:right on .tablenav-pages-below
+```
+
+---
+
+## Complexity Tracking
+
+No constitution violations require justification.
+
+The CONSTITUTION.md `PHP 7.4+` reference in §II line 117 is an **intended change** — updating it to `PHP 8.1+` is the primary deliverable of CHANGE-2, not a violation.
+
+---
+
+## Phase 0 — Pre-flight Research
+
+Before coding, verify these facts from the live codebase:
+
+| Check | Command | Expected |
+|-------|---------|----------|
+| wpb-access-control current constraint | `grep wpb-access-control composer.json` | `^1.1.1` |
+| BerlinDB current constraint | `grep berlindb composer.json` | `^2.0` |
+| PHP floor in plugin header | `grep "Requires PHP" acrossai-abilities-manager.php` | `7.4` |
+| phpcompat.yml testVersion | `grep testVersion .github/workflows/phpcompat.yml` | `7.4-` |
+| phpunit.yml existence | `ls .github/workflows/phpunit.yml` | NOT FOUND |
+| CONSTITUTION.md PHP line | `grep -n "PHP 7" .specify/memory/CONSTITUTION.md` | line 117 |
+| REST routes with permission_callback | `grep -rn "register_rest_route" includes/Modules/` | 6+ routes, all with permission_callback |
+| tn-pages div location | `grep -n "tn-pages" src/js/abilities/components/AbilitiesList.jsx` | line ~578 |
+| tablenav-pages-below rule | `grep -n "tablenav-pages-below" src/scss/abilities/admin.scss` | line ~308, no text-align |
+
+---
+
+## Phase 1 — CHANGE-1: BerlinDB ^3.0.0 Upgrade
+
+### 1.1 — Update `composer.json`
+
+Two edits:
+
+**Add VCS repository** (after the `wpb-addons-page` entry):
+```json
+{
+    "type": "vcs",
+    "url": "https://github.com/WPBoilerplate/wpb-access-control"
+}
+```
+
+**Bump constraints**:
+```json
+"wpboilerplate/wpb-access-control": "^1.2.0",
+"berlindb/core": "^3.0.0",
+```
+
+Rules:
+- Keep `"minimum-stability": "dev"` (other packages still require it)
+- Do not remove the `wpb-addons-page` VCS entry
+- Do not change any other constraint
+
+### 1.2 — Run Composer update
+
+```bash
+composer update wpboilerplate/wpb-access-control berlindb/core --with-all-dependencies
+```
+
+Expect `berlindb/core 3.0.0` and `wpboilerplate/wpb-access-control v1.2.0` in the lock file.
+
+### 1.3 — Post-upgrade security revalidation (DEC-REVALIDATE-SECURITY-POST-UPGRADE)
+
+Run these checks after composer update and document results in the PR:
+
+| Constraint | Verification command | Expected |
+|------------|---------------------|----------|
+| SEC-03 (`$global = false`) | `grep -n "global" vendor/wpboilerplate/wpb-access-control/src/Database/Rule/RuleTable.php` | `$global = false` or absent (BerlinDB default) |
+| SEC-04 (strict comparison) | `grep -n "===\|!==" vendor/wpboilerplate/wpb-access-control/src/` | strict operators in access checks |
+| DEC-PERM-CB (callback wrapper) | `grep -n "wrap_permission_callback\|build_permission_callback" includes/Modules/` | both methods still intact |
+| DEC-TABLE-SOFT-SINGLETON | `grep -n "private.*__construct" includes/Modules/Abilities/Database/AcrossAI_Abilities_Table.php` | no match |
+| DEC-FAIL-OPEN-NOTICE (fail-open + admin notice) | `grep -rn "fail.open\|admin_notices\|access_control_available" includes/Modules/Abilities/` | fail-open path and admin notice hook both present |
+
+### 1.4 — BerlinDB v3 Table class migration (discovered post-upgrade)
+
+BerlinDB v3 made `Table::set_schema()` **private**, meaning child-class overrides are silently ignored by PHP's method dispatch rules. The parent's private `set_schema()` is always called instead, reads `$this->schema` as a class name (not a raw SQL string), and leaves `schema_object = null` when `$this->schema` is empty. `Table::create()` then bails at the `is_callable($this->schema_object, 'get_create_table_string')` check — no table is created.
+
+**Files fixed**:
+- `includes/Modules/Abilities/Database/AcrossAI_Abilities_Table.php` — replaced `protected function set_schema()` body with `protected $schema = AcrossAI_Abilities_Schema::class;` property
+- `includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Table.php` — same, using `AcrossAI_Ability_Logs_Schema::class`
+
+Both Schema classes (`AcrossAI_Abilities_Schema`, `AcrossAI_Ability_Logs_Schema`) already extended `BerlinDB\Database\Schema` and implement `get_create_table_string()` via the base class — no schema changes were needed. `RuleTable` (in `wpb-access-control v1.2.0`) already used the v3 property pattern correctly.
+
+### 1.4 — Quality gates
+
+```bash
+vendor/bin/phpstan analyse --level=8 --error-format=github
+vendor/bin/phpcs --standard=phpcs.xml.dist
+vendor/bin/phpunit
+```
+
+All three must pass before proceeding to Phase 2.
+
+---
+
+## Phase 2 — CHANGE-2: PHP 8.1 Minimum + PHPUnit Matrix CI
+
+### 2.1 — Edit all declaration sites
+
+Apply these nine edits atomically:
+
+| File | Find | Replace |
+|------|------|---------|
+| `composer.json` | `"php": ">=7.4"` | `"php": ">=8.1"` |
+| `acrossai-abilities-manager.php:27` | `* Requires PHP:      7.4` | `* Requires PHP:      8.1` |
+| `README.txt:7` | `Requires PHP: 7.4` | `Requires PHP: 8.1` |
+| `AGENTS.md:12` | `php_min_version: "7.4"` | `php_min_version: "8.1"` |
+| `phpcompat.yml` job name | `PHP 7.4+ Compatibility` | `PHP 8.1+ Compatibility` |
+| `phpcompat.yml` testVersion | `--runtime-set testVersion 7.4-` | `--runtime-set testVersion 8.1-` |
+| `CONSTITUTION.md:117` | `compatible with WordPress 6.9+ and PHP 7.4+` | `PHP 8.1+` |
+| `.agents/skills/wp-packages-strategy/SKILL.md:4` | `PHP 7.4+` | `PHP 8.1+` |
+| `CONSTITUTION.md` SYNC IMPACT REPORT | bump version `1.4.5 → 1.4.6`, document PHP floor change | see below |
+
+### 2.2 — CONSTITUTION.md SYNC IMPACT REPORT addition
+
+Prepend a new SYNC IMPACT block inside the HTML comment at the top of CONSTITUTION.md:
+
+```
+Version change: 1.4.5 → 1.4.6
+Modified sections: §II WordPress Standards Compliance — PHP minimum floor raised from 7.4 to 8.1
+Rationale: Feature 028 raises the declared PHP minimum to 8.1. PHP 7.4 reached end-of-life
+November 2022. phpunit/phpunit ^13.2 already requires PHP 8.2+, making the 7.4 declaration
+misleading. PHPUnit CI matrix now covers PHP 8.1–8.5.
+Templates reviewed:
+  - .specify/templates/plan-template.md ✅ reviewed — no outdated references
+  - .specify/templates/spec-template.md ✅ reviewed — no outdated references
+  - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
+  - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
+Deferred TODOs: None
+```
+
+### 2.3 — Create `.github/workflows/phpunit.yml` (new file)
+
+```yaml
+name: PHPUnit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - '**.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpunit.xml.dist'
+
+permissions: {}
+
+jobs:
+  phpunit:
+    name: PHPUnit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - run: composer install --prefer-dist --no-progress
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit
+```
+
+**SHA pins**: same as `phpstan.yml` and `phpcompat.yml` (already in repo). Verify with:
+```bash
+grep "uses: actions/checkout\|uses: shivammathur" .github/workflows/phpstan.yml
+```
+
+**ARCH-PHPUNIT-BOOTSTRAP guard**: Before pushing, confirm:
+1. `tests/bootstrap.php` defines `ABSPATH` before `require_once vendor/autoload.php`
+2. `phpunit.xml.dist` excludes BerlinDB-loading test files (`AbilitiesQueryTest`, `AbilitiesWriteControllerTest`, etc.)
+
+### 2.4 — Verify locally
+
+```bash
+composer validate
+composer install --prefer-dist --no-progress
+vendor/bin/phpcs --standard=PHPCompatibility --extensions=php --runtime-set testVersion 8.1- \
+  acrossai-abilities-manager.php uninstall.php includes/ admin/ public/
+vendor/bin/phpstan analyse --level=8 --error-format=github
+vendor/bin/phpunit
+```
+
+---
+
+## Phase 3 — CHANGE-3: REST Permission Callback Audit
+
+### 3.1 — Audit command
+
+```bash
+grep -rn "register_rest_route\|permission_callback\|__return_true" includes/
+```
+
+### 3.2 — Expected results
+
+All six route groups already carry `permission_callback`:
+
+| Module | Controller | Expected callback |
+|--------|-----------|-------------------|
+| Abilities Write | `AcrossAI_Abilities_Write_Controller` | `$permission` (from `check_permission()` in constructor) |
+| Abilities Read | `AcrossAI_Abilities_Read_Controller` | same |
+| Abilities Category | `AcrossAI_Abilities_Category_Controller` | `AcrossAI_Abilities_Rest_Controller::check_permission()` |
+| Abilities Exposure | `AcrossAI_Abilities_Exposure_Controller` | same |
+| Logger | `AcrossAI_Logger_Logs_Controller` | `AcrossAI_Logger_Controller::check_permission()` |
+| Library Config | `AcrossAI_Ability_Library_Config_Controller` | `AcrossAI_Ability_Library_Rest_Controller::check_permission()` |
+
+### 3.3 — If a gap is found
+
+Add the correct delegate reference to the missing route:
+```php
+'permission_callback' => array( AcrossAI_Abilities_Rest_Controller::instance(), 'check_permission' ),
+```
+
+Record the audit result (all compliant, or gap + fix) in the PR description.
+
+### 3.4 — Return-type audit on every `check_permission()` implementation (discovered post-spec)
+
+**Finding**: `AcrossAI_Logger_Controller::check_permission()` was returning `new WP_REST_Response(..., 403)` on denial. `WP_REST_Response` is a PHP object — it is truthy. WordPress evaluates `permission_callback` returns as: `is_wp_error()` → 403, `! $result` → 401, anything else truthy → allowed. Returning a `WP_REST_Response` therefore granted access to anyone, making the capability check ineffective.
+
+**Rule**: `permission_callback` MUST return one of:
+- `true` — access granted
+- `false` — access denied (WordPress returns 401/403)
+- `WP_Error` — access denied with a structured error message
+
+**Fix applied** to `includes/Modules/Logger/Rest/AcrossAI_Logger_Controller.php`:
+- Replaced `new WP_REST_Response(..., 403)` with `new \WP_Error('rest_forbidden', ..., ['status' => 403])`
+- Added nonce verification (`X-WP-Nonce` via `wp_verify_nonce`) — previously absent in this controller while present in all others
+- Removed the now-unused `use WP_REST_Response` import
+
+**Verified clean**: `AcrossAI_Abilities_Rest_Controller`, `AcrossAI_Ability_Library_Rest_Controller`, `vendor/wpb-access-control/RulesController` all already returned `WP_Error` correctly. `AcrossAI_Abilities_Processor::execution_permission_callback()` returns `bool` — valid.
+
+---
+
+## Phase 4 — CHANGE-4: Remove `X of Y items` Label
+
+**File**: `src/js/abilities/components/AbilitiesList.jsx`
+
+Remove the five-line block at lines 578–582:
+```jsx
+<div className="tn-pages">
+    {isLoading
+        ? __('Loading…', 'acrossai-abilities-manager')
+        : `${abilities.length} ${__('of', 'acrossai-abilities-manager')} ${total} ${__('items', 'acrossai-abilities-manager')}`}
+</div>
+```
+
+Do not replace it with anything. Do not touch the `.tablenav-pages` div on the next line (line 584), which contains the real pagination controls and must stay.
+
+Rebuild assets after the change:
+```bash
+npm run build
+```
+
+---
+
+## Phase 5 — CHANGE-5: Right-align Both Pagination Bars
+
+**File**: `src/scss/abilities/admin.scss`
+
+### 5.1 — Bottom pagination (`tablenav-pages-below`)
+
+`.tablenav-pages-below` is a full-width flex container (not inside `.tablenav`). Since `.tablenav-pages` is `display: flex`, `text-align: right` does not affect flex-item positioning. Use `justify-content: flex-end` instead.
+
+Add to `.tablenav-pages` rule:
+```scss
+.tablenav-pages {
+    justify-content: flex-end;  // right-aligns flex children in both contexts
+    // … existing rules unchanged
+}
+```
+
+Add to `.tablenav-pages-below` rule:
+```scss
+.tablenav-pages-below {
+    margin-top:  8px;
+    text-align:  right;  // kept for inline-content fallback
+}
+```
+
+### 5.2 — Top pagination CSS specificity override (discovered post-implementation)
+
+WordPress `list-tables.css` declares:
+```css
+.tablenav .tablenav-pages { float: right; margin: 0 0 9px; }
+```
+This rule has specificity 20 and the `margin` shorthand sets `margin-left: 0`, defeating our `.tablenav-pages { margin-left: auto }` (specificity 10).
+
+Fix: add a nested override inside `.tablenav {}` in the SCSS. This generates a specificity-20 rule that loads after WP's rule (same specificity + later cascade = wins):
+
+```scss
+.tablenav {
+    // … existing rules …
+
+    .tablenav-pages {  // compiles to .tablenav .tablenav-pages (specificity 20)
+        float:       none;
+        margin:      0;
+        margin-left: auto;
+    }
+}
+```
+
+Rebuild assets after the change:
+```bash
+npm run build
+```
+
+---
+
+## Phase 6 — Final Quality Gate
+
+Run all gates sequentially:
+
+```bash
+# PHP static analysis
+vendor/bin/phpstan analyse --level=8 --error-format=github
+
+# PHPCS (full configured surface)
+vendor/bin/phpcs --standard=phpcs.xml.dist
+
+# PHPCompatibility (8.1+)
+vendor/bin/phpcs \
+  --standard=PHPCompatibility \
+  --extensions=php \
+  --runtime-set testVersion 8.1- \
+  acrossai-abilities-manager.php uninstall.php includes/ admin/ public/
+
+# PHPUnit (local, PHP current)
+vendor/bin/phpunit
+
+# Composer validation
+composer validate
+```
+
+All must exit 0 before opening the PR.
+
+---
+
+## Implementation Order
+
+Tasks 1–5 are fully independent and can be parallelised. Recommended sequence if working sequentially:
+
+1. **CHANGE-1** (BerlinDB) — foundational; confirms vendor/ is compatible before CI changes
+2. **CHANGE-2** (PHP 8.1 + CI) — update declarations; create phpunit.yml
+3. **CHANGE-3** (REST audit) — grep + document; fix only if gap found
+4. **CHANGE-4 + CHANGE-5** (UI) — React/SCSS, one `npm run build` covers both
+
+---
+
+## What Must NOT Change
+
+- REST endpoint paths, namespaces, or response shapes
+- Database schemas or table names
+- Any file under `tests/`
+- `phpunit.xml.dist` configuration
+- `"minimum-stability": "dev"` in `composer.json`
+- VCS repository entry for `wpb-addons-page`
+- The `.tablenav-pages` top pagination block when editing the bottom one

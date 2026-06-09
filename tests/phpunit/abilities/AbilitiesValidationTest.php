@@ -78,103 +78,8 @@ class AbilitiesValidationTest extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 	}
 
-	// =========================================================================
-	// php_code: blocked functions and eval
-	// =========================================================================
-
-	/**
-	 * The validate_php_code method passes for innocuous code.
-	 *
-	 * @return void
-	 */
-	public function test_validate_php_code_passes_valid_code() {
-		$result = AcrossAI_Abilities_Validator::validate_php_code( 'return strtoupper( $input );' );
-		$this->assertTrue( $result );
-	}
-
-	/**
-	 * The validate_php_code method rejects exec() (T_STRING blocked function).
-	 *
-	 * @return void
-	 */
-	public function test_validate_php_code_rejects_exec() {
-		$result = AcrossAI_Abilities_Validator::validate_php_code( 'exec( $input );' );
-		$this->assertWPError( $result );
-	}
-
-	/**
-	 * The validate_php_code method rejects system() (T_STRING blocked function).
-	 *
-	 * @return void
-	 */
-	public function test_validate_php_code_rejects_system() {
-		$result = AcrossAI_Abilities_Validator::validate_php_code( 'system( "ls" );' );
-		$this->assertWPError( $result );
-	}
-
-	/**
-	 * The validate_php_code method rejects shell_exec() (T_STRING blocked function).
-	 *
-	 * @return void
-	 */
-	public function test_validate_php_code_rejects_shell_exec() {
-		$result = AcrossAI_Abilities_Validator::validate_php_code( '$out = shell_exec( "id" ); return $out;' );
-		$this->assertWPError( $result );
-	}
-
-	/**
-	 * The validate_php_code method rejects eval (T_EVAL language construct — TASK-SEC-001).
-	 *
-	 * @return void
-	 */
-	public function test_validate_php_code_rejects_eval_construct() {
-		$result = AcrossAI_Abilities_Validator::validate_php_code( 'eval( $input );' );
-		$this->assertWPError( $result );
-		$this->assertSame( 'invalid_php_code', $result->get_error_code() );
-	}
-
-	/**
-	 * The validate_php_code method rejects call_user_func (indirect invocation — TASK-SEC-002).
-	 *
-	 * @return void
-	 */
-	public function test_validate_php_code_rejects_call_user_func() {
-		$result = AcrossAI_Abilities_Validator::validate_php_code( 'call_user_func( "system", $input );' );
-		$this->assertWPError( $result );
-	}
-
-	/**
-	 * The validate_php_code method rejects call_user_func_array (indirect invocation — TASK-SEC-002).
-	 *
-	 * @return void
-	 */
-	public function test_validate_php_code_rejects_call_user_func_array() {
-		$result = AcrossAI_Abilities_Validator::validate_php_code( 'call_user_func_array( "exec", [ $input ] );' );
-		$this->assertWPError( $result );
-	}
-
-	/**
-	 * The validate_php_code method rejects code exceeding the 64 KB limit.
-	 *
-	 * @return void
-	 */
-	public function test_validate_php_code_rejects_oversized_code() {
-		$result = AcrossAI_Abilities_Validator::validate_php_code( str_repeat( 'x', 65537 ) );
-		$this->assertWPError( $result );
-	}
-
-	/**
-	 * The validate_php_code method returns a clean 400 WP_Error for a syntax error
-	 * (covers ParseError handling in PHP 8+  — TASK-SEC-003).
-	 *
-	 * @return void
-	 */
-	public function test_validate_php_code_handles_syntax_error_gracefully() {
-		$result = AcrossAI_Abilities_Validator::validate_php_code( 'if (' ); // deliberately malformed.
-		$this->assertWPError( $result );
-		$this->assertSame( 'invalid_php_code', $result->get_error_code() );
-		$this->assertSame( 400, $result->get_error_data()['status'] );
-	}
+	// php_code callback type was removed in Feature 021 (registered_callback model replaced it).
+	// validate_php_code() and sanitize_php_code() no longer exist; tests removed accordingly.
 
 	// =========================================================================
 	// callback_config: unknown-key rejection
@@ -282,22 +187,6 @@ class AbilitiesValidationTest extends WP_UnitTestCase {
 			)
 		);
 		$this->assertTrue( $result );
-	}
-
-	/**
-	 * The php_code config rejects unknown keys.
-	 *
-	 * @return void
-	 */
-	public function test_php_code_config_rejects_unknown_keys() {
-		$result = AcrossAI_Abilities_Validator::validate_callback_config(
-			'php_code',
-			array(
-				'code'  => 'return 1;',
-				'extra' => 'bad',
-			)
-		);
-		$this->assertWPError( $result );
 	}
 
 	/**
@@ -467,11 +356,6 @@ class AbilitiesValidationTest extends WP_UnitTestCase {
 		$result = AcrossAI_Abilities_Sanitizer::strip_protected_fields_for_non_db( $fields );
 
 		// Protected fields must be gone.
-		$this->assertArrayNotHasKey( 'label', $result );
-		$this->assertArrayNotHasKey( 'description', $result );
-		$this->assertArrayNotHasKey( 'category', $result );
-		$this->assertArrayNotHasKey( 'callback_type', $result );
-		$this->assertArrayNotHasKey( 'callback_config', $result );
 		$this->assertArrayNotHasKey( 'input_schema', $result );
 		$this->assertArrayNotHasKey( 'output_schema', $result );
 		$this->assertArrayNotHasKey( 'status', $result );
@@ -479,7 +363,12 @@ class AbilitiesValidationTest extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'slug_suffix', $result );
 		$this->assertArrayNotHasKey( 'source', $result );
 
-		// Override-only fields must survive.
+		// Editable override fields must survive.
+		$this->assertArrayHasKey( 'label', $result );
+		$this->assertArrayHasKey( 'description', $result );
+		$this->assertArrayHasKey( 'category', $result );
+		$this->assertArrayHasKey( 'callback_type', $result );
+		$this->assertArrayHasKey( 'callback_config', $result );
 		$this->assertArrayHasKey( 'show_in_mcp', $result );
 		$this->assertArrayHasKey( 'readonly', $result );
 		$this->assertArrayHasKey( 'mcp_type', $result );
@@ -533,16 +422,6 @@ class AbilitiesValidationTest extends WP_UnitTestCase {
 
 		$this->assertNotNull( $result );
 		$this->assertArrayNotHasKey( 'headers', $result );
-	}
-
-	/**
-	 * The sanitize_php_code method strips PHP opening tags.
-	 *
-	 * @return void
-	 */
-	public function test_sanitize_php_code_strips_opening_tags() {
-		$result = AcrossAI_Abilities_Sanitizer::sanitize_php_code( '<?php return 1;' );
-		$this->assertStringNotContainsString( '<?', $result );
 	}
 
 	// =========================================================================

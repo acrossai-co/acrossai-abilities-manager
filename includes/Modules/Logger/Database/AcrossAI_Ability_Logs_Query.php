@@ -10,9 +10,11 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database;
 
-use BerlinDB\Database\Query;
+use BerlinDB\Database\Kern\Query;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -44,6 +46,34 @@ class AcrossAI_Ability_Logs_Query extends Query {
 	 * @var string
 	 */
 	protected $table_name = 'acrossai_ability_logs';
+
+	/**
+	 * SQL alias used in JOIN expressions (first letter of each table-name segment).
+	 *
+	 * @var string
+	 */
+	protected $table_alias = 'aal';
+
+	/**
+	 * Singular item name — used for BerlinDB hook name generation.
+	 *
+	 * @var string
+	 */
+	protected $item_name = 'ability_log';
+
+	/**
+	 * Plural item name — used for BerlinDB hook name generation.
+	 *
+	 * @var string
+	 */
+	protected $item_name_plural = 'ability_logs';
+
+	/**
+	 * Object cache group.
+	 *
+	 * @var string
+	 */
+	protected $cache_group = 'acrossai-ability-logs';
 
 	/**
 	 * Singleton instance.

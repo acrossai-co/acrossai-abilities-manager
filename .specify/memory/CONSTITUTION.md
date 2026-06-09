@@ -1,5 +1,18 @@
 <!--
 SYNC IMPACT REPORT
+Version change: 1.4.5 → 1.4.6
+Modified sections: §II WordPress Standards Compliance — PHP minimum floor raised from 7.4 to 8.1
+Rationale: Feature 028 raises the declared PHP minimum to 8.1. PHP 7.4 reached end-of-life
+November 2022. phpunit/phpunit ^13.2 already requires PHP 8.2+, making the 7.4 declaration
+misleading. PHPUnit CI matrix now covers PHP 8.1–8.5.
+Templates reviewed:
+  - .specify/templates/plan-template.md ✅ reviewed — no outdated references
+  - .specify/templates/spec-template.md ✅ reviewed — no outdated references
+  - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
+  - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
+Deferred TODOs: None
+
+SYNC IMPACT REPORT
 Version change: 1.4.4 → 1.4.5
 Modified sections: §I Modular Architecture — added AbilityAPI Registration Management as sixth active feature area; Directory Layout updated to include AbilityAPI/ module directory
 Rationale: Feature 027 introduces the AbilityAPI module (includes/Modules/AbilityAPI/) as a standalone feature area for add-on ability registration management. The previous §I listed exactly five areas; this patch adds the sixth. No principle was changed — the module list is corrected to match implementation reality, mirroring the v1.4.2 Logger/ addition pattern.
@@ -114,7 +127,7 @@ single-line production-code findings.
 PHPCS is part of the quality gate via Composer and WPCS. Required CI checks MUST either run PHPCS
 against a clean production plugin surface or first eliminate the repo-wide PHPCS baseline. A failing
 baseline MUST NOT be added as a required PR check without a documented remediation plan.
-The plugin MUST be compatible with WordPress 6.9+ and PHP 7.4+.
+The plugin MUST be compatible with WordPress 6.9+ and PHP 8.1+.
 The plugin MUST be multisite-compatible unless a feature is explicitly scoped to single-site with
 documented justification.
 
@@ -269,6 +282,25 @@ reference the orchestrator's `check_permission` as:
 hooks themselves — only the orchestrator is wired in `Main.php` via the Loader. This is the
 canonical decomposition for the planned sibling modules (`PerUser`, `McpServer`,
 `CustomAbility`, `Webmcp`). See `specs/002-rest-controller-modularization/` for reference.
+
+**REST `permission_callback` Return Type (MUST)**: Every `permission_callback` and every
+`check_permission()` method MUST return only `true`, `false`, or `WP_Error`. Returning a
+`WP_REST_Response` object is a critical security defect — it is truthy, so WordPress treats it
+as "access granted" regardless of the HTTP status code inside it. Standard pattern:
+```php
+public function check_permission( \WP_REST_Request $request ): true|\WP_Error {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return new \WP_Error( 'rest_forbidden', __( '...', 'plugin-slug' ), array( 'status' => 403 ) );
+    }
+    $nonce = $request->get_header( 'X-WP-Nonce' );
+    if ( ! $nonce || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+        return new \WP_Error( 'rest_forbidden', __( 'Nonce verification failed.', 'plugin-slug' ), array( 'status' => 403 ) );
+    }
+    return true;
+}
+```
+Audit checklist for every new REST controller: (1) `permission_callback` present on every route,
+(2) return type is `true|false|\WP_Error` only, (3) nonce verified via `X-WP-Nonce` header.
 
 **Module Contract**: Every feature class MUST:
 1. Implement the singleton `instance()` pattern (`protected static $_instance = null;` + `public static function instance(): self`)

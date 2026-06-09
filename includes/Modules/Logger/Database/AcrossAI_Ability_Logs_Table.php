@@ -7,9 +7,12 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database;
 
-use BerlinDB\Database\Table;
+use BerlinDB\Database\Kern\Table;
+use AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database\AcrossAI_Ability_Logs_Schema;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -46,6 +49,13 @@ class AcrossAI_Ability_Logs_Table extends Table {
 	protected $db_version_key = 'acrossai_ability_logs_db_version';
 
 	/**
+	 * Schema class for this table.
+	 *
+	 * @var string
+	 */
+	protected $schema = AcrossAI_Ability_Logs_Schema::class;
+
+	/**
 	 * Use per-site table prefix ($wpdb->prefix), not the network base prefix.
 	 * Explicitly set to false for per-site isolation (multisite compliance — SEC-03).
 	 *
@@ -63,8 +73,8 @@ class AcrossAI_Ability_Logs_Table extends Table {
 	/**
 	 * Get the singleton instance of this table.
 	 *
-	 * Note: constructor is intentionally NOT private. BerlinDB\Database\Table
-	 * performs table-registration side-effects in parent::__construct().
+	 * Note: constructor is intentionally NOT private. The BerlinDB Table base
+	 * class performs table-registration side-effects in parent::__construct().
 	 * A private constructor would prevent those from running and break table
 	 * registration. Justified exception to the Module Contract.
 	 *
@@ -79,32 +89,20 @@ class AcrossAI_Ability_Logs_Table extends Table {
 	}
 
 	/**
-	 * Define the raw SQL column list for CREATE TABLE.
+	 * Create or upgrade the table.
 	 *
-	 * BerlinDB interpolates $this->schema directly into:
-	 *   CREATE TABLE {name} ( {schema} ) {charset_collation}
-	 * so this must be a raw SQL column definition string.
+	 * Overrides the parent to handle the "phantom version" case: if the stored
+	 * db_version_key option exists but the physical table was manually dropped,
+	 * BerlinDB's needs_upgrade() would return false and skip installation.
+	 * Clearing the option first forces a fresh install on the next run.
 	 *
 	 * @since  0.1.0
 	 * @return void
 	 */
-	protected function set_schema() {
-		$this->schema = "
-			`id` bigint(20) unsigned NOT NULL auto_increment,
-			`ability_slug` varchar(255) NOT NULL DEFAULT '',
-			`source` varchar(20) NOT NULL DEFAULT '',
-			`mcp_server_id` varchar(255) DEFAULT NULL,
-			`user_id` bigint(20) unsigned DEFAULT NULL,
-			`input` longtext DEFAULT NULL,
-			`output` longtext DEFAULT NULL,
-			`status` varchar(20) NOT NULL DEFAULT 'success',
-			`duration_ms` int(11) NOT NULL DEFAULT 0,
-			`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (`id`),
-			KEY `idx_ability_slug_created` (`ability_slug`, `created_at`),
-			KEY `idx_source_created` (`source`, `created_at`),
-			KEY `idx_user_id_created` (`user_id`, `created_at`),
-			KEY `idx_status_created` (`status`, `created_at`)
-		";
+	public function maybe_upgrade(): void {
+		if ( ! $this->exists() ) {
+			delete_option( $this->db_version_key );
+		}
+		parent::maybe_upgrade();
 	}
 }

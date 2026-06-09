@@ -5,6 +5,17 @@ This is not a changelog. Do not record routine releases, version bumps, or imple
 
 ---
 
+### 2026-06-10 — Feature 028: BerlinDB 3.0 migration, REST security fix, vendor distribution fix
+
+Feature 028 complete (BerlinDB v3 migration, permission_callback security fix, wpb-access-control vendor fix).
+
+- **Why durable**: Four non-obvious bug patterns captured: (1) BerlinDB v3 double-primary column+index causes silent empty DDL; (2) BerlinDB v3 `'default' => 'CURRENT_TIMESTAMP'` generates invalid quoted literal — use `'created'/'modified'` flags; (3) `WP_REST_Response` returned from `permission_callback` is truthy → silently grants access; (4) `composer.json archive.exclude` does not control GitHub tag ZIP contents — `.gitattributes export-ignore` does.
+- **Future mistake prevented**: Declare PRIMARY KEY only in `$indexes` (remove column-level `'primary'`). Use `'created'/'modified'` flags, not `'default' => 'CURRENT_TIMESTAMP'`. `permission_callback` must return `true|false|WP_Error`. Fix vendor missing directories via `.gitattributes`, not `archive.exclude`.
+- **Evidence**: Branch `027-keys-submenu` (028 commits). 12 source files changed. BerlinDB v3 migration across 4 DB classes (Abilities + Logger Table/Schema/Query/Row), REST security fix in `AcrossAI_Logger_Controller::check_permission()`, vendor distribution fixed via `wpb-access-control` v1.2.3 (`.gitattributes` fix). PHPCS ✅, PHPStan L8 ✅.
+- **Where to look**: `includes/Modules/Abilities/Database/AcrossAI_Abilities_Schema.php` (BerlinDB v3 `$indexes` pattern), `includes/Modules/Logger/Rest/AcrossAI_Logger_Controller.php` (correct `check_permission()` returning `true|\WP_Error`), `.specify/memory/CONSTITUTION.md` (MUST rule for permission_callback), `docs/memory/BUGS.md` (BUG-BERLINDB-V3-DOUBLE-PRIMARY, BUG-BERLINDB-V3-TIMESTAMP-QUOTING, BUG-PERMISSION-CALLBACK-TRUTHY-RESPONSE, BUG-GITATTRIBUTES-EXPORT-IGNORE).
+
+---
+
 ### 2026-06-09 — Feature 027: Ability Library module, Ability_Definition API, Logger namespace migration
 
 Feature 027 complete (T001–T029 + architecture review + staged security review: 0 findings).

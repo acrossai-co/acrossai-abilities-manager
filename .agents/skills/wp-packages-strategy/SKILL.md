@@ -1,7 +1,7 @@
 ---
 name: wp-packages-strategy
 description: "Prioritize official @wordpress packages over external dependencies. Detect React conflicts, use aliasing, and validate package usage."
-compatibility: "WordPress 6.0+, PHP 7.4+, @wordpress/scripts build pipeline"
+compatibility: "WordPress 6.0+, PHP 8.1+, @wordpress/scripts build pipeline"
 ---
 
 # WP Packages Strategy

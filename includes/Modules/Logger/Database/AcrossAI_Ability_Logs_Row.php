@@ -7,9 +7,11 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database;
 
-use BerlinDB\Database\Row;
+use BerlinDB\Database\Kern\Row;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;

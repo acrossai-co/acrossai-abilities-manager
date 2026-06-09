@@ -7,9 +7,11 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database;
 
-use BerlinDB\Database\Schema;
+use BerlinDB\Database\Kern\Schema;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -28,14 +30,13 @@ class AcrossAI_Abilities_Schema extends Schema {
 	 */
 	public $columns = array(
 
-		// Primary key.
+		// Primary key — 'primary' flag omitted; PRIMARY KEY DDL comes from $indexes.
 		array(
 			'name'     => 'id',
 			'type'     => 'bigint',
 			'length'   => '20',
 			'unsigned' => true,
 			'extra'    => 'auto_increment',
-			'primary'  => true,
 			'sortable' => true,
 		),
 
@@ -44,7 +45,6 @@ class AcrossAI_Abilities_Schema extends Schema {
 			'name'       => 'ability_slug',
 			'type'       => 'varchar',
 			'length'     => '255',
-			'null'       => false,
 			'searchable' => true,
 			'sortable'   => true,
 		),
@@ -104,7 +104,6 @@ class AcrossAI_Abilities_Schema extends Schema {
 			'name'     => 'source',
 			'type'     => 'varchar',
 			'length'   => '50',
-			'null'     => false,
 			'default'  => 'db',
 			'sortable' => true,
 		),
@@ -207,12 +206,12 @@ class AcrossAI_Abilities_Schema extends Schema {
 			'default'    => null,
 		),
 
-		// Audit timestamps.
+		// Audit timestamps — no explicit default; BerlinDB uses '0000-00-00 00:00:00'
+		// for datetime columns. 'created'/'modified' flags handle auto-timestamping
+		// at the application layer (CURRENT_TIMESTAMP quoted by BerlinDB is invalid DDL).
 		array(
 			'name'       => 'created_at',
 			'type'       => 'datetime',
-			'null'       => false,
-			'default'    => 'CURRENT_TIMESTAMP',
 			'created'    => true,
 			'date_query' => true,
 			'sortable'   => true,
@@ -220,8 +219,6 @@ class AcrossAI_Abilities_Schema extends Schema {
 		array(
 			'name'       => 'updated_at',
 			'type'       => 'datetime',
-			'null'       => false,
-			'default'    => 'CURRENT_TIMESTAMP',
 			'modified'   => true,
 			'date_query' => true,
 			'sortable'   => true,
@@ -243,6 +240,22 @@ class AcrossAI_Abilities_Schema extends Schema {
 			'unsigned'   => true,
 			'allow_null' => true,
 			'default'    => null,
+		),
+	);
+
+	/**
+	 * Array of index definitions.
+	 *
+	 * BerlinDB v3 requires the PRIMARY KEY to be declared as an explicit Index
+	 * entry — the 'primary' column flag is query-layer only, not DDL.
+	 *
+	 * @var array
+	 */
+	public $indexes = array(
+		array(
+			'name'    => 'primary',
+			'type'    => 'primary',
+			'columns' => array( 'id' ),
 		),
 	);
 }

@@ -23,9 +23,11 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database;
 
-use BerlinDB\Database\Query;
+use BerlinDB\Database\Kern\Query;
 use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Schema;
 use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Row;
 use AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Sanitizer;
@@ -60,6 +62,34 @@ class AcrossAI_Abilities_Query extends Query {
 	 * @var string
 	 */
 	protected $table_name = 'acrossai_abilities';
+
+	/**
+	 * SQL alias used in JOIN expressions (first letter of each table-name segment).
+	 *
+	 * @var string
+	 */
+	protected $table_alias = 'aa';
+
+	/**
+	 * Singular item name — used for BerlinDB hook name generation.
+	 *
+	 * @var string
+	 */
+	protected $item_name = 'ability';
+
+	/**
+	 * Plural item name — used for BerlinDB hook name generation.
+	 *
+	 * @var string
+	 */
+	protected $item_name_plural = 'abilities';
+
+	/**
+	 * Object cache group.
+	 *
+	 * @var string
+	 */
+	protected $cache_group = 'acrossai-abilities';
 
 	/**
 	 * Singleton instance.

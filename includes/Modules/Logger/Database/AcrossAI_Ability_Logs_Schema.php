@@ -7,9 +7,11 @@
  * @since      0.1.0
  */
 
+declare( strict_types = 1 );
+
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database;
 
-use BerlinDB\Database\Schema;
+use BerlinDB\Database\Kern\Schema;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -34,14 +36,13 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 	 */
 	public $columns = array(
 
-		// Primary key.
+		// Primary key — 'primary' flag omitted; PRIMARY KEY DDL comes from $indexes.
 		array(
 			'name'     => 'id',
 			'type'     => 'bigint',
 			'length'   => '20',
 			'unsigned' => true,
 			'extra'    => 'auto_increment',
-			'primary'  => true,
 			'sortable' => true,
 		),
 
@@ -50,7 +51,6 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 			'name'       => 'ability_slug',
 			'type'       => 'varchar',
 			'length'     => '255',
-			'null'       => false,
 			'searchable' => true,
 			'sortable'   => true,
 		),
@@ -60,7 +60,6 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 			'name'     => 'source',
 			'type'     => 'varchar',
 			'length'   => '20',
-			'null'     => false,
 			'sortable' => true,
 		),
 
@@ -106,7 +105,6 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 			'name'     => 'status',
 			'type'     => 'varchar',
 			'length'   => '20',
-			'null'     => false,
 			'sortable' => true,
 		),
 
@@ -124,7 +122,6 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 		array(
 			'name'     => 'created_at',
 			'type'     => 'datetime',
-			'null'     => false,
 			'sortable' => true,
 		),
 	);
@@ -136,27 +133,38 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 	 */
 	public $indexes = array(
 
+		// BerlinDB v3: PRIMARY KEY must be an explicit Index entry (column 'primary' flag is query-layer only).
+		array(
+			'name'    => 'primary',
+			'type'    => 'primary',
+			'columns' => array( 'id' ),
+		),
+
 		// Index for filtering/sorting by ability_slug and created_at (SC-002).
 		array(
 			'name'    => 'idx_ability_slug_created',
+			'type'    => 'key',
 			'columns' => array( 'ability_slug', 'created_at' ),
 		),
 
 		// Index for filtering/sorting by source and created_at (SC-002).
 		array(
 			'name'    => 'idx_source_created',
+			'type'    => 'key',
 			'columns' => array( 'source', 'created_at' ),
 		),
 
 		// Index for filtering/sorting by user_id and created_at (SC-002).
 		array(
 			'name'    => 'idx_user_id_created',
+			'type'    => 'key',
 			'columns' => array( 'user_id', 'created_at' ),
 		),
 
 		// Index for filtering/sorting by status and created_at (SC-002).
 		array(
 			'name'    => 'idx_status_created',
+			'type'    => 'key',
 			'columns' => array( 'status', 'created_at' ),
 		),
 	);

@@ -88,7 +88,16 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(gh auth *)",
       "Bash(npx wp-env *)",
-      "Bash(wp --version)"
+      "Bash(wp --version)",
+      "Bash(composer install *)",
+      "Bash(composer validate *)",
+      "Bash(mcp__agents__mcp-local-wp__mysql_query)",
+      "Bash(/Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/vendor/bin/phpunit --version)",
+      "mcp__agents__deepwiki__read_wiki_structure",
+      "Bash(composer show *)",
+      "Bash(sed -n '78,100p' /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/includes/Modules/Library/Rest/AcrossAI_Ability_Library_Rest_Controller.php)",
+      "Bash(sed -n '90,115p' /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/includes/Modules/Abilities/Rest/AcrossAI_Abilities_Rest_Controller.php)",
+      "Bash(.claude/skills/speckit-architecture-guard-architecture-review/../scripts/bash/detect-changed-files.sh --json)"
     ]
   }
 }

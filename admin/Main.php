@@ -166,10 +166,24 @@ class Main {
 
 		// Enqueue Abilities Manager styles only on main manager page (feature 011).
 		if ( $this->abilities_asset_file && $this->is_manager_page( $hook_suffix ) ) {
+			// wpb-access-control v1.2.0 ships compiled CSS only (no SCSS source); enqueue as dependency.
+			$wpb_ac_base     = plugin_dir_path( \ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE ) . 'vendor/wpboilerplate/wpb-access-control/assets/build/';
+			$wpb_ac_css_path = $wpb_ac_base . 'index.css';
+			if ( file_exists( $wpb_ac_css_path ) ) {
+				$wpb_ac_asset = file_exists( $wpb_ac_base . 'index.asset.php' )
+					? require $wpb_ac_base . 'index.asset.php'
+					: array( 'version' => '1.2.0' );
+				wp_register_style(
+					'wpb-access-control',
+					\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'vendor/wpboilerplate/wpb-access-control/assets/build/index.css',
+					array(),
+					$wpb_ac_asset['version']
+				);
+			}
 			wp_register_style(
 				'acrossai-abilities-manager-abilities',
 				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/css/abilities.css',
-				array(),
+				file_exists( $wpb_ac_css_path ) ? array( 'wpb-access-control' ) : array(),
 				$this->abilities_asset_file['version']
 			);
 			wp_enqueue_style( 'acrossai-abilities-manager-abilities' );
