@@ -1,5 +1,16 @@
 <!--
 SYNC IMPACT REPORT
+Version change: 1.4.4 → 1.4.5
+Modified sections: §I Modular Architecture — added AbilityAPI Registration Management as sixth active feature area; Directory Layout updated to include AbilityAPI/ module directory
+Rationale: Feature 027 introduces the AbilityAPI module (includes/Modules/AbilityAPI/) as a standalone feature area for add-on ability registration management. The previous §I listed exactly five areas; this patch adds the sixth. No principle was changed — the module list is corrected to match implementation reality, mirroring the v1.4.2 Logger/ addition pattern.
+Templates reviewed:
+  - .specify/templates/plan-template.md ✅ reviewed — no outdated references
+  - .specify/templates/spec-template.md ✅ reviewed — no outdated references
+  - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
+  - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
+Deferred TODOs: None
+
+SYNC IMPACT REPORT
 Version change: 1.4.3 → 1.4.4
 Modified sections: §II WordPress Standards Compliance — clarified Plugin Check production-surface scope,
 SQL identifier escaping with %i, forbidden-function removal, and local suppression policy
@@ -66,8 +77,8 @@ Shared logic MUST be extracted to `includes/Utilities/`.
 No code duplication between modules is permitted under any circumstance.
 
 **Rationale**: Enables parallel development, isolated testing, and safe iteration on any single feature
-without risking regressions in others. The five active feature areas (Per-User Access
-Control, MCP Server Management, Custom Ability Registration, WebMCP Integration, Ability Execution Logging) MUST each map to
+without risking regressions in others. The six active feature areas (Per-User Access
+Control, MCP Server Management, Custom Ability Registration, WebMCP Integration, Ability Execution Logging, AbilityAPI Registration Management) MUST each map to
 exactly one module. Ability override management is part of the `Abilities` module (Feature 012).
 
 ### II. WordPress Standards Compliance
@@ -204,7 +215,8 @@ includes/
     ├── McpServer/
     ├── Abilities/
     ├── Logger/
-    └── Webmcp/
+    ├── Webmcp/
+    └── AbilityAPI/
 src/
 ├── js/             # JavaScript/React source files
 └── scss/           # Stylesheet source files (compiled by @wordpress/scripts)
@@ -309,4 +321,4 @@ constitution. Any implementation that appears to violate a principle MUST either
 include documented justification in the feature plan explaining why a compliant approach was not
 feasible.
 
-**Version**: 1.4.4 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-05-31
+**Version**: 1.4.5 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-06-06

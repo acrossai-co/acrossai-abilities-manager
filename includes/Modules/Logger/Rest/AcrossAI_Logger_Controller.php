@@ -32,7 +32,7 @@ class AcrossAI_Logger_Controller extends WP_REST_Controller {
 	 * @since 0.1.0
 	 * @var string
 	 */
-	protected $namespace = 'acrossai-abilities/v1';
+	protected $namespace = 'acrossai-abilities-log/v1';
 
 	/**
 	 * Singleton instance

@@ -1317,3 +1317,82 @@ When calling `new AddonsPage(...)`, always pass `fs_product_id`, `fs_public_key`
 **Tradeoffs**
 - Gained: per-plugin Freemius isolation, correct analytics per product, multi-plugin safe
 - Reconsider: if the package ever needs an anonymous/no-Freemius mode, the init path would need an optional bypass
+
+---
+
+### 2026-06-06 — AbilityAPI module uses dedicated REST namespace acrossai-abilities-api/v1 (DEC-ABILITYAPI-NAMESPACE)
+
+**Status**: Active
+
+**Why this is durable**
+Each plugin module must own exactly one REST namespace. Sharing namespaces across modules creates route collision risk and makes independent namespace versioning impossible. `acrossai-abilities-api/v1` is reserved for the AbilityAPI module (add-on registration management); it must not be reused by future modules or sub-features.
+
+**Decision**
+The AbilityAPI module's REST orchestrator (`AcrossAI_Ability_API_Rest_Controller`) uses `acrossai-abilities-api/v1` as its `REST_NAMESPACE` constant. This namespace is distinct from:
+- `acrossai-abilities-manager/v1` — Abilities CRUD (Read, Write, Category, Exposure sub-controllers)
+- `acrossai-abilities-log/v1` — Logger logs (migrated Feature 027)
+
+No future module or sub-feature may register routes under these namespaces unless it is a sub-controller of that module's orchestrator.
+
+**Tradeoffs**
+- Gained: namespace isolation; independent versioning per module; no wildcard collision risk between modules.
+- Made harder: React fetch calls must target the correct namespace per feature; copy-paste errors between modules will produce 404s.
+- Reconsider: if WP REST API namespace-per-module ever becomes too many namespace registrations to manage; at that point consider a plugin-wide namespace with resource-scoped sub-paths.
+
+**Evidence**
+Feature 027 plan.md D1; revised to dedicated namespace to avoid reusing `acrossai-abilities-manager/v1` and prevent wildcard shadowing with existing `GET /abilities/(?P<slug>[^/]+)` route.
+
+---
+
+### 2026-06-06 — Logger REST namespace migrated from acrossai-abilities/v1 to acrossai-abilities-log/v1 (DEC-LOGGER-NAMESPACE-MIGRATION)
+
+**Status**: Active
+
+**Why this is durable**
+The old `acrossai-abilities/v1` namespace was chosen early and without module-ownership intent. Feature 027 introduces `acrossai-abilities-api/v1`; to ensure each module owns exactly one namespace, the Logger was migrated. The migration is a breaking change for any REST client calling the old URL.
+
+**Decision**
+Logger logs endpoint moved from `GET /acrossai-abilities/v1/logger/logs` to `GET /acrossai-abilities-log/v1/logger/logs`. The migration requires updating **all 5 touch-points atomically**; updating only the PHP controllers while leaving the JS files pointing at the old namespace produces a 404 on every page load:
+
+| File | Line | Change |
+|---|---|---|
+| `includes/Modules/Logger/Rest/AcrossAI_Logger_Controller.php` | 35 | `protected $namespace = 'acrossai-abilities-log/v1'` |
+| `includes/Modules/Logger/Rest/AcrossAI_Logger_Logs_Controller.php` | 36 | `protected $namespace = 'acrossai-abilities-log/v1'` |
+| `src/js/index.js` | 38 | `/wp-json/acrossai-abilities-log/v1/logger/logs` |
+| `src/js/components/LogsTable.js` | 93 | `/wp-json/acrossai-abilities-log/v1/logger/logs` |
+| `admin/Main.php` | 191 | `rest_url('acrossai-abilities-log/v1/logger/logs')` |
+
+**Tradeoffs**
+- Gained: clear module-owned namespaces; no future collision with AbilityAPI or other modules.
+- Made harder: any third-party consumer of the old `acrossai-abilities/v1/logger/logs` endpoint breaks without notice; no deprecation redirect.
+- Reconsider: if external consumers exist — add a redirect shim at the old namespace for one release before removing it.
+
+**Evidence**
+Feature 027 plan.md D2; memory synthesis hard conflict — plan initially listed only 1 of 5 files, full scope discovered via codebase grep.
+
+---
+
+### 2026-06-06 — Feature 027: no unit tests, accepted deviation from Constitution §VII (DEC-FEATURE-027-NO-TESTS)
+
+**Status**: Active
+
+**Why this is durable**
+Constitution §VII Definition of Done requires "Unit tests written and passing for all new logic." Feature 027 ships without tests. Documenting this prevents future architecture reviews from treating the missing tests as an oversight and prevents the precedent from silently spreading to other features.
+
+**Decision**
+Feature 027 (Abilities Keys Admin Submenu) ships without PHPUnit or Jest unit tests. Justification: (1) The spec does not request TDD; (2) The feature's primary validation is manual end-to-end testing — install an add-on that hooks `acrossai_abilities_api_init`, confirm its card appears in the grid; (3) `AcrossAI_Ability_API_Config` (all static methods, highest unit-test value) is the primary candidate for future tech-debt test coverage.
+
+**Rule**
+Any future feature that touches `AcrossAI_Ability_API_Config`, `AcrossAI_Ability_API_Registry`, or `AcrossAI_Ability_API_Processor` SHOULD add PHPUnit tests for those classes at that time. This entry does not blanket-authorize skipping tests for other features.
+
+**Tradeoffs**
+- Gained: faster delivery of the admin UI and registration model.
+- Made harder: regression detection for Processor gating logic (`is_permitted`) and Config sanitization limits.
+- Reconsider: when the AbilityAPI module gains a second consumer; add tests before extending the module.
+
+**Evidence**
+Feature 027 governed-tasks session 2026-06-06 — ARCH-003 advisory raised; user confirmed to proceed without tests and document the deviation.
+
+**Where to look next**
+`includes/Modules/AbilityAPI/AcrossAI_Ability_API_Config.php` (sanitize_entry, size constants — highest unit-test priority),
+`includes/Modules/AbilityAPI/AcrossAI_Ability_API_Processor.php` (is_permitted — gating logic with multiple branches).

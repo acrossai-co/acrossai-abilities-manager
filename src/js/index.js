@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		<LogsTable
 			restEndpoint={
 				window.acrossaiAbilitiesLogger?.restEndpoint ||
-				'/wp-json/acrossai-abilities/v1/logger/logs'
+				'/wp-json/acrossai-abilities-log/v1/logger/logs'
 			}
 		/>
 	);
