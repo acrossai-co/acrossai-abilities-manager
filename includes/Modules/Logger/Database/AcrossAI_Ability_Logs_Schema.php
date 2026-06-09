@@ -134,6 +134,13 @@ class AcrossAI_Ability_Logs_Schema extends Schema {
 	 */
 	public $indexes = array(
 
+		// BerlinDB v3: PRIMARY KEY must be an explicit Index entry (column 'primary' flag is query-layer only).
+		array(
+			'name'    => 'primary',
+			'type'    => 'primary',
+			'columns' => array( 'id' ),
+		),
+
 		// Index for filtering/sorting by ability_slug and created_at (SC-002).
 		array(
 			'name'    => 'idx_ability_slug_created',

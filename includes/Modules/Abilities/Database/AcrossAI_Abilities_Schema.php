@@ -243,4 +243,20 @@ class AcrossAI_Abilities_Schema extends Schema {
 			'default'    => null,
 		),
 	);
+
+	/**
+	 * Array of index definitions.
+	 *
+	 * BerlinDB v3 requires the PRIMARY KEY to be declared as an explicit Index
+	 * entry — the 'primary' column flag is query-layer only, not DDL.
+	 *
+	 * @var array
+	 */
+	public $indexes = array(
+		array(
+			'name'    => 'primary',
+			'type'    => 'primary',
+			'columns' => array( 'id' ),
+		),
+	);
 }
