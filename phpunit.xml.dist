@@ -2,24 +2,27 @@
 <!--
   PHPUnit configuration for the acrossai-abilities-manager plugin.
 
-  Scope: `abilities` testsuite only — these tests run against a minimal WP stub
-  bootstrap (tests/bootstrap.php) that provides sanitize_text_field, WP_Error,
-  and WP_UnitTestCase without requiring a full WordPress installation.
+  Scope: unit tests only — these run against a minimal WP stub bootstrap
+  (tests/bootstrap.php) that provides sanitize_text_field, WP_Error, and
+  WP_UnitTestCase without requiring a full WordPress installation.
 
-  The `sitewide` and `Modules` test suites require a full WP integration
-  environment (wp-env, WP_TESTS_DIR). They are excluded here to keep CI fast.
-  To run all suites, set up a WP test environment and add the suites back.
+  Integration tests (AbilitiesQueryTest, AbilitiesReadControllerTest,
+  AbilitiesWriteControllerTest, AbilitiesExposureControllerTest,
+  AbilitiesProcessorTest) require a full WP environment (wp-env + WP_TESTS_DIR)
+  and are excluded here. Run them locally with a full WP install.
 -->
 <phpunit
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.0/phpunit.xsd"
+	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
 	bootstrap="tests/bootstrap.php"
 	colors="true"
 	cacheDirectory=".phpunit.cache"
 >
 	<testsuites>
-		<testsuite name="abilities">
-			<directory suffix="Test.php">tests/phpunit/abilities/</directory>
+		<testsuite name="abilities-unit">
+			<file>tests/phpunit/abilities/AbilitiesValidationTest.php</file>
+			<file>tests/phpunit/abilities/AbilityOverrideInjectVariantATest.php</file>
+			<file>tests/phpunit/abilities/SettingsMenuTest.php</file>
 		</testsuite>
 	</testsuites>
 	<source>

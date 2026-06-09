@@ -5,6 +5,7 @@
 	"description": "Composer to autoload the condition checking for which this add-on is made",
 	"homepage": "https://github.com/WPBoilerplate/",
 	"minimum-stability": "dev",
+	"prefer-stable": true,
 	"repositories": [
 		{
 			"type": "vcs",
@@ -45,7 +46,7 @@
 	"require-dev": {
 		"wp-coding-standards/wpcs": "*",
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.2",
-		"phpunit/phpunit": "^13.2@dev",
+		"phpunit/phpunit": "^10.5",
 		"phpcompatibility/php-compatibility": "^10.0@alpha",
 		"phpstan/phpstan": "2.2.x-dev",
 		"szepeviktor/phpstan-wordpress": "2.x-dev"
