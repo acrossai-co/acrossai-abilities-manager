@@ -283,6 +283,25 @@ hooks themselves — only the orchestrator is wired in `Main.php` via the Loader
 canonical decomposition for the planned sibling modules (`PerUser`, `McpServer`,
 `CustomAbility`, `Webmcp`). See `specs/002-rest-controller-modularization/` for reference.
 
+**REST `permission_callback` Return Type (MUST)**: Every `permission_callback` and every
+`check_permission()` method MUST return only `true`, `false`, or `WP_Error`. Returning a
+`WP_REST_Response` object is a critical security defect — it is truthy, so WordPress treats it
+as "access granted" regardless of the HTTP status code inside it. Standard pattern:
+```php
+public function check_permission( \WP_REST_Request $request ): true|\WP_Error {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return new \WP_Error( 'rest_forbidden', __( '...', 'plugin-slug' ), array( 'status' => 403 ) );
+    }
+    $nonce = $request->get_header( 'X-WP-Nonce' );
+    if ( ! $nonce || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+        return new \WP_Error( 'rest_forbidden', __( 'Nonce verification failed.', 'plugin-slug' ), array( 'status' => 403 ) );
+    }
+    return true;
+}
+```
+Audit checklist for every new REST controller: (1) `permission_callback` present on every route,
+(2) return type is `true|false|\WP_Error` only, (3) nonce verified via `X-WP-Nonce` header.
+
 **Module Contract**: Every feature class MUST:
 1. Implement the singleton `instance()` pattern (`protected static $_instance = null;` + `public static function instance(): self`)
 2. Use a `private` constructor; dependencies are obtained via other classes' `::instance()` calls — never via constructor injection from outside

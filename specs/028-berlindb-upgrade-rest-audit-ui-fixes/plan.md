@@ -342,6 +342,22 @@ Add the correct delegate reference to the missing route:
 
 Record the audit result (all compliant, or gap + fix) in the PR description.
 
+### 3.4 — Return-type audit on every `check_permission()` implementation (discovered post-spec)
+
+**Finding**: `AcrossAI_Logger_Controller::check_permission()` was returning `new WP_REST_Response(..., 403)` on denial. `WP_REST_Response` is a PHP object — it is truthy. WordPress evaluates `permission_callback` returns as: `is_wp_error()` → 403, `! $result` → 401, anything else truthy → allowed. Returning a `WP_REST_Response` therefore granted access to anyone, making the capability check ineffective.
+
+**Rule**: `permission_callback` MUST return one of:
+- `true` — access granted
+- `false` — access denied (WordPress returns 401/403)
+- `WP_Error` — access denied with a structured error message
+
+**Fix applied** to `includes/Modules/Logger/Rest/AcrossAI_Logger_Controller.php`:
+- Replaced `new WP_REST_Response(..., 403)` with `new \WP_Error('rest_forbidden', ..., ['status' => 403])`
+- Added nonce verification (`X-WP-Nonce` via `wp_verify_nonce`) — previously absent in this controller while present in all others
+- Removed the now-unused `use WP_REST_Response` import
+
+**Verified clean**: `AcrossAI_Abilities_Rest_Controller`, `AcrossAI_Ability_Library_Rest_Controller`, `vendor/wpb-access-control/RulesController` all already returned `WP_Error` correctly. `AcrossAI_Abilities_Processor::execution_permission_callback()` returns `bool` — valid.
+
 ---
 
 ## Phase 4 — CHANGE-4: Remove `X of Y items` Label

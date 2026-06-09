@@ -80,8 +80,10 @@
 - [x] T016 [CHANGE-3] Run audit: `grep -rn "register_rest_route\|permission_callback\|__return_true" includes/` — review every `register_rest_route()` call to confirm each has a `permission_callback` key; confirm no route uses `'__return_true'` or an unconditionally-true closure
 - [x] T017 [CHANGE-3] If audit finds a gap: add the correct delegate reference `'permission_callback' => array( AcrossAI_Abilities_Rest_Controller::instance(), 'check_permission' )` to the affected route — skip if no gap found
 - [x] T018 [CHANGE-3] Document audit result (all compliant, or gap + fix applied) for inclusion in PR description — note which modules and controllers were checked
+- [x] T019 [CHANGE-3] Audit all `check_permission()` implementations for correct return type — `permission_callback` MUST return `true`, `false`, or `WP_Error`; returning `WP_REST_Response` is truthy and bypasses the access gate
+- [x] T020 [CHANGE-3] Fix `AcrossAI_Logger_Controller::check_permission()`: replace `new WP_REST_Response(..., 403)` with `new \WP_Error('rest_forbidden', ..., ['status' => 403])` and add the missing nonce check (`X-WP-Nonce` header via `wp_verify_nonce`) to match all other controllers — file: `includes/Modules/Logger/Rest/AcrossAI_Logger_Controller.php`
 
-**Checkpoint**: `grep -rn "__return_true" includes/` returns nothing; every `register_rest_route()` has a permission_callback; result documented.
+**Checkpoint**: `grep -rn "__return_true" includes/` returns nothing; every `register_rest_route()` has a `permission_callback`; every `check_permission()` implementation returns `true|bool|\WP_Error` only.
 
 ---
 
