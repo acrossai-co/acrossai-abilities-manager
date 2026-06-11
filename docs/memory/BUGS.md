@@ -1361,3 +1361,83 @@ Data injection MUST happen at `admin_enqueue_scripts` time via `wp_add_inline_sc
 causing a blank Library page on every first load. Fix: moved injection to
 `admin/Main.php::enqueue_scripts()` via `wp_add_inline_script(..., 'before')`.
 See also: AC-ENQUEUE-ADMIN, DEC-ABILITIES-LIST-UX-025.
+
+---
+
+### 2026-06-11 — BUG-BERLINDDB-QUERY-OVERRIDE-COMPAT
+
+**Pattern**
+BerlinDB Query subclass overrides must match the parent's access level AND full
+method signature — PHP fatals on class load if either differs:
+- `private function get_table_name()` → must be `public` (as in BerlinDB parent)
+- `get_logs(array $args)` → must include second param `string $operator = 'and'`
+
+**Prevention**
+When subclassing a BerlinDB Query class: (1) run `composer phpstan` immediately
+after adding any override method — PHPStan L8 catches visibility and signature
+mismatches before deployment. (2) Never assume the parent's visibility from the
+method behavior — check the parent class source in `vendor/berlindb/core/`.
+
+**Evidence (post-Feature 031)**
+`AcrossAI_Ability_Logs_Query.php:200` — `private function get_table_name()` →
+PHP Fatal: "Access level must be public (as in class BerlinDB\Database\Kern\Query)".
+`AcrossAI_Ability_Logs_Query.php:121` — `get_logs(array $args = [])` →
+PHP Fatal: "Declaration must be compatible with Query::get_logs(array $args = [], string $operator = 'and')".
+
+---
+
+### 2026-06-11 — BUG-WP-ABILITY-CHECK-PERMISSIONS
+
+**Pattern**
+`WP_Ability` has no `get_permission_callback()` or `get_args()` public methods.
+Probing for them via `method_exists()` falls through silently — the permission
+check becomes a no-op and all users are granted access. The correct API is
+`WP_Ability::check_permissions()` which calls the registered permission_callback
+and returns `bool|WP_Error`.
+
+**Prevention**
+```php
+$ability = \wp_get_ability( $slug );
+if ( $ability ) {
+    $result = $ability->check_permissions();
+    if ( \is_wp_error( $result ) || false === $result ) {
+        // denied — skip injection
+    }
+}
+```
+Source reference: `wp-includes/abilities-api/class-wp-ability.php` — only
+`check_permissions()` and `get_meta()` are the relevant public access methods.
+
+**Evidence (Feature 031 hotfix)**
+First fix attempt used `method_exists($ability, 'get_permission_callback')` →
+always false → `$perm_callback = null` → `is_callable(null)` = false → silent
+allow for all users. Confirmed via WP core source read. Two commits required.
+
+---
+
+### 2026-06-11 — BUG-INJECT-MCP-TOOLS-PERMISSION-BYPASS
+
+**Pattern**
+`inject_mcp_tools()` must call `WP_Ability::check_permissions()` as a fourth gate.
+AC rules alone are fail-open — when no rule is configured, `user_has_ability_access()`
+returns `true` and the ability is injected for ALL users, bypassing any
+`permission_callback` (e.g. `current_user_can('manage_options')`) set in the
+ability definition. Enabling Pass as Tool without this gate is a security hole.
+
+**Prevention**
+After the AC rule check in `inject_mcp_tools()`:
+```php
+$wp_ability = \wp_get_ability( $slug );
+if ( $wp_ability ) {
+    $result = $wp_ability->check_permissions();
+    if ( \is_wp_error( $result ) || false === $result ) {
+        continue; // Denied — skip injection for this user/server.
+    }
+}
+```
+
+**Evidence (Feature 031 hotfix)**
+`acrossai-core-abilities/debug-log-read` has `manage_options` permission_callback.
+With Pass as Tool = On and no AC rule configured, non-admin users saw the tool in
+MCP tools/list. Root cause: `user_has_ability_access()` line ~734 returns `true`
+when `'' === $rule['key']`. Fix in `AcrossAI_Ability_Override_Processor::inject_mcp_tools()`.
