@@ -88,7 +88,7 @@ Phases 2–4; JS reads field names from the PHP payload.
 - [x] T017 [P] Run ESLint (`npm run lint:js` or equivalent) — zero errors for `LibraryPage.js`, `LibraryCard.js`, `api.js`
 - [x] T019 [P] In `src/js/ability-library/components/LibraryPage.js`: remove debounce — replace 1000ms `setTimeout` wrapper around `saveConfig()` with a direct call so config saves fire instantly on every toggle/checkbox change. Remove `debounceTimer` ref.
 - [x] T020 [P] In `src/js/ability-library/components/LibraryPage.js`: remove "Saving…" spinner — delete `isSaving` state, `Spinner` import, and the `{isSaving && ...}` JSX block to eliminate the layout-shift flash caused by the transient saving indicator.
-- [ ] T018 Manual smoke test: (a) load `wp-admin → Abilities Manager → Library`; (b) confirm cards show `categoryLabel` titles; (c) switch a card to Specific mode — confirm each row shows `name` (or `slugLabel` fallback); (d) toggle a row checkbox and reload — confirm saved state persists; (e) check no browser console errors from plugin scripts; (f) **SC-031-01**: confirm no `dangerouslySetInnerHTML` exists in `LibraryCard.js` for label fields (grep the built file or source)
+- [x] T018 Manual smoke test: (a) load `wp-admin → Abilities Manager → Library`; (b) confirm cards show `categoryLabel` titles; (c) switch a card to Specific mode — confirm each row shows `name` (or `slugLabel` fallback); (d) toggle a row checkbox and reload — confirm saved state persists; (e) check no browser console errors from plugin scripts; (f) **SC-031-01**: confirm no `dangerouslySetInnerHTML` exists in `LibraryCard.js` for label fields (grep the built file or source)
 
 ---
 
