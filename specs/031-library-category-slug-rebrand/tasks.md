@@ -20,15 +20,15 @@ verification (US2) → contract breakage verification (US3) → quality gate.
 
 ---
 
-## Phase 1: Foundational — PHP Rename
+## Phase 1: Foundational — PHP Refactor
 
-**Purpose**: Rename all PHP-layer identifiers. Blocks Phases 2–4; JS reads field names from
-the PHP payload (`window.acrossaiAbilityLibraryData.definitions`), so PHP must be updated first.
+**Purpose**: Refactor PHP layer so definitions emit `category`/`slug`/`name` keys. Blocks
+Phases 2–4; JS reads field names from the PHP payload.
 
 **⚠️ CRITICAL**: No US1/US2 JS work can begin until this phase is complete.
 
-- [x] T001 [P] Rename four abstract methods (`main_key` → `category`, `main_key_label` → `category_label`, `sub_key` → `slug`, `sub_key_label` → `slug_label`) and the four corresponding `push_definition()` array keys in `includes/Modules/Library/Ability_Definition.php`
-- [x] T002 [P] In `includes/Modules/Library/AcrossAI_Ability_Library_Registry.php`: update `REQUIRED_FIELDS` constant (replace `main_key`, `main_key_label`, `sub_key`, `sub_key_label` with `category`, `category_label`, `slug`, `slug_label`); rename local vars `$main_key`/`$sub_key` to `$category`/`$slug` in `validate_and_normalize()`; rename all four output array keys; update `validate_and_normalize()` docblock to explicitly note the `args.category` (WordPress Abilities API arg) vs top-level `category` (grouping key) distinction
+- [x] T001 [P] In `includes/Modules/Library/Ability_Definition.php`: remove the four abstract grouping methods (`category()`, `category_label()`, `slug()`, `slug_label()`); update `push_definition()` to derive all Library fields from `ability()` — `category` and `category_label` from `$args['category']`, `slug` and `name` from `$spec['name']`, `slug_label` from `$args['label']`. Subclasses only need to implement `ability()`.
+- [x] T002 [P] In `includes/Modules/Library/AcrossAI_Ability_Library_Registry.php`: update `REQUIRED_FIELDS` constant (replace `main_key`, `main_key_label`, `sub_key`, `sub_key_label` with `category`, `category_label`, `slug`, `slug_label`); rename local vars `$main_key`/`$sub_key` to `$category`/`$slug` in `validate_and_normalize()`; rename all four output array keys; note in docblock that `top-level category` and `args['category']` are now the same value (both sourced from the ability spec)
 - [x] T003 [P] In `includes/Modules/Library/AcrossAI_Ability_Library_Processor.php`: rename `$main_key` → `$category` and `$sub_key` → `$slug` in `is_permitted()`; update all `$config[$main_key]` reads to `$config[$category]`; update `$entry['sub_keys'][$sub_key]` to `$entry['sub_keys'][$slug]` (note: `sub_keys` map key intentionally preserved); update FR-013–FR-017 docblock references from "main_key absent" to "category absent", "sub_key absent" to "slug absent"
 - [x] T004 [P] In `includes/Modules/Library/AcrossAI_Ability_Library_Config.php`: rename `sanitize_entry()` docblock from "Sanitizes a single main_key entry." to "Sanitizes a single category entry."; optionally add `const MAX_SLUGS = self::MAX_SUB_KEYS;` for forward-compat naming (keep `MAX_SUB_KEYS` unchanged)
 
@@ -70,7 +70,7 @@ the PHP payload (`window.acrossaiAbilityLibraryData.definitions`), so PHP must b
 
 **Independent Test**: Confirm `Ability_Definition.php` declares `category()`, `category_label()`, `slug()`, `slug_label()` as `abstract protected` methods. PHP's abstract-method contract guarantees a fatal error for any subclass missing these methods.
 
-- [x] T011 [US3] Verify `includes/Modules/Library/Ability_Definition.php` declares all four methods as `abstract protected function category()`, `abstract protected function category_label()`, `abstract protected function slug()`, `abstract protected function slug_label()` (review T001 output); confirm zero concrete subclasses remain in-repo via `grep -rn "extends Ability_Definition" includes/ admin/ src/` — expected: zero results
+- [x] T011 [US3] Verify `includes/Modules/Library/Ability_Definition.php` has only `ability()` as an abstract method (no `category()`, `category_label()`, `slug()`, `slug_label()` abstract methods). Confirm external subclasses (e.g. `acrossai-core-abilities`) that still implement old `main_key()`/`sub_key()` methods load without PHP fatal errors — PHP only errors on missing abstract implementations, not on extra methods.
 
 **Checkpoint**: US3 is satisfied by T001. This task is a post-rename review, not an implementation task.
 

@@ -6,12 +6,15 @@
 
 ## Summary
 
-Rename the Library module's two-level grouping scheme from `main_key`/`sub_key` to
-`category`/`slug` across 5 PHP files and 3 JS files. Concurrently, update the Library
-admin page to display each ability's existing `name` field as the per-row visible label
-(with `slug_label` fallback). The on-disk saved option shape (`acrossai_library_config`)
-is intentionally **not** changed — only in-memory runtime field names and component props
-are renamed. No new classes, REST routes, DB tables, or JS bundles are introduced.
+Replace the Library module's four per-subclass abstract methods (`main_key`, `main_key_label`,
+`sub_key`, `sub_key_label`) with automatic derivation from the single `ability()` method that
+subclasses already implement. `push_definition()` now reads `args['category']` for the Library
+card grouping key, `name` as the slug, and `args['label']` as the row label — so add-on authors
+only need `ability()`. Concurrently, rename the internal field names across Registry, Processor,
+and JS components from `main_key`/`sub_key` to `category`/`slug`, and update the Library admin
+page to display the ability `name` as the per-row visible label. The on-disk saved option shape
+(`acrossai_library_config`) is intentionally **not** changed. No new classes, REST routes, DB
+tables, or JS bundles are introduced.
 
 ---
 
@@ -22,7 +25,7 @@ are renamed. No new classes, REST routes, DB tables, or JS bundles are introduce
 - **Storage**: No DB schema change. `get_site_option('acrossai_library_config')` retains its current shape; `sub_keys` inner map key intentionally preserved (DEC-D6 sparse-storage rule)
 - **Testing**: PHPStan L8, PHPCS/WPCS, ESLint, `npm run build`, manual browser smoke test. PHPUnit only if existing test fixtures reference `main_key`/`sub_key` field names
 - **Target Platform**: WordPress 6.9+ / PHP 8.1+ / multisite-compatible
-- **Scale/Scope**: 5 PHP files + 3 JS files. Zero new files. Zero concrete `Ability_Definition` subclasses in-repo (verified)
+- **Scale/Scope**: 5 PHP files + 3 JS files + 1 SCSS file. Zero new files. Concrete `Ability_Definition` subclasses exist in the external `acrossai-core-abilities` plugin (17 files) — they are backwards-compatible because PHP only fatals on missing abstract methods, not on extra ones
 - **Performance**: No runtime impact — purely a rename. Registry collection, Processor gating, REST endpoints retain existing wiring
 
 ---
@@ -59,7 +62,7 @@ Relevant decisions from `docs/memory/INDEX.md` applied to this plan:
 | **DEC-SINGLETON-PSR2-PROPERTY** | No new singletons. |
 
 **New decision introduced by this feature** (to be captured in memory after implementation):
-- **DEC-LIBRARY-CATEGORY-SLUG-REBRAND**: Library abstract contract renamed from `main_key`/`sub_key` to `category`/`slug`; on-disk `sub_keys` wire key intentionally preserved for backwards-compat.
+- **DEC-LIBRARY-CATEGORY-SLUG-REBRAND**: `Ability_Definition` subclasses now only implement `ability()`; `push_definition()` derives Library grouping fields (`category`, `slug`, labels) from `ability()['args']['category']`, `ability()['name']`, and `ability()['args']['label']`. On-disk `sub_keys` wire key preserved. External subclasses with old `main_key()`/`sub_key()` methods remain compatible (PHP only errors on *missing* abstract methods).
 
 ---
 
@@ -85,7 +88,7 @@ Relevant decisions from `docs/memory/INDEX.md` applied to this plan:
                        ▼
 ┌─────────────────────────────────────────────────────┐
 │  Domain: includes/Modules/Library/                   │
-│    Ability_Definition.php  ← abstract (RENAMED)      │
+│    Ability_Definition.php  ← abstract (SIMPLIFIED)   │
 │    AcrossAI_Ability_Library_Registry.php  (RENAMED)  │
 │    AcrossAI_Ability_Library_Processor.php (RENAMED)  │
 │    AcrossAI_Ability_Library_Config.php    (docblock) │
@@ -101,9 +104,12 @@ Relevant decisions from `docs/memory/INDEX.md` applied to this plan:
 └─────────────────────────────────────────────────────┘
 ```
 
-### Critical Invariant: `args.category` vs top-level `category`
+### `args.category` is the source of the top-level `category`
 
-`AcrossAI_Ability_Library_Registry::ALLOWED_ARGS_FIELDS` already contains `'category'` as an allowed key inside `args` (this is the WordPress Abilities API ability category). The new top-level `category` field on definitions is at a **different array depth** and is validated separately in `REQUIRED_FIELDS`. These two do not collide. The docblock on `validate_and_normalize()` MUST explicitly document this distinction.
+`push_definition()` now reads `$args['category']` (from the WordPress Abilities API spec) and
+writes it as the top-level Library `category` field. These are **the same value at different
+array depths** — the ability spec's category becomes the Library card grouping key. The Registry
+docblock notes this explicitly so reviewers know the duplication is intentional, not a bug.
 
 ---
 
@@ -111,14 +117,11 @@ Relevant decisions from `docs/memory/INDEX.md` applied to this plan:
 
 | Old identifier | New identifier | File | Line(s) |
 |---|---|---|---|
-| `abstract protected function main_key()` | `abstract protected function category()` | `Ability_Definition.php` | ~34 |
-| `abstract protected function main_key_label()` | `abstract protected function category_label()` | `Ability_Definition.php` | ~37 |
-| `abstract protected function sub_key()` | `abstract protected function slug()` | `Ability_Definition.php` | ~40 |
-| `abstract protected function sub_key_label()` | `abstract protected function slug_label()` | `Ability_Definition.php` | ~43 |
-| `'main_key' => $this->main_key()` | `'category' => $this->category()` | `Ability_Definition.php` | ~66 |
-| `'main_key_label' => $this->main_key_label()` | `'category_label' => $this->category_label()` | `Ability_Definition.php` | ~67 |
-| `'sub_key' => $this->sub_key()` | `'slug' => $this->slug()` | `Ability_Definition.php` | ~68 |
-| `'sub_key_label' => $this->sub_key_label()` | `'slug_label' => $this->slug_label()` | `Ability_Definition.php` | ~69 |
+| 4 abstract methods removed (`main_key`, `main_key_label`, `sub_key`, `sub_key_label`) | Derived automatically in `push_definition()` from `ability()` return value | `Ability_Definition.php` | ~34–43 removed |
+| `'main_key' => $this->main_key()` | `'category' => $args['category']` (from `ability()['args']`) | `Ability_Definition.php` | `push_definition()` |
+| `'main_key_label' => $this->main_key_label()` | `'category_label' => $args['category']` (same as category key) | `Ability_Definition.php` | `push_definition()` |
+| `'sub_key' => $this->sub_key()` | `'slug' => $name` (from `ability()['name']`) | `Ability_Definition.php` | `push_definition()` |
+| `'sub_key_label' => $this->sub_key_label()` | `'slug_label' => $args['label']` (from `ability()['args']`) | `Ability_Definition.php` | `push_definition()` |
 | `'main_key'` in `REQUIRED_FIELDS` | `'category'` | `Registry.php` | ~45 |
 | `'main_key_label'` in `REQUIRED_FIELDS` | `'category_label'` | `Registry.php` | ~46 |
 | `'sub_key'` in `REQUIRED_FIELDS` | `'slug'` | `Registry.php` | ~47 |
@@ -165,10 +168,10 @@ Relevant decisions from `docs/memory/INDEX.md` applied to this plan:
 
 ## Implementation Phases
 
-### Phase 1 — PHP Rename (Parallel-safe)
+### Phase 1 — PHP Refactor (Parallel-safe)
 
-**T001** `Ability_Definition.php` — rename 4 abstract methods + 4 `push_definition()` array keys
-**T002** `AcrossAI_Ability_Library_Registry.php` — rename `REQUIRED_FIELDS`, local vars, output array keys; update `validate_and_normalize()` docblock to note the `args.category` vs top-level `category` distinction
+**T001** `Ability_Definition.php` — remove 4 abstract methods; update `push_definition()` to derive `category`/`slug`/labels from `ability()['args']` and `ability()['name']`; subclasses need only implement `ability()`
+**T002** `AcrossAI_Ability_Library_Registry.php` — rename `REQUIRED_FIELDS`, local vars, output array keys; update docblock to note that `top-level category` and `args['category']` are now the same value
 **T003** `AcrossAI_Ability_Library_Processor.php` — rename `$main_key`/`$sub_key` local vars and definition reads; update FR-013–FR-017 docblock references; preserve `$entry['sub_keys'][$slug]` (on-disk key)
 **T004** `AcrossAI_Ability_Library_Config.php` — docblock-only: rename "main_key entry" → "category entry" in `sanitize_entry()`; optionally add `const MAX_SLUGS = self::MAX_SUB_KEYS;`
 
