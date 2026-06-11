@@ -37,7 +37,7 @@ the old `main_key`/`sub_key` naming.
 
 **Acceptance Scenarios**:
 
-1. **Given** an add-on has registered abilities, **When** an admin loads the Library page, **Then** each card title displays the category label and each ability row displays the ability's registered name.
+1. **Given** an add-on has registered abilities, **When** an admin loads the Library page, **Then** each card title displays the human-readable category label (e.g. "Acrossai Core Abilities Plugins") and each ability row displays the human-readable `slug_label` (e.g. "Activate Plugin") — not a raw machine key.
 2. **Given** an add-on registered two abilities in the same category, **When** the admin views that card in Specific mode, **Then** both ability names are listed as separate checkboxes.
 3. **Given** an ability has no registered name, **When** the admin views its row in Specific mode, **Then** the row falls back to displaying the slug label.
 
@@ -100,10 +100,10 @@ methods — not a blank page or silent skip.
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST rename the four abstract grouping methods in `Ability_Definition` from `main_key`/`main_key_label`/`sub_key`/`sub_key_label` to `category`/`category_label`/`slug`/`slug_label`.
+- **FR-001**: The system MUST remove the four abstract grouping methods (`main_key`, `main_key_label`, `sub_key`, `sub_key_label`) from `Ability_Definition` and derive `category`, `category_label`, `slug`, and `slug_label` automatically inside `push_definition()` from the single `ability()` method's return value — so add-on authors only need to implement `ability()`.
 - **FR-002**: The Registry MUST validate and normalize incoming definition arrays against the new field names (`category`, `category_label`, `slug`, `slug_label`) and reject definitions that are missing any of these fields.
 - **FR-003**: The Processor MUST read `category` and `slug` from each definition when checking against the saved Library config.
-- **FR-004**: The Library admin page MUST display each ability's registered `name` as the visible row label in Specific mode, with `slug_label` as a fallback when `name` is empty.
+- **FR-004**: The Library admin page MUST display each ability's human-readable `slug_label` (derived from `args['label']`) as the visible row label in Specific mode, with the machine `name` as a fallback when `slug_label` is empty.
 - **FR-005**: The on-disk saved Library config shape MUST remain unchanged — category identifiers are used as top-level keys and the inner per-slug map continues to use the `sub_keys` key — so that existing saved configurations are not invalidated.
 - **FR-006**: The REST endpoint wire format for the Library config (`/acrossai-abilities-library/v1/abilities/config`) MUST continue to accept and return the same `{enabled, mode, sub_keys}` shape per entry, preserving backwards compatibility with any client that already sends this format.
 - **FR-007**: The plugin MUST continue to load and operate normally when no add-on has registered any abilities via `Ability_Definition` (empty Library state is valid).
@@ -121,7 +121,7 @@ methods — not a blank page or silent skip.
 
 ### Measurable Outcomes
 
-- **SC-001**: Every ability row on the Library page displays the ability's registered `name` (or `slug_label` fallback) as its visible label — zero rows show a raw key string as the label in 100% of tested scenarios.
+- **SC-001**: Every ability row on the Library page displays the ability's human-readable `slug_label` (e.g. "Activate Plugin") as its visible label, with `name` as fallback — zero rows show a raw machine key as the label in 100% of tested scenarios.
 - **SC-002**: A saved Library config written by the previous version of the plugin loads and applies correctly after the upgrade — zero configuration loss across upgrade in 100% of tested scenarios.
 - **SC-003**: Static analysis (PHPCS + PHPStan level 8) reports zero new errors in all modified files after the rename.
 - **SC-004**: A JavaScript build (`npm run build`) completes without errors and the Library admin page renders without browser console errors after the rename.
@@ -131,7 +131,7 @@ methods — not a blank page or silent skip.
 
 ## Assumptions
 
-- There are zero concrete subclasses of `Ability_Definition` inside this plugin repository (verified by codebase search during planning). Any external add-on subclasses will break at the PHP abstract-method contract level until they rename their methods. Changelog entry and semver version bump are out of scope for this feature — handled separately in the release process.
+- There are zero concrete subclasses of `Ability_Definition` inside *this* plugin repository (verified). 17 concrete subclasses exist in the external `acrossai-core-abilities` plugin — they are backwards-compatible because PHP only fatals on *missing* abstract method implementations, not on extra non-abstract methods. Changelog entry and semver version bump are out of scope — handled separately in the release process.
 - The `sub_keys` key in the on-disk config format is intentionally NOT renamed in this feature; only the in-memory / payload field names change.
 - The inner `args.category` field in ability definitions (the WordPress Abilities API `category` argument) is at a different array depth than the new top-level `category` grouping field — they do not collide and are independently validated.
 - No database schema migration is required: this feature changes only PHP class contracts, PHP array keys in runtime definitions, and JavaScript component props.
