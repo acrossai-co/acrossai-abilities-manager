@@ -259,13 +259,15 @@ final class Main {
 		$this->loader->add_action( 'admin_menu', $settings_menu, 'register_submenu' );
 		$this->loader->add_action( 'admin_init', $settings_menu, 'register_settings' );
 
-		// Add-ons submenu page (Feature 026).
+		// Add-ons submenu page (Feature 026, updated Feature 030).
+		// Package rebranded: wpboilerplate/addons-page → acrossai-co/addons-page (AcrossAI_Addon\AddonsPage).
 		// The AddonsPage constructor self-registers all WordPress hooks — no Loader wiring needed.
 		// Accepted deviation from Boot Flow Rule: external package API does not expose individual hook methods.
 		// Guarded per Constitution §V Integration Resilience: fails gracefully when vendor is absent.
-		if ( class_exists( \WPBoilerplate\AddonsPage\AddonsPage::class ) ) {
+		// See DEC-EXTERNAL-PACKAGE-HOOK-CTOR.
+		if ( class_exists( \AcrossAI_Addon\AddonsPage::class ) ) {
 			try {
-				new \WPBoilerplate\AddonsPage\AddonsPage(
+				new \AcrossAI_Addon\AddonsPage(
 					'acrossai-abilities-manager',
 					ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE,
 					array(

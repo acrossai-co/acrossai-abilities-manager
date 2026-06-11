@@ -4,8 +4,57 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3ce7b3f12ed27c156313a7dafc7e464f",
+    "content-hash": "7956d4dc367aa64d03155defc21240e3",
     "packages": [
+        {
+            "name": "acrossai-co/addons-page",
+            "version": "v0.0.19",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/acrossai-co/addons-page.git",
+                "reference": "a31780816ca9123478e92797a9e49abee803cb75"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/acrossai-co/addons-page/zipball/a31780816ca9123478e92797a9e49abee803cb75",
+                "reference": "a31780816ca9123478e92797a9e49abee803cb75",
+                "shasum": ""
+            },
+            "require": {
+                "automattic/jetpack-autoloader": "^5.0",
+                "freemius/wordpress-sdk": "^2.0",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "brain/monkey": "^2.6",
+                "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
+                "doctrine/instantiator": "^1.5.0",
+                "phpcompatibility/phpcompatibility-wp": "*",
+                "phpunit/phpunit": "^9.6",
+                "szepeviktor/phpstan-wordpress": "^2.0",
+                "wp-coding-standards/wpcs": "*"
+            },
+            "type": "library",
+            "extra": {
+                "wp-requires": "6.0",
+                "autoloader-suffix": "AcrossAI_Addon"
+            },
+            "autoload": {
+                "psr-4": {
+                    "AcrossAI_Addon\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Reusable WordPress Add-ons page with free and paid add-ons support via Freemius.",
+            "support": {
+                "issues": "https://github.com/acrossai-co/addons-page/issues",
+                "source": "https://github.com/acrossai-co/addons-page/tree/v0.0.19"
+            },
+            "time": "2026-06-11T04:18:17+00:00"
+        },
         {
             "name": "automattic/jetpack-autoloader",
             "version": "v5.0.19",
@@ -178,52 +227,6 @@
                 "source": "https://github.com/Freemius/wordpress-sdk/tree/2.13.1"
             },
             "time": "2026-03-25T15:26:13+00:00"
-        },
-        {
-            "name": "wpboilerplate/addons-page",
-            "version": "0.0.17",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/WPBoilerplate/wpb-addons-page.git",
-                "reference": "9a33fb30b3e3cda760d4a48f6c154482a35552ea"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/WPBoilerplate/wpb-addons-page/zipball/9a33fb30b3e3cda760d4a48f6c154482a35552ea",
-                "reference": "9a33fb30b3e3cda760d4a48f6c154482a35552ea",
-                "shasum": ""
-            },
-            "require": {
-                "automattic/jetpack-autoloader": "^5.0",
-                "freemius/wordpress-sdk": "^2.0",
-                "php": ">=7.4"
-            },
-            "require-dev": {
-                "brain/monkey": "^2.6",
-                "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
-                "phpunit/phpunit": "^9.6",
-                "szepeviktor/phpstan-wordpress": "^2.0",
-                "wp-coding-standards/wpcs": "*"
-            },
-            "type": "library",
-            "extra": {
-                "autoloader-suffix": "WPBoilerplate_AddonsPage",
-                "wp-requires": "6.0"
-            },
-            "autoload": {
-                "psr-4": {
-                    "WPBoilerplate\\AddonsPage\\": "src/"
-                }
-            },
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "description": "Reusable WordPress Add-ons page with free and paid add-ons support via Freemius.",
-            "support": {
-                "source": "https://github.com/WPBoilerplate/wpb-addons-page/tree/v0.0.17",
-                "issues": "https://github.com/WPBoilerplate/wpb-addons-page/issues"
-            },
-            "time": "2026-06-08T15:44:32+00:00"
         },
         {
             "name": "wpboilerplate/wpb-access-control",
@@ -1013,8 +1016,8 @@
             "version": "2.2.x-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/c128b8456a3cc6308a085cce9dd3d7c4ce444c1e",
-                "reference": "c128b8456a3cc6308a085cce9dd3d7c4ce444c1e",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/34859227919faf5d4498f11e11a1e825aa102402",
+                "reference": "34859227919faf5d4498f11e11a1e825aa102402",
                 "shasum": ""
             },
             "require": {
@@ -1071,7 +1074,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-09T15:57:01+00:00"
+            "time": "2026-06-10T10:12:08+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

@@ -9,10 +9,6 @@
 	"repositories": [
 		{
 			"type": "vcs",
-			"url": "https://github.com/WPBoilerplate/wpb-addons-page"
-		},
-		{
-			"type": "vcs",
 			"url": "https://github.com/WPBoilerplate/wpb-access-control"
 		}
 	],
@@ -22,7 +18,7 @@
 		"wpboilerplate/wpb-access-control": "^1.2.1",
 		"berlindb/core": "^3.0.0",
 		"wpboilerplate/wpb-mcp-servers-list": "^0.0.1",
-		"wpboilerplate/addons-page": "^0.0.17"
+		"acrossai-co/addons-page": "^0.0.19"
 	},
 	"keywords": [
 		"wordpress",
