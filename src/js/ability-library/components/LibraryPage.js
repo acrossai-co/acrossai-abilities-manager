@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from '@wordpress/element';
-import { Notice, Spinner } from '@wordpress/components';
+import { Notice } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { fetchConfig, saveConfig } from '../api';
 import LibraryCard from './LibraryCard';
@@ -44,7 +44,6 @@ export default function LibraryPage() {
 	const items = groupDefinitions(data.definitions || []);
 
 	const [config, setConfig] = useState({});
-	const [isSaving, setIsSaving] = useState(false);
 	const [error, setError] = useState(null);
 
 	const initialLoadComplete = useRef(false);
@@ -74,29 +73,19 @@ export default function LibraryPage() {
 			return;
 		}
 
-		setIsSaving(true);
 		setError(null);
-		saveConfig(next)
-			.catch(() =>
-				setError(
-					__(
-						'Failed to save configuration.',
-						'acrossai-abilities-manager'
-					)
+		saveConfig(next).catch(() =>
+			setError(
+				__(
+					'Failed to save configuration.',
+					'acrossai-abilities-manager'
 				)
 			)
-			.finally(() => setIsSaving(false));
+		);
 	}
 
 	return (
 		<div className="acrossai-library-page">
-			{isSaving && (
-				<div className="acrossai-library-page__saving">
-					<Spinner />
-					<span>{__('Saving…', 'acrossai-abilities-manager')}</span>
-				</div>
-			)}
-
 			{error && (
 				<Notice
 					status="error"
