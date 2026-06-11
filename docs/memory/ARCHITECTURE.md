@@ -792,3 +792,55 @@ future PHP-managed list that gates admin UI behavior.
 `src/js/abilities/components/AbilitiesList.jsx` (`PROTECTED_SLUGS` constant),
 `includes/Utilities/AcrossAI_Protected_Abilities.php` (PHP source of truth),
 DEC-PROTECTED-SLUGS-PATTERN (PHP-side centralization decision).
+
+---
+
+### 2026-06-11 — PATTERN-VENDOR-ASSET-FAMILY-HANDLE
+
+**Pattern**
+When registering a vendor library's CSS/JS asset via `wp_register_style()` /
+`wp_register_script()`, the handle MUST carry the consuming plugin's prefix —
+NOT the vendor library's own name. The vendor's name is for filesystem paths
+and Composer; the WordPress handle is in the global asset registry and must
+satisfy Plugin Check's 4+ character unique-prefix rule.
+
+For a **family of plugins** that all bundle the same vendor library via
+Jetpack Autoloader (Jetpack picks the highest PHP version across the family but
+does not manage asset URLs), all plugins MUST register the asset under the
+**same family-level handle**. WordPress's `WP_Dependencies::add()` silently
+returns false on duplicate handle registration, so first-to-register wins and
+the CSS loads exactly once site-wide — no duplicate `<link>` tags, no
+conflicts, no `wp_style_is()` guard required.
+
+**Convention for the AcrossAI family**:
+- Handle format: `acrossai-<vendor-package-name>` (e.g.
+  `acrossai-wpb-access-control` for `wpboilerplate/wpb-access-control`)
+- Carries the 8-char `acrossai-` prefix (Plugin Check satisfied)
+- Vendor name is preserved in the suffix for debuggability (DOM inspection
+  reveals which library shipped the CSS)
+- Same handle in every AcrossAI add-on that bundles the same library
+
+**Anti-patterns to avoid**:
+- Registering with the vendor's bare name (`'wpb-access-control'`) — fails
+  Plugin Check; also race-prone if another vendor coincidentally uses the
+  same handle.
+- Per-plugin-scoped handles (`'acrossai-abma-wpb-access-control'`,
+  `'acrossai-cora-wpb-access-control'`) — loads the same CSS twice from
+  different vendor/ paths; wasteful.
+- Renaming the upstream Composer package to "fix" the prefix — doesn't fix
+  the handle (which is what Plugin Check checks); breaks every other
+  consumer of the package.
+
+**Limitation worth knowing**:
+First-loaded plugin wins the URL, so its `vendor/` copy of the CSS is what
+gets served — even if Jetpack Autoloader selected a different plugin's
+higher-version PHP. The cleanest long-term fix is for the vendor library
+itself to expose an `Assets::register()` method called from the Jetpack-
+Autoloader-selected copy, so PHP version and CSS version stay in sync.
+Until then, the family-level handle is the right pragmatic answer.
+
+**Evidence**
+`admin/Main.php:179, 188` — handle renamed from `'wpb-access-control'` to
+`'acrossai-wpb-access-control'`. Plugin Check finding "Looks like there is
+an element not using common prefixes" resolved with two single-line edits;
+36 acrossai-prefixed elements become 37.
