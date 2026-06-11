@@ -21,7 +21,17 @@ jobs:
       - name: Build plugin
         run: npm run build
 
-      - name: Generate zip
-        uses: 10up/action-wordpress-plugin-build-zip@stable
-        env:
-          SLUG: acrossai-abilities-manager
+      - name: Create release zip
+        run: |
+          zip -r acrossai-abilities-manager.zip . \
+            -x "*.git*" "node_modules/*" "vendor/*" ".github/*" \
+            "tests/*" "*.md" "*.json" "*.lock" "composer.json" \
+            "package.json" "wp.env.json" ".env*" "build/*"
+          mkdir -p releases
+          mv acrossai-abilities-manager.zip releases/
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: acrossai-abilities-manager
+          path: releases/acrossai-abilities-manager.zip
