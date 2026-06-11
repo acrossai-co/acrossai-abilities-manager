@@ -30,18 +30,6 @@ abstract class Ability_Definition {
 		add_filter( 'acrossai_abilities_api_init', array( $this, 'push_definition' ) );
 	}
 
-	/** Library card grouping category key (e.g. 'sre-tools'). */
-	abstract protected function category(): string;
-
-	/** Human-readable label for the card title (e.g. 'SRE Tools'). */
-	abstract protected function category_label(): string;
-
-	/** Per-ability slug for the checkbox (e.g. 'transient-flush'). */
-	abstract protected function slug(): string;
-
-	/** Human-readable label for the slug checkbox (e.g. 'Flush Transients'). */
-	abstract protected function slug_label(): string;
-
 	/**
 	 * Full ability spec for wp_register_ability().
 	 *
@@ -50,25 +38,35 @@ abstract class Ability_Definition {
 	 *   - 'args'  (array)  the args passed to wp_register_ability:
 	 *                      label, description, category, execute_callback,
 	 *                      permission_callback, input_schema, output_schema, meta
+	 *
+	 * The Library page derives its display fields from this return value:
+	 *   - Library card grouping: args['category']
+	 *   - Per-row label:         args['label']
+	 *   - Unique slug:           name
 	 */
 	abstract protected function ability(): array;
 
 	/**
 	 * Filter callback — wired automatically by the constructor.
 	 *
+	 * Derives Library grouping fields from ability() so subclasses only need
+	 * to implement the single ability() method.
+	 *
 	 * @param array $definitions Existing definitions collected so far.
 	 * @return array
 	 */
 	public function push_definition( array $definitions ): array {
 		$spec = $this->ability();
+		$name = $spec['name'] ?? '';
+		$args = $spec['args'] ?? array();
 
 		$definitions[] = array(
-			'category'       => $this->category(),
-			'category_label' => $this->category_label(),
-			'slug'           => $this->slug(),
-			'slug_label'     => $this->slug_label(),
-			'name'           => $spec['name'] ?? '',
-			'args'           => $spec['args'] ?? array(),
+			'category'       => $args['category'] ?? '',
+			'category_label' => $args['category'] ?? '',
+			'slug'           => $name,
+			'slug_label'     => $args['label'] ?? $name,
+			'name'           => $name,
+			'args'           => $args,
 		);
 
 		return $definitions;
