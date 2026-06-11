@@ -250,6 +250,11 @@ final class Main {
 		$main_menu = new \AcrossAI_Abilities_Manager\Admin\Partials\Menu( $this->get_plugin_name(), $this->get_version() );
 		$this->loader->add_action( 'admin_menu', $main_menu, 'main_menu' );
 
+		// Library submenu page — second position, immediately after main menu (Feature 027/031).
+		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
+		$ability_library_menu = \AcrossAI_Abilities_Manager\Admin\Partials\LibraryMenu::instance();
+		$this->loader->add_action( 'admin_menu', $ability_library_menu, 'register_submenu' );
+
 		// Execution Logs submenu page (Feature 006: T014).
 		$logs_menu = \AcrossAI_Abilities_Manager\Admin\Partials\LogsMenu::instance();
 		$this->loader->add_action( 'admin_menu', $logs_menu, 'register_submenu' );
@@ -327,11 +332,6 @@ final class Main {
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
 		$ability_library_rest = \AcrossAI_Abilities_Manager\Includes\Modules\Library\Rest\AcrossAI_Ability_Library_Rest_Controller::instance();
 		$this->loader->add_action( 'rest_api_init', $ability_library_rest, 'register_routes' );
-
-		// Library submenu page (Feature 027).
-		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
-		$ability_library_menu = \AcrossAI_Abilities_Manager\Admin\Partials\LibraryMenu::instance();
-		$this->loader->add_action( 'admin_menu', $ability_library_menu, 'register_submenu' );
 	}
 
 	/**

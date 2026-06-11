@@ -5,6 +5,16 @@ This is not a changelog. Do not record routine releases, version bumps, or imple
 
 ---
 
+### 2026-06-11 — Feature 032: Post-031 hotfixes — 3 new bug patterns, 1 HIGH security finding resolved
+
+- **Why durable**: Three independent post-launch bugs surfaced after Feature 031 shipped, each generating a reusable durable lesson. One was a HIGH-severity security hole (MCP tools bypassing `permission_callback` for non-admin users).
+- **Future mistake prevented**: (1) BUG-BERLINDDB-QUERY-OVERRIDE-COMPAT — BerlinDB Query subclass overrides must match parent visibility AND full signature; PHPStan L8 catches these before deployment. (2) BUG-WP-ABILITY-CHECK-PERMISSIONS — `WP_Ability` has no `get_permission_callback()`/`get_args()`; always use `check_permissions()` — probing for non-existent methods via `method_exists()` silently passes the check, granting all-user access. (3) BUG-INJECT-MCP-TOOLS-PERMISSION-BYPASS — `inject_mcp_tools()` needs `check_permissions()` as 4th gate; AC rules are fail-open and silently bypass `manage_options` when no rule is configured.
+- **Also shipped**: Library submenu moved to second position (was fourth) in `define_admin_hooks()` — submenu order = `add_submenu_page()` call order within the same hook priority.
+- **Evidence**: Branch `032-post-031-hotfixes`. 3 PHP files changed. 0 new tests (single-method fixes). PHPCS ✅, PHPStan L8 ✅, manual smoke test confirmed. T001–T008 complete.
+- **Where to look**: `includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Query.php` (BerlinDB compat), `includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php::inject_mcp_tools()` (Check 4), `includes/Main.php::define_admin_hooks()` (menu reorder).
+
+---
+
 ### 2026-06-11 — Feature 031: Library category/slug rebrand + Ability_Definition simplification — 0 security findings
 
 - **Why durable**: DEC-LIBRARY-CATEGORY-SLUG-REBRAND establishes that `Ability_Definition` subclasses need only implement `ability()`; all Library grouping fields derive automatically. 17 external subclasses in `acrossai-core-abilities` remained compatible without code changes.
