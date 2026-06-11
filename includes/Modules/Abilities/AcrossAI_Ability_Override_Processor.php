@@ -690,19 +690,14 @@ final class AcrossAI_Ability_Override_Processor {
 					continue; // Current user denied.
 				}
 
-				// Check 4: the ability's own permission_callback — respects plugin-defined
-				// access gates (e.g. manage_options) that are not expressed as AC rules.
-				// AC rules (Check 3) are fail-open when absent; this gate is always authoritative.
+				// Check 4: the ability's own permission_callback via WP_Ability::check_permissions().
+				// Respects plugin-defined access gates (e.g. manage_options) that are not
+				// expressed as AC rules. AC rules (Check 3) are fail-open when absent;
+				// this gate is always authoritative.
 				$wp_ability = \wp_get_ability( $slug );
 				if ( $wp_ability ) {
-					$perm_callback = null;
-					if ( method_exists( $wp_ability, 'get_permission_callback' ) ) {
-						$perm_callback = $wp_ability->get_permission_callback();
-					} elseif ( method_exists( $wp_ability, 'get_args' ) ) {
-						$ability_args  = $wp_ability->get_args();
-						$perm_callback = $ability_args['permission_callback'] ?? null;
-					}
-					if ( is_callable( $perm_callback ) && ! \call_user_func( $perm_callback ) ) {
+					$perm_result = $wp_ability->check_permissions();
+					if ( \is_wp_error( $perm_result ) || false === $perm_result ) {
 						continue; // Ability's own permission gate denies the current user.
 					}
 				}
