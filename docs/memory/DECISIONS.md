@@ -22,6 +22,7 @@ When integrating a Composer package whose constructor self-registers hooks: (1) 
 **Evidence**
 `includes/Main.php` — AddonsPage block after the Settings submenu section;
 `specs/026-addons-page-integration/spec.md` — FR-004, FR-005, FR-006.
+Feature 030: package rebranded to `acrossai-co/addons-page` (FQCN: `\AcrossAI_Addon\AddonsPage`); pattern preserved unchanged.
 
 ---
 

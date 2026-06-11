@@ -10,6 +10,8 @@
 namespace AcrossAI_Abilities_Manager\Admin;
 
 use AcrossAI_Abilities_Manager\Admin\Partials\LogsMenu;
+use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Registry;
+use AcrossAI_Abilities_Manager\Includes\Modules\Library\Rest\AcrossAI_Ability_Library_Rest_Controller;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -268,8 +270,8 @@ class Main {
 		}
 
 		// Enqueue Ability Library scripts only on Library submenu page (Feature 027).
-		// LibraryMenu::render() calls localize_data() to inject window.acrossaiAbilityLibraryData
-		// after this script is registered with the 'acrossai-ability-library-js' handle.
+		// Data is injected here via wp_add_inline_script() — before position ensures
+		// window.acrossaiAbilityLibraryData exists when ability-library.js boots (AC-ENQUEUE-ADMIN).
 		if ( $this->library_asset_file && $this->is_library_page( $hook_suffix ) ) {
 			wp_register_script(
 				'acrossai-ability-library-js',
@@ -279,6 +281,18 @@ class Main {
 				true
 			);
 			wp_enqueue_script( 'acrossai-ability-library-js' );
+
+			wp_add_inline_script(
+				'acrossai-ability-library-js',
+				'window.acrossaiAbilityLibraryData = ' . wp_json_encode(
+					array(
+						'definitions' => AcrossAI_Ability_Library_Registry::instance()->get_definitions(),
+						'restBase'    => rest_url( AcrossAI_Ability_Library_Rest_Controller::REST_NAMESPACE ),
+						'nonce'       => wp_create_nonce( 'wp_rest' ),
+					)
+				) . ';',
+				'before'
+			);
 		}
 	}
 
@@ -321,15 +335,18 @@ class Main {
 	/**
 	 * Checks whether the current admin screen is the Ability Library page.
 	 *
-	 * Hook suffix formula: {parent-slug}_page_{submenu-slug} (DEC-MENU-HOOK-SUFFIX).
-	 * Literal is hardcoded — do NOT store add_submenu_page() return value (DEC-MENU-HOOK-SUFFIX).
+	 * Uses the hook suffix captured by LibraryMenu::register_submenu() — the same
+	 * reliable pattern used by is_logs_page(). WordPress generates the submenu hook
+	 * suffix from sanitize_title($menu_title), not the $menu_slug, so a hardcoded
+	 * string based on the parent slug would be wrong (and was: BUG-LIBRARY-HOOK-SUFFIX).
 	 *
 	 * @since    0.1.0
 	 * @param string $hook_suffix The hook suffix for the current admin screen.
 	 * @return bool
 	 */
 	private function is_library_page( string $hook_suffix ): bool {
-		return 'acrossai-abilities-manager_page_acrossai-abilities-library' === $hook_suffix;
+		$library_suffix = \AcrossAI_Abilities_Manager\Admin\Partials\LibraryMenu::instance()->get_hook_suffix();
+		return '' !== $library_suffix && $library_suffix === $hook_suffix;
 	}
 
 	/**

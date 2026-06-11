@@ -3,7 +3,7 @@
  * Ability Library submenu page.
  *
  * Registers and renders the Library submenu page under the Abilities Manager main menu.
- * Localizes collected ability definitions and REST config for the React UI.
+ * Page data is injected via wp_add_inline_script() in admin/Main::enqueue_scripts() (AC-ENQUEUE-ADMIN).
  *
  * @package    AcrossAI_Abilities_Manager
  * @subpackage AcrossAI_Abilities_Manager/admin/Partials
@@ -11,9 +11,6 @@
  */
 
 namespace AcrossAI_Abilities_Manager\Admin\Partials;
-
-use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Registry;
-use AcrossAI_Abilities_Manager\Includes\Modules\Library\Rest\AcrossAI_Ability_Library_Rest_Controller;
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
@@ -31,6 +28,13 @@ class LibraryMenu {
 	 * @var LibraryMenu|null
 	 */
 	protected static $instance = null;
+
+	/**
+	 * Hook suffix returned by add_submenu_page(); used to guard script/style enqueuing.
+	 *
+	 * @var string
+	 */
+	private $hook_suffix = '';
 
 	/**
 	 * Retrieve the singleton instance.
@@ -62,7 +66,7 @@ class LibraryMenu {
 	 * @return void
 	 */
 	public function register_submenu(): void {
-		add_submenu_page(
+		$suffix = add_submenu_page(
 			'acrossai-abilities-manager',
 			__( 'Ability Library', 'acrossai-abilities-manager' ),
 			__( 'Library', 'acrossai-abilities-manager' ),
@@ -70,46 +74,37 @@ class LibraryMenu {
 			'acrossai-abilities-library',
 			array( $this, 'render' )
 		);
+
+		$this->hook_suffix = is_string( $suffix ) ? $suffix : '';
 	}
 
 	/**
-	 * Render the Library page.
+	 * Return the hook suffix assigned by add_submenu_page().
 	 *
-	 * Outputs the page wrapper and localizes data for the React component.
+	 * Used by admin/Main::is_library_page() to guard script/style enqueuing.
+	 *
+	 * @since  0.1.0
+	 * @return string
+	 */
+	public function get_hook_suffix(): string {
+		return $this->hook_suffix;
+	}
+
+	/**
+	 * Render the Library page HTML wrapper.
+	 *
+	 * The window.acrossaiAbilityLibraryData global is injected by admin/Main::enqueue_scripts()
+	 * via wp_add_inline_script() before the ability-library.js script tag (AC-ENQUEUE-ADMIN).
 	 *
 	 * @since  0.1.0
 	 * @return void
 	 */
 	public function render(): void {
-		$this->localize_data();
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Ability Library', 'acrossai-abilities-manager' ); ?></h1>
 			<div id="acrossai-library-root"></div>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Localize ability definitions and REST config into window.acrossaiAbilityLibraryData.
-	 *
-	 * Definitions are localized here (not REST-fetched) because they only change on
-	 * add-on activation/deactivation, which forces a page reload anyway (D4).
-	 *
-	 * @since  0.1.0
-	 * @return void
-	 */
-	private function localize_data(): void {
-		$definitions = AcrossAI_Ability_Library_Registry::instance()->get_definitions();
-
-		wp_localize_script(
-			'acrossai-ability-library-js',
-			'acrossaiAbilityLibraryData',
-			array(
-				'definitions' => $definitions,
-				'restBase'    => rest_url( AcrossAI_Ability_Library_Rest_Controller::REST_NAMESPACE ),
-				'nonce'       => wp_create_nonce( 'wp_rest' ),
-			)
-		);
 	}
 }

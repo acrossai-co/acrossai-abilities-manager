@@ -21,13 +21,13 @@ description: "Task list for Feature 030 — Library Page Fix + AddonsPage Packag
 
 **Goal**: Move `wp_localize_script()` out of `LibraryMenu::render()` and replace with `wp_add_inline_script()` in `Admin\Main::enqueue_scripts()`, correcting the `AC-ENQUEUE-ADMIN` violation that causes the blank page.
 
-- [ ] T001 [P] Add two `use` statements to `admin/Main.php` immediately after the existing `use AcrossAI_Abilities_Manager\Admin\Partials\LogsMenu;` line:
+- [x] T001 [P] Add two `use` statements to `admin/Main.php` immediately after the existing `use AcrossAI_Abilities_Manager\Admin\Partials\LogsMenu;` line:
   ```php
   use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Registry;
   use AcrossAI_Abilities_Manager\Includes\Modules\Library\Rest\AcrossAI_Ability_Library_Rest_Controller;
   ```
 
-- [ ] T002 [P] In `admin/Main.php::enqueue_scripts()`, inside the `if ( $this->library_asset_file && $this->is_library_page( $hook_suffix ) )` block, add `wp_add_inline_script()` immediately after the existing `wp_enqueue_script( 'acrossai-ability-library-js' )` call:
+- [x] T002 [P] In `admin/Main.php::enqueue_scripts()`, inside the `if ( $this->library_asset_file && $this->is_library_page( $hook_suffix ) )` block, add `wp_add_inline_script()` immediately after the existing `wp_enqueue_script( 'acrossai-ability-library-js' )` call:
   ```php
   wp_add_inline_script(
       'acrossai-ability-library-js',
@@ -43,7 +43,7 @@ description: "Task list for Feature 030 — Library Page Fix + AddonsPage Packag
   ```
   `'before'` position ensures `window.acrossaiAbilityLibraryData` exists before `ability-library.js` runs. `admin_enqueue_scripts` fires after `init P99`, so `get_definitions()` has already collected data (AC-ENQUEUE-ADMIN, DEC-ABILITIES-LIST-UX-025).
 
-- [ ] T003 Remove `$this->localize_data();` from `admin/Partials/LibraryMenu.php::render()`. Delete the entire `private function localize_data(): void { ... }` method body. Remove the two `use` statements that were only needed for `localize_data()`:
+- [x] T003 Remove `$this->localize_data();` from `admin/Partials/LibraryMenu.php::render()`. Delete the entire `private function localize_data(): void { ... }` method body. Remove the two `use` statements that were only needed for `localize_data()`:
   ```
   use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Registry;
   use AcrossAI_Abilities_Manager\Includes\Modules\Library\Rest\AcrossAI_Ability_Library_Rest_Controller;
@@ -60,47 +60,47 @@ description: "Task list for Feature 030 — Library Page Fix + AddonsPage Packag
 
 **Purpose**: Confirm new package availability, stable version, constructor compatibility, and namespace — per DEC-STABLE-UPGRADE-WINDOW.
 
-- [ ] T004 Locate the `acrossai-co/addons-page` package: check Packagist (`https://packagist.org/packages/acrossai-co/addons-page`) and GitHub (`https://github.com/acrossai-co/addons-page`). Record: (a) whether it is on Packagist or VCS-only; (b) the latest stable version tag; (c) the GitHub URL if VCS-only.
+- [x] T004 Locate the `acrossai-co/addons-page` package: check Packagist (`https://packagist.org/packages/acrossai-co/addons-page`) and GitHub (`https://github.com/acrossai-co/addons-page`). Record: (a) whether it is on Packagist or VCS-only; (b) the latest stable version tag; (c) the GitHub URL if VCS-only.
 
-- [ ] T005 Read the new package's `composer.json` (from GitHub or after `composer require --dry-run`). Confirm: (a) PSR-4 namespace key (the FQCN used in Main.php depends on this); (b) constructor signature still matches `__construct( string $menu_slug, string $plugin_file, array $args = [] )`; (c) no new required parameters or breaking changes. Record the confirmed namespace.
+- [x] T005 Read the new package's `composer.json` (from GitHub or after `composer require --dry-run`). Confirm: (a) PSR-4 namespace key (the FQCN used in Main.php depends on this); (b) constructor signature still matches `__construct( string $menu_slug, string $plugin_file, array $args = [] )`; (c) no new required parameters or breaking changes. Record the confirmed namespace.
 
-- [ ] T006 Skim the new package CHANGELOG (or git log) for any breaking changes vs `wpboilerplate/addons-page` v0.0.17. If breaking changes are found, stop and raise with the user before proceeding.
+- [x] T006 Skim the new package CHANGELOG (or git log) for any breaking changes vs `wpboilerplate/addons-page` v0.0.17. If breaking changes are found, stop and raise with the user before proceeding.
 
 ### Phase 2b — Composer Update
 
-- [ ] T007 Update `composer.json`:
+- [x] T007 Update `composer.json`:
   - In `repositories` array: replace the old VCS entry (`https://github.com/WPBoilerplate/wpb-addons-page`) with the new URL confirmed in T004. If the package is on Packagist, remove the repositories entry for this package entirely.
   - In `require` block: replace `"wpboilerplate/addons-page": "^0.0.17"` with `"acrossai-co/addons-page": "^<version-from-T004>"`.
 
-- [ ] T008 Run `composer update acrossai-co/addons-page --with-dependencies` from the plugin root. Verify: (a) exit code 0; (b) `vendor/acrossai-co/addons-page/` directory exists; (c) `vendor/wpboilerplate/addons-page/` directory is absent.
+- [x] T008 Run `composer update acrossai-co/addons-page --with-dependencies` from the plugin root. Verify: (a) exit code 0; (b) `vendor/acrossai-co/addons-page/` directory exists; (c) `vendor/wpboilerplate/addons-page/` directory is absent.
 
-- [ ] T009 Confirm namespace from the installed package: read `vendor/acrossai-co/addons-page/composer.json` and locate the PSR-4 autoload key. This value MUST match what was found in T005. If it differs, stop and investigate before proceeding.
+- [x] T009 Confirm namespace from the installed package: read `vendor/acrossai-co/addons-page/composer.json` and locate the PSR-4 autoload key. This value MUST match what was found in T005. If it differs, stop and investigate before proceeding.
 
 ### Phase 2c — Main.php Namespace Update
 
-- [ ] T010 In `includes/Main.php`, update the AddonsPage block (around L266):
+- [x] T010 In `includes/Main.php`, update the AddonsPage block (around L266):
   - Replace `class_exists( \WPBoilerplate\AddonsPage\AddonsPage::class )` with the new FQCN confirmed in T009.
   - Replace `new \WPBoilerplate\AddonsPage\AddonsPage(` with the new FQCN.
   - Preserve unchanged: `class_exists()` guard structure, Freemius credentials array (`fs_product_id`, `fs_public_key`, `fs_slug`), the `catch ( \Throwable $e )` block with `add_action('admin_notices', ...)` (BUG-EXTERNAL-PACKAGE-CTOR-SILENT), and the comment citing `DEC-EXTERNAL-PACKAGE-HOOK-CTOR`.
   - Update the comment to reference `acrossai-co/addons-page` (Feature 030) alongside the original `wpboilerplate/addons-page` (Feature 026) reference.
 
-- [ ] T011 Run `composer dump-autoload` to refresh the classmap after the package swap. Verify no autoload warnings.
+- [x] T011 Run `composer dump-autoload` to refresh the classmap after the package swap. Verify no autoload warnings.
 
-- [ ] T012 Verify no stale references remain: `grep -r "WPBoilerplate\\\\AddonsPage" includes/ admin/` must return zero results.
+- [x] T012 Verify no stale references remain: `grep -r "WPBoilerplate\\\\AddonsPage" includes/ admin/` must return zero results.
 
 ### Phase 2d — Memory Update
 
-- [ ] T013 In `docs/memory/DECISIONS.md`, update the `DEC-EXTERNAL-PACKAGE-HOOK-CTOR` **Evidence** line to add `acrossai-co/addons-page` (Feature 030) as a second evidence point.
+- [x] T013 In `docs/memory/DECISIONS.md`, update the `DEC-EXTERNAL-PACKAGE-HOOK-CTOR` **Evidence** line to add `acrossai-co/addons-page` (Feature 030) as a second evidence point.
 
 ---
 
 ## Phase 3 — Quality Gate
 
-- [ ] T014 Run `composer phpcs` — zero errors for `admin/Main.php`, `admin/Partials/LibraryMenu.php`, `includes/Main.php`.
+- [x] T014 Run `composer phpcs` — zero errors for `admin/Main.php`, `admin/Partials/LibraryMenu.php`, `includes/Main.php`.
 
-- [ ] T015 Run `composer phpstan` (level 8) — zero errors for all modified files. Pay special attention to the new FQCN in T010; PHPStan must resolve it from vendor.
+- [x] T015 Run `composer phpstan` (level 8) — zero errors for all modified files. Pay special attention to the new FQCN in T010; PHPStan must resolve it from vendor.
 
-- [ ] T016 Manual smoke tests (run in browser):
+- [x] T016 Manual smoke tests (run in browser):
   - **Fix A**: Navigate to Library page — confirm non-blank content on first load.
   - **Fix B**: Navigate to Add-ons submenu — confirm page renders with no PHP errors or white screen. Check PHP error log for any `AddonsPage` class-not-found warnings.
 

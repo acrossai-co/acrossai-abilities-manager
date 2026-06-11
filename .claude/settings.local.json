@@ -108,7 +108,31 @@
       "Bash(CLAUDE_CODE_TMPDIR=/tmp cat *)",
       "Bash(wp --allow-root eval ' *)",
       "Bash(xargs -I{} basename {})",
-      "Bash(GIT_BRANCH_NAME=\"030-library-page-fix-and-addons-page-rebrand\" bash *)"
+      "Bash(GIT_BRANCH_NAME=\"030-library-page-fix-and-addons-page-rebrand\" bash *)",
+      "Bash(composer search *)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -r \"WPBoilerplate.AddonsPage\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/includes/ /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/admin/)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -n \"DEC-EXTERNAL-PACKAGE-HOOK-CTOR\\\\|Evidence\\\\|wpboilerplate/addons-page\\\\|Feature 026\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/docs/memory/DECISIONS.md)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp composer phpcs)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp composer phpstan)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp vendor/bin/phpstan analyse *)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp timeout 60 vendor/bin/phpstan analyse --level=8 --no-progress includes/Main.php admin/Main.php admin/Partials/LibraryMenu.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp sed *)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp ls *)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -n \"is_library_page\\\\|library_asset_file\\\\|acrossai-ability-library-js\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/admin/Main.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -n \"wp_add_inline_script\\\\|acrossaiAbilityLibraryData\\\\|AcrossAI_Ability_Library\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/admin/Main.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -n \"add_menu_page\\\\|acrossai-abilities-manager\\\\|toplevel_page\\\\|register_submenu\\\\|get_hook_suffix\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/admin/Partials/Menu.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -rn \"define.*PLUGIN_PATH\\\\|ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH\\\\|plugin_dir_path\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/acrossai-abilities-manager.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -r \"react-jsx-runtime\\\\|ReactJSXRuntime\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-includes/script-loader.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -n \"ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/acrossai-abilities-manager.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -n \"build/js/ability-library\\\\|PLUGIN_URL\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/admin/Main.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -rn \"acrossai_abilities_api_init\\\\|register_ability\\\\|Ability_Definition\\\\|AcrossAI_Ability_Library\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-core-abilities/)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -n \"is_library_page\\\\|library_page\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/admin/Main.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -n \"enqueue_scripts\\\\|enqueue_styles\\\\|Admin\\\\\\\\\\\\\\\\Main\\\\|plugin_admin\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/includes/Main.php)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp grep *)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp curl -s -b \"wordpress_logged_in=$\\(CLAUDE_CODE_TMPDIR=/tmp grep 'wordpress_logged_in' /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/debug.log)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp stat *)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp bash *)"
     ]
   }
 }
