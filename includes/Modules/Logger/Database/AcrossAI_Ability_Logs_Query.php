@@ -115,10 +115,11 @@ class AcrossAI_Ability_Logs_Query extends Query {
 	 * to BerlinDB without modification (AC-QUERY-LAYER-FILTERING).
 	 *
 	 * @since  0.1.0
-	 * @param  array $args BerlinDB query arguments.
+	 * @param  array  $args     BerlinDB query arguments.
+	 * @param  string $operator Query operator ('and' or 'or').
 	 * @return AcrossAI_Ability_Logs_Row[]
 	 */
-	public function get_logs( array $args = array() ): array {
+	public function get_logs( array $args = array(), string $operator = 'and' ): array {
 		return $this->query( $args );
 	}
 
