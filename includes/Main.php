@@ -380,6 +380,11 @@ final class Main {
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
 		$ability_library_processor = \AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Processor::instance();
 		$this->loader->add_action( 'wp_abilities_api_init', $ability_library_processor, 'register_abilities', 5 );
+		// Note: mcp_adapter_init P20 (pass_as_tool injection) is registered inside
+		// AcrossAI_Ability_Override_Processor::boot() — PATH B only, per ARCH-ADV-001.
+		// Runs after all servers are created (P10 default, P11 database servers).
+		// Uses Reflection on McpServer::$component_registry because mcp_adapter_server_config
+		// does not exist in the installed mcp-adapter version.
 	}
 
 	/**
