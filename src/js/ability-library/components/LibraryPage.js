@@ -5,26 +5,32 @@ import { fetchConfig, saveConfig } from '../api';
 import LibraryCard from './LibraryCard';
 
 /**
- * Group flat definitions array by main_key into card items.
+ * Group flat definitions array by category into card items.
  *
  * @param {Array} definitions Raw definitions from window.acrossaiAbilityLibraryData.
- * @return {Array} Grouped items, one per main_key.
+ * @return {Array} Grouped items, one per category.
  */
 function groupDefinitions(definitions) {
 	const map = new Map();
 	for (const def of definitions) {
 		const {
-			main_key: mainKey,
-			main_key_label: mainKeyLabel,
-			sub_key: subKey,
-			sub_key_label: subKeyLabel,
+			category,
+			category_label: categoryLabel,
+			slug,
+			slug_label: slugLabel,
+			name,
 		} = def;
-		if (!map.has(mainKey)) {
-			map.set(mainKey, { id: mainKey, mainKey, mainKeyLabel, subKeys: [] });
+		if (!map.has(category)) {
+			map.set(category, {
+				id: category,
+				category,
+				categoryLabel,
+				slugs: [],
+			});
 		}
-		const group = map.get(mainKey);
-		if (!group.subKeys.some((s) => s.subKey === subKey)) {
-			group.subKeys.push({ subKey, subKeyLabel });
+		const group = map.get(category);
+		if (!group.slugs.some((s) => s.slug === slug)) {
+			group.slugs.push({ slug, slugLabel, name });
 		}
 	}
 	return Array.from(map.values());
@@ -61,8 +67,8 @@ export default function LibraryPage() {
 			});
 	}, []);
 
-	function handleChange(mainKey, updatedEntry) {
-		const next = { ...config, [mainKey]: updatedEntry };
+	function handleChange(category, updatedEntry) {
+		const next = { ...config, [category]: updatedEntry };
 		setConfig(next);
 
 		if (!initialLoadComplete.current) {
@@ -116,7 +122,7 @@ export default function LibraryPage() {
 
 			{items.map((item) => (
 				<LibraryCard
-					key={item.mainKey}
+					key={item.category}
 					item={item}
 					config={config}
 					onChange={handleChange}

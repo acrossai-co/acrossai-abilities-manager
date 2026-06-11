@@ -30,17 +30,17 @@ abstract class Ability_Definition {
 		add_filter( 'acrossai_abilities_api_init', array( $this, 'push_definition' ) );
 	}
 
-	/** Library card grouping key (e.g. 'sre-tools'). */
-	abstract protected function main_key(): string;
+	/** Library card grouping category key (e.g. 'sre-tools'). */
+	abstract protected function category(): string;
 
 	/** Human-readable label for the card title (e.g. 'SRE Tools'). */
-	abstract protected function main_key_label(): string;
+	abstract protected function category_label(): string;
 
-	/** Sub-key for the per-ability checkbox (e.g. 'transient-flush'). */
-	abstract protected function sub_key(): string;
+	/** Per-ability slug for the checkbox (e.g. 'transient-flush'). */
+	abstract protected function slug(): string;
 
-	/** Human-readable label for the sub-key checkbox (e.g. 'Flush Transients'). */
-	abstract protected function sub_key_label(): string;
+	/** Human-readable label for the slug checkbox (e.g. 'Flush Transients'). */
+	abstract protected function slug_label(): string;
 
 	/**
 	 * Full ability spec for wp_register_ability().
@@ -63,10 +63,10 @@ abstract class Ability_Definition {
 		$spec = $this->ability();
 
 		$definitions[] = array(
-			'main_key'       => $this->main_key(),
-			'main_key_label' => $this->main_key_label(),
-			'sub_key'        => $this->sub_key(),
-			'sub_key_label'  => $this->sub_key_label(),
+			'category'       => $this->category(),
+			'category_label' => $this->category_label(),
+			'slug'           => $this->slug(),
+			'slug_label'     => $this->slug_label(),
 			'name'           => $spec['name'] ?? '',
 			'args'           => $spec['args'] ?? array(),
 		);
