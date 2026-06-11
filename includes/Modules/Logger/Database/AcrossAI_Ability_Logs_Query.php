@@ -197,7 +197,7 @@ class AcrossAI_Ability_Logs_Query extends Query {
 	 * @since  0.1.0
 	 * @return string
 	 */
-	private function get_table_name(): string {
+	public function get_table_name(): string {
 		global $wpdb;
 		return $wpdb->prefix . $this->table_name;
 	}
