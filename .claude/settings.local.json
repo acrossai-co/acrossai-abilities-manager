@@ -105,7 +105,10 @@
       "Bash(CLAUDE_CODE_TMPDIR=/tmp grep -n \"resources\\\\|register\\\\|core/get\" /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/mcp-adapter/includes/Infrastructure/Factories/DefaultServerFactory.php)",
       "Bash(CLAUDE_CODE_TMPDIR=/tmp git diff *)",
       "Bash(CLAUDE_CODE_TMPDIR=/tmp tail *)",
-      "Bash(CLAUDE_CODE_TMPDIR=/tmp cat *)"
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp cat *)",
+      "Bash(wp --allow-root eval ' *)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(GIT_BRANCH_NAME=\"030-library-page-fix-and-addons-page-rebrand\" bash *)"
     ]
   }
 }
