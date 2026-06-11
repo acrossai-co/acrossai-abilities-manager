@@ -15,9 +15,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Base class for ability definitions.
  *
- * Subclasses implement five abstract methods describing the ability's
- * Library-page grouping and its wp_register_ability() spec. The constructor
- * hooks the existing acrossai_abilities_api_init filter automatically.
+ * Subclasses implement one abstract method (ability()) — the Library page
+ * derives its grouping fields (category, slug, labels) automatically.
+ * The constructor hooks acrossai_abilities_api_init automatically.
  */
 abstract class Ability_Definition {
 
