@@ -60,9 +60,11 @@ abstract class Ability_Definition {
 		$name = $spec['name'] ?? '';
 		$args = $spec['args'] ?? array();
 
+		$category = $args['category'] ?? '';
+
 		$definitions[] = array(
-			'category'       => $args['category'] ?? '',
-			'category_label' => $args['category'] ?? '',
+			'category'       => $category,
+			'category_label' => ucwords( str_replace( '-', ' ', $category ) ),
 			'slug'           => $name,
 			'slug_label'     => $args['label'] ?? $name,
 			'name'           => $name,

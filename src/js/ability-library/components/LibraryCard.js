@@ -75,7 +75,7 @@ export default function LibraryCard({ item, config, onChange }) {
 						<CheckboxControl
 							__nextHasNoMarginBottom
 							key={slug}
-							label={name || slugLabel}
+							label={slugLabel || name}
 							checked={slugsConfig[slug] ?? false}
 							onChange={(value) =>
 								update({
