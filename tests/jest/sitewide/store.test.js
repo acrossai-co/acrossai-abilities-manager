@@ -35,7 +35,6 @@ describe('Sitewide store reducer', () => {
 			isLoading: false,
 			error: null,
 			editingSlug: null,
-			mcpServers: [],
 		});
 	});
 

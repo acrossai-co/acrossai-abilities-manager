@@ -2,8 +2,8 @@
 /**
  * Static sanitization helpers for the Abilities module.
  *
- * Delegates to AcrossAI_Sanitizer for shared sanitizers (tri-state, mcp_type,
- * mcp_servers_array) rather than duplicating them (DRY / Principle VI).
+ * Delegates to AcrossAI_Sanitizer for shared sanitizers (tri-state, mcp_type)
+ * rather than duplicating them (DRY / Principle VI).
  *
  * @package    AcrossAI_Abilities_Manager
  * @subpackage AcrossAI_Abilities_Manager/includes/Utilities
@@ -230,17 +230,6 @@ class AcrossAI_Abilities_Sanitizer {
 	}
 
 	/**
-	 * Sanitize MCP servers array. Delegates to shared utility.
-	 *
-	 * @since  0.1.0
-	 * @param  mixed $value Raw value.
-	 * @return array|null
-	 */
-	public static function sanitize_mcp_servers( $value ): ?array {
-		return AcrossAI_Sanitizer::sanitize_mcp_servers_array( $value );
-	}
-
-	/**
 	 * Sanitize a tri-state field. Delegates to shared utility.
 	 *
 	 * @since  0.1.0
@@ -302,9 +291,6 @@ class AcrossAI_Abilities_Sanitizer {
 
 		if ( $request->has_param( 'mcp_type' ) ) {
 			$fields['mcp_type'] = self::sanitize_mcp_type( $request->get_param( 'mcp_type' ) );
-		}
-		if ( $request->has_param( 'mcp_servers' ) ) {
-			$fields['mcp_servers'] = self::sanitize_mcp_servers( $request->get_param( 'mcp_servers' ) );
 		}
 
 		return $fields;

@@ -42,7 +42,6 @@ defined( 'ABSPATH' ) || exit;
  * @property bool|null   $show_in_mcp
  * @property bool|null   $pass_as_tool
  * @property string|null $mcp_type
- * @property array|null  $mcp_servers
  * @property bool|null   $readonly
  * @property bool|null   $destructive
  * @property bool|null   $idempotent
@@ -173,13 +172,6 @@ class AcrossAI_Abilities_Row extends Row {
 	public $mcp_type = null;
 
 	/**
-	 * JSON-encoded MCP server IDs. NULL = all servers.
-	 *
-	 * @var array|null
-	 */
-	public $mcp_servers = null;
-
-	/**
 	 * Whether the ability is read-only. NULL = use registry default.
 	 *
 	 * @var bool|null
@@ -231,7 +223,7 @@ class AcrossAI_Abilities_Row extends Row {
 	/**
 	 * Return the list of column names that store JSON-encoded values.
 	 *
-	 * Blocklist guard (N1 / SC-005): the base list covers the four known JSON
+	 * Blocklist guard (N1 / SC-005): the base list covers the three known JSON
 	 * longtext columns. Callers may extend via the filter, but any column name
 	 * that appears in the scalar blocklist is silently removed from the result
 	 * to prevent accidental JSON-decode of scalar columns.
@@ -264,7 +256,7 @@ class AcrossAI_Abilities_Row extends Row {
 			'updated_by',
 		);
 
-		$base_json_fields = array( 'mcp_servers', 'callback_config', 'input_schema', 'output_schema' );
+		$base_json_fields = array( 'callback_config', 'input_schema', 'output_schema' );
 
 		/**
 		 * Allow plugins/themes to register additional JSON-encoded longtext columns.

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7956d4dc367aa64d03155defc21240e3",
+    "content-hash": "9a95e869091327e7e4ec9863432d1efe",
     "packages": [
         {
             "name": "acrossai-co/addons-page",
@@ -308,57 +308,6 @@
                 "source": "https://github.com/WPBoilerplate/wpb-access-control"
             },
             "time": "2026-06-09T18:43:57+00:00"
-        },
-        {
-            "name": "wpboilerplate/wpb-mcp-servers-list",
-            "version": "v0.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/WPBoilerplate/wpb-mcp-servers-list.git",
-                "reference": "874b591edd7697a61fa84fccf8ad730b88c9dd49"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/WPBoilerplate/wpb-mcp-servers-list/zipball/874b591edd7697a61fa84fccf8ad730b88c9dd49",
-                "reference": "874b591edd7697a61fa84fccf8ad730b88c9dd49",
-                "shasum": ""
-            },
-            "require": {
-                "automattic/jetpack-autoloader": "^5.0",
-                "php": ">=7.4"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9.0 || ^10.0"
-            },
-            "type": "library",
-            "extra": {
-                "wpb-mcp-servers-list": {
-                    "version": "0.0.1"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "WPBoilerplate\\McpServersList\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "description": "Composer library to retrieve all MCP servers registered in WordPress via the MCP Adapter plugin. Provides typed data objects and an optional REST endpoint. Styling and display are intentionally left to the consuming plugin.",
-            "homepage": "https://github.com/WPBoilerplate/wpb-mcp-servers-list",
-            "keywords": [
-                "mcp",
-                "mcp-adapter",
-                "mcp-servers",
-                "model-context-protocol",
-                "wordpress"
-            ],
-            "support": {
-                "issues": "https://github.com/WPBoilerplate/wpb-mcp-servers-list/issues",
-                "source": "https://github.com/WPBoilerplate/wpb-mcp-servers-list"
-            },
-            "time": "2026-05-25T15:10:47+00:00"
         }
     ],
     "packages-dev": [

@@ -122,52 +122,6 @@ class AcrossAI_Sanitizer {
 	}
 
 	/**
-	 * Sanitize an array of MCP server IDs.
-	 *
-	 * @since  0.1.0
-	 * @param  mixed $value Raw value.
-	 * @return array|null  Array of non-empty strings, or null.
-	 */
-	/**
-	 * Maximum number of allowed server IDs that can be stored per ability.
-	 * Prevents unbounded storage growth from a single admin write.
-	 */
-	const MAX_MCP_SERVERS = 100;
-
-	/**
-	 * Maximum byte-length for a single server ID after sanitization.
-	 * WP slugs and MCP server IDs are never longer than this in practice.
-	 */
-	const MAX_SERVER_ID_LENGTH = 255;
-
-	/**
-	 * Sanitize an array of MCP server IDs.
-	 *
-	 * @since  0.1.0
-	 * @param  mixed $value Raw value.
-	 * @return array<string>|null Sanitized array of server ID strings, or null if empty/invalid.
-	 */
-	public static function sanitize_mcp_servers_array( $value ): ?array {
-		if ( null === $value ) {
-			return null;
-		}
-		if ( ! is_array( $value ) ) {
-			return null;
-		}
-		$sanitized = array();
-		foreach ( $value as $server_id ) {
-			$clean = substr( sanitize_text_field( (string) $server_id ), 0, self::MAX_SERVER_ID_LENGTH );
-			if ( '' !== $clean ) {
-				$sanitized[] = $clean;
-			}
-		}
-		// Cap total entries to prevent oversized persisted blobs (DoS-via-storage).
-		$sanitized = array_slice( $sanitized, 0, self::MAX_MCP_SERVERS );
-		// Collapse empty array to null: [] is never a valid persisted value (P1-B, Constitution §IV).
-		return empty( $sanitized ) ? null : $sanitized;
-	}
-
-	/**
 	 * Cast a tinyint database value to PHP bool or null.
 	 *
 	 * MySQL returns tinyint columns as strings ('1', '0') or PHP null for SQL NULL.

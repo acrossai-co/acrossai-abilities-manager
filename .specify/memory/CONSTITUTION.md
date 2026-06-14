@@ -1,5 +1,16 @@
 <!--
 SYNC IMPACT REPORT
+Version change: 1.4.6 → 1.4.7
+Modified sections: §Integration Resilience — RETRACTED the "MCP server listing MUST use the `wpboilerplate/wpb-mcp-servers-list` Composer package" canonical-pattern paragraph (added v1.4.1)
+Rationale: Feature 034 (2026-06-14) removes the `wpboilerplate/wpb-mcp-servers-list ^0.0.1` Composer dependency in its entirety, deletes the Allowed Servers UI it fed, and replaces the per-ability `mcp_servers` allowlist with an MCP-agnostic 5-hook extension surface. The abilities plugin no longer owns MCP-server enumeration; any plugin needing that (e.g., the future `acrossai-mcp-manager`) chooses its own mechanism. The v1.4.1 mandate becomes invalid because the wiring point it described no longer exists. PATCH bump — retraction of a sub-bullet under an existing principle; no principle itself was changed or removed.
+Templates reviewed:
+  - .specify/templates/plan-template.md ✅ reviewed — no outdated references
+  - .specify/templates/spec-template.md ✅ reviewed — no outdated references
+  - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
+  - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
+Deferred TODOs: None
+
+SYNC IMPACT REPORT
 Version change: 1.4.5 → 1.4.6
 Modified sections: §II WordPress Standards Compliance — PHP minimum floor raised from 7.4 to 8.1
 Rationale: Feature 028 raises the declared PHP minimum to 8.1. PHP 7.4 reached end-of-life
@@ -320,16 +331,13 @@ Audit checklist for every new REST controller: (1) `permission_callback` present
   with documented justification in the feature plan
 
 **Integration Resilience**:
-- All calls to optional integrations (WPBoilerplate Access Control, MCP servers) MUST be wrapped in
+- All calls to optional integrations (WPBoilerplate Access Control, MCP adapter, etc.) MUST be wrapped in
   availability checks and MUST NOT throw fatal errors or produce broken UIs when absent
-- MCP server listing MUST use the `wpboilerplate/wpb-mcp-servers-list` Composer package — direct
-  `McpAdapter::instance()->get_servers()` calls are prohibited. The package handles McpAdapter timing
-  (collect at `rest_api_init` priority 20, after McpAdapter's priority 15) and returns `ServerData[]`
-  objects that implement `JsonSerializable`. Wire collect via the Loader in `Main::define_admin_hooks()`:
-  ```php
-  $mcp_servers_list = \WPBoilerplate\McpServersList\McpServersList::instance();
-  $this->loader->add_action( 'rest_api_init', $mcp_servers_list, 'collect', 20 );
-  ```
+- (Retracted in v1.4.7) The previous mandate to use the `wpboilerplate/wpb-mcp-servers-list` Composer package
+  for MCP server listing no longer applies. As of Feature 034 (2026-06-14), this plugin owns no MCP-server-list
+  integration — any plugin needing MCP-server enumeration (e.g. the future `acrossai-mcp-manager`) chooses its
+  own mechanism. See `docs/memory/DECISIONS.md` → `DEC-MCP-CAPABILITY-FILTER-WARN` (Superseded) and
+  `specs/034-remove-allowed-servers-add-extensibility-hooks/architecture-migration-plan.md`.
 
 ## Governance
 
