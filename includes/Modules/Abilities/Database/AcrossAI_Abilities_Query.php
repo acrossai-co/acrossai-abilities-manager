@@ -675,13 +675,6 @@ class AcrossAI_Abilities_Query extends Query {
 			}
 		}
 
-		// 4. mcp_servers non-string guard (must remain after encoding step).
-		if ( array_key_exists( 'mcp_servers', $fields ) && null !== $fields['mcp_servers'] ) {
-			if ( ! is_string( $fields['mcp_servers'] ) ) {
-				$fields['mcp_servers'] = null;
-			}
-		}
-
 		return $fields;
 	}
 }

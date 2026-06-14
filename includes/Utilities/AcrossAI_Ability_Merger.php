@@ -38,7 +38,6 @@ class AcrossAI_Ability_Merger {
 		'show_in_mcp',
 		'pass_as_tool',
 		'mcp_type',
-		'mcp_servers',
 	);
 
 	/**
@@ -192,7 +191,6 @@ class AcrossAI_Ability_Merger {
 			'idempotent'      => $ann_or_meta( 'idempotent' ),
 			'show_in_mcp'     => ( null !== $mcp_meta && array_key_exists( 'public', $mcp_meta ) ) ? $mcp_meta['public'] : $ann_or_meta( 'show_in_mcp' ),
 			'mcp_type'        => ( null !== $mcp_meta && array_key_exists( 'type', $mcp_meta ) ) ? $mcp_meta['type'] : $ann_or_meta( 'mcp_type' ),
-			'mcp_servers'     => ( null !== $mcp_meta && array_key_exists( 'servers', $mcp_meta ) ) ? $mcp_meta['servers'] : $ann_or_meta( 'mcp_servers' ),
 			'site_allowed'    => $ann_or_meta( 'site_allowed' ),
 		);
 	}

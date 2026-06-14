@@ -1511,3 +1511,65 @@ LibraryCard.js, even though the imported helper (`groupBySubGroupPreservingOrder
 itself never uses any of them. The spec's `jest.mock('@wordpress/components', ...)`
 allowlist needed Button added, and a new `jest.mock('@wordpress/icons', ...)` block
 was required.
+
+---
+
+### 2026-06-14 — BUG-INVENTORY-GREP-MISS
+
+**Status**: Active
+
+**Why this is durable**
+Every future feature that deletes a concept end-to-end (column, field, hook,
+dependency, deprecated function) shares one failure mode: the human-authored task
+inventory misses cross-cutting files that don't fit the obvious search pattern. The
+miss surfaces mid-implementation as PHPStan errors against typed property removals
+or as Plugin Check failures on dead references — both expensive to recover from.
+
+**Bug pattern**
+A "remove keyword X" task list (e.g., `tasks.md` for a removal feature) is approved
+based on a hand-curated inventory. Implementation begins, the obvious files are
+deleted, then the build breaks because consumer files were missed. Common reasons
+the human inventory misses files:
+- Concept appears in docstrings/comments not just code identifiers
+- Concept appears in a typed-property docblock (`@var array|null $mcp_servers`) that
+  silently consumes the property after class-level removal
+- Concept appears in a derived field in a Merger/Formatter that maps DB → API shape
+- Concept appears in non-string-guard normalization in a Query/Schema layer
+- Concept appears in test fixtures (placeholder `null` values) without affecting
+  test logic — these survive a manual inventory because nothing "tests" the concept
+- Concept appears in a sibling enforcement layer that the original feature's author
+  never knew existed (security gates added later by an audit, e.g., fail-closed checks
+  in `Override_Processor` added in a different feature)
+
+**Prevention**
+- Before approving a "remove keyword X" task list, run exhaustively from repo root:
+  ```bash
+  grep -rEn "X|XCamelCase|X_CONSTANT|XHelperMethod" \
+    includes/ src/ tests/ admin/ composer.json uninstall.php \
+    --exclude-dir={node_modules,vendor,build}
+  ```
+  Reconcile EVERY hit against a task. Hits with no covering task are missing tasks —
+  add them before approval, not during implementation.
+- Include closely-related identifier variants in the grep (camelCase JS twin, MAX_X
+  constants, sanitize_X helpers, package-name slugs).
+- Do this BEFORE the task list is approved (during `/speckit-tasks` or the next
+  review pass), not after — recovery cost from a mid-implementation discovery is much
+  higher than the cost of one extra grep up front.
+- For removal features specifically, make the final task an "exhaustive-grep
+  validation" gate (Feature 034 used T016) — but treat that gate as a verification of
+  inventory completeness, not a substitute for catching inventory misses up front.
+
+**Evidence (Feature 034)**
+Original `tasks.md` inventory missed 4 PHP files that referenced `mcp_servers`:
+`AcrossAI_Ability_Merger`, `AcrossAI_Abilities_Query`,
+`AcrossAI_Abilities_Exposure_Controller`, `AcrossAI_Ability_Override_Processor`. The
+last two contained the very authorization layer being relocated — invisible to a
+"find the field consumer" search because they implemented gates, not field reads.
+Caught by post-tasks security-tasks-review SEC-T-001 (HIGH); tasks T010a–T010d were
+inserted to close the gap. Had the miss not been caught: PHPStan level 8 would have
+failed on the typed-property removal in `Row.php` while consumer files still
+referenced `$row->mcp_servers`, and Feature 029's `pass_as_tool` security guarantee
+would have silently drifted (Override_Processor's allowlist check would still execute
+while the column no longer existed). Related: `PATTERN-MODULE-DECOMMISSION` covers
+the whole-module-decommission case as step 8 ("grep-then-delete"); this entry covers
+the narrower per-keyword-removal case where most module structure is preserved.

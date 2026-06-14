@@ -45,7 +45,6 @@ const OVERRIDABLE_FIELDS = [
 	'show_in_mcp',
 	'pass_as_tool',
 	'mcp_type',
-	'mcp_servers',
 ];
 
 // ---------------------------------------------------------------------------

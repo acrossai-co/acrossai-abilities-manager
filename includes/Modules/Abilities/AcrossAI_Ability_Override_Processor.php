@@ -147,8 +147,6 @@ final class AcrossAI_Ability_Override_Processor {
 	 * Hooks registered here (PATH B only):
 	 *   wp_register_ability_args P100000   — inject_override_args()
 	 *   wp_abilities_api_init    P100001   — unregister_blocked_abilities()
-	 *   mcp_adapter_tool_call_result P10   — filter_discover_abilities_result()
-	 *   mcp_adapter_pre_tool_call    P10   — block_execute_ability_by_server()
 	 *   mcp_adapter_init         P20       — inject_mcp_tools()
 	 *
 	 * @since  0.1.0
@@ -168,17 +166,6 @@ final class AcrossAI_Ability_Override_Processor {
 
 		// Unregister abilities with site_allowed = false after all plugin registrations complete.
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'unregister_blocked_abilities' ), 100001 );
-
-		// T016 — enforce mcp_servers allowlist via real mcp-adapter filter hooks.
-		// mcp_adapter_expose_ability does NOT exist in mcp-adapter — these are the real hooks.
-
-		// Remove abilities from DiscoverAbilitiesAbility result when the current server is not
-		// in the ability's mcp_servers allowlist.
-		add_filter( 'mcp_adapter_tool_call_result', array( __CLASS__, 'filter_discover_abilities_result' ), 10, 5 );
-
-		// Block ExecuteAbilityAbility before it runs when the current server is not allowed.
-		// Returning WP_Error from mcp_adapter_pre_tool_call short-circuits execution.
-		add_filter( 'mcp_adapter_pre_tool_call', array( __CLASS__, 'block_execute_ability_by_server' ), 10, 4 );
 
 		// Register opted-in ability slugs into every MCP server's callable tool registry.
 		// Runs at mcp_adapter_init P20, after DefaultServerFactory (P10) and
@@ -283,8 +270,6 @@ final class AcrossAI_Ability_Override_Processor {
 	 *   show_in_rest              → $args['meta']['show_in_rest']
 	 *   show_in_mcp               → $args['meta']['mcp']['public']   (plugin-specific)
 	 *   mcp_type                  → $args['meta']['mcp']['type']     (plugin-specific)
-	 *   mcp_servers               → $args['meta']['mcp']['servers']  (plugin-specific; already
-	 *                               decoded to array|null by AcrossAI_Abilities_Row::__construct())
 	 *   permission_callback       → $args['permission_callback']     (runtime AC enforcement;
 	 *                               injected only when an access-control rule is stored in
 	 *                               RuleQuery for this slug — checked independently of the
@@ -321,8 +306,7 @@ final class AcrossAI_Ability_Override_Processor {
 
 			// Initialize meta array once if any nested override is present.
 			$needs_meta = null !== $row->readonly || null !== $row->destructive || null !== $row->idempotent
-				|| null !== $row->show_in_rest || null !== $row->show_in_mcp || null !== $row->mcp_type
-				|| is_array( $row->mcp_servers );
+				|| null !== $row->show_in_rest || null !== $row->show_in_mcp || null !== $row->mcp_type;
 
 			if ( $needs_meta && ( ! isset( $args['meta'] ) || ! is_array( $args['meta'] ) ) ) {
 				$args['meta'] = array();
@@ -350,7 +334,7 @@ final class AcrossAI_Ability_Override_Processor {
 			}
 
 			// MCP block → $args['meta']['mcp']['<key>'] (plugin-specific; not WP core).
-			if ( null !== $row->show_in_mcp || null !== $row->mcp_type || is_array( $row->mcp_servers ) ) {
+			if ( null !== $row->show_in_mcp || null !== $row->mcp_type ) {
 
 				if ( ! isset( $args['meta']['mcp'] ) || ! is_array( $args['meta']['mcp'] ) ) {
 					$args['meta']['mcp'] = array();
@@ -360,24 +344,6 @@ final class AcrossAI_Ability_Override_Processor {
 				}
 				if ( null !== $row->mcp_type ) {
 					$args['meta']['mcp']['type'] = $row->mcp_type;
-				}
-
-				/*
-				 * mcp_servers: AcrossAI_Abilities_Row::__construct() already decodes
-				 * the JSON string from DB to array|null — no json_decode() needed.
-				 * We inject the array into $args['meta']['mcp']['servers'] so the value
-				 * travels on the WP_Ability object after registration.
-				 *
-				 * null  → not injected → key absent in meta → visible to all servers (inherit).
-				 * []    → injected as empty array → visible to no servers.
-				 * [...] → injected as allowlist → membership check per server ID.
-				 *
-				 * Enforcement: filter_discover_abilities_result() (mcp_adapter_tool_call_result
-				 * P10) reads this value from the WP_Ability object at request time and removes
-				 * abilities whose allowlist does not include the current server ID.
-				 */
-				if ( is_array( $row->mcp_servers ) ) {
-					$args['meta']['mcp']['servers'] = $row->mcp_servers;
 				}
 			}
 		}
@@ -442,171 +408,6 @@ final class AcrossAI_Ability_Override_Processor {
 	}
 
 	// -------------------------------------------------------------------------
-	// T016 — mcp_servers enforcement
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Filter callback: remove abilities from the discover-abilities result that are not
-	 * allowed on the current MCP server.
-	 *
-	 * Hooked at mcp_adapter_tool_call_result P10 (PATH B only). Exits immediately for
-	 * every tool except mcp-adapter/discover-abilities.
-	 *
-	 * @since  0.1.0
-	 * @param  mixed  $result    Raw tool execution result.
-	 * @param  array  $args      Tool arguments.
-	 * @param  string $tool_name Sanitized MCP tool name.
-	 * @param  mixed  $mcp_tool  McpTool instance.
-	 * @param  mixed  $server    McpServer instance.
-	 * @return mixed Filtered result, or original result if not applicable.
-	 */
-	public static function filter_discover_abilities_result( $result, array $args, string $tool_name, $mcp_tool, $server ) {
-		if ( ! is_array( $result ) || ! isset( $result['abilities'] ) || ! is_array( $result['abilities'] ) ) {
-			return $result;
-		}
-
-		if ( ! self::is_ability_tool( $mcp_tool, 'mcp-adapter/discover-abilities' ) ) {
-			return $result;
-		}
-
-		if ( ! method_exists( $server, 'get_server_id' ) ) {
-			return $result;
-		}
-		$server_id = $server->get_server_id();
-
-		$filtered = array();
-		foreach ( $result['abilities'] as $ability_data ) {
-			$name = $ability_data['name'] ?? null;
-			if ( ! is_string( $name ) || '' === $name ) {
-				$filtered[] = $ability_data;
-				continue;
-			}
-			if ( self::is_ability_allowed_on_server( $name, $server_id ) ) {
-				$filtered[] = $ability_data;
-			}
-		}
-
-		$result['abilities'] = $filtered;
-		return $result;
-	}
-
-	/**
-	 * Filter callback: block ExecuteAbilityAbility when the target ability is not allowed
-	 * on the current MCP server.
-	 *
-	 * Hooked at mcp_adapter_pre_tool_call P10 (PATH B only). Returning WP_Error from this
-	 * filter short-circuits execution and returns an error result to the MCP client.
-	 * Exits immediately for every tool except mcp-adapter/execute-ability.
-	 *
-	 * @since  0.1.0
-	 * @param  mixed  $args      Tool arguments (WP_Error if a prior filter already blocked).
-	 * @param  string $tool_name Sanitized MCP tool name.
-	 * @param  mixed  $mcp_tool  McpTool instance.
-	 * @param  mixed  $server    McpServer instance.
-	 * @return mixed Original $args, or WP_Error to block execution.
-	 */
-	public static function block_execute_ability_by_server( $args, string $tool_name, $mcp_tool, $server ) {
-		// A prior filter may have already returned WP_Error — pass it through.
-		if ( is_wp_error( $args ) ) {
-			return $args;
-		}
-
-		if ( ! self::is_ability_tool( $mcp_tool, 'mcp-adapter/execute-ability' ) ) {
-			return $args;
-		}
-
-		if ( ! method_exists( $server, 'get_server_id' ) ) {
-			return $args;
-		}
-
-		$ability_name = is_array( $args ) ? ( $args['ability_name'] ?? '' ) : '';
-		if ( '' === $ability_name ) {
-			return $args; // Missing ability_name — let execute-ability's own validation handle it.
-		}
-
-		$server_id = $server->get_server_id();
-
-		if ( ! self::is_ability_allowed_on_server( $ability_name, $server_id ) ) {
-			return new \WP_Error(
-				'mcp_server_not_allowed',
-				sprintf(
-					/* translators: %s: ability name */
-					__( "Ability '%s' is not available on this server.", 'acrossai-abilities-manager' ),
-					$ability_name
-				)
-			);
-		}
-
-		return $args;
-	}
-
-	// -------------------------------------------------------------------------
-	// T016 — Shared helpers
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Check whether a given ability is allowed on the specified MCP server.
-	 *
-	 * Reads meta.mcp.servers from the registered WP_Ability object — the value is already
-	 * injected by inject_override_args() at wp_register_ability_args P100000.
-	 *
-	 * Allowlist semantics (FR-006):
-	 *   Key absent / null  → no DB override → allowed on all servers (inherit).
-	 *   []                 → empty allowlist → blocked on all servers.
-	 *   [ 'id', ... ]      → allowed only when $server_id is in the list.
-	 *
-	 * Returns true when the ability is not registered (allows the calling context to handle
-	 * the "not found" case independently).
-	 *
-	 * @since  0.1.0
-	 * @param  string $ability_name WordPress ability slug.
-	 * @param  string $server_id    MCP server identifier.
-	 * @return bool True if allowed, false if blocked.
-	 */
-	private static function is_ability_allowed_on_server( string $ability_name, string $server_id ): bool {
-		$ability = \wp_get_ability( $ability_name );
-		if ( ! $ability ) {
-			return true; // Not found — let the calling context handle it.
-		}
-
-		$ability_meta = $ability->get_meta();
-		$mcp_meta     = ( isset( $ability_meta['mcp'] ) && is_array( $ability_meta['mcp'] ) )
-			? $ability_meta['mcp']
-			: array();
-
-		if ( ! array_key_exists( 'servers', $mcp_meta ) || null === $mcp_meta['servers'] ) {
-			return true; // No restriction — all servers (inherit).
-		}
-
-		$allowlist = $mcp_meta['servers'];
-
-		if ( ! is_array( $allowlist ) || empty( $allowlist ) ) {
-			return false; // Empty allowlist — no servers allowed.
-		}
-
-		return in_array( $server_id, $allowlist, true );
-	}
-
-	/**
-	 * Check whether an McpTool wraps a specific WordPress ability.
-	 *
-	 * Uses get_adapter_meta()['ability'] which holds the original WordPress ability name,
-	 * robust against MCP name sanitization changes.
-	 *
-	 * @since  0.1.0
-	 * @param  mixed  $mcp_tool     McpTool instance (typed mixed for safety).
-	 * @param  string $ability_name Expected WordPress ability name.
-	 * @return bool
-	 */
-	private static function is_ability_tool( $mcp_tool, string $ability_name ): bool {
-		if ( ! method_exists( $mcp_tool, 'get_adapter_meta' ) ) {
-			return false;
-		}
-		$adapter_meta = $mcp_tool->get_adapter_meta();
-		return ( $adapter_meta['ability'] ?? '' ) === $ability_name;
-	}
-
-	// -------------------------------------------------------------------------
 	// MCP tools pass-through
 	// -------------------------------------------------------------------------
 
@@ -620,12 +421,14 @@ final class AcrossAI_Ability_Override_Processor {
 	 * does not expose mcp_adapter_server_config. Adding slugs here ensures both tools/list
 	 * and tools/call work; mcp_adapter_tools_list only affects the display list.
 	 *
-	 * Four checks per ability, applied in order inside the per-server loop:
+	 * Three checks per ability, applied in order inside the per-server loop:
 	 *   1. pass_as_tool = 1        — pre-filtered before the server loop (FR-004 early-exit).
-	 *   2. mcp_servers             — null = all servers; [] = deny; [...] = allowlist (strict).
-	 *   3. user access (AC rules)  — uses user_has_ability_access(); fail-open when absent (FR-011).
-	 *   4. permission_callback     — calls the ability's own registered permission gate (e.g.
+	 *   2. user access (AC rules)  — uses user_has_ability_access(); fail-open when absent (FR-011).
+	 *   3. permission_callback     — calls the ability's own registered permission gate (e.g.
 	 *                                manage_options); authoritative even when no AC rule exists.
+	 *
+	 * Per Feature 034 spec.md "Security posture change" — fail-closed mcp_servers allowlist
+	 * enforcement deleted; pass_as_tool injection no longer per-server filtered.
 	 *
 	 * Timing note (SEC-003): get_current_user_id() is called at action time (mcp_adapter_init P20).
 	 * The MCP adapter initializes inside a REST request after wp_set_current_user() runs, so the
@@ -675,24 +478,14 @@ final class AcrossAI_Ability_Override_Processor {
 			$extra_slugs = array();
 
 			foreach ( $pass_rows as $slug => $row ) {
-				// Check 2: mcp_servers allowlist — mirrors is_ability_allowed_on_server().
-				if ( is_array( $row->mcp_servers ) ) {
-					if ( empty( $row->mcp_servers ) ) {
-						continue; // Explicit deny.
-					}
-					if ( ! in_array( $server_id, $row->mcp_servers, true ) ) {
-						continue; // Not in allowlist.
-					}
-				}
-
-				// Check 3: per-user access via AC rules — fail-open (FR-011).
+				// Check 2: per-user access via AC rules — fail-open (FR-011).
 				if ( ! self::user_has_ability_access( $slug, $user_id ) ) {
 					continue; // Current user denied.
 				}
 
-				// Check 4: the ability's own permission_callback via WP_Ability::check_permissions().
+				// Check 3: the ability's own permission_callback via WP_Ability::check_permissions().
 				// Respects plugin-defined access gates (e.g. manage_options) that are not
-				// expressed as AC rules. AC rules (Check 3) are fail-open when absent;
+				// expressed as AC rules. AC rules (Check 2) are fail-open when absent;
 				// this gate is always authoritative.
 				$wp_ability = \wp_get_ability( $slug );
 				if ( $wp_ability ) {

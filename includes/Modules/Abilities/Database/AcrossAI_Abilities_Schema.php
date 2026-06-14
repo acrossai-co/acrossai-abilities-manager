@@ -182,14 +182,6 @@ class AcrossAI_Abilities_Schema extends Schema {
 			'default'    => null,
 		),
 
-		// MCP servers JSON.
-		array(
-			'name'       => 'mcp_servers',
-			'type'       => 'longtext',
-			'allow_null' => true,
-			'default'    => null,
-		),
-
 		// Remaining tri-state boolean columns.
 		array(
 			'name'       => 'readonly',

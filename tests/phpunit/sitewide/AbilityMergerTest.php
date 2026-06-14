@@ -33,7 +33,6 @@ class AbilityMergerTest extends WP_UnitTestCase {
 			'show_in_rest' => true,
 			'show_in_mcp'  => null,
 			'mcp_type'     => null,
-			'mcp_servers'  => null,
 			'provider'     => 'my-plugin',
 			'source'       => 'plugin',
 		];
@@ -60,7 +59,6 @@ class AbilityMergerTest extends WP_UnitTestCase {
 			'show_in_rest' => true,
 			'show_in_mcp'  => null,
 			'mcp_type'     => null,
-			'mcp_servers'  => null,
 			'provider'     => 'my-plugin',
 			'source'       => 'plugin',
 		];
@@ -73,7 +71,6 @@ class AbilityMergerTest extends WP_UnitTestCase {
 		$override->show_in_rest = null;
 		$override->show_in_mcp  = null;
 		$override->mcp_type     = null;
-		$override->mcp_servers  = null;
 		$override->updated_at   = '2025-01-01 00:00:00';
 		$override->updated_by   = 1;
 

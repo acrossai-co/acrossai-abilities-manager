@@ -900,7 +900,7 @@ Any DB helper that performs an INSERT or UPDATE and is immediately consumed by a
 `includes/Modules/Abilities/Rest/AcrossAI_Abilities_Write_Controller.php` (strict `false ===` check).
 ### 2026-05-27 — MCP server array sanitization defense-in-depth pattern (DEC-MCP-SERVER-SANITIZE)
 
-**Status**: Active
+**Status**: Superseded (Feature 034, 2026-06-14) — `sanitize_mcp_servers_array()` and its `MAX_MCP_SERVERS` / `MAX_SERVER_ID_LENGTH` constants removed from `AcrossAI_Sanitizer`; matching REST args schema removed from `AcrossAI_Abilities_Write_Controller`. No replacement helper — the `mcp_servers` column itself is gone from the schema definition. The defense-in-depth pattern (sanitizer constants + matching REST `maxItems`/`maxLength`) remains a valid template for any future "array of string IDs from REST input" surface, but no live code in this plugin uses it post-Feature 034.
 
 **Why this is durable**
 Any future feature accepting an array of string IDs from REST input needs the same layered defense: sanitizer constants + REST args schema.
@@ -925,7 +925,7 @@ Feature 016 T019 (sanitizer constants) and T020 (REST args schema) — both veri
 
 ### 2026-05-27 — wpb_mcp_servers_list_rest_capability filter requires a warning comment at wiring point (DEC-MCP-CAPABILITY-FILTER-WARN)
 
-**Status**: Active
+**Status**: Superseded (Feature 034, 2026-06-14) — `wpboilerplate/wpb-mcp-servers-list ^0.0.1` Composer package fully excised. The wiring point in `includes/Main.php` (`McpServersList::collect` + `RestEndpoint::register` at `rest_api_init` P20) is deleted; the `wpb_mcp_servers_list_rest_capability` filter is no longer wired by this plugin. No warning to maintain. Constitution §Integration Resilience canonical-pattern paragraph (v1.4.1) retracted in the same PR — see CONSTITUTION.md PATCH bump.
 
 **Why this is durable**
 Any future wiring of the `wpb_mcp_servers_list_rest_capability` vendor filter must carry a visible security warning — this protects future implementers from silently lowering capability to a non-admin level.
