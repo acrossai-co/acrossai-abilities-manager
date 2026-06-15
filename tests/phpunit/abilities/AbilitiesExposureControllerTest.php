@@ -3,9 +3,10 @@
  * Tests for AcrossAI_Abilities_Exposure_Controller.
  *
  * Covers: explicit forbidden-path (403) for all exposure routes, route-level
- * fail-closed server-context behavior, unrestricted rows always included,
- * server-scoped rows included only when server_id matches, and correct
- * mcp_type mapping for tools/resources/prompts URL segments.
+ * happy-path responses, and correct mcp_type mapping for tools/resources/prompts
+ * URL segments. Per Feature 034 spec.md "Security posture change" — the
+ * server-scoped fail-closed enforcement previously implemented here has been
+ * removed; tests asserting that enforcement are deleted along with the code.
  *
  * @package AcrossAI_Abilities_Manager
  * @since   0.1.0
@@ -102,13 +103,12 @@ class AbilitiesExposureControllerTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Insert a published ability with given mcp_type, show_in_mcp, and optional mcp_servers.
+	 * Insert a published ability with given mcp_type and show_in_mcp.
 	 *
-	 * @param  string     $mcp_type    One of 'tool', 'resource', 'prompt'.
-	 * @param  array|null $mcp_servers Array of server IDs or null for unrestricted.
+	 * @param  string $mcp_type One of 'tool', 'resource', 'prompt'.
 	 * @return int  New row ID.
 	 */
-	private function insert_published_mcp( string $mcp_type, ?array $mcp_servers = null ): int {
+	private function insert_published_mcp( string $mcp_type ): int {
 		static $counter = 0;
 		++$counter;
 
@@ -121,7 +121,6 @@ class AbilitiesExposureControllerTest extends WP_UnitTestCase {
 			'callback_type' => 'noop',
 			'mcp_type'      => $mcp_type,
 			'show_in_mcp'   => 1,
-			'mcp_servers'   => $mcp_servers,
 		] );
 	}
 
@@ -229,107 +228,6 @@ class AbilitiesExposureControllerTest extends WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Fail-closed server-context filtering
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Unrestricted rows (null mcp_servers) are always included regardless of server_id.
-	 *
-	 * @return void
-	 */
-	public function test_unrestricted_row_included_without_server_id() {
-		$id = $this->insert_published_mcp( 'tool', null );
-
-		$response = $this->server->dispatch(
-			$this->get_request( '/acrossai-abilities-manager/v1/abilities/exposures/tools' )
-		);
-
-		$data = $response->get_data();
-		$ids  = array_column( $data, 'id' );
-
-		$this->assertContains( $id, $ids, 'Unrestricted row must be included without server_id' );
-	}
-
-	/**
-	 * Unrestricted rows are included even when a server_id is supplied.
-	 *
-	 * @return void
-	 */
-	public function test_unrestricted_row_included_with_any_server_id() {
-		$id = $this->insert_published_mcp( 'tool', null );
-
-		$response = $this->server->dispatch(
-			$this->get_request( '/acrossai-abilities-manager/v1/abilities/exposures/tools', [
-				'server_id' => 'some-unknown-server',
-			] )
-		);
-
-		$data = $response->get_data();
-		$ids  = array_column( $data, 'id' );
-
-		$this->assertContains( $id, $ids, 'Unrestricted row must be included for any server_id' );
-	}
-
-	/**
-	 * Server-scoped row (non-empty mcp_servers) is EXCLUDED when server_id is empty (fail-closed).
-	 *
-	 * @return void
-	 */
-	public function test_server_scoped_row_excluded_when_server_id_empty() {
-		$id = $this->insert_published_mcp( 'tool', [ 'server-a', 'server-b' ] );
-
-		$response = $this->server->dispatch(
-			$this->get_request( '/acrossai-abilities-manager/v1/abilities/exposures/tools' )
-			// No server_id param → fail-closed.
-		);
-
-		$data = $response->get_data();
-		$ids  = array_column( $data, 'id' );
-
-		$this->assertNotContains( $id, $ids, 'Server-scoped row must be excluded when server_id is empty (fail-closed)' );
-	}
-
-	/**
-	 * Server-scoped row is EXCLUDED when server_id is unknown (fail-closed).
-	 *
-	 * @return void
-	 */
-	public function test_server_scoped_row_excluded_when_server_id_unknown() {
-		$id = $this->insert_published_mcp( 'tool', [ 'server-a', 'server-b' ] );
-
-		$response = $this->server->dispatch(
-			$this->get_request( '/acrossai-abilities-manager/v1/abilities/exposures/tools', [
-				'server_id' => 'server-unknown',
-			] )
-		);
-
-		$data = $response->get_data();
-		$ids  = array_column( $data, 'id' );
-
-		$this->assertNotContains( $id, $ids, 'Server-scoped row must be excluded for unknown server_id' );
-	}
-
-	/**
-	 * Server-scoped row is INCLUDED when server_id matches a value in mcp_servers.
-	 *
-	 * @return void
-	 */
-	public function test_server_scoped_row_included_when_server_id_matches() {
-		$id = $this->insert_published_mcp( 'tool', [ 'server-a', 'server-b' ] );
-
-		$response = $this->server->dispatch(
-			$this->get_request( '/acrossai-abilities-manager/v1/abilities/exposures/tools', [
-				'server_id' => 'server-a',
-			] )
-		);
-
-		$data = $response->get_data();
-		$ids  = array_column( $data, 'id' );
-
-		$this->assertContains( $id, $ids, 'Server-scoped row must be included when server_id matches' );
-	}
-
-	// -------------------------------------------------------------------------
 	// mcp_type filtering
 	// -------------------------------------------------------------------------
 
@@ -343,15 +241,13 @@ class AbilitiesExposureControllerTest extends WP_UnitTestCase {
 		$resource_id = $this->insert_published_mcp( 'resource' );
 
 		$response = $this->server->dispatch(
-			$this->get_request( '/acrossai-abilities-manager/v1/abilities/exposures/tools', [
-				'server_id' => '', // unrestricted rows only.
-			] )
+			$this->get_request( '/acrossai-abilities-manager/v1/abilities/exposures/tools' )
 		);
 
 		$data = $response->get_data();
 		$ids  = array_column( $data, 'id' );
 
-		// Both rows were unrestricted; but only the tool row should be in /tools.
+		// Only the tool row should appear in /tools.
 		$this->assertContains( $tool_id,     $ids );
 		$this->assertNotContains( $resource_id, $ids );
 	}

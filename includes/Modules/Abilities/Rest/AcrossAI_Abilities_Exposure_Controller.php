@@ -5,10 +5,13 @@
  * Handles:
  *   GET /abilities/exposures/{type}  — type ∈ tools | resources | prompts
  *
- * Security contract (PD-001 decision):
+ * Security contract:
  *   - Admin-only (manage_options), same gate as all other Spec 009 endpoints.
- *   - Fail-closed on unknown/missing MCP server context: server-scoped rows are
- *     excluded when the current server ID cannot be resolved.
+ *
+ * Per Feature 034 spec.md "Security posture change" — fail-closed MCP allowlist
+ * enforcement deleted; re-implemented by acrossai-mcp-manager via
+ * acrossai_abilities.form.extra_sections + its own enforcement at the MCP
+ * exposure boundary.
  *
  * @package    AcrossAI_Abilities_Manager
  * @subpackage AcrossAI_Abilities_Manager/includes/Modules/Abilities/Rest
@@ -82,16 +85,11 @@ class AcrossAI_Abilities_Exposure_Controller {
 					'callback'            => array( $this, 'get_exposures' ),
 					'permission_callback' => array( AcrossAI_Abilities_Rest_Controller::instance(), 'check_permission' ),
 					'args'                => array(
-						'type'      => array(
+						'type' => array(
 							'type'              => 'string',
 							'required'          => true,
 							'enum'              => array( 'tools', 'resources', 'prompts' ),
 							'sanitize_callback' => 'sanitize_key',
-						),
-						'server_id' => array(
-							'type'              => 'string',
-							'required'          => false,
-							'sanitize_callback' => 'sanitize_text_field',
 						),
 					),
 				),
@@ -103,8 +101,6 @@ class AcrossAI_Abilities_Exposure_Controller {
 	 * Handle GET /abilities/exposures/{type}.
 	 *
 	 * Maps URL type (tools/resources/prompts) to mcp_type (tool/resource/prompt).
-	 * Fail-closed on unknown server context: rows with a non-empty mcp_servers list
-	 * that does not include the resolved server ID are excluded.
 	 *
 	 * @since  0.1.0
 	 * @param  \WP_REST_Request $request REST request.
@@ -127,43 +123,6 @@ class AcrossAI_Abilities_Exposure_Controller {
 		$mcp_type = $type_map[ $type ];
 		$rows     = $this->db_query->by_mcp_type( $mcp_type, true );
 
-		// Server-scoping filter (fail-closed on unknown server context).
-		$server_id = sanitize_text_field( (string) ( $request->get_param( 'server_id' ) ?? '' ) );
-		$rows      = $this->filter_by_server( $rows, $server_id );
-
 		return rest_ensure_response( AcrossAI_Abilities_Formatter::format_exposure_collection( $rows ) );
-	}
-
-	/**
-	 * Filter rows by server ID with fail-closed semantics.
-	 *
-	 * Rules:
-	 *   - Row with null/empty mcp_servers  → always included (unrestricted).
-	 *   - Row with non-empty mcp_servers + known server_id → included if server_id is in list.
-	 *   - Row with non-empty mcp_servers + empty/unknown server_id → EXCLUDED (fail-closed).
-	 *
-	 * @since  0.1.0
-	 * @param  \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Row[] $rows      Rows to filter.
-	 * @param  string                                                                                   $server_id Resolved current server ID (may be empty).
-	 * @return \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Row[]
-	 */
-	private function filter_by_server( array $rows, string $server_id ): array {
-		return array_values(
-			array_filter(
-				$rows,
-				static function ( $row ) use ( $server_id ) {
-					// Null or empty mcp_servers = unrestricted.
-					if ( null === $row->mcp_servers || empty( $row->mcp_servers ) ) {
-						return true;
-					}
-					// Non-empty mcp_servers: fail-closed on unknown server.
-					if ( '' === $server_id ) {
-						return false;
-					}
-					// Strict membership check.
-					return in_array( $server_id, $row->mcp_servers, true );
-				}
-			)
-		);
 	}
 }

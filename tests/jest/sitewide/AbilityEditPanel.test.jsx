@@ -96,7 +96,6 @@ const baseAbility = {
 	show_in_rest: null,
 	show_in_mcp: null,
 	mcp_type: null,
-	mcp_servers: null,
 };
 
 function getButtonByText( text ) {

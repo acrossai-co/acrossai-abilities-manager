@@ -25,10 +25,12 @@ import {
 	useCallback,
 	useMemo,
 	useRef,
+	Fragment,
 } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
+import { applyFilters, doAction } from '@wordpress/hooks';
 import { STORE_NAME } from '../store/index';
 import SourceBadge from './cells/SourceBadge';
 import CallbackConfigField from './CallbackConfigField';
@@ -249,11 +251,6 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 	const [inputSchemaRaw, setInputSchemaRaw] = useState('');
 	const [outputSchemaRaw, setOutputSchemaRaw] = useState('');
 
-	// MCP server list state (Feature 016: Allowed Servers checkbox list).
-	const [mcpServers, setMcpServers] = useState(null); // null = loading; [] = loaded
-	const [mcpAdapterAvailable, setMcpAdapterAvailable] = useState(true);
-	const [mcpServersError, setMcpServersError] = useState(false);
-
 	// Tracks current AC provider key + options as reported by the AccessControl component.
 	// null = component not yet mounted or not yet reported its first state (T025).
 	const [acState, setAcState] = useState(null);
@@ -315,18 +312,11 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 		setOutputSchemaRaw(outRaw);
 	}, [savedAbility]); // Only reset on ability load, not on every draft change
 
-	// Fetch registered MCP servers from REST endpoint on mount (Feature 016).
+	// Fire draft_changed action on every React commit where draft reference changes.
+	// No internal debouncing — subscribers own their own throttle/debounce policy (FR-005).
 	useEffect(() => {
-		apiFetch({ path: '/wpb-mcp-servers-list/v1/servers' })
-			.then((data) => {
-				setMcpAdapterAvailable(data.adapter_available);
-				setMcpServers(data.servers ?? []);
-			})
-			.catch(() => {
-				setMcpServersError(true);
-				setMcpServers([]);
-			});
-	}, []);
+		doAction('acrossai_abilities.form.draft_changed', draftAbility);
+	}, [draftAbility]);
 
 	// ---------------------------------------------------------------------------
 	// Patch helpers
@@ -503,7 +493,16 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 				? fullSlug.slice(SLUG_PREFIX.length)
 				: fullSlug;
 			delete data.ability_slug;
-			const ability = await dispatch.createAbility(data);
+			const payload = applyFilters(
+				'acrossai_abilities.form.save_payload',
+				data,
+				{
+					abilityId: savedAbility?.id ?? null,
+					slug: savedAbility?.ability_slug ?? null,
+					isNonDb,
+				}
+			);
+			const ability = await dispatch.createAbility(payload);
 			if (ability) {
 				dispatch.setSaved(ability);
 				dispatch.setView({ mode: 'edit', slug: ability.ability_slug });
@@ -512,9 +511,10 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 		}
 
 		if ('edit' === mode) {
+			let payload;
 			if (isNonDb) {
 				// Non-db: send only overridable fields (never identity)
-				const overrideData = {
+				payload = {
 					label: data.label,
 					description: data.description,
 					category: data.category,
@@ -523,15 +523,23 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 					show_in_mcp: data.show_in_mcp,
 					pass_as_tool: data.pass_as_tool,
 					mcp_type: data.mcp_type,
-					mcp_servers: data.mcp_servers,
 					readonly: data.readonly,
 					destructive: data.destructive,
 					idempotent: data.idempotent,
 				};
-				await dispatch.updateAbility(slug, overrideData);
 			} else {
-				await dispatch.updateAbility(slug, data);
+				payload = data;
 			}
+			payload = applyFilters(
+				'acrossai_abilities.form.save_payload',
+				payload,
+				{
+					abilityId: savedAbility?.id ?? null,
+					slug: savedAbility?.ability_slug ?? null,
+					isNonDb,
+				}
+			);
+			await dispatch.updateAbility(slug, payload);
 
 			// Save AC state as part of the single save (T026).
 			// Only runs in edit/override mode — no slug exists in create mode (FR-014).
@@ -599,35 +607,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 		dispatch.setView('list');
 	}
 
-	// Feature 016: MCP server checkbox toggle handlers.
-	// Uses patch() (the useCallback-wrapped dispatch.updateDraft) -- NOT raw dispatch().
-	function handleServerToggle(serverId) {
-		const current = Array.isArray(draftAbility.mcp_servers)
-			? draftAbility.mcp_servers
-			: [];
-		const next = current.includes(serverId)
-			? current.filter((id) => id !== serverId)
-			: [...current, serverId];
-		patch({ mcp_servers: next.length === 0 ? null : next });
-	}
-
-	function handleAllServersToggle() {
-		patch({ mcp_servers: null });
-	}
-
 	// ---------------------------------------------------------------------------
 	// Derived state
 	// ---------------------------------------------------------------------------
-	// Feature 016: precompute stale-ID union for Allowed Servers checkbox list.
-	const mcpSavedIds = Array.isArray(draftAbility.mcp_servers)
-		? draftAbility.mcp_servers
-		: [];
-	const mcpFetchedIds = (mcpServers ?? []).map((s) => s.id);
-	const mcpStaleIds = mcpSavedIds.filter((id) => !mcpFetchedIds.includes(id));
-	const mcpAllItems = [
-		...(mcpServers ?? []),
-		...mcpStaleIds.map((id) => ({ id, name: id, stale: true })),
-	];
 	const breadcrumbSlug =
 		savedAbility?.ability_slug ||
 		__('Add New', 'acrossai-abilities-manager');
@@ -1265,161 +1247,18 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								}
 							/>
 
-							{/* Allowed Servers — Feature 016: checkbox list */}
-							<div className="fr">
-								<span className="fl">
-									{__(
-										'Allowed Servers',
-										'acrossai-abilities-manager'
-									)}
-								</span>
-								<div className="ff">
-									{null === mcpServers && (
-										<span className="desc">
-											{__(
-												'Loading server list…',
-												'acrossai-abilities-manager'
-											)}
-										</span>
-									)}
-									{null !== mcpServers && mcpServersError && (
-										<>
-											<p className="notice notice-error inline-notice">
-												{__(
-													'Could not load server list. Please reload.',
-													'acrossai-abilities-manager'
-												)}
-											</p>
-											{Array.isArray(
-												draftAbility.mcp_servers
-											) &&
-												draftAbility.mcp_servers.map(
-													(id) => (
-														<label
-															key={id}
-															htmlFor={`mcp-server-stale-${id}`}
-															className="checkbox-item"
-														>
-															<input
-																id={`mcp-server-stale-${id}`}
-																type="checkbox"
-																checked={true}
-																onChange={() =>
-																	handleServerToggle(
-																		id
-																	)
-																}
-															/>
-															<span className="checkbox-label">
-																{id}
-															</span>
-															<span className="checkbox-sub desc">
-																{__(
-																	'(not registered)',
-																	'acrossai-abilities-manager'
-																)}
-															</span>
-														</label>
-													)
-												)}
-										</>
-									)}
-									{null !== mcpServers &&
-										!mcpServersError &&
-										!mcpAdapterAvailable && (
-											<p className="desc">
-												{__(
-													'MCP adapter is not active.',
-													'acrossai-abilities-manager'
-												)}
-											</p>
-										)}
-									{null !== mcpServers &&
-										!mcpServersError &&
-										mcpAdapterAvailable &&
-										0 === mcpServers.length && (
-											<p className="desc">
-												{__(
-													'No MCP servers registered yet.',
-													'acrossai-abilities-manager'
-												)}
-											</p>
-										)}
-									{null !== mcpServers &&
-										!mcpServersError &&
-										mcpAdapterAvailable &&
-										mcpServers.length > 0 && (
-											<>
-												<label
-													htmlFor="mcp-server-all"
-													className="checkbox-item"
-												>
-													<input
-														id="mcp-server-all"
-														type="checkbox"
-														checked={
-															null ===
-															draftAbility.mcp_servers
-														}
-														onChange={
-															handleAllServersToggle
-														}
-													/>
-													<span className="checkbox-label">
-														{__(
-															'All servers (default)',
-															'acrossai-abilities-manager'
-														)}
-													</span>
-												</label>
-												{mcpAllItems.map((server) => (
-													<label
-														key={server.id}
-														htmlFor={`mcp-server-${server.id}`}
-														className="checkbox-item"
-													>
-														<input
-															id={`mcp-server-${server.id}`}
-															type="checkbox"
-															checked={
-																Array.isArray(
-																	draftAbility.mcp_servers
-																) &&
-																draftAbility.mcp_servers.includes(
-																	server.id
-																)
-															}
-															onChange={() =>
-																handleServerToggle(
-																	server.id
-																)
-															}
-														/>
-														<span className="checkbox-label">
-															{server.name}
-														</span>
-														<span className="checkbox-sub desc">
-															{server.stale
-																? __(
-																		'(not registered)',
-																		'acrossai-abilities-manager'
-																	)
-																: server.id}
-														</span>
-													</label>
-												))}
-											</>
-										)}
-									{isNonDb && (
-										<p className="field-hint">
-											{savedAbility?._registry
-												?.mcp_servers !== undefined
-												? `${__('Plugin declares:', 'acrossai-abilities-manager')} ${JSON.stringify(savedAbility._registry.mcp_servers)}`
-												: `${__('Plugin declares:', 'acrossai-abilities-manager')} ${__('not set', 'acrossai-abilities-manager')}`}
-										</p>
-									)}
-								</div>
-							</div>
+							{applyFilters(
+								'acrossai_abilities.form.extra_sections',
+								[],
+								{
+									abilityId: savedAbility?.id ?? null,
+									slug: savedAbility?.ability_slug ?? null,
+									draft: draftAbility,
+									isNonDb,
+								}
+							).map((node, i) => (
+								<Fragment key={i}>{node}</Fragment>
+							))}
 						</div>
 
 						{/* ── Section 4 — Pass as Tool ── */}
@@ -2354,7 +2193,6 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 										'show_in_rest',
 										'show_in_mcp',
 										'mcp_type',
-										'mcp_servers',
 										'readonly',
 										'destructive',
 										'idempotent',

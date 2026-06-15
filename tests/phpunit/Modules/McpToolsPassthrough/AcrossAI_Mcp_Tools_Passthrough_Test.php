@@ -22,8 +22,7 @@ use PHPUnit\Framework\TestCase;
  * (a) No-op when adapter has no get_servers() (FR-009 guard).
  * (b) No-op when no abilities are opted in — early-return path (US2/FR-004).
  * (c) Opted-in slugs are registered via Reflection into McpServer::$component_registry.
- * (d) mcp_servers allowlist is respected per server (empty array = deny; allowlist = filtered).
- * (e) Servers without get_server_id() or without $component_registry are silently skipped.
+ * (d) Servers without get_server_id() or without $component_registry are silently skipped.
  */
 class AcrossAI_Mcp_Tools_Passthrough_Test extends TestCase {
 
@@ -34,7 +33,7 @@ class AcrossAI_Mcp_Tools_Passthrough_Test extends TestCase {
 	/**
 	 * Pre-populate the static overrides cache via Reflection to skip WP DB/transient.
 	 *
-	 * @param array<string, object> $rows slug → object with pass_as_tool/mcp_servers props.
+	 * @param array<string, object> $rows slug → object with pass_as_tool prop.
 	 */
 	private function setOverridesCache( array $rows ): void {
 		$ref  = new \ReflectionClass( AcrossAI_Ability_Override_Processor::class );
@@ -53,15 +52,13 @@ class AcrossAI_Mcp_Tools_Passthrough_Test extends TestCase {
 	}
 
 	/**
-	 * Build a minimal row-like object with pass_as_tool and mcp_servers.
+	 * Build a minimal row-like object with pass_as_tool.
 	 */
-	private function makeRow( bool|null $pass_as_tool, array|null $mcp_servers = null ): object {
-		return new class ( $pass_as_tool, $mcp_servers ) {
+	private function makeRow( bool|null $pass_as_tool ): object {
+		return new class ( $pass_as_tool ) {
 			public bool|null $pass_as_tool;
-			public array|null $mcp_servers;
-			public function __construct( bool|null $pat, array|null $ms ) {
+			public function __construct( bool|null $pat ) {
 				$this->pass_as_tool = $pat;
-				$this->mcp_servers  = $ms;
 			}
 		};
 	}
@@ -227,65 +224,4 @@ class AcrossAI_Mcp_Tools_Passthrough_Test extends TestCase {
 		$this->assertContains( 'ability-c', $registry->registered );
 	}
 
-	// -------------------------------------------------------------------------
-	// mcp_servers allowlist
-	// -------------------------------------------------------------------------
-
-	/**
-	 * mcp_servers = [] (explicit deny) blocks injection on all servers.
-	 */
-	public function test_mcp_servers_empty_array_blocks_all_servers(): void {
-		$registry = $this->makeRegistry();
-		$adapter  = $this->makeAdapter( array( $this->makeServer( 'srv-1', $registry ) ) );
-
-		$this->setOverridesCache( array(
-			'blocked-ability' => $this->makeRow( true, array() ),
-		) );
-
-		AcrossAI_Ability_Override_Processor::inject_mcp_tools( $adapter );
-
-		$this->assertSame( array(), $registry->registered, 'Empty mcp_servers must block injection on all servers' );
-	}
-
-	/**
-	 * mcp_servers allowlist: slug injected on matching server only; blocked on non-matching.
-	 */
-	public function test_mcp_servers_allowlist_injects_only_on_matching_server(): void {
-		$allowedReg = $this->makeRegistry();
-		$blockedReg = $this->makeRegistry();
-		$adapter    = $this->makeAdapter( array(
-			$this->makeServer( 'srv-allowed', $allowedReg ),
-			$this->makeServer( 'srv-blocked', $blockedReg ),
-		) );
-
-		$this->setOverridesCache( array(
-			'my-tool' => $this->makeRow( true, array( 'srv-allowed' ) ),
-		) );
-
-		AcrossAI_Ability_Override_Processor::inject_mcp_tools( $adapter );
-
-		$this->assertContains( 'my-tool', $allowedReg->registered, 'Slug must be injected for the allowed server' );
-		$this->assertSame( array(), $blockedReg->registered, 'Slug must NOT be injected for the non-allowlisted server' );
-	}
-
-	/**
-	 * mcp_servers = null → all servers receive the injection.
-	 */
-	public function test_mcp_servers_null_injects_on_all_servers(): void {
-		$reg1    = $this->makeRegistry();
-		$reg2    = $this->makeRegistry();
-		$adapter = $this->makeAdapter( array(
-			$this->makeServer( 'srv-1', $reg1 ),
-			$this->makeServer( 'srv-2', $reg2 ),
-		) );
-
-		$this->setOverridesCache( array(
-			'global-tool' => $this->makeRow( true, null ),
-		) );
-
-		AcrossAI_Ability_Override_Processor::inject_mcp_tools( $adapter );
-
-		$this->assertContains( 'global-tool', $reg1->registered );
-		$this->assertContains( 'global-tool', $reg2->registered );
-	}
 }

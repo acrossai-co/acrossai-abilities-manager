@@ -302,17 +302,6 @@ final class Main {
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern (AC-HOOKS-MAIN).
 		$abilities_table = \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Table::instance();
 
-		// Collect MCP servers at priority 20, after McpAdapter initialises at priority 15.
-		$mcp_servers_list = \WPBoilerplate\McpServersList\McpServersList::instance();
-		$this->loader->add_action( 'rest_api_init', $mcp_servers_list, 'collect', 20 );
-
-		// Expose collected servers via REST endpoint (GET /wpb-mcp-servers-list/v1/servers).
-		// Static callable -- class string satisfies DEC-UTILITY-STATIC-ONLY (no instance()).
-		// WARNING: Do NOT hook `wpb_mcp_servers_list_rest_capability` to lower the required
-		// capability below `manage_options`. The vendor filter is an external attack surface.
-		$mcp_servers_rest = \WPBoilerplate\McpServersList\RestEndpoint::class;
-		$this->loader->add_action( 'rest_api_init', $mcp_servers_rest, 'register', 20, 0 );
-
 		// Register Access Control REST routes and admin notice for absent library (SAC-01).
 		$abilities_ac = \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control::instance();
 		$this->loader->add_action( 'rest_api_init', $abilities_ac, 'register_rest_api' );

@@ -55,8 +55,11 @@ and a REST-API-first admin UI backed by @wordpress/dataviews.
   for per-server allowlist enforcement (PATH B only, `accepted_args = 3`).
 - **`wpb-access-control` library**: Per-ability permission rules. Injected
   at `$args['permission_callback']` time. Fails open when library absent.
-- **`wpb-mcp-servers-list` library**: Collects registered MCP server IDs for
-  the admin UI dropdown. Collected at `rest_api_init P20`.
+- **(Removed in Feature 034)** The `wpb-mcp-servers-list` library was used until
+  Feature 034 (2026-06-14) to collect registered MCP server IDs for the deleted
+  Allowed Servers admin dropdown. The library has been excised; no replacement.
+  Any plugin needing MCP-server enumeration chooses its own mechanism via the
+  5-hook extension surface from `specs/034-.../contracts/extension-hooks.md`.
 - **Action Scheduler**: Not currently used; prefer for any future async jobs.
 
 ## Risks / Complexity Hotspots
@@ -488,15 +491,15 @@ The canonical `AbilityForm.jsx` section DOM order is:
 |---|---------|---------|
 | 1 | Identity | A (db) only |
 | 2 | Site Permission | B (non-db) only |
-| 3 | MCP Exposure | A + B |
+| 3 | MCP Exposure (+ extension slot) | A + B |
 | 4 | Annotation Overrides | A + B |
 | **5** | **User Access** | **A + B** |
 | 6 | Callback | A (db) only |
 | 7 | Schema | A (db) only |
 
-Numbers are global across both variants; sections not applicable to a variant simply do not render. All seven `.sect` divs must be children of a single `.panel` div. New features adding sections must insert between Annotation Overrides (4) and User Access (5), or after Schema (7) — never outside the `.panel`.
+Numbers are global across both variants; sections not applicable to a variant simply do not render. All seven `.sect` divs must be children of a single `.panel` div. **As of Feature 034 (2026-06-14)**, the tail of Section 3 (MCP Exposure) renders the public extension slot `applyFilters( 'acrossai_abilities.form.extra_sections', [], { abilityId, slug, draft, isNonDb } )` at the location formerly occupied by the deleted Allowed Servers checkbox list. The slot is part of the public contract per FR-010 of Feature 034. New features adding sections must insert between Annotation Overrides (4) and User Access (5), or after Schema (7) — never outside the `.panel`. New features adding extension hook callsites should follow the dot-notation JS naming convention established by Feature 034 (`acrossai_abilities.form.*`).
 
-**Evidence**: Feature 016 (2026-05-27) — commits `5de0307`, `161d1d4`, `e341d1a` restored order, corrected numbers 1–6. Feature 018 (2026-05-29) — inserted User Access as Section 5, renumbered Callback → 6, Schema → 7.
+**Evidence**: Feature 016 (2026-05-27) — commits `5de0307`, `161d1d4`, `e341d1a` restored order, corrected numbers 1–6. Feature 018 (2026-05-29) — inserted User Access as Section 5, renumbered Callback → 6, Schema → 7. Feature 034 (2026-06-14) — Section 3's Allowed Servers content replaced with `extra_sections` extension slot.
 
 ---
 
@@ -844,3 +847,115 @@ Until then, the family-level handle is the right pragmatic answer.
 `'acrossai-wpb-access-control'`. Plugin Check finding "Looks like there is
 an element not using common prefixes" resolved with two single-line edits;
 36 acrossai-prefixed elements become 37.
+
+---
+
+## PATTERN-REQUIRED-FIELD-MULTI-LAYER-AUDIT
+
+**Status**: Active (established Feature 034)
+
+When auditing the claim "every field the form treats as required has matching
+4xx-on-missing server-side enforcement", check **all three** WordPress validation
+layers, not just one. A field enforced at any one layer is technically secure, but
+the audit must verify which layer enforces it — a JS-hook attack surface (e.g.,
+`acrossai_abilities.form.save_payload`) lets subscribers strip fields from the REST
+payload before serialization, and the auditor must trace which server-side layer
+catches that case.
+
+**The three layers**:
+
+1. **REST `args` schema** — `'required' => true`, `'sanitize_callback'`,
+   `'validate_callback'`. Lives in the route-registration block of the relevant
+   REST controller (e.g., `AcrossAI_Abilities_Write_Controller::register_routes()`).
+2. **Sanitizer presence guards** — early-return WP_Error with explicit `missing_X`
+   codes inside `sanitize_create_request()` / inside the controller's main handler
+   (e.g., `AcrossAI_Abilities_Write_Controller::create_ability()` lines 196-204:
+   `missing_label`, `missing_description`, `missing_category`).
+3. **Validator** — deeper presence + format checks returning WP_Error 400 with
+   codes like `invalid_slug` (e.g., `AcrossAI_Abilities_Validator::validate_ability()`
+   lines 412-414).
+
+**Audit procedure**:
+
+For each field the JS form treats as required (find via `validateRequiredFields` or
+the form's explicit required-attribute set):
+1. Grep the REST controller's `register_routes()` for the field name — is it in the
+   `args` schema with `'required' => true`?
+2. Grep the sanitizer / controller handler for an early-return guard returning
+   `missing_<field>` or equivalent 400.
+3. Grep the validator for a guard returning `invalid_<field>` / `missing_<field>` /
+   equivalent 400 with empty-check.
+
+A field that passes only at layer (3) is still secure but produces less specific
+error codes for the client. A field that passes only at layer (1) may be bypassed
+by a JS-hook filter that strips it — the request reaches the server with the field
+absent, layer (1) coerces silently, and you discover the gap only by tracing layers
+(2) and (3).
+
+**Reference**: Feature 034 SEC-001 audit (pre-implementation, `specs/034-.../security-constraints.md`)
+verified `label`/`description`/`category` at layer (2). Feature 034 F2 finding
+(post-implementation, via `/speckit-analyze`) discovered `slug_suffix` was NOT
+enforced at layer (2) but WAS enforced at layer (3) — without the layer (3) check,
+F2 would have falsely reported a vulnerability. Without layer (2) enforcement of
+`slug_suffix`, a malicious `acrossai_abilities.form.save_payload` subscriber
+stripping it would have produced an ambiguous `invalid_slug` error instead of a
+clean 400-with-`missing_slug_suffix`. The audit is now a three-step procedure;
+documented here so future security reviews don't repeat the layer-1-only
+false-positive risk.
+
+---
+
+## PATTERN-JS-HOOK-CADENCE-SPEC
+
+**Status**: Active (established Feature 034)
+
+When exposing a JS action or filter via `@wordpress/hooks` to extension subscribers,
+the spec entry MUST include **three** things, not two:
+
+1. **Hook name** — canonical, versioned per the contract's deprecation cycle.
+2. **Payload shape** — typed context object, every key listed and versioned.
+3. **Reference-equality and firing-cadence semantics** — exactly when the hook
+   fires, with three sub-questions answered:
+   - Per-React-commit (selector reference changed) vs per-Redux-dispatch (store
+     updated) vs per-event (DOM event)?
+   - Is internal debouncing applied? (Default and recommended: "no — subscribers
+     own their own debounce/throttle policy".)
+   - Which value-equality function gates the fire (`Object.is`, `===`, deep-equal,
+     hash)?
+
+**Why item 3 matters**:
+
+Item 3 is invisible by default. Spec authors usually write items 1 and 2 and assume
+item 3 is "obvious"; it isn't. Different subscribers will subscribe assuming
+different cadences, and only one of them will be right.
+
+- Subscriber A assumes "fires per keystroke" and writes a 250ms debounce.
+- Subscriber B assumes "fires per dispatched Redux action" and writes no debounce.
+- Subscriber C assumes "fires once per save" and writes blocking logic.
+
+Without an explicit contract, all three will ship and one (or all three) will be
+wrong about which is right. Pin it in the spec; the implementation will then match
+because it's now contractual — and reviewers can catch implementation drift early.
+
+**Spec wording template**:
+
+> The `{hook_name}` action fires on every React commit where the value returned by
+> the Redux `{selector_name}` selector inside a `useEffect([value])` block has
+> changed reference. Reference-equality uses `Object.is` (React's default). The
+> plugin applies no internal debouncing — subscribers MUST own their own
+> debounce/throttle policy. Subscribers MUST design against per-React-commit
+> cadence, NOT per-Redux-dispatch cadence (which may be more or less frequent if
+> intermediate states are batched out by re-render scheduling).
+
+Apply equivalent wording for any cadence semantics (per-event, per-mount, etc.).
+The key is naming the trigger, the equality semantics, and the subscriber's
+obligation.
+
+**Reference**: Feature 034 FR-005 (`acrossai_abilities.form.draft_changed`) shipped
+with a partial cadence spec ("fires on every React commit where the form's draft
+state reference has changed") that didn't pin which draft reference. F3 finding
+caught this; spec amended to specify the Redux `getDraftAbility` selector + the
+`useEffect([draft])` block. Implementation at
+`src/js/abilities/components/AbilityForm.jsx:318` already matched the new wording —
+the gap was in spec, not code. For any future JS extension hook this plugin or a
+sibling plugin exposes, lead with the three-item template above.

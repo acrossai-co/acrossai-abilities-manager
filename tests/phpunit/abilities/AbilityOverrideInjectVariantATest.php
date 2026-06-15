@@ -247,7 +247,6 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 			'show_in_rest' => null,
 			'show_in_mcp'  => null,
 			'mcp_type'     => null,
-			'mcp_servers'  => null,
 		);
 
 		$result = AcrossAI_Ability_Merger::merge( $registry, null );
@@ -278,7 +277,6 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 			'show_in_rest' => null,
 			'show_in_mcp'  => null,
 			'mcp_type'     => null,
-			'mcp_servers'  => null,
 		);
 
 		$result = AcrossAI_Ability_Merger::merge( $registry, null );
@@ -314,7 +312,6 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 			'show_in_rest' => null,
 			'show_in_mcp'  => null,
 			'mcp_type'     => null,
-			'mcp_servers'  => null,
 		);
 
 		$override = (object) array(
@@ -332,7 +329,6 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 			'show_in_rest' => null,
 			'show_in_mcp'  => null,
 			'mcp_type'     => null,
-			'mcp_servers'  => null,
 			'updated_at'   => '2026-06-02 00:00:00',
 			'updated_by'   => 1,
 			'created_at'   => '2026-06-02 00:00:00',
@@ -369,7 +365,6 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 			'show_in_rest' => true,
 			'show_in_mcp'  => true,
 			'mcp_type'     => null,
-			'mcp_servers'  => null,
 		);
 
 		$override = (object) array(
@@ -387,7 +382,6 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 			'show_in_rest' => false,
 			'show_in_mcp'  => false,
 			'mcp_type'     => null,
-			'mcp_servers'  => null,
 			'updated_at'   => '2026-06-02 00:00:00',
 			'updated_by'   => 1,
 			'created_at'   => '2026-06-02 00:00:00',
