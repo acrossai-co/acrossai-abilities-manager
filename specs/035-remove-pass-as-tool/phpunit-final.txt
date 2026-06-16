@@ -1,0 +1,13 @@
+> ./vendor/bin/phpunit
+PHPUnit 10.5.63 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.4.12
+Configuration: /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/phpunit.xml.dist
+
+...................................................WW............ 65 / 83 ( 78%)
+..................                                                83 / 83 (100%)
+
+Time: 00:00.029, Memory: 10.00 MB
+
+OK, but there were issues!
+Tests: 83, Assertions: 152, Warnings: 6.

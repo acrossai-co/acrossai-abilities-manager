@@ -1263,6 +1263,10 @@ constructor at L130), DEC-TABLE-SOFT-SINGLETON (Table vs Query distinction),
 
 ### 2026-06-11 — BUG-MCP-TYPE-PASSTOOL-CONFLICT
 
+**Status**
+Resolved by Feature 035 (2026-06-16): `pass_as_tool` column and `inject_mcp_tools()` are removed,
+so the conflict surface no longer exists. Retained for historical context.
+
 **Pattern**
 `pass_as_tool = 1` + `mcp_type = 'resource'` (or `'prompt'`) on the same ability
 row causes two simultaneous failures on every `mcp_adapter_init` call:
@@ -1416,6 +1420,15 @@ allow for all users. Confirmed via WP core source read. Two commits required.
 ---
 
 ### 2026-06-11 — BUG-INJECT-MCP-TOOLS-PERMISSION-BYPASS
+
+**Status**
+Immediate trigger removed by Feature 035 (2026-06-16): `inject_mcp_tools()` is gone.
+**Lesson durable**: AC rules are fail-open in absence; any code that relies on AC alone MUST
+pair the check with `WP_Ability::check_permissions()` for an authoritative gate. The helper
+`user_has_ability_access()` is preserved only because `build_permission_callback()` (line ~386)
+still uses it via the closure it returns from `inject_override_args()`. **Re-author the
+partner-gated pattern inline at any new call site rather than restoring the helper as a
+convenience** — restoring it without the partner gate would silently regrow the bypass.
 
 **Pattern**
 `inject_mcp_tools()` must call `WP_Ability::check_permissions()` as a fourth gate.

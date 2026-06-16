@@ -1403,7 +1403,7 @@ Feature 027 governed-tasks session 2026-06-06 — ARCH-003 advisory raised; user
 ### 2026-06-11 — DEC-MCP-TOOLS-PASSTHROUGH-COLUMN
 
 **Status**
-Active
+Superseded by DEC-PASS-AS-TOOL-REMOVED (2026-06-16).
 
 **Why this is durable**
 Establishes the contract between the plugin's abilities table and the MCP server tool
@@ -1444,7 +1444,9 @@ is in the list (strict comparison).
 ### 2026-06-11 — DEC-MCP-INJECT-REFLECTION-PATTERN
 
 **Status**
-Active
+Active. Note (2026-06-16): in-plugin consumer removed by Feature 035 alongside `pass_as_tool`.
+Pattern retained as the canonical reference for the future `acrossai-mcp-manager` plugin, which
+is expected to be the next consumer. See DEC-PASS-AS-TOOL-REMOVED.
 
 **Why this is durable**
 Any future feature that injects abilities into MCP server registries post-creation
@@ -1509,3 +1511,62 @@ to silently reject the definition (logged under `WP_DEBUG_LOG`).
 **Evidence**
 `includes/Modules/Library/Ability_Definition.php` — `push_definition()` derivation;
 `specs/031-library-category-slug-rebrand/plan.md` — Technical Context and Rename Map.
+
+---
+
+### 2026-06-16 — DEC-PASS-AS-TOOL-REMOVED (supersedes DEC-MCP-TOOLS-PASSTHROUGH-COLUMN)
+
+**Status**
+Active
+
+**Why this is durable**
+Records that per-ability MCP tool-registry injection is no longer a responsibility of this
+plugin. Without this entry, future Spec Kit runs that synthesize from
+`DEC-MCP-TOOLS-PASSTHROUGH-COLUMN` would silently regenerate the deleted feature.
+
+**Decision**
+The `pass_as_tool` tinyint column on `acrossai_abilities`, the
+`AcrossAI_Ability_Override_Processor::inject_mcp_tools()` hook (formerly registered at
+`mcp_adapter_init` P20), the Reflection-based reach into `McpServer::$component_registry`,
+and the supporting Sanitizer / Formatter / Merger / Query plumbing are removed. The React
+admin "Pass as Tool" column and ability-form Section 4 are removed. Migration on existing
+pre-launch dev environments is manual: deactivate plugin, drop the abilities table, reactivate.
+No `maybe_upgrade()` ALTER routine and no `$version` bump is added — carrying one past launch
+would be dead weight. Inbound REST writes that still include `pass_as_tool` are silently
+ignored (default WP REST unknown-param behavior); pinned by
+`tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php` (SEC-035-001).
+
+Per-ability MCP tool registration responsibility passes to the future `acrossai-mcp-manager`
+plugin. Continuing the Feature 034 architectural inversion, the Abilities Manager owns
+ability metadata; MCP servers own their tool lists.
+
+**Security rationale**
+The primary security benefit is the elimination of the Reflection-based reach into mcp-adapter's
+private `$component_registry`. This collapses the plugin's dependency on mcp-adapter internals
+to the public hook surface alone; future mcp-adapter releases can change `$component_registry`
+freely without breaking this plugin.
+
+**Durable lessons retained**
+- `BUG-BERLINDDB-QUERY-PRIVATE-CTOR` — `new AcrossAI_Abilities_Query()` is a fatal; always use
+  `::instance()`. Applies to every BerlinDB query class in the plugin. Unaffected.
+- `BUG-INJECT-MCP-TOOLS-PERMISSION-BYPASS` — AC rules are fail-open when absent; any code
+  relying on AC alone must pair with `WP_Ability::check_permissions()` for an authoritative
+  gate. Immediate trigger gone; lesson durable. Re-author the partner-gated pattern inline at
+  any new call site rather than restoring `user_has_ability_access()` as a "convenience" — the
+  helper is preserved only because `build_permission_callback()` still uses it, and any new
+  caller must explicitly pair it with `check_permissions()`.
+- `BUG-MCP-TYPE-PASSTOOL-CONFLICT` — closed (the conflict surface is removed by this feature).
+- `PATTERN-PROTECTED-SLUGS-JS-LOCALIZE` — still in active use by other UI cells.
+
+**Tradeoffs**
+- Gained: simpler boot-flow surface (Override Processor's `boot()` deviation narrows from three
+  hooks to two); no Reflection reach into third-party private state; smaller schema; clearer
+  ownership boundary for MCP tool lists.
+- Reconsider: if `acrossai-mcp-manager` ships with a substantially different injection model,
+  re-examine whether the Override Processor's `inject_override_args` ARC needs adjustment.
+
+**Where to look next**
+`includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php` (surviving methods),
+`docs/memory/BUGS.md` (`BUG-INJECT-MCP-TOOLS-PERMISSION-BYPASS` annotation),
+`specs/035-remove-pass-as-tool/upgrade-notes.md` (manual migration procedure),
+`tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php` (silent-ignore contract pin).

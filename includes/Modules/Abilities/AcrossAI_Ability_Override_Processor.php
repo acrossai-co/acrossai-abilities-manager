@@ -139,7 +139,7 @@ final class AcrossAI_Ability_Override_Processor {
 	 * On PATH B registers all downstream hooks directly via add_filter()/add_action().
 	 *
 	 * WHY HOOKS ARE REGISTERED HERE (ARCH-ADV-001):
-	 * The Loader in Main.php always registers hooks unconditionally. Because these four hooks
+	 * The Loader in Main.php always registers hooks unconditionally. Because these hooks
 	 * must be completely absent on PATH A (Manager REST), they cannot go through the Loader —
 	 * conditional wiring cannot be expressed there. boot() is the only place where the
 	 * PATH A / PATH B decision has been made and acted on.
@@ -147,7 +147,6 @@ final class AcrossAI_Ability_Override_Processor {
 	 * Hooks registered here (PATH B only):
 	 *   wp_register_ability_args P100000   — inject_override_args()
 	 *   wp_abilities_api_init    P100001   — unregister_blocked_abilities()
-	 *   mcp_adapter_init         P20       — inject_mcp_tools()
 	 *
 	 * @since  0.1.0
 	 * @return void
@@ -166,13 +165,6 @@ final class AcrossAI_Ability_Override_Processor {
 
 		// Unregister abilities with site_allowed = false after all plugin registrations complete.
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'unregister_blocked_abilities' ), 100001 );
-
-		// Register opted-in ability slugs into every MCP server's callable tool registry.
-		// Runs at mcp_adapter_init P20, after DefaultServerFactory (P10) and
-		// acrossai-mcp-manager database servers (P11) are both created.
-		// Uses Reflection to reach McpServer::$component_registry (private) because
-		// mcp_adapter_server_config does not exist in the installed mcp-adapter version.
-		add_action( 'mcp_adapter_init', array( __CLASS__, 'inject_mcp_tools' ), 20 );
 	}
 
 	/**
@@ -407,126 +399,15 @@ final class AcrossAI_Ability_Override_Processor {
 		}
 	}
 
-	// -------------------------------------------------------------------------
-	// MCP tools pass-through
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Action callback: register opted-in ability slugs into every MCP server's callable registry.
-	 *
-	 * Registered at mcp_adapter_init P20 (PATH B only, ARCH-ADV-001). Fires after all servers
-	 * are created (DefaultServerFactory P10, acrossai-mcp-manager database servers P11).
-	 * Uses Reflection to reach the private McpServer::$component_registry and calls
-	 * register_tools() on it — this is necessary because the installed mcp-adapter version
-	 * does not expose mcp_adapter_server_config. Adding slugs here ensures both tools/list
-	 * and tools/call work; mcp_adapter_tools_list only affects the display list.
-	 *
-	 * Three checks per ability, applied in order inside the per-server loop:
-	 *   1. pass_as_tool = 1        — pre-filtered before the server loop (FR-004 early-exit).
-	 *   2. user access (AC rules)  — uses user_has_ability_access(); fail-open when absent (FR-011).
-	 *   3. permission_callback     — calls the ability's own registered permission gate (e.g.
-	 *                                manage_options); authoritative even when no AC rule exists.
-	 *
-	 * Per Feature 034 spec.md "Security posture change" — fail-closed mcp_servers allowlist
-	 * enforcement deleted; pass_as_tool injection no longer per-server filtered.
-	 *
-	 * Timing note (SEC-003): get_current_user_id() is called at action time (mcp_adapter_init P20).
-	 * The MCP adapter initializes inside a REST request after wp_set_current_user() runs, so the
-	 * user ID is reliable. If the initialization context changes (e.g. CLI or cron), user_id = 0
-	 * and any AC-ruled ability will be denied for that context (correct, fail-safe behavior).
-	 *
-	 * @since  0.1.0
-	 * @param  mixed $adapter McpAdapter singleton instance.
-	 * @return void
-	 */
-	public static function inject_mcp_tools( $adapter ): void {
-		if ( ! method_exists( $adapter, 'get_servers' ) ) {
-			return;
-		}
-
-		self::load_overrides_cache();
-
-		// Check 1: collect only pass_as_tool = 1 rows (FR-004 early-exit).
-		// Check 1: collect only pass_as_tool = 1 rows that are tool-typed (FR-004 early-exit).
-		// resource/prompt types are registered by DefaultServerFactory via their own paths;
-		// injecting them into the tool registry conflicts with their mcp.type contract.
-		$non_tool_types = array( 'resource', 'prompt' );
-		$pass_rows      = array();
-		foreach ( self::$overrides_cache as $slug => $row ) {
-			if ( true === $row->pass_as_tool && ! in_array( $row->mcp_type, $non_tool_types, true ) ) {
-				$pass_rows[ $slug ] = $row;
-			}
-		}
-
-		if ( empty( $pass_rows ) ) {
-			return;
-		}
-
-		$servers = $adapter->get_servers();
-		if ( empty( $servers ) ) {
-			return;
-		}
-
-		$user_id = \get_current_user_id();
-
-		foreach ( $servers as $server ) {
-			if ( ! method_exists( $server, 'get_server_id' ) ) {
-				continue;
-			}
-
-			$server_id   = $server->get_server_id();
-			$extra_slugs = array();
-
-			foreach ( $pass_rows as $slug => $row ) {
-				// Check 2: per-user access via AC rules — fail-open (FR-011).
-				if ( ! self::user_has_ability_access( $slug, $user_id ) ) {
-					continue; // Current user denied.
-				}
-
-				// Check 3: the ability's own permission_callback via WP_Ability::check_permissions().
-				// Respects plugin-defined access gates (e.g. manage_options) that are not
-				// expressed as AC rules. AC rules (Check 2) are fail-open when absent;
-				// this gate is always authoritative.
-				$wp_ability = \wp_get_ability( $slug );
-				if ( $wp_ability ) {
-					$perm_result = $wp_ability->check_permissions();
-					if ( \is_wp_error( $perm_result ) || false === $perm_result ) {
-						continue; // Ability's own permission gate denies the current user.
-					}
-				}
-
-				$extra_slugs[] = $slug;
-			}
-
-			if ( empty( $extra_slugs ) ) {
-				continue;
-			}
-
-			// Access McpServer::$component_registry via Reflection (private field).
-			// Required because mcp_adapter_server_config does not exist in installed version.
-			try {
-				$reflection = new \ReflectionClass( $server );
-				if ( ! $reflection->hasProperty( 'component_registry' ) ) {
-					continue;
-				}
-				$prop = $reflection->getProperty( 'component_registry' );
-				$prop->setAccessible( true );
-				$registry = $prop->getValue( $server );
-				if ( $registry && method_exists( $registry, 'register_tools' ) ) {
-					$registry->register_tools( $extra_slugs );
-				}
-			} catch ( \ReflectionException $e ) {
-				// Silently skip — non-fatal, injection just won't happen for this server.
-				continue;
-			}
-		}
-	}
-
 	/**
 	 * Check whether the given user has access to an ability per AC rules.
 	 *
 	 * Fail-open: returns true when the AC library is absent or no rule is configured —
 	 * mirrors build_permission_callback() semantics (FR-009, FR-011).
+	 *
+	 * Any caller relying on this helper alone must pair it with WP_Ability::check_permissions()
+	 * as the authoritative gate — AC rules are fail-open in absence
+	 * (BUG-INJECT-MCP-TOOLS-PERMISSION-BYPASS).
 	 *
 	 * @since  0.1.0
 	 * @param  string $slug    Ability slug.

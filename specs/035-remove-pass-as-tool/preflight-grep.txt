@@ -1,0 +1,139 @@
+includes/Main.php:374:		// Note: mcp_adapter_init P20 (pass_as_tool injection) is registered inside
+includes/Utilities/AcrossAI_Ability_Merger.php:39:		'pass_as_tool',
+includes/Utilities/AcrossAI_Abilities_Formatter.php:56:			'pass_as_tool'    => $row->pass_as_tool,
+includes/Utilities/AcrossAI_Abilities_Formatter.php:97:			'pass_as_tool'  => $row->pass_as_tool,
+includes/Utilities/AcrossAI_Abilities_Formatter.php:146:			'pass_as_tool'    => $merged['pass_as_tool'] ?? null,
+includes/Utilities/AcrossAI_Abilities_Sanitizer.php:285:		$tri_state_fields = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'show_in_mcp', 'pass_as_tool' );
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:150:	 *   mcp_adapter_init         P20       — inject_mcp_tools()
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:175:		add_action( 'mcp_adapter_init', array( __CLASS__, 'inject_mcp_tools' ), 20 );
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:425:	 *   1. pass_as_tool = 1        — pre-filtered before the server loop (FR-004 early-exit).
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:431:	 * enforcement deleted; pass_as_tool injection no longer per-server filtered.
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:442:	public static function inject_mcp_tools( $adapter ): void {
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:449:		// Check 1: collect only pass_as_tool = 1 rows (FR-004 early-exit).
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:450:		// Check 1: collect only pass_as_tool = 1 rows that are tool-typed (FR-004 early-exit).
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:456:			if ( true === $row->pass_as_tool && ! in_array( $row->mcp_type, $non_tool_types, true ) ) {
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Row.php:43: * @property bool|null   $pass_as_tool
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Row.php:165:	public $pass_as_tool = null;
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Row.php:248:			'pass_as_tool',
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Row.php:285:		$tri_state_fields = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'show_in_mcp', 'pass_as_tool' );
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Schema.php:169:			'name'       => 'pass_as_tool',
+src/js/abilities/components/AbilityForm.jsx:524:					pass_as_tool: data.pass_as_tool,
+src/js/abilities/components/AbilityForm.jsx:1287:								value={draftAbility.pass_as_tool ?? null}
+src/js/abilities/components/AbilityForm.jsx:1288:								onChange={(v) => patch({ pass_as_tool: v })}
+src/js/abilities/components/AbilityForm.jsx:1320:							{draftAbility.pass_as_tool === true && (
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Query.php:493:	public function get_pass_as_tool_slugs(): array {
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Query.php:496:				'pass_as_tool' => 1,
+includes/Modules/Abilities/Database/AcrossAI_Abilities_Query.php:642:		$tri_state = array( 'site_allowed', 'readonly', 'destructive', 'idempotent', 'show_in_rest', 'show_in_mcp', 'pass_as_tool' );
+src/js/abilities/store/index.js:46:	'pass_as_tool',
+src/js/abilities/components/AbilitiesList.jsx:128:function PassAsToolCell({ item, onToggle, disabled }) {
+src/js/abilities/components/AbilitiesList.jsx:129:	const isOn = item.pass_as_tool === true;
+src/js/abilities/components/AbilitiesList.jsx:192:	pass_as_tool: true,
+src/js/abilities/components/AbilitiesList.jsx:733:						{!!visibleColumns.pass_as_tool && (
+src/js/abilities/components/AbilitiesList.jsx:842:								{!!visibleColumns.pass_as_tool && (
+src/js/abilities/components/AbilitiesList.jsx:844:										<PassAsToolCell
+src/js/abilities/components/AbilitiesList.jsx:855:													{ pass_as_tool: nextValue }
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:3: * Tests: pass_as_tool tri-state sanitization in AcrossAI_Abilities_Sanitizer.
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:15: * Verifies pass_as_tool is sanitized through the tri-state path for create and update,
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:18:class AcrossAI_Abilities_Sanitizer_PassAsTool_Test extends TestCase {
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:28:	public function test_create_request_includes_pass_as_tool_true(): void {
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:30:			$this->make_request( array( 'ability_slug' => 'test/slug', 'pass_as_tool' => true ) )
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:32:		$this->assertArrayHasKey( 'pass_as_tool', $fields );
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:33:		$this->assertTrue( $fields['pass_as_tool'] );
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:36:	public function test_create_request_includes_pass_as_tool_null(): void {
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:38:			$this->make_request( array( 'ability_slug' => 'test/slug', 'pass_as_tool' => null ) )
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:40:		$this->assertArrayHasKey( 'pass_as_tool', $fields );
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:41:		$this->assertNull( $fields['pass_as_tool'] );
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:44:	public function test_update_request_includes_pass_as_tool(): void {
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:46:			$this->make_request( array( 'pass_as_tool' => true ) )
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:48:		$this->assertArrayHasKey( 'pass_as_tool', $fields );
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:49:		$this->assertTrue( $fields['pass_as_tool'] );
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:55:			$this->make_request( array( 'ability_slug' => 'test/slug', 'pass_as_tool' => array( 'inject' ) ) )
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:57:		$this->assertNotIsArray( $fields['pass_as_tool'] ?? null, 'Array input must not be passed through raw' );
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:63:			$this->make_request( array( 'ability_slug' => 'test/slug', 'pass_as_tool' => 1.7 ) )
+tests/phpunit/Utilities/AcrossAI_Abilities_Sanitizer_PassAsTool_Test.php:65:		$this->assertNotIsFloat( $fields['pass_as_tool'] ?? null, 'Float input must be normalized' );
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:3: * Tests: AcrossAI_Ability_Override_Processor::inject_mcp_tools().
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:6: *   inject_mcp_tools( mixed $adapter ): void
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:15:namespace AcrossAI_Abilities_Manager\Tests\Modules\McpToolsPassthrough;
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:21: * Verifies inject_mcp_tools() (mcp_adapter_init P20 / Reflection approach):
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:27:class AcrossAI_Mcp_Tools_Passthrough_Test extends TestCase {
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:36:	 * @param array<string, object> $rows slug → object with pass_as_tool prop.
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:55:	 * Build a minimal row-like object with pass_as_tool.
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:57:	private function makeRow( bool|null $pass_as_tool ): object {
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:58:		return new class ( $pass_as_tool ) {
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:59:			public bool|null $pass_as_tool;
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:61:				$this->pass_as_tool = $pat;
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:82:	 * Reflection in inject_mcp_tools() reads this property directly.
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:119:		AcrossAI_Ability_Override_Processor::inject_mcp_tools( new \stdClass() );
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:131:			'my-ability' => $this->makeRow( null ), // pass_as_tool = null — not opted in.
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:134:		AcrossAI_Ability_Override_Processor::inject_mcp_tools( $adapter );
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:148:		AcrossAI_Ability_Override_Processor::inject_mcp_tools( $adapter );
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:163:		AcrossAI_Ability_Override_Processor::inject_mcp_tools( $adapter );
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:181:		AcrossAI_Ability_Override_Processor::inject_mcp_tools( $adapter );
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:202:		AcrossAI_Ability_Override_Processor::inject_mcp_tools( $adapter );
+tests/phpunit/Modules/McpToolsPassthrough/AcrossAI_Mcp_Tools_Passthrough_Test.php:220:		AcrossAI_Ability_Override_Processor::inject_mcp_tools( $adapter );
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:3: * Tests: pass_as_tool key presence in all three AcrossAI_Abilities_Formatter outputs.
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:15: * Verifies pass_as_tool appears in format_for_response(), format_for_exposure(),
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:19:class AcrossAI_Abilities_Formatter_PassAsTool_Test extends TestCase {
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:21:	private function make_row( ?bool $pass_as_tool = null ): AcrossAI_Abilities_Row {
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:26:				'pass_as_tool' => $pass_as_tool,
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:31:	public function test_format_for_response_has_pass_as_tool_key(): void {
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:33:		$this->assertArrayHasKey( 'pass_as_tool', $out );
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:36:	public function test_format_for_response_pass_as_tool_true(): void {
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:38:		$this->assertTrue( $out['pass_as_tool'] );
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:41:	public function test_format_for_response_pass_as_tool_null(): void {
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:43:		$this->assertNull( $out['pass_as_tool'] );
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:46:	public function test_format_for_exposure_has_pass_as_tool_key(): void {
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:48:		$this->assertArrayHasKey( 'pass_as_tool', $out );
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:51:	public function test_format_merged_ability_has_pass_as_tool_key(): void {
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:55:			'pass_as_tool' => true,
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:57:		$this->assertArrayHasKey( 'pass_as_tool', $out );
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:58:		$this->assertTrue( $out['pass_as_tool'] );
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:61:	public function test_format_merged_ability_pass_as_tool_null_when_missing(): void {
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:65:			// pass_as_tool intentionally absent — must default to null.
+tests/phpunit/Utilities/AcrossAI_Abilities_Formatter_PassAsTool_Test.php:67:		$this->assertNull( $out['pass_as_tool'] );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:3: * Tests: pass_as_tool property and casting in AcrossAI_Abilities_Row.
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:14: * Verifies the pass_as_tool column:
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:19:class AcrossAI_Abilities_Row_PassAsTool_Test extends TestCase {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:21:	public function test_pass_as_tool_defaults_to_null(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:23:		$this->assertNull( $row->pass_as_tool );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:26:	public function test_pass_as_tool_excluded_from_json_fields(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:28:			'pass_as_tool',
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:30:			'pass_as_tool must be in the JSON blocklist to prevent accidental decode'
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:34:	public function test_pass_as_tool_tinyint_one_casts_to_true(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:35:		$row = new AcrossAI_Abilities_Row( (object) array( 'id' => 1, 'ability_slug' => 'test/slug', 'pass_as_tool' => '1' ) );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:36:		$this->assertTrue( $row->pass_as_tool );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:39:	public function test_pass_as_tool_tinyint_zero_casts_to_false(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:40:		$row = new AcrossAI_Abilities_Row( (object) array( 'id' => 1, 'ability_slug' => 'test/slug', 'pass_as_tool' => '0' ) );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:41:		$this->assertFalse( $row->pass_as_tool );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:44:	public function test_pass_as_tool_db_null_casts_to_null(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:45:		$row = new AcrossAI_Abilities_Row( (object) array( 'id' => 1, 'ability_slug' => 'test/slug', 'pass_as_tool' => null ) );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:46:		$this->assertNull( $row->pass_as_tool );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Row_PassAsTool_Test.php:48:		$this->assertNotSame( '', (string) $row->pass_as_tool, 'False would cast to empty string — use null !== $value guard' );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:3: * Tests: get_pass_as_tool_slugs() in AcrossAI_Abilities_Query.
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:14: * Verifies get_pass_as_tool_slugs() returns only rows where pass_as_tool = 1,
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:21:class AcrossAI_Abilities_Query_PassAsTool_Test extends TestCase {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:23:	public function test_get_pass_as_tool_slugs_returns_array(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:25:		$result = $query->get_pass_as_tool_slugs();
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:29:	public function test_get_pass_as_tool_slugs_returns_empty_when_none_opted_in(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:30:		// Precondition: no rows have pass_as_tool = 1.
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:32:		$result = $query->get_pass_as_tool_slugs();
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:34:		$this->assertEmpty( $result, 'get_pass_as_tool_slugs() must return [] when no abilities are opted in' );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:37:	public function test_get_pass_as_tool_slugs_values_are_strings(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Query_PassAsTool_Test.php:39:		$results = $query->get_pass_as_tool_slugs();
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:3: * Tests: pass_as_tool column definition in AcrossAI_Abilities_Schema.
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:14: * Verifies the pass_as_tool column is defined correctly per plan.md CHANGE-1 guards:
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:18:class AcrossAI_Abilities_Schema_PassAsTool_Test extends TestCase {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:31:	public function test_pass_as_tool_column_exists(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:33:			$this->get_column( 'pass_as_tool' ),
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:34:			'pass_as_tool column must be present in AcrossAI_Abilities_Schema'
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:38:	public function test_pass_as_tool_type_is_tinyint(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:39:		$col = $this->get_column( 'pass_as_tool' );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:43:	public function test_pass_as_tool_length_is_one(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:44:		$col = $this->get_column( 'pass_as_tool' );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:48:	public function test_pass_as_tool_allows_null(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:49:		$col = $this->get_column( 'pass_as_tool' );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:53:	public function test_pass_as_tool_default_is_null(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:54:		$col = $this->get_column( 'pass_as_tool' );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:58:	public function test_pass_as_tool_has_no_primary_key(): void {
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:59:		$col = $this->get_column( 'pass_as_tool' );
+tests/phpunit/Modules/Abilities/Database/AcrossAI_Abilities_Schema_PassAsTool_Test.php:63:			'pass_as_tool must not have a primary key (BUG-BERLINDB-V3-DOUBLE-PRIMARY)'

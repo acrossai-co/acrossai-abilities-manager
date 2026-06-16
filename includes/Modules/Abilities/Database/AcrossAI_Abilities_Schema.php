@@ -17,7 +17,7 @@ use BerlinDB\Database\Kern\Schema;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Schema class defining all 24 columns of the acrossai_abilities table.
+ * Schema class defining all 23 columns of the acrossai_abilities table.
  *
  * @since 0.1.0
  */
@@ -165,14 +165,6 @@ class AcrossAI_Abilities_Schema extends Schema {
 			'allow_null' => true,
 			'default'    => null,
 		),
-		array(
-			'name'       => 'pass_as_tool',
-			'type'       => 'tinyint',
-			'length'     => '1',
-			'allow_null' => true,
-			'default'    => null,
-		),
-
 		// MCP type.
 		array(
 			'name'       => 'mcp_type',

@@ -1,0 +1,4 @@
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:386:			return AcrossAI_Ability_Override_Processor::user_has_ability_access( $slug, \get_current_user_id() );
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:426:	 *   2. user access (AC rules)  — uses user_has_ability_access(); fail-open when absent (FR-011).
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:482:				if ( ! self::user_has_ability_access( $slug, $user_id ) ) {
+includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php:536:	private static function user_has_ability_access( string $slug, int $user_id ): bool {

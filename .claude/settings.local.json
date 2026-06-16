@@ -174,7 +174,29 @@
       "Read(//private/tmp/**)",
       "Read(//tmp/**)",
       "Bash(export CLAUDE_CODE_TMPDIR=/tmp)",
-      "Bash(.specify/extensions/architecture-guard/scripts/bash/detect-changed-files.sh --json)"
+      "Bash(.specify/extensions/architecture-guard/scripts/bash/detect-changed-files.sh --json)",
+      "Bash(wp dist-archive *)",
+      "Bash(unzip -l ../acrossai-abilities-manager.0.0.1.zip)",
+      "Bash(awk '{print $NF}')",
+      "Bash(unzip -l acrossai-abilities-manager.0.0.1.zip)",
+      "Bash(md5 ../acrossai-abilities-manager.0.0.1.zip)",
+      "Bash(GIT_BRANCH_NAME=\"035-remove-pass-as-tool\" .specify/extensions/git/scripts/bash/create-new-feature.sh *)",
+      "Bash(sed -i.bak -E 's/^- \\\\[ \\\\] \\(T00[4-9]|T01[0-2]\\) /- [x] \\\\1 /' tasks.md)",
+      "Bash(rm tasks.md.bak)",
+      "Bash(composer test *)",
+      "Bash(tee specs/035-remove-pass-as-tool/phpunit-us3.txt)",
+      "Bash(npm test *)",
+      "Bash(tee specs/035-remove-pass-as-tool/jest-us3.txt)",
+      "Bash(tee specs/035-remove-pass-as-tool/phpstan-final.txt)",
+      "Bash(tee specs/035-remove-pass-as-tool/phpcs-final.txt)",
+      "Bash(tee specs/035-remove-pass-as-tool/phpunit-final.txt)",
+      "Bash(tee specs/035-remove-pass-as-tool/jest-final.txt)",
+      "Bash(tee specs/035-remove-pass-as-tool/final-grep.txt)",
+      "Bash(echo \"----exit=$?----lines:\")",
+      "Bash(echo \"=== production scope exit=$? ===\")",
+      "Bash(sed -i.bak -E 's/^- \\\\[ \\\\] \\(T01[3-9]|T02[0-9]|T03[0-9]|T04[0-2]\\) /- [x] \\\\1 /' tasks.md)",
+      "Bash(awk -F: '{print $1}')",
+      "Bash(echo \"---production-scope exit=$?\")"
     ]
   }
 }

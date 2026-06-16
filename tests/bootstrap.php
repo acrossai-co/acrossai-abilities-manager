@@ -401,6 +401,43 @@ if ( ! class_exists( 'WP_Error' ) ) {
 	}
 }
 
+if ( ! class_exists( 'WP_REST_Request' ) ) {
+	/**
+	 * Minimal WP_REST_Request stub: exposes set_param/get_param/has_param/get_method/get_route.
+	 */
+	class WP_REST_Request {
+		/** @var array<string,mixed> */
+		private array $params = array();
+		private string $method;
+		private string $route;
+
+		public function __construct( string $method = 'GET', string $route = '' ) {
+			$this->method = $method;
+			$this->route  = $route;
+		}
+
+		public function set_param( string $key, mixed $value ): void {
+			$this->params[ $key ] = $value;
+		}
+
+		public function get_param( string $key ): mixed {
+			return $this->params[ $key ] ?? null;
+		}
+
+		public function has_param( string $key ): bool {
+			return array_key_exists( $key, $this->params );
+		}
+
+		public function get_method(): string {
+			return $this->method;
+		}
+
+		public function get_route(): string {
+			return $this->route;
+		}
+	}
+}
+
 if ( ! class_exists( 'WP_UnitTestCase' ) ) {
 	/**
 	 * Alias: in unit-only mode WP_UnitTestCase is a plain PHPUnit TestCase.
