@@ -1,0 +1,15 @@
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:3: * SEC-035-001 — Asserts that pass_as_tool is silently ignored at the Sanitizer layer.
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:6: * pass_as_tool, so a REST request that supplies the obsolete key has it dropped before
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:19:class AbilitiesPassAsToolRemovalTest extends TestCase {
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:29:	public function test_create_request_drops_pass_as_tool(): void {
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:34:					'pass_as_tool' => true,
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:38:		$this->assertArrayNotHasKey( 'pass_as_tool', $fields );
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:41:	public function test_update_request_drops_pass_as_tool(): void {
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:43:			$this->make_request( array( 'pass_as_tool' => true ) )
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:45:		$this->assertArrayNotHasKey( 'pass_as_tool', $fields );
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:48:	public function test_create_request_drops_pass_as_tool_when_null(): void {
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:53:					'pass_as_tool' => null,
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:57:		$this->assertArrayNotHasKey( 'pass_as_tool', $fields );
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:60:	public function test_create_request_drops_pass_as_tool_when_malformed(): void {
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:65:					'pass_as_tool' => array( 'inject' ),
+tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php:69:		$this->assertArrayNotHasKey( 'pass_as_tool', $fields );

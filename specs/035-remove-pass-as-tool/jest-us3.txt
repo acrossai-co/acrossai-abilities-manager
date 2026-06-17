@@ -1,0 +1,60 @@
+FAIL tests/jest/sitewide/store.test.js
+  ● Test suite failed to run
+
+    Cannot find module '../../../src/js/sitewide/api/client' from 'tests/jest/sitewide/store.test.js'
+
+      11 | }));
+      12 |
+    > 13 | jest.mock('../../../src/js/sitewide/api/client', () => ({
+         |      ^
+      14 | 	fetchAbilities: jest.fn(),
+      15 | 	toggleAbility: jest.fn(),
+      16 | 	saveOverride: jest.fn(),
+
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)
+      at Object.mock (tests/jest/sitewide/store.test.js:13:6)
+
+PASS tests/jest/abilities/AbilityFormCallbackVariantATest.test.js
+PASS tests/jest/abilities/column-prefs.test.js
+PASS tests/jest/ability-library/LibraryCard.test.js
+FAIL tests/jest/abilities/validateRequiredFields.test.js
+  ● Test suite failed to run
+
+    Cannot find module '@wordpress/api-fetch' from 'tests/jest/abilities/validateRequiredFields.test.js'
+
+      22 | }));
+      23 | jest.mock('@wordpress/components', () => ({}));
+    > 24 | jest.mock('@wordpress/api-fetch', () => jest.fn());
+         |      ^
+      25 |
+      26 | const {
+      27 | 	validateRequiredFields,
+
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)
+      at Object.mock (tests/jest/abilities/validateRequiredFields.test.js:24:6)
+
+FAIL tests/jest/sitewide/AbilityEditPanel.test.jsx
+  ● Test suite failed to run
+
+    Cannot find module '../../../src/js/sitewide/store/index' from 'tests/jest/sitewide/AbilityEditPanel.test.jsx'
+
+      18 | } ) );
+      19 |
+    > 20 | jest.mock( '../../../src/js/sitewide/store/index', () => ( {
+         |      ^
+      21 | 	STORE_NAME: 'acrossai/sitewide',
+      22 | } ) );
+      23 |
+
+      at Resolver._throwModNotFoundError (node_modules/jest-resolve/build/resolver.js:427:11)
+      at Object.mock (tests/jest/sitewide/AbilityEditPanel.test.jsx:20:6)
+
+PASS tests/jest/ability-library/groupBySubGroupPreservingOrder.test.js
+PASS tests/jest/abilities/store-reducers.test.js
+PASS tests/jest/abilities/ability-form-user-access-section.test.jsx
+
+Test Suites: 3 failed, 6 passed, 9 total
+Tests:       53 passed, 53 total
+Snapshots:   0 total
+Time:        2.889 s
+Ran all test suites.

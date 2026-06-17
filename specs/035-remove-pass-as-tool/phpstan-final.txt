@@ -1,0 +1,1 @@
+Note: Using configuration file /Users/raftaar1191/local-sites/wordpress-7-0/app/public/wp-content/plugins/acrossai-abilities-manager/phpstan.neon.dist.

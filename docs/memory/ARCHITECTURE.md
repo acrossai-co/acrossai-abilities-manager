@@ -959,3 +959,57 @@ caught this; spec amended to specify the Redux `getDraftAbility` selector + the
 `src/js/abilities/components/AbilityForm.jsx:318` already matched the new wording —
 the gap was in spec, not code. For any future JS extension hook this plugin or a
 sibling plugin exposes, lead with the three-item template above.
+
+---
+
+### 2026-06-16 — PATTERN-MEMORY-SUPERSESSION-VS-ANNOTATION
+
+**Pattern**
+When a feature retires an Active decision: (1) mark the retired decision `**Status**: Superseded
+by <new-DEC-NAME> (<date>)` and **keep the original entry intact** as historical context; (2) if
+a *related canonical pattern* loses its current in-plugin consumer but remains conceptually valid
+for future consumers, **annotate with a forward-pointer note** rather than marking Superseded —
+e.g. *"Consumer removed in Feature N; pattern retained for the future X plugin which is expected
+to be the next consumer."* Do not silently delete decision entries.
+
+**Rationale**
+Preserves the decision audit trail and prevents future Spec Kit synthesis from silently
+regenerating retired features. Distinguishes "this decision no longer applies" (Supersede) from
+"this pattern is correct but lives elsewhere now" (Annotate). Feature 035 applied both:
+`DEC-MCP-TOOLS-PASSTHROUGH-COLUMN` was Superseded by `DEC-PASS-AS-TOOL-REMOVED`;
+`DEC-MCP-INJECT-REFLECTION-PATTERN` was annotated with a forward pointer to the future
+`acrossai-mcp-manager` plugin.
+
+**Evidence**
+`docs/memory/DECISIONS.md` — `DEC-MCP-TOOLS-PASSTHROUGH-COLUMN` (Superseded) vs
+`DEC-MCP-INJECT-REFLECTION-PATTERN` (annotated). Established by Feature 035.
+
+---
+
+### 2026-06-16 — PATTERN-HELPER-DELETION-GREP-FIRST
+
+**Pattern**
+When removing a private helper as part of a feature deletion, ALWAYS run
+`grep -rEn '<helper_name>' includes/ src/ tests/` BEFORE the deletion task starts. If the grep
+returns ANY hit outside the helper itself and the file you are deleting:
+1. KEEP the helper in place.
+2. Add a TODO note above the method enumerating the surviving caller(s).
+3. If the helper carries a load-bearing partner-gate lesson (e.g. AC-rule fail-open paired with
+   `WP_Ability::check_permissions()`), lift the lesson from BUGS.md into the helper's docblock so
+   any future maintainer encountering the helper sees the constraint at the call site.
+
+**Rationale**
+A helper that "appears" to be deletion-target-private may have been adopted by an unrelated
+surviving consumer between the original feature and the removal. Deleting unconditionally produces
+a fatal class-load error or a silent permission bypass. Feature 035 caught
+`user_has_ability_access()` had a second caller at `build_permission_callback()` line 386 — the
+helper was preserved and the partner-gate guidance was lifted from
+`BUG-INJECT-MCP-TOOLS-PERMISSION-BYPASS` into the helper's docblock.
+
+This pattern is narrower than `BUG-INVENTORY-GREP-MISS` (which covers general feature-removal
+inventory grep) — it specifically targets helper deletion gates and the docblock-lift step.
+
+**Evidence**
+`includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php` — `user_has_ability_access()`
+preserved with updated docblock; `specs/035-remove-pass-as-tool/user_has_ability_access-callers.txt`
+preflight grep result.
