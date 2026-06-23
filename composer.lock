@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "21ca771b6f4f3167d3beae38267b38bb",
+    "content-hash": "041d844d033e73727e8e66c6321b27da",
     "packages": [
         {
             "name": "acrossai-co/addons-page",

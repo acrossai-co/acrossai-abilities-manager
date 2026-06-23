@@ -219,7 +219,7 @@ Inline check (orchestrator is `architecture-guard`):
 
 ## Bundled Housekeeping (not driven by spec)
 
-- **`wpboilerplate/wpb-access-control` version bump** — `composer.json` constraint raised from `^1.2.1` to `^1.4.0` (matches the lockfile already at 1.4.0 per `DEC-STABLE-UPGRADE-WINDOW`). Bundled into this PR per user direction; not driven by any FR. Tracked in `tasks.md` as T015 (bump + `composer update`) and T016 (post-upgrade revalidation per `DEC-REVALIDATE-SECURITY-POST-UPGRADE` — re-check SEC-03, SEC-04, DEC-PERM-CB, DEC-FAIL-OPEN-NOTICE). Sequence in Phase 5: T015 runs before T008/T009/T011 so those gates scan the new vendor surface.
+- **`wpboilerplate/wpb-access-control` version bump** — `composer.json` constraint raised from `^1.2.1` to `^1.6.0` (current stable head of the 1.x line per `DEC-STABLE-UPGRADE-WINDOW`; lockfile resolves to v1.6.0). Bundled into this PR per user direction; not driven by any FR. Tracked in `tasks.md` as T015 (bump + `composer update`) and T016 (post-upgrade revalidation per `DEC-REVALIDATE-SECURITY-POST-UPGRADE` — re-check SEC-03, SEC-04, DEC-PERM-CB, DEC-FAIL-OPEN-NOTICE). Sequence in Phase 5: T015 runs before T008/T009/T011 so those gates scan the new vendor surface.
 
 ## Out of Scope
 
