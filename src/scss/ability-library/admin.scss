@@ -16,7 +16,7 @@ $bg:        #f6f7f7;
 .acrossai-library-page {
 	padding-top: 8px;
 	position:    relative;
-	max-width:   900px;
+	// Full WordPress admin content width; no artificial cap.
 }
 
 // Saving indicator
@@ -107,6 +107,23 @@ $bg:        #f6f7f7;
 		}
 	}
 
+	// Wraps a single checkbox + its optional description in the Specific panel.
+	&__slug-row {
+		display:        flex;
+		flex-direction: column;
+		gap:            2px;
+	}
+
+	// Description text under a Specific-mode checkbox row.
+	// Left offset matches CheckboxControl's checkbox+gap width so the
+	// description aligns under the label, not under the checkbox box.
+	&__slug-description {
+		margin:      0 0 0 24px;
+		font-size:   12px;
+		color:       $muted;
+		line-height: 1.4;
+	}
+
 	// Sub-group heading inside the Specific panel (Feature 033 — display-only).
 	&__subgroup-heading {
 		margin:         12px 0 4px;
@@ -118,18 +135,29 @@ $bg:        #f6f7f7;
 
 	// Read-only ability row — shown inside the slugs panel when mode = "all".
 	// Renders the ability label as a bulleted item so admins can scan what the
-	// card covers without flipping the radio.
+	// card covers without flipping the radio. Lays out label + optional
+	// description as a column with the bullet anchored to the first line.
 	&__slug-readonly {
-		font-size:   13px;
-		color:       $muted;
-		padding-left: 14px;
-		position:    relative;
+		font-size:      13px;
+		color:          $muted;
+		padding-left:   14px;
+		position:       relative;
+		display:        flex;
+		flex-direction: column;
+		gap:            2px;
 
 		&::before {
 			content:   '\2022'; // Bullet.
 			position:  absolute;
 			left:      0;
+			top:       0;
 			color:     $muted;
 		}
+	}
+
+	&__slug-readonly-description {
+		font-size:   12px;
+		color:       $muted;
+		line-height: 1.4;
 	}
 }
