@@ -149,4 +149,78 @@ class Test_Ability_Library_Registry extends TestCase {
 		$this->assertSame( 'core', $rows[0]['sub_group'] );
 		$this->assertSame( 'My Custom Heading', $rows[0]['sub_group_label'] );
 	}
+
+	// ---------------------------------------------------------------------
+	// Feature 037 — tab_group pass-through.
+	// ---------------------------------------------------------------------
+
+	public function test_registry_omits_tab_group_when_not_declared(): void {
+		$rows = $this->normalize( array( $this->valid_row() ) );
+		$this->assertCount( 1, $rows );
+		$this->assertArrayNotHasKey( 'tab_group', $rows[0] );
+	}
+
+	public function test_registry_accepts_tab_group(): void {
+		$row = $this->valid_row(
+			array(
+				'tab_group' => 'sales',
+				'args'      => array(
+					'label'     => 'Read File',
+					'category'  => 'file-manager',
+					'tab_group' => 'sales',
+				),
+			)
+		);
+
+		$rows = $this->normalize( array( $row ) );
+
+		$this->assertSame( 'sales', $rows[0]['tab_group'] );
+	}
+
+	public function test_registry_strips_invalid_tab_group_characters(): void {
+		$row = $this->valid_row(
+			array(
+				'tab_group' => '!!! BAD-INPUT ###',
+			)
+		);
+
+		$rows = $this->normalize( array( $row ) );
+
+		// sanitize_key() lowercases and strips non [a-z0-9_-]; spaces and punctuation go.
+		$this->assertSame( 'bad-input', $rows[0]['tab_group'] );
+	}
+
+	public function test_registry_omits_tab_group_when_empty_after_sanitize(): void {
+		$row = $this->valid_row(
+			array(
+				'tab_group' => '!!! ###',
+			)
+		);
+
+		$rows = $this->normalize( array( $row ) );
+
+		// Empty after sanitize → key omitted entirely (treated as ungrouped).
+		$this->assertArrayNotHasKey( 'tab_group', $rows[0] );
+	}
+
+	public function test_registry_allows_tab_group_in_args_allowlist(): void {
+		// 'tab_group' MUST be in ALLOWED_ARGS_FIELDS so the
+		// array_intersect_key() strip does NOT remove it.
+		$row = $this->valid_row(
+			array(
+				'args' => array(
+					'label'           => 'Read File',
+					'category'        => 'file-manager',
+					'tab_group'       => 'sales',
+					'NOT_ALLOWED_KEY' => 'should be stripped',
+				),
+			)
+		);
+
+		$rows = $this->normalize( array( $row ) );
+
+		$this->assertArrayHasKey( 'tab_group', $rows[0]['args'] );
+		$this->assertSame( 'sales', $rows[0]['args']['tab_group'] );
+		$this->assertArrayNotHasKey( 'NOT_ALLOWED_KEY', $rows[0]['args'] );
+	}
 }

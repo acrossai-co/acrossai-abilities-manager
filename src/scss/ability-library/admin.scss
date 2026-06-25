@@ -34,6 +34,22 @@ $bg:        #f6f7f7;
 }
 
 // ---------------------------------------------------------------------------
+// Page-level tab bar (Feature 037)
+// Rendered only when at least one ability declares args['tab_group'].
+// Targets the @wordpress/components TabPanel; keeps wp-admin native feel.
+// ---------------------------------------------------------------------------
+.acrossai-library-page__tabs {
+	.components-tab-panel__tabs {
+		margin-bottom: 12px;
+		border-bottom: 1px solid $border;
+	}
+
+	.components-tab-panel__tab-content {
+		padding-top: 0;
+	}
+}
+
+// ---------------------------------------------------------------------------
 // Library card
 // ---------------------------------------------------------------------------
 .acrossai-library-card {

@@ -223,6 +223,8 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH | Library Registry key-allowlists `args` but does NOT value-sanitize; new consumers of `args.*` MUST render via React text nodes OR escape at the consumer OR harden the Registry boundary — never assume `args.*` values are pre-sanitized | Library/Security | args, allowlist, xss, library, registry, jsx-escape | ARCHITECTURE.md |
 | 2026-06-14 | Feature 034: Remove Allowed Servers + 5-hook extension surface + retract wpb-mcp-servers-list mandate; 3 new durable lessons (BUG-INVENTORY-GREP-MISS, PATTERN-REQUIRED-FIELD-MULTI-LAYER-AUDIT, PATTERN-JS-HOOK-CADENCE-SPEC); Constitution v1.4.6 → v1.4.7 PATCH retraction | Abilities/REST/Composer/Constitution | feature-034, mcp-servers-removal, extension-hooks, composer-dep-removal, constitution-retraction, layering-inversion | WORKLOG.md |
 | 2026-06-23 | Feature 036: Library descriptions + full-width + wpb-access-control 1.2.1→1.6.0 bump; PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH captured (Registry `args` value-sanitization gap) | Library/Admin/UI | feature-036, library, descriptions, full-width, dep-bump, args-passthrough | WORKLOG.md |
+| 2026-06-25 | Feature 037: Library `tab_group` field + page-level TabPanel; first per-field closure of PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH; mirror of Feature 033 sub_group | Library/Admin/UI | feature-037, library, tab-group, mirror, args-passthrough-closed | WORKLOG.md |
+| BUG-ESLINT9-JEST-GLOBALS | `/* eslint-env jest */` silently ignored under ESLint 9 flat config; new test files must use explicit `/* global */` declarations | Testing/ESLint | eslint9, flat-config, jest, globals, no-undef | BUGS.md |
 
 ## Security Reviews
 

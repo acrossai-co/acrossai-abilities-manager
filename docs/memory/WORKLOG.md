@@ -5,6 +5,16 @@ This is not a changelog. Do not record routine releases, version bumps, or imple
 
 ---
 
+### 2026-06-25 — Feature 037: Library tab_group field + page-level TabPanel — first per-field closure of PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH
+
+- **Why durable**: First feature to apply the boundary-sanitization mitigation captured in Feature 036's `PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH`. `tab_group` is sanitized at the Registry's `validate_and_normalize()` via `AcrossAI_Ability_Library_Config::sanitize_key_field()`, alongside the existing `category`/`slug`/`sub_group` calls. Sets a copyable template for future per-field closures (e.g. `description` could use `wp_kses_post` at the same boundary).
+- **Mirror-feature pattern validated**: Feature 037 is a literal mirror of Feature 033's `sub_group` plumbing, one display layer up (page tab instead of in-card sub-heading). Same `OPTIONAL_FIELDS` allowlist mechanism, same sanitize helper, same display-only contract. The fact that 32 tasks shipped with zero architecture drift confirms the pattern is reliable — when adding an optional display-only `args.*` field, copy the existing block step-for-step.
+- **Scope**: 11 source files modified + 5 new test files; +346/-20 lines. 8 new PHPUnit tests, 22 new Jest tests across 4 new spec files. PHPStan / PHPCS / PHPUnit (91/91) / Jest (50/50) / webpack build all green. T031 manual smoke deferred to operator.
+- **Captured lessons**: `BUG-ESLINT9-JEST-GLOBALS` (companion capture this commit).
+- **Tags**: feature-037, library, tab-group, args-passthrough-closed, mirror-feature-033, eslint9
+
+---
+
 ### 2026-06-23 — Feature 036: Library descriptions + full-width + wpb-access-control bump — captures PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH
 
 - **Why durable**: First feature to consume an `args.*` value (`description`) from the Library Registry payload in the React layer. The act of plumbing it through `groupDefinitions()` → `LibraryCard.js` exposed the boundary contract that has been latent since Feature 027: the Registry key-allowlists `args` but does NOT sanitize values, so XSS containment is owned by whichever consumer ships first. Captured as `PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH` so the next Library consumer (PHP renderer, email template, `dangerouslySetInnerHTML` Markdown viewer, etc.) inherits the explicit choice rather than the implicit one.

@@ -1,3 +1,4 @@
+/* global jest, describe, test, expect */
 /**
  * Jest tests for Feature 036 — groupDefinitions().
  *
@@ -14,9 +15,12 @@
 // named export only.
 jest.mock('@wordpress/components', () => ({
 	Notice: () => null,
+	TabPanel: ({ children }) =>
+		typeof children === 'function' ? children({ name: '__all__' }) : null,
 }));
 jest.mock('@wordpress/element', () => ({
 	useEffect: () => {},
+	useMemo: (fn) => fn(),
 	useRef: () => ({ current: false }),
 	useState: (init) => [init, () => {}],
 }));
@@ -114,7 +118,7 @@ describe('groupDefinitions — description passthrough', () => {
 		expect(slug).not.toHaveProperty('label');
 	});
 
-	test('preserves existing fields (slug, slugLabel, name, subGroup, subGroupLabel)', () => {
+	test('preserves existing fields (slug, slugLabel, name, subGroup, subGroupLabel, tabGroup)', () => {
 		const result = groupDefinitions([
 			def({
 				slug: 'plugin/x',
@@ -122,6 +126,7 @@ describe('groupDefinitions — description passthrough', () => {
 				name: 'plugin/x',
 				sub_group: 'core',
 				sub_group_label: 'Core',
+				tab_group: 'sales',
 				args: { description: 'A description.' },
 			}),
 		]);
@@ -132,7 +137,35 @@ describe('groupDefinitions — description passthrough', () => {
 			name: 'plugin/x',
 			subGroup: 'core',
 			subGroupLabel: 'Core',
+			tabGroup: 'sales',
 			description: 'A description.',
+		});
+	});
+});
+
+describe('groupDefinitions — tab_group passthrough (Feature 037)', () => {
+	test('threads tab_group through to each slug entry as tabGroup', () => {
+		const result = groupDefinitions([
+			def({ tab_group: 'sales' }),
+			def({ slug: 'b', tab_group: 'support' }),
+		]);
+
+		expect(result[0].slugs[0].tabGroup).toBe('sales');
+		expect(result[0].slugs[1].tabGroup).toBe('support');
+	});
+
+	test('absent tab_group becomes an empty string', () => {
+		const result = groupDefinitions([def({})]);
+		expect(result[0].slugs[0].tabGroup).toBe('');
+	});
+
+	test('falsy tab_group (null, undefined, 0, false) becomes an empty string', () => {
+		const cases = [null, undefined, 0, false];
+		cases.forEach((value, i) => {
+			const result = groupDefinitions([
+				def({ slug: `slug-${i}`, tab_group: value }),
+			]);
+			expect(result[0].slugs[0].tabGroup).toBe('');
 		});
 	});
 });

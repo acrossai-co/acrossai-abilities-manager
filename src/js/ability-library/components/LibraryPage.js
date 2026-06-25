@@ -1,8 +1,15 @@
-import { useEffect, useRef, useState } from '@wordpress/element';
-import { Notice } from '@wordpress/components';
+import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
+import { Notice, TabPanel } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { fetchConfig, saveConfig } from '../api';
 import LibraryCard from './LibraryCard';
+
+/**
+ * Sentinel name for the always-present default tab. Underscores chosen to
+ * avoid collision with any sanitize_key() output (which strips underscores
+ * inside identifiers but allows them as full names).
+ */
+export const ALL_TABS_KEY = '__all__';
 
 /**
  * Group flat definitions array by category into card items.
@@ -24,6 +31,7 @@ export function groupDefinitions(definitions) {
 			name,
 			sub_group: subGroup,
 			sub_group_label: subGroupLabel,
+			tab_group: tabGroup,
 			args,
 		} = def;
 		const description =
@@ -46,11 +54,88 @@ export function groupDefinitions(definitions) {
 				name,
 				subGroup: subGroup || '',
 				subGroupLabel: subGroupLabel || '',
+				tabGroup: tabGroup || '',
 				description,
 			});
 		}
 	}
 	return Array.from(map.values());
+}
+
+/**
+ * Collect the unique non-empty tab_group identifiers across all slug records.
+ *
+ * Sort: case-insensitive alphabetical by sanitized identifier (FR-013).
+ * Named export per PATTERN-NAMED-EXPORT-JEST.
+ *
+ * @param {Array} items Output of groupDefinitions().
+ * @return {string[]} Sorted unique tab_group identifiers.
+ */
+export function collectTabGroups(items) {
+	const set = new Set();
+	for (const item of items) {
+		for (const slug of item.slugs) {
+			if (slug.tabGroup) {
+				set.add(slug.tabGroup);
+			}
+		}
+	}
+	return Array.from(set).sort((a, b) =>
+		a.toLowerCase().localeCompare(b.toLowerCase())
+	);
+}
+
+/**
+ * Filter the grouped items by the active tab.
+ *
+ * When activeTab equals ALL_TABS_KEY, returns the input array reference
+ * unchanged (so React useMemo identity is stable). Otherwise, returns new
+ * item objects whose slugs array is filtered to entries matching the
+ * active tab; items with no surviving slug are dropped.
+ *
+ * Named export per PATTERN-NAMED-EXPORT-JEST.
+ *
+ * @param {Array}  items     Output of groupDefinitions().
+ * @param {string} activeTab Active tab identifier or ALL_TABS_KEY.
+ * @return {Array} Filtered items.
+ */
+export function filterItemsByTabGroup(items, activeTab) {
+	if (activeTab === ALL_TABS_KEY) {
+		return items;
+	}
+	const out = [];
+	for (const item of items) {
+		const matching = item.slugs.filter((s) => s.tabGroup === activeTab);
+		if (matching.length > 0) {
+			out.push({ ...item, slugs: matching });
+		}
+	}
+	return out;
+}
+
+/**
+ * Convert a sanitized tab_group identifier into a display label.
+ *
+ * Mirrors the PHP `ucwords( str_replace( '-', ' ', $value ) )` rule used
+ * by category_label so PHP-side and JS-side labels look identical for
+ * the same identifier.
+ *
+ * Named export per PATTERN-NAMED-EXPORT-JEST.
+ *
+ * @param {string} value Sanitized tab_group identifier.
+ * @return {string} Display label.
+ */
+export function titleCaseTabLabel(value) {
+	if (typeof value !== 'string' || value === '') {
+		return '';
+	}
+	return value
+		.replace(/-/g, ' ')
+		.split(' ')
+		.map((word) =>
+			word.length > 0 ? word[0].toUpperCase() + word.slice(1) : word
+		)
+		.join(' ');
 }
 
 /**
@@ -101,6 +186,30 @@ export default function LibraryPage() {
 		);
 	}
 
+	const tabGroups = useMemo(() => collectTabGroups(items), [items]);
+
+	function renderCards(visibleItems) {
+		return visibleItems.map((item) => (
+			<LibraryCard
+				key={item.category}
+				item={item}
+				config={config}
+				onChange={handleChange}
+			/>
+		));
+	}
+
+	const tabs = useMemo(
+		() => [
+			{
+				name: ALL_TABS_KEY,
+				title: __('All', 'acrossai-abilities-manager'),
+			},
+			...tabGroups.map((g) => ({ name: g, title: titleCaseTabLabel(g) })),
+		],
+		[tabGroups]
+	);
+
 	return (
 		<div className="acrossai-library-page">
 			{error && (
@@ -122,14 +231,19 @@ export default function LibraryPage() {
 				</p>
 			)}
 
-			{items.map((item) => (
-				<LibraryCard
-					key={item.category}
-					item={item}
-					config={config}
-					onChange={handleChange}
-				/>
-			))}
+			{items.length > 0 && tabGroups.length === 0 && renderCards(items)}
+
+			{items.length > 0 && tabGroups.length > 0 && (
+				<TabPanel
+					className="acrossai-library-page__tabs"
+					tabs={tabs}
+					initialTabName={ALL_TABS_KEY}
+				>
+					{(tab) =>
+						renderCards(filterItemsByTabGroup(items, tab.name))
+					}
+				</TabPanel>
+			)}
 		</div>
 	);
 }

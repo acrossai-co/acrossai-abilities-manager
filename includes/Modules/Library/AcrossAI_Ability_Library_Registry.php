@@ -55,6 +55,8 @@ class AcrossAI_Ability_Library_Registry {
 	 *
 	 * Feature 033 added 'sub_group' and 'sub_group_label' as optional
 	 * display-only keys for the Library Specific panel sub-heading.
+	 * Feature 037 added 'tab_group' as an optional display-only key for
+	 * page-level tab navigation on the Library admin page.
 	 *
 	 * @var string[]
 	 */
@@ -64,6 +66,7 @@ class AcrossAI_Ability_Library_Registry {
 		'category',
 		'sub_group',
 		'sub_group_label',
+		'tab_group',
 		'execute_callback',
 		'permission_callback',
 		'input_schema',
@@ -75,13 +78,14 @@ class AcrossAI_Ability_Library_Registry {
 	 * Allowlist of optional top-level fields on a definition row (Feature 033).
 	 *
 	 * Optional fields are sanitized and copied to the validated row when
-	 * present; absence is acceptable.
+	 * present; absence is acceptable. Feature 037 added 'tab_group'.
 	 *
 	 * @var string[]
 	 */
 	private const OPTIONAL_FIELDS = array(
 		'sub_group',
 		'sub_group_label',
+		'tab_group',
 	);
 
 	/**
@@ -133,6 +137,11 @@ class AcrossAI_Ability_Library_Registry {
 		 * inside the Specific panel; sanitized to a key form) and 'sub_group_label'
 		 * (overrides the auto-derived label). Both are display-only and never appear in
 		 * saved configuration.
+		 *
+		 * Optional (Feature 037): a row MAY include 'tab_group' (display-only page-level
+		 * tab identifier; sanitized to a key form). Display-only and never appears in
+		 * saved configuration. The tab's UI label is derived from the identifier on the
+		 * React side; there is no paired 'tab_group_label' field.
 		 *
 		 * @since 0.1.0
 		 * @param array<int, array<string, mixed>> $definitions Accumulated definitions.
@@ -218,6 +227,17 @@ class AcrossAI_Ability_Library_Registry {
 					$entry['sub_group_label'] = isset( $item['sub_group_label'] ) && '' !== $item['sub_group_label']
 						? wp_kses_post( (string) $item['sub_group_label'] )
 						: ucwords( str_replace( '-', ' ', $clean_sub ) );
+				}
+			}
+
+			// Feature 037 — optional tab_group pass-through.
+			// Display-only; never written to saved configuration. Closes the
+			// PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH gap for this field by
+			// sanitizing at the Registry boundary via sanitize_key_field().
+			if ( isset( $item['tab_group'] ) && '' !== $item['tab_group'] ) {
+				$clean_tab = AcrossAI_Ability_Library_Config::sanitize_key_field( (string) $item['tab_group'] );
+				if ( '' !== $clean_tab ) {
+					$entry['tab_group'] = $clean_tab;
 				}
 			}
 
