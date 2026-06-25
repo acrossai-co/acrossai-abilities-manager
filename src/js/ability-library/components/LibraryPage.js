@@ -7,10 +7,13 @@ import LibraryCard from './LibraryCard';
 /**
  * Group flat definitions array by category into card items.
  *
+ * Named export so the helper can be unit-tested without rendering React
+ * (per PATTERN-NAMED-EXPORT-JEST).
+ *
  * @param {Array} definitions Raw definitions from window.acrossaiAbilityLibraryData.
  * @return {Array} Grouped items, one per category.
  */
-function groupDefinitions(definitions) {
+export function groupDefinitions(definitions) {
 	const map = new Map();
 	for (const def of definitions) {
 		const {
@@ -21,7 +24,12 @@ function groupDefinitions(definitions) {
 			name,
 			sub_group: subGroup,
 			sub_group_label: subGroupLabel,
+			args,
 		} = def;
+		const description =
+			typeof args?.description === 'string'
+				? args.description.trim()
+				: '';
 		if (!map.has(category)) {
 			map.set(category, {
 				id: category,
@@ -38,6 +46,7 @@ function groupDefinitions(definitions) {
 				name,
 				subGroup: subGroup || '',
 				subGroupLabel: subGroupLabel || '',
+				description,
 			});
 		}
 	}

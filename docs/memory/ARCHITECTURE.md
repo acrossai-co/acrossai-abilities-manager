@@ -1013,3 +1013,43 @@ inventory grep) — it specifically targets helper deletion gates and the docblo
 `includes/Modules/Abilities/AcrossAI_Ability_Override_Processor.php` — `user_has_ability_access()`
 preserved with updated docblock; `specs/035-remove-pass-as-tool/user_has_ability_access-callers.txt`
 preflight grep result.
+
+---
+
+### 2026-06-23 — PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH
+
+**Pattern**
+`AcrossAI_Ability_Library_Registry::validate_and_normalize()` applies `wp_kses_post()` to
+`category_label` and `slug_label`, but only **key-allowlist-filters** the `args` sub-array
+(`array_intersect_key( $item['args'], array_flip( ALLOWED_ARGS_FIELDS ) )`). Every `args` *value* —
+`description`, `label`, `sub_group_label`, `meta`, `input_schema`, `output_schema`, etc. — reaches
+`window.acrossaiAbilityLibraryData.definitions[i].args.*` as the raw string (or array) the add-on
+author registered. When you add a NEW consumer of any `args.*` value, you MUST choose one of:
+
+1. **React text-node consumer** (`<p>{value}</p>`, `<span>{value}</span>`) — safe. JSX escapes by
+   default. This is Feature 036's choice for `description` rendering (`LibraryCard.js` lines 178-181
+   and 192-196).
+2. **`dangerouslySetInnerHTML`, PHP server-rendered output, email template, or any non-JSX
+   consumer** — MUST escape at the call site (`esc_html()`, `wp_kses_post()`, equivalent) OR add
+   `wp_kses_post()` at the Registry boundary to harden it for all current and future consumers.
+
+Never assume `args.*` values are pre-sanitized. The key allowlist proves a field is *permitted*; it
+does NOT prove the contents are safe.
+
+**Rationale**
+The Library Registry intentionally trades server-side sanitization for forwards-compatible field
+shapes (so `meta` / `input_schema` can stay structurally valid JSON, etc.). The consequence is that
+XSS containment for `args.*` lives with the *first* consumer to ship. Today that contract is "React
+text-node escape." Adding a second consumer that bypasses JSX would silently inherit XSS surface
+that nobody owns. Feature 036's plan-level security review captured this as `SEC-001` and chose
+defense option (c) — rely on FR-006 ("description MUST be rendered as plain text … the browser MUST
+NOT interpret them as markup") as the forward guardrail. This entry elevates that guardrail from
+feature-local to durable.
+
+**Evidence**
+`includes/Modules/Library/AcrossAI_Ability_Library_Registry.php:188` (the `array_intersect_key`
+allowlist gate, no value sanitization); `includes/Modules/Library/AcrossAI_Ability_Library_Registry.php:205-207`
+(contrast: `category_label` / `slug_label` ARE `wp_kses_post`'d at the same depth);
+`src/js/ability-library/components/LibraryCard.js:178-196` (current safe JSX text-node consumer);
+`specs/036-library-page-full-width-and-descriptions/security-constraints.md` (`SEC-001` finding
+that motivated this entry).

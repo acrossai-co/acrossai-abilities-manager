@@ -85,11 +85,11 @@ export default function LibraryCard({ item, config, onChange }) {
 								? __(
 										'Collapse ability list',
 										'acrossai-abilities-manager'
-								  )
+									)
 								: __(
 										'Expand ability list',
 										'acrossai-abilities-manager'
-								  )
+									)
 						}
 						showTooltip
 						onClick={() => setExpanded((prev) => !prev)}
@@ -152,30 +152,50 @@ export default function LibraryCard({ item, config, onChange }) {
 										{subGroupLabel}
 									</h4>
 								)}
-								{items.map(({ slug, slugLabel, name }) =>
-									mode === 'specific' ? (
-										<CheckboxControl
-											__nextHasNoMarginBottom
-											key={slug}
-											label={slugLabel || name}
-											checked={slugsConfig[slug] ?? false}
-											onChange={(value) =>
-												update({
-													sub_keys: {
-														...slugsConfig,
-														[slug]: value,
-													},
-												})
-											}
-										/>
-									) : (
-										<div
-											key={slug}
-											className="acrossai-library-card__slug-readonly"
-										>
-											{slugLabel || name}
-										</div>
-									)
+								{items.map(
+									({ slug, slugLabel, name, description }) =>
+										mode === 'specific' ? (
+											<div
+												key={slug}
+												className="acrossai-library-card__slug-row"
+											>
+												<CheckboxControl
+													__nextHasNoMarginBottom
+													label={slugLabel || name}
+													checked={
+														slugsConfig[slug] ??
+														false
+													}
+													onChange={(value) =>
+														update({
+															sub_keys: {
+																...slugsConfig,
+																[slug]: value,
+															},
+														})
+													}
+												/>
+												{description && (
+													<p className="acrossai-library-card__slug-description">
+														{description}
+													</p>
+												)}
+											</div>
+										) : (
+											<div
+												key={slug}
+												className="acrossai-library-card__slug-readonly"
+											>
+												<span className="acrossai-library-card__slug-readonly-label">
+													{slugLabel || name}
+												</span>
+												{description && (
+													<span className="acrossai-library-card__slug-readonly-description">
+														{description}
+													</span>
+												)}
+											</div>
+										)
 								)}
 							</Fragment>
 						)

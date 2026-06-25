@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9a95e869091327e7e4ec9863432d1efe",
+    "content-hash": "041d844d033e73727e8e66c6321b27da",
     "packages": [
         {
             "name": "acrossai-co/addons-page",
@@ -57,16 +57,16 @@
         },
         {
             "name": "automattic/jetpack-autoloader",
-            "version": "v5.0.19",
+            "version": "v5.0.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Automattic/jetpack-autoloader.git",
-                "reference": "2b195d4ba0c6d9851aca1e5220e47b2072f6c93c"
+                "reference": "b6abf43a9ea638d6a0edc02f0dd7575703f9c2a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Automattic/jetpack-autoloader/zipball/2b195d4ba0c6d9851aca1e5220e47b2072f6c93c",
-                "reference": "2b195d4ba0c6d9851aca1e5220e47b2072f6c93c",
+                "url": "https://api.github.com/repos/Automattic/jetpack-autoloader/zipball/b6abf43a9ea638d6a0edc02f0dd7575703f9c2a1",
+                "reference": "b6abf43a9ea638d6a0edc02f0dd7575703f9c2a1",
                 "shasum": ""
             },
             "require": {
@@ -74,7 +74,7 @@
                 "php": ">=7.2"
             },
             "require-dev": {
-                "automattic/phpunit-select-config": "^1.0.8",
+                "automattic/phpunit-select-config": "^1.0.9",
                 "composer/composer": "^2.2",
                 "yoast/phpunit-polyfills": "^4.0.0"
             },
@@ -115,9 +115,9 @@
                 "wordpress"
             ],
             "support": {
-                "source": "https://github.com/Automattic/jetpack-autoloader/tree/v5.0.19"
+                "source": "https://github.com/Automattic/jetpack-autoloader/tree/v5.0.20"
             },
-            "time": "2026-06-08T08:27:29+00:00"
+            "time": "2026-06-15T12:15:05+00:00"
         },
         {
             "name": "berlindb/core",
@@ -177,16 +177,16 @@
         },
         {
             "name": "freemius/wordpress-sdk",
-            "version": "2.13.1",
+            "version": "2.13.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Freemius/wordpress-sdk.git",
-                "reference": "7376c0eca1ae7f92aaba9d3b550bd10affe797ff"
+                "reference": "20358d1ef8e11ef17038fc9cb8fca6c6a544c519"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Freemius/wordpress-sdk/zipball/7376c0eca1ae7f92aaba9d3b550bd10affe797ff",
-                "reference": "7376c0eca1ae7f92aaba9d3b550bd10affe797ff",
+                "url": "https://api.github.com/repos/Freemius/wordpress-sdk/zipball/20358d1ef8e11ef17038fc9cb8fca6c6a544c519",
+                "reference": "20358d1ef8e11ef17038fc9cb8fca6c6a544c519",
                 "shasum": ""
             },
             "require": {
@@ -224,22 +224,22 @@
             ],
             "support": {
                 "issues": "https://github.com/Freemius/wordpress-sdk/issues",
-                "source": "https://github.com/Freemius/wordpress-sdk/tree/2.13.1"
+                "source": "https://github.com/Freemius/wordpress-sdk/tree/2.13.2"
             },
-            "time": "2026-03-25T15:26:13+00:00"
+            "time": "2026-06-16T08:33:57+00:00"
         },
         {
             "name": "wpboilerplate/wpb-access-control",
-            "version": "v1.2.3",
+            "version": "v1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WPBoilerplate/wpb-access-control.git",
-                "reference": "8a1917f0209c9bdb8adb1de69aeca028cd4f0535"
+                "reference": "29705aae974eee168a2da4e788516be545b66b32"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WPBoilerplate/wpb-access-control/zipball/8a1917f0209c9bdb8adb1de69aeca028cd4f0535",
-                "reference": "8a1917f0209c9bdb8adb1de69aeca028cd4f0535",
+                "url": "https://api.github.com/repos/WPBoilerplate/wpb-access-control/zipball/29705aae974eee168a2da4e788516be545b66b32",
+                "reference": "29705aae974eee168a2da4e788516be545b66b32",
                 "shasum": ""
             },
             "require": {
@@ -307,7 +307,7 @@
                 "issues": "https://github.com/WPBoilerplate/wpb-access-control/issues",
                 "source": "https://github.com/WPBoilerplate/wpb-access-control"
             },
-            "time": "2026-06-09T18:43:57+00:00"
+            "time": "2026-06-17T18:17:31+00:00"
         }
     ],
     "packages-dev": [
@@ -965,8 +965,8 @@
             "version": "2.2.x-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/34859227919faf5d4498f11e11a1e825aa102402",
-                "reference": "34859227919faf5d4498f11e11a1e825aa102402",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/c4cda3fb3d5fe1615d1b53edee13525600e39868",
+                "reference": "c4cda3fb3d5fe1615d1b53edee13525600e39868",
                 "shasum": ""
             },
             "require": {
@@ -1023,7 +1023,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-10T10:12:08+00:00"
+            "time": "2026-06-17T15:28:08+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

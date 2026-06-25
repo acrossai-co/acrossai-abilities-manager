@@ -196,7 +196,10 @@
       "Bash(echo \"=== production scope exit=$? ===\")",
       "Bash(sed -i.bak -E 's/^- \\\\[ \\\\] \\(T01[3-9]|T02[0-9]|T03[0-9]|T04[0-2]\\) /- [x] \\\\1 /' tasks.md)",
       "Bash(awk -F: '{print $1}')",
-      "Bash(echo \"---production-scope exit=$?\")"
+      "Bash(echo \"---production-scope exit=$?\")",
+      "Bash(unzip -l wordpress-plugin-boilerplate.zip)",
+      "Bash(unzip -l acrossai-abilities-manager-0.0.1-wporg-review.zip)",
+      "Bash(awk -F/ '{print $1\"/\"$2\"/\"$3}')"
     ]
   }
 }

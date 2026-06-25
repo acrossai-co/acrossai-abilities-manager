@@ -220,4 +220,12 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-JS-HOOK-CADENCE-SPEC | New JS extension hook specs MUST include reference-equality + firing-cadence semantics (not just name + payload) — different subscribers will assume different cadences and only one is right | JS/Hooks/Spec | wordpress-hooks, cadence, reference-equality, react-commit, redux-dispatch, use-effect, spec-completeness | ARCHITECTURE.md |
 | PATTERN-MEMORY-SUPERSESSION-VS-ANNOTATION | Retired decision → mark Superseded + keep entry intact; related pattern that loses its consumer but stays conceptually valid → annotate with forward-pointer note instead of Supersede; never silently delete decision entries | Memory/Governance | memory, supersession, annotation, forward-pointer, decision-audit | ARCHITECTURE.md |
 | PATTERN-HELPER-DELETION-GREP-FIRST | Grep-before-delete a private helper; if any non-target caller exists, KEEP the helper + lift partner-gate lessons from BUGS.md into the helper's docblock at the call site | Removal/Refactor | helper-deletion, grep, partner-gate, docblock-lift, fail-safe | ARCHITECTURE.md |
+| PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH | Library Registry key-allowlists `args` but does NOT value-sanitize; new consumers of `args.*` MUST render via React text nodes OR escape at the consumer OR harden the Registry boundary — never assume `args.*` values are pre-sanitized | Library/Security | args, allowlist, xss, library, registry, jsx-escape | ARCHITECTURE.md |
 | 2026-06-14 | Feature 034: Remove Allowed Servers + 5-hook extension surface + retract wpb-mcp-servers-list mandate; 3 new durable lessons (BUG-INVENTORY-GREP-MISS, PATTERN-REQUIRED-FIELD-MULTI-LAYER-AUDIT, PATTERN-JS-HOOK-CADENCE-SPEC); Constitution v1.4.6 → v1.4.7 PATCH retraction | Abilities/REST/Composer/Constitution | feature-034, mcp-servers-removal, extension-hooks, composer-dep-removal, constitution-retraction, layering-inversion | WORKLOG.md |
+| 2026-06-23 | Feature 036: Library descriptions + full-width + wpb-access-control 1.2.1→1.6.0 bump; PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH captured (Registry `args` value-sanitization gap) | Library/Admin/UI | feature-036, library, descriptions, full-width, dep-bump, args-passthrough | WORKLOG.md |
+
+## Security Reviews
+
+| Path | Type | Date | Risk | Findings | OWASP |
+|---|---|---|---|---|---|
+| specs/036-library-page-full-width-and-descriptions/security-constraints.md | plan | 2026-06-18 | INFORMATIONAL | C:0 H:0 M:0 L:0 | A03 |
