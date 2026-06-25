@@ -1586,3 +1586,19 @@ would have silently drifted (Override_Processor's allowlist check would still ex
 while the column no longer existed). Related: `PATTERN-MODULE-DECOMMISSION` covers
 the whole-module-decommission case as step 8 ("grep-then-delete"); this entry covers
 the narrower per-keyword-removal case where most module structure is preserved.
+
+---
+
+### 2026-06-25 — ESLint 9 flat config silently ignores `/* eslint-env jest */`; use `/* global */` instead
+
+**Status**: Active
+
+**Pattern**: Under ESLint 9 flat config (`eslint.config.js`), the inline `/* eslint-env jest */` directive is silently ignored. Test files lacking explicit globals report dozens of `no-undef` errors for `describe`, `test`, `expect`, `jest`. The legacy `.eslintrc` is also present in this repo but does NOT control parsing under `wp-scripts lint-js` — the flat-config file wins.
+
+**Workaround**: Add `/* global jest, describe, test, expect */` as the first line of each new test file. Trim the globals list to only what the file uses to avoid `no-unused-vars` warnings (e.g. don't list `beforeEach`/`afterEach` if the file doesn't call them).
+
+**Prevention**: When adding any new test file under `tests/jest/`, include the explicit `/* global */` declaration in the first line — do not rely on `eslint-env`. If touching an existing test file under `tests/jest/` that lacks this declaration and the lint baseline is failing on it, add the declaration as part of the same edit to avoid widening the baseline.
+
+**Repo evidence**: Feature 037 added 4 new test files under `tests/jest/ability-library/` (`collectTabGroups.test.js`, `filterItemsByTabGroup.test.js`, `titleCaseTabLabel.test.js`, `LibraryPage.test.js`); all use `/* global jest, describe, test, expect */`. Pre-existing files in the same directory still lack the declaration and fail lint with ~125 errors each (pre-existing baseline, not introduced by Feature 037).
+
+**Tags**: eslint, eslint9, flat-config, jest, env, globals, no-undef, tests

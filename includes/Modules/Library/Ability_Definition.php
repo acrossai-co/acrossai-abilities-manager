@@ -21,6 +21,10 @@ defined( 'ABSPATH' ) || exit;
  *
  * Optional: args['sub_group'] adds a display-only sub-heading inside the
  * Library Specific panel. Does NOT affect saved config or execution.
+ *
+ * Optional: args['tab_group'] groups the ability under a page-level tab on
+ * the Library admin page. Display-only — never persisted, never affects
+ * execution or REST. Sanitized at the Registry boundary.
  */
 abstract class Ability_Definition {
 
@@ -65,6 +69,7 @@ abstract class Ability_Definition {
 
 		$category  = $args['category'] ?? '';
 		$sub_group = isset( $args['sub_group'] ) ? (string) $args['sub_group'] : '';
+		$tab_group = isset( $args['tab_group'] ) ? (string) $args['tab_group'] : '';
 
 		$row = array(
 			'category'       => $category,
@@ -80,6 +85,10 @@ abstract class Ability_Definition {
 			$row['sub_group_label'] = isset( $args['sub_group_label'] ) && '' !== $args['sub_group_label']
 				? (string) $args['sub_group_label']
 				: ucwords( str_replace( '-', ' ', $sub_group ) );
+		}
+
+		if ( '' !== $tab_group ) {
+			$row['tab_group'] = $tab_group;
 		}
 
 		$definitions[] = $row;

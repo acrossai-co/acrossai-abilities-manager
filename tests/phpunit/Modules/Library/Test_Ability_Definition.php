@@ -155,4 +155,62 @@ class Test_Ability_Definition extends TestCase {
 		$this->assertSame( 'other/ability', $rows[0]['slug'] );
 		$this->assertSame( 'test/with-sub', $rows[1]['slug'] );
 	}
+
+	// ---------------------------------------------------------------------
+	// Feature 037 — tab_group pass-through.
+	// ---------------------------------------------------------------------
+
+	public function test_push_definition_omits_tab_group_when_absent(): void {
+		$subject = $this->make_subclass_without_sub_group();
+		$rows    = $subject->push_definition( array() );
+
+		$this->assertCount( 1, $rows );
+		$this->assertArrayNotHasKey( 'tab_group', $rows[0] );
+	}
+
+	public function test_push_definition_includes_tab_group_when_present(): void {
+		$subject = new class() extends Ability_Definition {
+			protected function ability(): array {
+				return array(
+					'name' => 'test/with-tab',
+					'args' => array(
+						'label'     => 'With Tab',
+						'category'  => 'test-category',
+						'tab_group' => 'sales',
+					),
+				);
+			}
+		};
+
+		$rows = $subject->push_definition( array() );
+		$row  = $rows[0];
+
+		$this->assertArrayHasKey( 'tab_group', $row );
+		$this->assertSame( 'sales', $row['tab_group'] );
+		// tab_group has NO paired tab_group_label field (FR-007).
+		$this->assertArrayNotHasKey( 'tab_group_label', $row );
+	}
+
+	public function test_push_definition_carries_tab_group_alongside_sub_group(): void {
+		$subject = new class() extends Ability_Definition {
+			protected function ability(): array {
+				return array(
+					'name' => 'test/with-both',
+					'args' => array(
+						'label'     => 'With Both',
+						'category'  => 'test-category',
+						'sub_group' => 'core',
+						'tab_group' => 'sales',
+					),
+				);
+			}
+		};
+
+		$rows = $subject->push_definition( array() );
+		$row  = $rows[0];
+
+		$this->assertSame( 'core', $row['sub_group'] );
+		$this->assertSame( 'Core', $row['sub_group_label'] );
+		$this->assertSame( 'sales', $row['tab_group'] );
+	}
 }
