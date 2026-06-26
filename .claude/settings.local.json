@@ -199,7 +199,13 @@
       "Bash(echo \"---production-scope exit=$?\")",
       "Bash(unzip -l wordpress-plugin-boilerplate.zip)",
       "Bash(unzip -l acrossai-abilities-manager-0.0.1-wporg-review.zip)",
-      "Bash(awk -F/ '{print $1\"/\"$2\"/\"$3}')"
+      "Bash(awk -F/ '{print $1\"/\"$2\"/\"$3}')",
+      "Bash(export CLAUDE_CODE_TMPDIR=/tmp/cc-fallback)",
+      "Bash(mkdir -p /tmp/cc-fallback)",
+      "Bash(ls docs/memory/)",
+      "Bash(export CLAUDE_CODE_TMPDIR=/tmp/claude-work)",
+      "Bash(mkdir -p /tmp/claude-work)",
+      "mcp__agents__deepwiki__ask_question"
     ]
   }
 }

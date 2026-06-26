@@ -9,8 +9,17 @@
 /.agents
 /.specify
 /.claude
+/.codex
+/.cursor
+/.gemini
+/.antigravity
+/.windsurf
+/.opencode
+/.junie
+/.idea
 /.vscode
 /.phpunit.cache
+/.sass-cache
 
 /node_modules
 
@@ -19,6 +28,12 @@
 /docs
 /tests
 /scripts
+/coverage
+/packages
+/screenshots
+/logs
+/tmp
+/nbproject
 
 .distignore
 .editorconfig
@@ -27,10 +42,23 @@
 .nvmrc
 .prettierignore
 .wp-env.json
+.wp-env.override.json
 .travis.yml
+.env
+.mcp.json
+.phpunit.result.cache
+.buildpath
+.project
+.sublimelinterrc
 .DS_Store
+Thumbs.db
+opencode.json
+*.log
+*.sublime-project
+*.sublime-workspace
 
 AGENTS.md
+CLAUDE.md
 README.md
 LICENSE.md
 
