@@ -9,6 +9,9 @@
 /.agents
 /.specify
 /.claude
+/.codex
+/.cursor
+/.gemini
 /.vscode
 /.phpunit.cache
 
@@ -31,6 +34,7 @@
 .DS_Store
 
 AGENTS.md
+CLAUDE.md
 README.md
 LICENSE.md
 
