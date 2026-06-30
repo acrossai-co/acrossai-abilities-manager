@@ -120,19 +120,62 @@ class Test_Boot_Resilience extends WP_UnitTestCase {
 		$ctor_body = $matches[1];
 
 		// The short-circuit must reference $this->vendor_missing AND must
-		// return before load_dependencies(). We approximate "before" by
-		// asserting the $vendor_missing check appears earlier in the body
-		// than the load_dependencies call.
+		// return before the load_dependencies() method CALL. We anchor on
+		// the actual call `$this->load_dependencies(` rather than the bare
+		// word "load_dependencies" because the inline comment above the
+		// vendor-missing block legitimately mentions "load_dependencies()"
+		// in prose.
 		$missing_check_pos = strpos( $ctor_body, '$this->vendor_missing' );
-		$load_deps_pos     = strpos( $ctor_body, 'load_dependencies' );
+		$load_deps_pos     = strpos( $ctor_body, '$this->load_dependencies(' );
 
 		$this->assertNotFalse( $missing_check_pos, 'Main::__construct must check $this->vendor_missing (T011).' );
-		$this->assertNotFalse( $load_deps_pos, 'Main::__construct must still reference load_dependencies (normal-boot path).' );
+		$this->assertNotFalse( $load_deps_pos, 'Main::__construct must still call $this->load_dependencies() (normal-boot path).' );
 		$this->assertLessThan(
 			$load_deps_pos,
 			$missing_check_pos,
-			'The $vendor_missing check must appear before the load_dependencies() call so the early return takes effect (T011).'
+			'The $vendor_missing check must appear before the $this->load_dependencies() call so the early return takes effect (T011).'
 		);
+	}
+
+	/**
+	 * Extract the body of a brace-balanced block starting at $start_marker.
+	 *
+	 * Returns the substring between the first `{` after $start_marker and the
+	 * matching close brace (exclusive). Returns null if the marker isn't
+	 * found or braces don't balance. Used by tests that need to assert
+	 * structure inside the vendor-missing block, which contains a nested
+	 * closure with its own `return;` — a non-greedy regex captures up to
+	 * the inner return and misses the outer block.
+	 *
+	 * @param string $source        Full file source.
+	 * @param string $start_marker  Literal string before the opening `{`.
+	 * @return string|null
+	 */
+	private function extract_balanced_block( string $source, string $start_marker ): ?string {
+		$start = strpos( $source, $start_marker );
+		if ( false === $start ) {
+			return null;
+		}
+		$open = strpos( $source, '{', $start );
+		if ( false === $open ) {
+			return null;
+		}
+		$depth = 1;
+		$i     = $open + 1;
+		$len   = strlen( $source );
+		while ( $i < $len && $depth > 0 ) {
+			$ch = $source[ $i ];
+			if ( '{' === $ch ) {
+				++$depth;
+			} elseif ( '}' === $ch ) {
+				--$depth;
+				if ( 0 === $depth ) {
+					return substr( $source, $open + 1, $i - $open - 1 );
+				}
+			}
+			++$i;
+		}
+		return null;
 	}
 
 	/**
@@ -142,18 +185,8 @@ class Test_Boot_Resilience extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_admin_notice_closure_gates_on_manage_options(): void {
-		// Extract the vendor-missing block. Pattern: `if ( $this->vendor_missing ) { ... }`
-		$this->assertSame(
-			1,
-			preg_match(
-				'/if\s*\(\s*\$this->vendor_missing\s*\)\s*\{(.*?)return\s*;\s*\}/s',
-				$this->main_source,
-				$matches
-			),
-			'Vendor-missing block must short-circuit __construct (T011).'
-		);
-
-		$block = $matches[1];
+		$block = $this->extract_balanced_block( $this->main_source, 'if ( $this->vendor_missing )' );
+		$this->assertNotNull( $block, 'Vendor-missing block must short-circuit __construct (T011).' );
 
 		$this->assertStringContainsString(
 			"current_user_can( 'manage_options' )",
@@ -169,16 +202,8 @@ class Test_Boot_Resilience extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_admin_notice_closure_uses_correct_text_domain(): void {
-		$this->assertSame(
-			1,
-			preg_match(
-				'/if\s*\(\s*\$this->vendor_missing\s*\)\s*\{(.*?)return\s*;\s*\}/s',
-				$this->main_source,
-				$matches
-			)
-		);
-
-		$block = $matches[1];
+		$block = $this->extract_balanced_block( $this->main_source, 'if ( $this->vendor_missing )' );
+		$this->assertNotNull( $block, 'Vendor-missing block must short-circuit __construct (T011).' );
 
 		$this->assertStringContainsString(
 			'esc_html__',
@@ -202,29 +227,17 @@ class Test_Boot_Resilience extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_admin_notice_closure_is_self_contained(): void {
-		$this->assertSame(
-			1,
-			preg_match(
-				'/if\s*\(\s*\$this->vendor_missing\s*\)\s*\{(.*?)return\s*;\s*\}/s',
-				$this->main_source,
-				$matches
-			)
-		);
+		$block = $this->extract_balanced_block( $this->main_source, 'if ( $this->vendor_missing )' );
+		$this->assertNotNull( $block, 'Vendor-missing block must short-circuit __construct (T011).' );
 
-		$block = $matches[1];
-
-		// Extract just the closure body (between `function () {` and the close).
-		$this->assertSame(
-			1,
-			preg_match(
-				'/(?:static\s+)?function\s*\(\s*\)(?:\s*use\s*\([^)]*\))?\s*\{(.*?)\n\s*\}\s*\)?\s*;/s',
-				$block,
-				$closure_matches
-			),
+		// Extract the closure body using brace-balanced parsing. The closure
+		// declaration shape can include "static function () {" or
+		// "function () use (...) {"; both are valid here.
+		$closure_body = $this->extract_balanced_block( $block, 'function ()' );
+		$this->assertNotNull(
+			$closure_body,
 			'Vendor-missing admin notice block must contain a closure (SEC-001).'
 		);
-
-		$closure_body = $closure_matches[1];
 
 		$forbidden = array(
 			'$this->'                            => 'Closure must not reference $this-> (SEC-001).',
