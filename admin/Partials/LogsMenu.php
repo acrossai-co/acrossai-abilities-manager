@@ -75,12 +75,13 @@ class LogsMenu {
 	 */
 	public function register_submenu(): void {
 		$this->hook_suffix = add_submenu_page(
-			'acrossai-abilities-manager',
+			'acrossai',
 			__( 'Execution Logs', 'acrossai-abilities-manager' ),
 			__( 'Logs', 'acrossai-abilities-manager' ),
 			'manage_options',
 			'acrossai-abilities-logs',
-			array( $this, 'render' )
+			array( $this, 'render' ),
+			3
 		);
 	}
 

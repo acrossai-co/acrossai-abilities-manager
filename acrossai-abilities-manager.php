@@ -69,6 +69,32 @@ register_activation_hook( __FILE__, 'AcrossAI_Abilities_Manager\acrossai_abiliti
 register_deactivation_hook( __FILE__, 'AcrossAI_Abilities_Manager\acrossai_abilities_manager_deactivate' );
 
 /**
+ * Feature 038 activation guard: block activation when the Composer autoloader
+ * is missing, so the existing acrossai_abilities_manager_activate callback
+ * (which transitively requires autoloaded classes) cannot fatal first.
+ *
+ * Registered at priority 1 on the WordPress-internal `activate_<plugin>` action
+ * so it runs BEFORE the default-priority-10 callback registered by the
+ * register_activation_hook above. Without this priority shift the existing
+ * callback would fatal on a missing-vendor install and never reach this guard
+ * (SEC-002 in specs/038-acrossai-main-menu-integration/security-review-plan.md).
+ */
+add_action(
+	'activate_' . plugin_basename( __FILE__ ),
+	static function () {
+		if ( ! file_exists( __DIR__ . '/vendor/autoload_packages.php' ) ) {
+			wp_die(
+				esc_html__(
+					'AcrossAI Abilities Manager cannot activate: the Composer autoloader is missing. Run "composer install" inside the plugin directory and try again.',
+					'acrossai-abilities-manager'
+				)
+			);
+		}
+	},
+	1
+);
+
+/**
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
@@ -94,4 +120,37 @@ function acrossai_abilities_manager_run() {
 	 */
 	add_action( 'plugins_loaded', array( $plugin, 'run' ), 0 );
 }
+
+/**
+ * Bootstrap the shared `acrossai-co/main-menu` top-level menu host.
+ *
+ * Registered at plugins_loaded priority 0 so the shared parent menu exists
+ * before any plugin's admin_menu hooks fire on default priority 10. The
+ * `did_action()` guard makes the bootstrap idempotent across multiple
+ * AcrossAI plugins consuming the same shared menu (PATTERN-SHARED-MENU-
+ * CONSUMER-IDEMPOTENCY). The `class_exists()` guard provides Constitution
+ * §V Integration Resilience graceful degradation when the package is
+ * absent — submenus simply won't have a parent rather than fataling.
+ *
+ * Accepted deviation from CONSTITUTION.md §I Boot Flow Rule
+ * (DEC-EXTERNAL-PACKAGE-HOOK-CTOR scope extension): the bootstrap lives in
+ * the plugin entry file rather than in includes/Main.php because the host
+ * menu must be the canonical owner of the top-level menu, independent of
+ * any single consuming plugin's internal Loader. See Feature 038 plan and
+ * memory-synthesis.md for the full justification.
+ */
+add_action(
+	'plugins_loaded',
+	static function () {
+		if ( did_action( 'acrossai_main_menu_bootstrapped' ) ) {
+			return;
+		}
+		if ( class_exists( \AcrossAI_Main_Menu\SettingsPage::class ) ) {
+			new \AcrossAI_Main_Menu\SettingsPage();
+			do_action( 'acrossai_main_menu_bootstrapped' );
+		}
+	},
+	0
+);
+
 acrossai_abilities_manager_run();

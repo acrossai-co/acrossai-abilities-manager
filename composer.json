@@ -17,7 +17,8 @@
 		"automattic/jetpack-autoloader": "^5.0",
 		"wpboilerplate/wpb-access-control": "^1.6.0",
 		"berlindb/core": "^3.0.0",
-		"acrossai-co/addons-page": "^0.0.19"
+		"acrossai-co/addons-page": "^0.0.19",
+		"acrossai-co/main-menu": "^0.0.4"
 	},
 	"keywords": [
 		"wordpress",

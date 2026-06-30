@@ -56,36 +56,60 @@ class SettingsMenu {
 	private function __construct() {}
 
 	/**
-	 * Registers the settings submenu page.
+	 * Tab slug for this plugin's sections on the shared host Settings page.
 	 *
-	 * Hooked to admin_menu.
+	 * Used everywhere a per-tab page slug is needed (host filter, section
+	 * registration, field registration). Lowercase a-z0-9-_ only — sanitize_key()
+	 * compliant.
 	 *
 	 * @since 0.1.0
-	 * @return void
+	 * @var string
 	 */
-	public function register_submenu(): void {
-		add_submenu_page(
-			'acrossai-abilities-manager',
-			__( 'Settings', 'acrossai-abilities-manager' ),
-			__( 'Settings', 'acrossai-abilities-manager' ),
-			'manage_options',
-			'acrossai-abilities-settings',
-			array( $this, 'render' )
+	public const TAB_SLUG = 'abilities';
+
+	/**
+	 * Registers the "Abilities" tab on the shared AcrossAI Settings page.
+	 *
+	 * Hooked to the `acrossai_settings_tabs` filter provided by
+	 * acrossai-co/main-menu v0.0.4+. The tab carries the plugin's scope so
+	 * individual section titles can stay plain ("Display Settings",
+	 * "Log Settings", "Uninstall Settings") rather than each repeating
+	 * "Abilities".
+	 *
+	 * @since 0.1.0
+	 * @param array $tabs Tabs collected from previous filter calls.
+	 * @return array
+	 */
+	public function register_tab( $tabs ): array {
+		if ( ! is_array( $tabs ) ) {
+			$tabs = array();
+		}
+
+		$tabs[] = array(
+			'slug'     => self::TAB_SLUG,
+			'label'    => __( 'Abilities', 'acrossai-abilities-manager' ),
+			'priority' => 10,
 		);
+
+		return $tabs;
 	}
 
 	/**
 	 * Registers settings sections and fields via the WordPress Settings API.
 	 *
-	 * Hooked to admin_init.
+	 * Hooked to admin_init. Sections target the per-tab page slug derived from
+	 * the host package's `SettingsPage::tab_page_slug()` helper — `option_group`
+	 * stays the shared `'acrossai-settings'` so the form submission and nonce
+	 * flow continue to resolve regardless of which tab the user is on.
 	 *
 	 * @since 0.1.0
 	 * @return void
 	 */
 	public function register_settings(): void {
+		$page_slug = \AcrossAI_Main_Menu\SettingsPage::tab_page_slug( self::TAB_SLUG );
 		// Log retention option.
 		register_setting(
-			'acrossai_abilities_settings',
+			'acrossai-settings',
 			'acrossai_abilities_log_retention_days',
 			array(
 				'sanitize_callback' => 'absint',
@@ -95,7 +119,7 @@ class SettingsMenu {
 
 		// Uninstall delete data option.
 		register_setting(
-			'acrossai_abilities_settings',
+			'acrossai-settings',
 			'acrossai_abilities_uninstall_delete_data',
 			array(
 				'sanitize_callback' => array( $this, 'sanitize_uninstall_flag' ),
@@ -105,7 +129,7 @@ class SettingsMenu {
 
 		// Per-page display option.
 		register_setting(
-			'acrossai_abilities_settings',
+			'acrossai-settings',
 			'acrossai_abilities_per_page',
 			array(
 				'sanitize_callback' => array( $this, 'sanitize_per_page' ),
@@ -118,14 +142,14 @@ class SettingsMenu {
 			'acrossai_display_settings_section',
 			__( 'Display Settings', 'acrossai-abilities-manager' ),
 			'__return_false',
-			'acrossai-abilities-settings'
+			$page_slug
 		);
 
 		add_settings_field(
 			'acrossai_abilities_per_page',
 			__( 'Abilities per page', 'acrossai-abilities-manager' ),
 			array( $this, 'render_per_page_field' ),
-			'acrossai-abilities-settings',
+			$page_slug,
 			'acrossai_display_settings_section'
 		);
 
@@ -134,14 +158,14 @@ class SettingsMenu {
 			'acrossai_log_settings_section',
 			__( 'Log Settings', 'acrossai-abilities-manager' ),
 			'__return_false',
-			'acrossai-abilities-settings'
+			$page_slug
 		);
 
 		add_settings_field(
 			'acrossai_abilities_log_retention_days',
 			__( 'Delete logs after (days)', 'acrossai-abilities-manager' ),
 			array( $this, 'render_retention_field' ),
-			'acrossai-abilities-settings',
+			$page_slug,
 			'acrossai_log_settings_section'
 		);
 
@@ -150,14 +174,14 @@ class SettingsMenu {
 			'acrossai_uninstall_settings_section',
 			__( 'Uninstall Settings', 'acrossai-abilities-manager' ),
 			'__return_false',
-			'acrossai-abilities-settings'
+			$page_slug
 		);
 
 		add_settings_field(
 			'acrossai_abilities_uninstall_delete_data',
 			__( 'Delete all data on uninstall', 'acrossai-abilities-manager' ),
 			array( $this, 'render_uninstall_field' ),
-			'acrossai-abilities-settings',
+			$page_slug,
 			'acrossai_uninstall_settings_section'
 		);
 	}
@@ -234,29 +258,5 @@ class SettingsMenu {
 			esc_html__( 'Delete all data on uninstall', 'acrossai-abilities-manager' ),
 			esc_html__( '⚠ Warning: When checked, uninstalling this plugin will permanently delete all custom database tables and plugin options. This cannot be undone.', 'acrossai-abilities-manager' )
 		);
-	}
-
-	/**
-	 * Renders the settings page.
-	 *
-	 * @since 0.1.0
-	 * @return void
-	 */
-	public function render(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'acrossai-abilities-manager' ) );
-		}
-		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'Abilities Manager — Settings', 'acrossai-abilities-manager' ); ?></h1>
-			<form method="post" action="options.php">
-				<?php
-				settings_fields( 'acrossai_abilities_settings' );
-				do_settings_sections( 'acrossai-abilities-settings' );
-				submit_button();
-				?>
-			</form>
-		</div>
-		<?php
 	}
 }

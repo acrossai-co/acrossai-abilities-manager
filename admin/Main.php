@@ -340,7 +340,15 @@ class Main {
 	 * @return bool True if on main Abilities Manager page.
 	 */
 	private function is_manager_page( string $hook_suffix ): bool {
-		return 'toplevel_page_acrossai-abilities-manager' === $hook_suffix;
+		// Feature 038: Abilities is no longer a top-level menu; it is a
+		// submenu of the shared 'acrossai' parent. WordPress derives the
+		// suffix as sanitize_title( parent_menu_title ) . '_page_' . menu_slug;
+		// sanitize_title( 'AcrossAI' ) === 'acrossai' (lucky coincidence with
+		// the parent slug). Verified at TASK-T021 pre-commit. See
+		// memory-synthesis.md and BUG-LIBRARY-HOOK-SUFFIX scope note for
+		// the fragility — if the host package renames its menu title, this
+		// string MUST be updated.
+		return 'acrossai_page_acrossai-abilities-manager' === $hook_suffix;
 	}
 
 	/**
@@ -351,7 +359,11 @@ class Main {
 	 * @return bool
 	 */
 	private function is_settings_page( string $hook_suffix ): bool {
-		return 'acrossai-abilities-manager_page_acrossai-abilities-settings' === $hook_suffix;
+		// Feature 038: settings now live on the shared host page registered by
+		// acrossai-co/main-menu under slug 'acrossai-settings' (host's
+		// SettingsPage::SETTINGS_SLUG). The suffix derives from
+		// sanitize_title( 'AcrossAI' ) === 'acrossai'. Verified at TASK-T021.
+		return 'acrossai_page_acrossai-settings' === $hook_suffix;
 	}
 
 	/**
