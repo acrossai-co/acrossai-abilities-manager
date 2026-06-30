@@ -2,6 +2,63 @@
 
 ---
 
+### 2026-06-30 — Entry-file `plugins_loaded P0` bootstrap allowed for shared top-level menu packages (DEC-EXTERNAL-PACKAGE-HOOK-CTOR scope extension)
+
+**Context**
+Feature 038 adopts `acrossai-co/main-menu` as a SHARED top-level admin menu and Settings host that multiple AcrossAI plugins will consume. The original `DEC-EXTERNAL-PACKAGE-HOOK-CTOR` (Feature 026) covered constructor-self-registering external packages instantiated inside `Main::define_admin_hooks()` with a `class_exists()` guard. That works for AddonsPage (`acrossai-co/addons-page`) because its submenu attaches under any priority-10 parent. The MenuRegistrar in `acrossai-co/main-menu` registers the SHARED PARENT itself — which must exist before any plugin's `admin_menu` priority-10 submenu hooks fire. By the time `Main::__construct()` runs (default `plugins_loaded` priority 10), it is too late to register the parent for other consumers binding submenus on `admin_menu` P10.
+
+**Decision**
+Extend `DEC-EXTERNAL-PACKAGE-HOOK-CTOR` to permit entry-file `plugins_loaded` priority-0 bootstraps for external Composer packages that supply a SHARED top-level menu (or any shared admin-surface anchor that must exist before consumer plugins bind to it). The bootstrap MUST: (a) live in the plugin entry file, NOT inside `includes/Main.php`, so the package is the canonical owner of the shared surface independent of any single consumer's Loader; (b) wrap the instantiation in BOTH `class_exists( $fqcn, false )` AND `did_action( '<scoped_bootstrap_action>' )` paired guards per `PATTERN-SHARED-MENU-CONSUMER-IDEMPOTENCY`; (c) fire `do_action( '<scoped_bootstrap_action>' )` after successful instantiation; (d) include an inline comment citing this decision ID.
+
+**Scope**
+`acrossai-co/main-menu` (Feature 038) and any future shared admin-surface package that follows the same architecture. Does NOT extend to `acrossai-co/addons-page` — that one keeps the original `define_admin_hooks()` placement because its menu is per-consumer, not shared.
+
+**Evidence**
+- `acrossai-abilities-manager.php` lines ~100-129 (the entry-file bootstrap).
+- `specs/038-acrossai-main-menu-integration/plan.md` Complexity Tracking row.
+- Cross-references `PATTERN-SHARED-MENU-CONSUMER-IDEMPOTENCY` for the guard structure.
+
+---
+
+### 2026-06-30 — Internal AcrossAI org packages exempt from "wait for v1.0.0" with audit + SHA pin (DEC-STABLE-UPGRADE-WINDOW scope exception)
+
+**Context**
+The original `DEC-STABLE-UPGRADE-WINDOW` says "Prioritize first stable releases (v1.0.0, v1.0.1) when upgrading from dev branches" — written for external third-party dependencies. Feature 038 needs `acrossai-co/main-menu` at v0.0.4 (mid-implementation upgrade from v0.0.2 to consume the new tabs feature). The package is internal AcrossAI org code, not external third-party.
+
+**Decision**
+Internal AcrossAI-org packages (`acrossai-co/*`) are exempt from the v1.0.0 wait when ALL of the following hold: (a) maintainer and consumer are under the same org's release control; (b) the consumer pins a specific audited commit SHA via composer.lock's `dist.reference` — NOT just a semver range; (c) the consumer performs a vendor audit (capability gates, output escaping, no forbidden patterns, form/nonce delegation) before the pin lands, and records the audit outcome in the feature's security review file. If any condition is missing, the original `DEC-STABLE-UPGRADE-WINDOW` rule applies.
+
+**Scope**
+All `acrossai-co/*` packages while they remain pre-v1.0.0. Once a package cuts v1.0.0, revert to the standard upgrade-window rule for subsequent bumps.
+
+**Evidence**
+- `composer.json` Feature 038 commit — `acrossai-co/main-menu: ^0.0.4`.
+- `composer.lock` — `dist.reference: a2c02cf178dd8bf44e1416ceaad00dcb5b279fe3` (audited SHA).
+- `specs/038-acrossai-main-menu-integration/security-review-plan.md` "Vendor Audit" section.
+
+---
+
+### 2026-06-30 — Hardcoded submenu hook_suffix strings depend on the parent's menu title, not its slug (DEC-MENU-HOOK-SUFFIX scope note)
+
+**Context**
+The original `DEC-MENU-HOOK-SUFFIX` says "Hardcode `toplevel_page_{slug}`; avoid `get_hook_suffix()` coupling". Feature 038 hardcodes SUBMENU suffix strings (`acrossai_page_acrossai-abilities-manager`, `acrossai_page_acrossai-settings`) in `admin/Main.php` — not the top-level form covered by the original decision.
+
+**Decision (scope note, not new rule)**
+WordPress derives submenu hook suffixes via `get_plugin_page_hookname()` as `sanitize_title( parent_menu_title ) . '_page_' . menu_slug`. For pages registered under the `acrossai-co/main-menu` parent (menu title `'AcrossAI'`), `sanitize_title( 'AcrossAI' ) === 'acrossai'` — a lucky coincidence with the parent slug itself. If the host package ever renames its parent menu title, BOTH hardcoded suffix strings in `admin/Main.php` MUST update with it.
+
+**Mitigation**
+Feature 038 quickstart Q-005 mandates a pre-commit verification step: temporarily log `$hook_suffix` from `admin_enqueue_scripts` on both pages and confirm equality with the hardcoded strings. Future work: consider lifting this into a PHPUnit guard that asserts the sanitize_title-of-parent-title equals the slug fragment of the hardcoded suffix.
+
+**Scope**
+All submenu pages registered under host-owned parent menus where the consumer hardcodes hook_suffix strings. Does NOT change the rule itself — the hardcoded strings remain preferred over `get_hook_suffix()` coupling per the original decision.
+
+**Evidence**
+- `admin/Main.php` `is_manager_page()` and `is_settings_page()` (inline comments document the parent-title dependency).
+- `specs/038-acrossai-main-menu-integration/quickstart.md` Q-005.
+- `BUG-LIBRARY-HOOK-SUFFIX` (the original warning that motivated the verification step).
+
+---
+
 ### 2026-06-04 — External Composer packages that self-register hooks may bypass the Loader (DEC-EXTERNAL-PACKAGE-HOOK-CTOR)
 
 **Context**

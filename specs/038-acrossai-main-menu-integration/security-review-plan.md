@@ -328,3 +328,70 @@ Proposed line to append to `docs/memory/INDEX.md` under the "Security Reviews" t
 ```text
 | specs/038-acrossai-main-menu-integration/security-review-plan.md | plan | 2026-06-30 | MODERATE | C:0 H:0 M:2 L:2 I:3 | A04,A05,A06 |
 ```
+
+---
+
+## Vendor Audit (T004 / SEC-003 + SEC-005 close-out)
+
+**Audited package**: `acrossai-co/main-menu` v0.0.4
+**Pinned commit SHA**: `a2c02cf178dd8bf44e1416ceaad00dcb5b279fe3`
+**Files inspected**: `vendor/acrossai-co/main-menu/src/{SettingsPage,MenuRegistrar,PageRenderer,DashboardRenderer,index}.php`
+**Audit date**: 2026-06-30
+**Result**: ✅ **PASS** — package is safe to depend on at the audited SHA.
+
+### Capability gates
+
+All entry points gate on `manage_options`:
+
+| Entry point | Source line | Gate |
+|---|---|---|
+| `MenuRegistrar::register_parent` | `MenuRegistrar.php:40` | `add_menu_page( …, 'manage_options', … )` |
+| `MenuRegistrar::register_settings_submenu` | `MenuRegistrar.php:51` | `add_submenu_page( …, 'manage_options', … )` |
+| `DashboardRenderer::render` | `DashboardRenderer.php:14` | `if ( ! current_user_can( 'manage_options' ) ) { return; }` |
+| `PageRenderer::render` (flat + tabbed) | `PageRenderer.php:37` | `if ( ! current_user_can( 'manage_options' ) ) { return; }` |
+| `PageRenderer::resolve_active_tab` (per-tab capability) | `PageRenderer.php:114-121` | `if ( ! current_user_can( $capability ) ) { … }` (defaults to `manage_options`) |
+
+### Output escaping
+
+All variable output is escaped at point of render:
+
+- `esc_html( get_admin_page_title() )` for the page title (`PageRenderer.php:44`)
+- `esc_html( $tab['label'] )` for tab labels (`PageRenderer.php:191`)
+- `esc_attr( $class )` for tab CSS classes (`PageRenderer.php:190`)
+- `esc_url( $url )` for tab href URLs (`PageRenderer.php:189`)
+- `esc_html( $slug )` in the `_doing_it_wrong` duplicate-tab notice (`PageRenderer.php:105`)
+- All static dashboard copy uses `esc_html_e()` (`DashboardRenderer.php:193..329`)
+
+### Form / nonce flow
+
+- Both forms post to `options.php` (`PageRenderer.php:47, 59`), the standard WP Settings API endpoint.
+- Nonce verification is delegated to the Settings API's `settings_fields()` / `options.php` flow. Verified — `register_setting()` callers in our plugin supply the option_group; WP core handles `_wpnonce` and `option_page` verification on POST. No custom nonce logic in the vendor — correct delegation.
+
+### Input handling
+
+- `$_GET['tab']` is read at `PageRenderer.php:159` with `sanitize_key( wp_unslash( $_GET['tab'] ) )`. ✅ Proper sanitization for a tab-name parameter; not a CSRF concern because tab switching is not a state-changing operation.
+- User-supplied tab `slug` is `sanitize_key( (string) $entry['slug'] )` at `PageRenderer.php:96`.
+- User-supplied tab `capability` is `sanitize_key( (string) $entry['capability'] )` at `PageRenderer.php:114`.
+
+### Forbidden patterns
+
+| Pattern | Result |
+|---|---|
+| `$wpdb->` (direct SQL) | ✅ Zero matches |
+| `eval(` / `exec(` / `system(` / `shell_exec` | ✅ Zero matches |
+| File IO with user input (`file_get_contents($…)`, `fopen($…)`) | ✅ Zero matches |
+| Direct `echo $var` without escape | ✅ Zero matches |
+| `extract(` | ✅ Zero matches |
+
+### Closes prior findings
+
+- **SEC-003** (0.0.x pin): can be downgraded from LOW → INFORMATIONAL now that the audit is recorded and the SHA is pinned to `a2c02cf17…`. Per `DEC-STABLE-UPGRADE-WINDOW` scope extension (Feature 038), internal AcrossAI org packages are exempt from the v1.0.0 wait when an audit + SHA pin is in place. ✅ Conditions met.
+- **SEC-005** (trust delegation): ✅ Closed. The package gates capability, escapes output, delegates nonces correctly to the Settings API, and uses no forbidden patterns. Trust is justified.
+
+### Recommended SHA pin in composer.lock
+
+`composer.lock` already records `dist.reference = a2c02cf178dd8bf44e1416ceaad00dcb5b279fe3`. This commit hash is the audited reference. Future updates should re-run this audit if the hash changes.
+
+### Note for future re-audits
+
+A new `DashboardRenderer` was introduced in v0.0.4. If subsequent releases (`0.0.5`, `0.1.x`, `1.0.0`) add additional public renderers or extension surfaces, re-audit before bumping the pin. Specifically watch for: (a) new `$_GET`/`$_POST` parameters added to the page chrome, (b) any new render path that doesn't gate `manage_options` upfront, (c) any new `add_submenu_page` that exposes a different slug at the host level.
