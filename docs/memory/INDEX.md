@@ -5,6 +5,9 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 ## Active Decisions
 | ID | Title | Scope | Tags | Status | Source |
 |---|---|---|---|---|---|
+| DEC-EXTERNAL-PACKAGE-HOOK-CTOR-SHARED-MENU | Entry-file plugins_loaded P0 bootstrap allowed for shared top-level menu packages (Feature 038 extension of DEC-EXTERNAL-PACKAGE-HOOK-CTOR) | Plugin-wide/External | external-package, boot-flow-rule, entry-file, shared-menu, plugins_loaded-p0 | Active | DECISIONS.md |
+| DEC-STABLE-UPGRADE-WINDOW-INTERNAL-ORG | Internal AcrossAI-org packages exempt from "wait for v1.0.0" with audit + SHA pin (Feature 038 exception to DEC-STABLE-UPGRADE-WINDOW) | Dependencies | stable-release, internal-org, audit, sha-pin | Active | DECISIONS.md |
+| DEC-MENU-HOOK-SUFFIX-SUBMENU-DERIVATION | Submenu hook_suffix strings derive from sanitize_title(parent_menu_title), not parent slug (Feature 038 scope note on DEC-MENU-HOOK-SUFFIX) | Admin/Enqueue | hook-suffix, submenu, sanitize_title, parent-title, fragility | Active | DECISIONS.md |
 | DEC-PERM-CB | AC rule-gated permission_callback injection | Sitewide/Override | access-control, ability-args, fail-open | Active | DECISIONS.md |
 | ARCH-ADV-001 | boot() conditional hook deviation from Boot Flow Rule (Override Processor only; Logger boot() removed in Feature 017) | Sitewide/Override | hooks, loader, PATH-A/B | Active | DECISIONS.md |
 | DEC-FAIL-OPEN-NOTICE | Fail-open library absence must pair with manage_options admin notice | Plugin-wide | fail-open, admin-notice, library | Active | DECISIONS.md |
@@ -52,6 +55,10 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 ## Implementation Patterns
 | ID | Pattern | Scope | Tags | Source |
 |---|---|---|---|---|
+| PATTERN-ADMIN-NOTICE-SELF-CONTAINED | Degraded-mode admin notices use only WP globals inside the closure; no plugin FQCNs / $this / self / static / use($this); always gate on manage_options | Plugin-wide/Admin | admin-notice, autoloader, vendor-missing, esc_html, capability-gate, closure | ARCHITECTURE.md |
+| PATTERN-ACTIVATION-HOOK-EARLY-PRIORITY | Vendor-precondition activation guards register at add_action('activate_<basename>', $cb, 1) — priority 1, before default-10 callbacks that depend on the prerequisite | Plugin-wide | activation-hook, priority, vendor, wp_die, prerequisite, fail-fast | ARCHITECTURE.md |
+| PATTERN-SHARED-MENU-CONSUMER-IDEMPOTENCY | Shared-package consumers use paired class_exists($fqcn, false) + did_action() guards and fire do_action() after instantiation — prevents double-declare fatals across require paths | Plugin-wide | shared-package, jetpack-autoloader, class_exists, did_action, require_once, fatal-prevention | ARCHITECTURE.md |
+| PATTERN-SHARED-SETTINGS-SECTION-SCOPE | Sections on a shared Settings API host: register a tab + plain titles (preferred) OR em-dash plugin-scope prefix (fallback). option_group always stays the shared slug | Admin/Settings | settings-api, shared-host, tabs, multi-plugin, section-scope, em-dash, tab_page_slug | ARCHITECTURE.md |
 | PATTERN-SINGLE-SOURCE-UTILITY | Extract duplication to single utility class | Utilities | DRY, reusability, modularity | ARCHITECTURE.md |
 | PATTERN-STAGE-NAMING | Multi-stage data with distinct variable names per transformation stage | Logger | clarity, multi-stage, readability | ARCHITECTURE.md |
 | PATTERN-FEATURE-ASSET-SEPARATION | Feature-specific asset separation from main manager assets | Logger/Admin | assets, modularity, decoupling | ARCHITECTURE.md |
@@ -224,6 +231,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | 2026-06-14 | Feature 034: Remove Allowed Servers + 5-hook extension surface + retract wpb-mcp-servers-list mandate; 3 new durable lessons (BUG-INVENTORY-GREP-MISS, PATTERN-REQUIRED-FIELD-MULTI-LAYER-AUDIT, PATTERN-JS-HOOK-CADENCE-SPEC); Constitution v1.4.6 → v1.4.7 PATCH retraction | Abilities/REST/Composer/Constitution | feature-034, mcp-servers-removal, extension-hooks, composer-dep-removal, constitution-retraction, layering-inversion | WORKLOG.md |
 | 2026-06-23 | Feature 036: Library descriptions + full-width + wpb-access-control 1.2.1→1.6.0 bump; PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH captured (Registry `args` value-sanitization gap) | Library/Admin/UI | feature-036, library, descriptions, full-width, dep-bump, args-passthrough | WORKLOG.md |
 | 2026-06-25 | Feature 037: Library `tab_group` field + page-level TabPanel; first per-field closure of PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH; mirror of Feature 033 sub_group | Library/Admin/UI | feature-037, library, tab-group, mirror, args-passthrough-closed | WORKLOG.md |
+| 2026-06-30 | Feature 038: AcrossAI shared menu + tabs + boot resilience; 4 new patterns (admin-notice-self-contained, activation-hook-early-priority, shared-menu-consumer-idempotency, shared-settings-section-scope) + 3 decision scope extensions (DEC-EXTERNAL-PACKAGE-HOOK-CTOR, DEC-STABLE-UPGRADE-WINDOW, DEC-MENU-HOOK-SUFFIX) | Admin/Menu/Boot | feature-038, main-menu, shared-menu, tabs, boot-resilience, settings-api, autoloader, mu-plugin | WORKLOG.md |
 | BUG-ESLINT9-JEST-GLOBALS | `/* eslint-env jest */` silently ignored under ESLint 9 flat config; new test files must use explicit `/* global */` declarations | Testing/ESLint | eslint9, flat-config, jest, globals, no-undef | BUGS.md |
 
 ## Security Reviews
@@ -231,3 +239,5 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | Path | Type | Date | Risk | Findings | OWASP |
 |---|---|---|---|---|---|
 | specs/036-library-page-full-width-and-descriptions/security-constraints.md | plan | 2026-06-18 | INFORMATIONAL | C:0 H:0 M:0 L:0 | A03 |
+| specs/038-acrossai-main-menu-integration/security-review-plan.md | plan | 2026-06-30 | MODERATE | C:0 H:0 M:2 L:2 I:3 | A04,A05,A06 |
+| specs/038-acrossai-main-menu-integration/security-review-staged.md | staged | 2026-06-30 | LOW | C:0 H:0 M:0 L:1 I:1 | A06 |

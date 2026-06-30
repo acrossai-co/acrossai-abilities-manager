@@ -50,20 +50,31 @@ class Menu {
 	}
 
 	/**
-	 * Add plugin menu page
+	 * Register the Abilities submenu under the shared `acrossai` parent menu.
+	 *
+	 * Feature 038: the page is no longer a top-level menu. The shared parent
+	 * menu is owned by the `acrossai-co/main-menu` package and is bootstrapped
+	 * from acrossai-abilities-manager.php on plugins_loaded priority 0. The
+	 * menu_slug `acrossai-abilities-manager` is preserved so existing
+	 * bookmarked URLs (wp-admin/admin.php?page=acrossai-abilities-manager) and
+	 * the JS bundle handles continue to resolve.
+	 *
+	 * Position 1 places this submenu immediately after the host Settings entry,
+	 * matching the agreed sidebar order: Settings, Abilities, Library, Logs,
+	 * Add-ons.
 	 *
 	 * @since 0.0.1
 	 * @return void
 	 */
-	public function main_menu() {
-		add_menu_page(
+	public function register_submenu() {
+		add_submenu_page(
+			'acrossai',
 			__( 'Abilities Manager', 'acrossai-abilities-manager' ),
-			__( 'Abilities Manager', 'acrossai-abilities-manager' ),
+			__( 'Abilities', 'acrossai-abilities-manager' ),
 			'manage_options',
 			'acrossai-abilities-manager',
 			array( $this, 'contents' ),
-			'dashicons-admin-tools',
-			99
+			1
 		);
 	}
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "041d844d033e73727e8e66c6321b27da",
+    "content-hash": "ef83a8cba2d32ebec73d8b941ff1689a",
     "packages": [
         {
             "name": "acrossai-co/addons-page",
@@ -54,6 +54,45 @@
                 "source": "https://github.com/acrossai-co/addons-page/tree/v0.0.19"
             },
             "time": "2026-06-11T04:18:17+00:00"
+        },
+        {
+            "name": "acrossai-co/main-menu",
+            "version": "0.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/acrossai-co/main-menu.git",
+                "reference": "a2c02cf178dd8bf44e1416ceaad00dcb5b279fe3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/acrossai-co/main-menu/zipball/a2c02cf178dd8bf44e1416ceaad00dcb5b279fe3",
+                "reference": "a2c02cf178dd8bf44e1416ceaad00dcb5b279fe3",
+                "shasum": ""
+            },
+            "require": {
+                "automattic/jetpack-autoloader": "^5.0",
+                "php": ">=8.1"
+            },
+            "type": "library",
+            "extra": {
+                "wp-requires": "6.0",
+                "autoloader-suffix": "AcrossAI_Main_Menu"
+            },
+            "autoload": {
+                "psr-4": {
+                    "AcrossAI_Main_Menu\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "AcrossAI Admin Dashboard parent menu and shared Settings page with SlotFill extension points.",
+            "support": {
+                "issues": "https://github.com/acrossai-co/main-menu/issues",
+                "source": "https://github.com/acrossai-co/main-menu/tree/0.0.4"
+            },
+            "time": "2026-06-30T15:06:06+00:00"
         },
         {
             "name": "automattic/jetpack-autoloader",

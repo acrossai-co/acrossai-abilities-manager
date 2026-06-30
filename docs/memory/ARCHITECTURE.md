@@ -1053,3 +1053,168 @@ allowlist gate, no value sanitization); `includes/Modules/Library/AcrossAI_Abili
 `src/js/ability-library/components/LibraryCard.js:178-196` (current safe JSX text-node consumer);
 `specs/036-library-page-full-width-and-descriptions/security-constraints.md` (`SEC-001` finding
 that motivated this entry).
+
+---
+
+## PATTERN-ADMIN-NOTICE-SELF-CONTAINED — degraded-mode admin notices must reference only WP globals
+
+**Captured**: 2026-06-30 (Feature 038)
+
+**Rule**
+Degraded-mode admin notices (the ones that fire when the plugin can't fully load — e.g. composer
+autoloader missing, required vendor class absent, host package unavailable) MUST use only
+globally-available WordPress functions inside the closure body. Allowed: `current_user_can`,
+`printf`, `esc_html`, `esc_html__`, `_e`, `__`, `_x`, and a captured static message string.
+FORBIDDEN inside the closure: `$this->`, `self::`, `static::`, `use ( $this )`, or any FQCN
+under the plugin's own namespace. Always gate on `current_user_can( 'manage_options' )` per
+`DEC-FAIL-OPEN-NOTICE`. Use `static function ()` (not `function () use ($this)`) to make the
+self-containment contract self-evident at the registration site.
+
+**Why durable**
+The notice's purpose is to make a degraded state visible. If the closure body references a
+plugin-namespaced symbol, the autoloader must resolve it — but the autoloader is by definition
+absent in the very state the notice is meant to surface, so the notice itself fatals. A pure
+WP-globals closure survives the degraded state and produces the actionable admin message that
+operators need.
+
+**Canonical implementations**
+- `includes/Main.php:286-298` — the existing AddonsPage try/catch admin-notice pattern
+  (`use ( $error_message )`, capability gate, `printf` + `esc_html`).
+- `includes/Main.php` `__construct()` vendor-missing block — Feature 038's vendor-autoloader-
+  missing notice, structurally enforced by
+  `tests/phpunit/Includes/Test_Boot_Resilience.php::test_admin_notice_closure_is_self_contained`.
+
+**Evidence**
+- 30-Jun-2026 PHP Fatal trace at `includes/Main.php:228` (`AcrossAI_Loader` class-not-found) —
+  the exact failure mode this pattern prevents.
+- `specs/038-acrossai-main-menu-integration/security-review-plan.md` SEC-001.
+
+---
+
+## PATTERN-ACTIVATION-HOOK-EARLY-PRIORITY — vendor-precondition activation guards register at priority 1
+
+**Captured**: 2026-06-30 (Feature 038)
+
+**Rule**
+Activation-time guards that check for vendor prerequisites (composer autoloader present,
+required class autoloadable, required directory exists) MUST register via
+`add_action( 'activate_' . plugin_basename( __FILE__ ), $callback, 1 )` — priority **1**, NOT
+the default 10. Plain `register_activation_hook( __FILE__, $cb )` registers at priority 10. If
+an existing default-priority activation callback transitively requires autoloaded classes that
+aren't available, IT will fatal before a priority-10 guard fires. The precondition guard MUST
+execute first so it can `wp_die` with an actionable message. Always wrap the `wp_die` message in
+`esc_html__()` with the plugin's text domain.
+
+**Why durable**
+`register_activation_hook` translates internally to `add_action( 'activate_<plugin>', $cb, 10, 1 )`.
+Order at the same priority is registration order — but order across priorities is priority order.
+A priority-1 guard always runs before any priority-10 callback regardless of registration order.
+This is the only correct way to ensure the guard fires first when an existing
+`register_activation_hook` call is already in the entry file.
+
+**Canonical implementation**
+`acrossai-abilities-manager.php` lines ~75-95 — the vendor-autoloader-presence guard placed at
+priority 1, alongside the existing `register_activation_hook` pair at lines 68-69 (default
+priority 10).
+
+**Evidence**
+- `specs/038-acrossai-main-menu-integration/security-review-plan.md` SEC-002.
+- Structural test:
+  `tests/phpunit/Includes/Test_Boot_Resilience.php::test_activation_guard_registered_at_priority_one`.
+
+---
+
+## PATTERN-SHARED-MENU-CONSUMER-IDEMPOTENCY — paired class_exists($fqcn, false) + did_action() guards
+
+**Captured**: 2026-06-30 (Feature 038)
+
+**Rule**
+When multiple plugins consume a shared external package by direct instantiation (e.g. multiple
+AcrossAI plugins all bootstrapping `\AcrossAI_Main_Menu\SettingsPage`), each consumer's bootstrap
+MUST use **both** of these guards together:
+
+1. `class_exists( $fqcn, false )` — the `false` second argument explicitly disables autoload
+   during the check. Critical when another consumer hard-`require_once`d the same source from a
+   different file path (development mu-plugin pointing at `wp-content/main-menu/src`, alternate
+   vendored copy, etc.). `require_once` dedupes by file path, NOT class name; two paths declaring
+   the same class fatal with "Cannot declare class". A bare `class_exists($fqcn)` would trigger
+   autoload and could itself fatal mid-check.
+2. `did_action( '<scoped_bootstrap_action>' )` — a project-scoped action like
+   `acrossai_main_menu_bootstrapped`. Short-circuits when any consumer has already fired the
+   canonical signal.
+
+After successful instantiation, the consumer MUST fire `do_action( '<scoped_bootstrap_action>' )`
+so future consumers loaded later in the request lifecycle short-circuit cleanly.
+
+A pure `class_exists` check is necessary but not sufficient — it covers the "class already
+declared" failure mode but not the "menu already wired" failure mode (constructor side effects
+that don't dedupe themselves).
+
+**Why durable**
+Real failure mode observed in Feature 038: a smoke-test mu-plugin at
+`wp-content/mu-plugins/acrossai-tab-smoketest.php` was hard-`require_once`-ing source files
+from `wp-content/main-menu/src/` while the consumer plugin loaded the same class via
+jetpack-autoloader's PSR-4 map. The two paths fataled with
+`Fatal error: Cannot declare class AcrossAI_Main_Menu\SettingsPage`. Fix: add paired guards to
+both sides. The pattern generalizes to ANY shared external package consumed by multiple plugins.
+
+**Canonical implementations**
+- Consumer plugin: `acrossai-abilities-manager.php` `plugins_loaded` priority-0 callback (lines
+  ~100-129) — paired guards + `do_action` fire.
+- Smoke-test mu-plugin: `wp-content/mu-plugins/acrossai-tab-smoketest.php` lines 12-40 — same
+  paired guards + same `do_action` fire.
+
+**Evidence**
+- `specs/038-acrossai-main-menu-integration/security-review-plan.md` SEC-004.
+- Live incident reproduction: see Feature 038 governance summaries for the diagnosis path
+  (composer-update-not-run → mu-plugin coexistence fatal → paired guards).
+
+---
+
+## PATTERN-SHARED-SETTINGS-SECTION-SCOPE — sections on a shared Settings API host carry plugin scope
+
+**Captured**: 2026-06-30 (Feature 038)
+
+**Rule**
+When a plugin contributes sections (`add_settings_section()` + `add_settings_field()`) to a
+shared WP Settings API host page provided by another plugin or package (e.g.
+`acrossai-co/main-menu`'s `acrossai-settings` page), the plugin MUST scope its sections so admins
+can tell which plugin owns what. Two modes — prefer the first:
+
+1. **Tabbed mode (preferred)** — register a tab via the host's tabs filter (e.g.
+   `add_filter( 'acrossai_settings_tabs', $cb )`) and target the per-tab page slug returned by
+   the host's helper (e.g. `\AcrossAI_Main_Menu\SettingsPage::tab_page_slug( 'my-tab' )` →
+   `'acrossai-settings-my-tab'`). The tab title carries the plugin scope; individual section
+   titles stay plain ("Display Settings", "Log Settings", etc.).
+2. **Flat-mode fallback** — when the host doesn't support tabs (e.g. running against host
+   < 0.0.4) or a plugin can't register one for some other reason, prefix every section title
+   with the plugin scope using an em-dash:
+   `__( 'Abilities — Display Settings', '<text-domain>' )`. Required because the host renders
+   sections in registration order with no visual separator between plugins.
+
+**Invariant across both modes**: `option_group` stays the shared slug (e.g. `'acrossai-settings'`)
+in `register_setting()` and `settings_fields()` — only the `$page` argument to
+`add_settings_section`/`add_settings_field` changes per tab. The shared option_group is what makes
+the form submission, the nonce, and the save flow work regardless of which tab a section lives
+under.
+
+**Why durable**
+Surfaced post-implementation by user feedback on a live install with multiple AcrossAI plugins:
+"add Abilities words as this whole setting is for abilities and if there is any other plugin
+using this settings page it will add MCP or something else". The host's render path
+deliberately makes sections from multiple plugins indistinguishable to give plugins control
+over their own scoping. Without an explicit scope rule, every new consumer plugin re-invents
+this convention and the host page becomes visually chaotic.
+
+**Canonical implementations**
+- Tabbed: `admin/Partials/SettingsMenu.php::register_tab()` + `register_settings()` using
+  `\AcrossAI_Main_Menu\SettingsPage::tab_page_slug( self::TAB_SLUG )`.
+- Flat-mode reference (briefly used before tabs landed in 0.0.4): same file at the
+  pre-tab state had `'Abilities — Display Settings'` / `'Abilities — Log Settings'` /
+  `'Abilities — Uninstall Settings'` as section titles before the tab landed.
+
+**Evidence**
+- v0.0.4 host README: *"once any plugin registers a tab, sections still attached to the bare
+  'acrossai-settings' slug are not rendered — migrate them under a tab"* — confirms the
+  tabbed-mode preference.
+- Feature 038 tasks.md T032 candidate (d).

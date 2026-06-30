@@ -102,6 +102,19 @@ final class Main {
 	protected $plugin_dir;
 
 	/**
+	 * Boot-resilience flag set by load_composer_dependencies() when
+	 * vendor/autoload_packages.php is absent. When true, __construct()
+	 * registers a manage_options-gated admin notice and returns before
+	 * load_dependencies() — preventing the AcrossAI_Loader class-not-found
+	 * fatal at line 228 that was the reproducer for Feature 038 (Constitution
+	 * §V Integration Resilience).
+	 *
+	 * @since 0.0.1
+	 * @var bool
+	 */
+	private bool $vendor_missing = false;
+
+	/**
 	 * Define the core functionality of the plugin.
 	 *
 	 * Set the plugin name and the plugin version that can be used throughout the plugin.
@@ -121,6 +134,30 @@ final class Main {
 		$this->plugin_dir = ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH;
 
 		$this->load_composer_dependencies();
+
+		// Feature 038 boot resilience (T011 / SEC-001 / DEC-FAIL-OPEN-NOTICE):
+		// When vendor/autoload_packages.php is absent the PSR-4 autoloader
+		// is not registered, so referencing any plugin-namespaced class
+		// would fatal. Register a self-contained admin notice (closure
+		// uses only WP globals — no $this->, no FQCN under
+		// AcrossAI_Abilities_Manager\…) and short-circuit before
+		// load_dependencies() and load_hooks().
+		if ( $this->vendor_missing ) {
+			add_action(
+				'admin_notices',
+				static function () {
+					if ( ! current_user_can( 'manage_options' ) ) {
+						return;
+					}
+					printf(
+						'<div class="notice notice-error"><p><strong>%s</strong> %s</p></div>',
+						esc_html__( 'AcrossAI Abilities Manager:', 'acrossai-abilities-manager' ),
+						esc_html__( 'The Composer autoloader is missing. Run "composer install" inside the plugin directory to restore functionality.', 'acrossai-abilities-manager' )
+					);
+				}
+			);
+			return;
+		}
 
 		$this->load_dependencies();
 
@@ -205,7 +242,13 @@ final class Main {
 
 		if ( file_exists( $plugin_path . 'vendor/autoload_packages.php' ) ) {
 			require_once $plugin_path . 'vendor/autoload_packages.php';
+			return;
 		}
+
+		// Feature 038 boot resilience: signal __construct() to short-circuit
+		// before load_dependencies() touches the PSR-4 autoloader. Surfaced
+		// to admins via the manage_options-gated admin notice in __construct().
+		$this->vendor_missing = true;
 	}
 
 	/**
@@ -248,7 +291,7 @@ final class Main {
 		 * Add the Plugin Main Menu
 		 */
 		$main_menu = new \AcrossAI_Abilities_Manager\Admin\Partials\Menu( $this->get_plugin_name(), $this->get_version() );
-		$this->loader->add_action( 'admin_menu', $main_menu, 'main_menu' );
+		$this->loader->add_action( 'admin_menu', $main_menu, 'register_submenu' );
 
 		// Library submenu page — second position, immediately after main menu (Feature 027/031).
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
@@ -259,9 +302,15 @@ final class Main {
 		$logs_menu = \AcrossAI_Abilities_Manager\Admin\Partials\LogsMenu::instance();
 		$this->loader->add_action( 'admin_menu', $logs_menu, 'register_submenu' );
 
-		// Settings submenu page (Feature 019).
+		// Settings sections (Feature 019; reparented to host page in Feature 038).
+		// Host page rendering owned by acrossai-co/main-menu — the plugin
+		// only contributes (a) an "Abilities" tab via the
+		// `acrossai_settings_tabs` filter, and (b) three settings sections
+		// targeting the per-tab page slug derived by SettingsPage::tab_page_slug().
+		// option_group stays 'acrossai-settings' (shared across all tabs).
+		// Named variable before Loader call — Boot Flow Rule variable-first pattern (AC-HOOKS-MAIN).
 		$settings_menu = \AcrossAI_Abilities_Manager\Admin\Partials\SettingsMenu::instance();
-		$this->loader->add_action( 'admin_menu', $settings_menu, 'register_submenu' );
+		$this->loader->add_filter( 'acrossai_settings_tabs', $settings_menu, 'register_tab' );
 		$this->loader->add_action( 'admin_init', $settings_menu, 'register_settings' );
 
 		// Add-ons submenu page (Feature 026, updated Feature 030).
@@ -273,7 +322,7 @@ final class Main {
 		if ( class_exists( \AcrossAI_Addon\AddonsPage::class ) ) {
 			try {
 				new \AcrossAI_Addon\AddonsPage(
-					'acrossai-abilities-manager',
+					'acrossai',
 					ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE,
 					array(
 						'fs_product_id' => '31230',

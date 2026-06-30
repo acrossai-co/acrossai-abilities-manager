@@ -30,6 +30,9 @@
 			<file>tests/phpunit/Modules/Library/Test_Ability_Library_Registry.php</file>
 			<file>tests/phpunit/Modules/Library/Test_Ability_Library_Config.php</file>
 		</testsuite>
+		<testsuite name="includes-unit">
+			<file>tests/phpunit/Includes/Test_Boot_Resilience.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>

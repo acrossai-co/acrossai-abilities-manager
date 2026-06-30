@@ -67,12 +67,13 @@ class LibraryMenu {
 	 */
 	public function register_submenu(): void {
 		$suffix = add_submenu_page(
-			'acrossai-abilities-manager',
+			'acrossai',
 			__( 'Ability Library', 'acrossai-abilities-manager' ),
 			__( 'Library', 'acrossai-abilities-manager' ),
 			'manage_options',
 			'acrossai-abilities-library',
-			array( $this, 'render' )
+			array( $this, 'render' ),
+			2
 		);
 
 		$this->hook_suffix = is_string( $suffix ) ? $suffix : '';
