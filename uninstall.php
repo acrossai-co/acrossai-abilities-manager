@@ -28,13 +28,18 @@ if ( $acrossai_delete_data ) {
 	);
 	\delete_option( 'acrossai_abilities_db_version' );
 
-	$acrossai_access_control_table = $wpdb->prefix . 'wpb_access_control';
+	// Per-consumer access-control table (wpb-access-control v2+, Feature 039).
+	// Slug 'abilities' matches AcrossAI_Abilities_Access_Control::TABLE_SLUG — hardcoded here
+	// because uninstall.php runs before the plugin autoloader and cannot reference the constant.
+	// The legacy {prefix}wpb_access_control table and wpb_access_control_db_version option are
+	// intentionally left orphaned on existing installs (no backward-compat migration).
+	$acrossai_access_control_table = $wpdb->prefix . 'abilities_access_control';
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange
 	$wpdb->query(
 		$wpdb->prepare( 'DROP TABLE IF EXISTS %i', $acrossai_access_control_table )
 	);
-	\delete_option( 'wpb_access_control_db_version' );
+	\delete_option( 'wpb_ac_abilities_db_version' );
 
 	// Remove plugin settings options on uninstall.
 	\delete_option( 'acrossai_abilities_log_retention_days' );

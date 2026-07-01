@@ -233,6 +233,10 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | 2026-06-25 | Feature 037: Library `tab_group` field + page-level TabPanel; first per-field closure of PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH; mirror of Feature 033 sub_group | Library/Admin/UI | feature-037, library, tab-group, mirror, args-passthrough-closed | WORKLOG.md |
 | 2026-06-30 | Feature 038: AcrossAI shared menu + tabs + boot resilience; 4 new patterns (admin-notice-self-contained, activation-hook-early-priority, shared-menu-consumer-idempotency, shared-settings-section-scope) + 3 decision scope extensions (DEC-EXTERNAL-PACKAGE-HOOK-CTOR, DEC-STABLE-UPGRADE-WINDOW, DEC-MENU-HOOK-SUFFIX) | Admin/Menu/Boot | feature-038, main-menu, shared-menu, tabs, boot-resilience, settings-api, autoloader, mu-plugin | WORKLOG.md |
 | BUG-ESLINT9-JEST-GLOBALS | `/* eslint-env jest */` silently ignored under ESLint 9 flat config; new test files must use explicit `/* global */` declarations | Testing/ESLint | eslint9, flat-config, jest, globals, no-undef | BUGS.md |
+| PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT | Vendor major-bumps ship JS-side prop/config changes that PHP grep passes miss; audit vendor built bundle + consumer JSX mount points + wp_localize_script every upgrade | Vendor/JS/Upgrade | vendor, react, upstream-upgrade, localize-script, prop-audit, upgrade-checklist | ARCHITECTURE.md |
+| PATTERN-LOCALIZE-KEY-VERSIONED-GUARD | JS consumers of localize keys added in a specific release must guard against undefined; browser HTML cache and fresh JS bundle are versioned independently | Plugin-wide/JS/Deploy | localize-script, browser-cache-skew, defensive-coding, undefined-guard, deploy-hazard | ARCHITECTURE.md |
+| BUG-VENDOR-LIB-JS-URL-SLUG-MISSING | Vendor React component silently 404s + falls back to empty-default UI when a new per-consumer slug arg isn't propagated to JS (Feature 039 wpb-ac v2 pluginSlug prop) | Vendor/JS/REST | vendor, react-prop, wpb-access-control, silent-404, empty-default-state, upstream-upgrade | BUGS.md |
+| 2026-07-01 | Feature 039: wpb-access-control v2 + main-menu absorbs addons-page; 1 new pattern (PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT) + 1 new bug pattern (BUG-VENDOR-LIB-JS-URL-SLUG-MISSING) — planning gap: "no JS changes needed" was wrong, caught post-commit via live-install user feedback | Composer/Vendor/JS | feature-039, wpb-access-control, main-menu, per-consumer-table, addons-page, react-prop, silent-404 | WORKLOG.md |
 
 ## Security Reviews
 
@@ -241,3 +245,5 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | specs/036-library-page-full-width-and-descriptions/security-constraints.md | plan | 2026-06-18 | INFORMATIONAL | C:0 H:0 M:0 L:0 | A03 |
 | specs/038-acrossai-main-menu-integration/security-review-plan.md | plan | 2026-06-30 | MODERATE | C:0 H:0 M:2 L:2 I:3 | A04,A05,A06 |
 | specs/038-acrossai-main-menu-integration/security-review-staged.md | staged | 2026-06-30 | LOW | C:0 H:0 M:0 L:1 I:1 | A06 |
+| specs/039-composer-package-updates/security-review-plan.md | plan | 2026-07-01 | LOW | C:0 H:0 M:0 L:1 I:4 | A01,A04,A05,A09 |
+| specs/039-composer-package-updates/security-review-staged.md | staged | 2026-07-01 | LOW | C:0 H:0 M:0 L:1 I:5 | A04,A05,A06 |

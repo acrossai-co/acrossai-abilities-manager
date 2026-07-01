@@ -259,6 +259,10 @@ class Main {
 				'perPage'                  => (int) get_option( 'acrossai_abilities_per_page', 20 ),
 				// Client rendering gate only — server authorization enforced by wpb-ac/v1 REST endpoints (SEC-018-02).
 				'access_control_available' => \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control::instance()->is_available(),
+				// Per-consumer AC slug (wpb-access-control v2+) — the React <AccessControl> component
+				// needs this to construct REST URLs like /wpb-ac/v1/{slug}/providers and /wpb-ac/v1/{slug}/rules/...
+				// Source of truth: AcrossAI_Abilities_Access_Control::TABLE_SLUG.
+				'access_control_slug'      => \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control::TABLE_SLUG,
 				'protected_slugs'          => \AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Protected_Abilities::get_protected_slugs(),
 			);
 

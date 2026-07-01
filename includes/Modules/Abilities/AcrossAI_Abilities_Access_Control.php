@@ -36,6 +36,17 @@ class AcrossAI_Abilities_Access_Control {
 	const PROVIDERS_FILTER = 'acrossai_abilities_access_control_providers';
 
 	/**
+	 * Per-consumer table slug (wpb-access-control v2+).
+	 *
+	 * Drives: `{prefix}abilities_access_control` table, `wpb_ac_abilities_db_version`
+	 * schema option, `wpb_ac_abilities` cache group, `/wpb-ac/v1/abilities/...` REST namespace.
+	 * Must match `^[a-z0-9_]{1,32}$` (validated upstream at construction time).
+	 *
+	 * @var string
+	 */
+	const TABLE_SLUG = 'abilities';
+
+	/**
 	 * Access-control manager instance.
 	 *
 	 * @var AccessControlManager|null
@@ -71,7 +82,7 @@ class AcrossAI_Abilities_Access_Control {
 			return;
 		}
 
-		$this->manager = new AccessControlManager( self::PROVIDERS_FILTER );
+		$this->manager = new AccessControlManager( self::PROVIDERS_FILTER, self::TABLE_SLUG );
 	}
 
 	/**

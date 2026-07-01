@@ -1218,3 +1218,82 @@ this convention and the host page becomes visually chaotic.
   'acrossai-settings' slug are not rendered — migrate them under a tab"* — confirms the
   tabbed-mode preference.
 - Feature 038 tasks.md T032 candidate (d).
+
+---
+
+### 2026-07-01 — PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT
+
+**Why durable**
+When a vendor PHP library ships with a bundled React (or other JS) component that consumers embed, an upgrade that adds a new PHP constructor arg often mirrors the change with a matching JS prop or `wpbAcConfig`-style global. PHP-only planning misses this because:
+- PHP grep (`grep 'new ClassName(' ...`) finds the constructor call sites but not the React `<Component ... />` mount points.
+- Composer's autoloader silently picks the newest vendor across all installed plugins, so the wrong JS bundle version is masked as "works on my machine" until a live install exercises the new REST route shape.
+- The built vendor JS is opaque — grep hits are minified variable names, not readable prop names.
+
+The audit protocol below turns this from "surprise post-deploy" into a plan-time checklist item.
+
+**Canonical audit steps (per vendor-library major-bump)**
+1. **Read the vendor's README for the new version** — look for any React config example (`wp_localize_script(..., 'wpbAcConfig', [...])`) or component prop signature (`<Component prop1=... prop2=... />`). New keys are the smoking gun.
+2. **Grep the built bundle for the new identifier** — `grep -oE '<new-key>|<new-prop>' vendor/<pkg>/assets/build/*.js`. Even minified, the identifier survives as a property access.
+3. **Grep the consumer plugin's JSX for existing component mount points** — `grep -rn '<VendorComponent' src/`. Every hit must be audited for the new prop.
+4. **Grep the consumer plugin's `wp_localize_script` calls** — any `wpbAcConfig`-shaped array needs the new key added. Source the value from a single PHP constant so PHP + JS stay in sync (Constitution §VI DRY).
+5. **Rebuild the JS bundle** (`npm run build`) and verify the built JS contains the new key/prop by grepping the output.
+
+**Evidence**
+- **Feature 039 (this feature)** — introduced the bug (planned "no JS changes needed"), then fixed as a follow-up. Vendor: `wpboilerplate/wpb-access-control` v1→v2. Missed prop: `pluginSlug`. Missed URL segment: `/wpb-ac/v1/{slug}/...`. See `BUG-VENDOR-LIB-JS-URL-SLUG-MISSING` (BUGS.md, 2026-07-01).
+- **Feature 036** — `wpb-access-control 1.2.1→1.6.0` bump; JS bundle path stayed the same → no consumer-side JS changes needed. This is why the "PHP-only" heuristic felt safe until v2.
+
+**Applies to**
+Any vendor Composer library that ships a `wp-scripts`-built bundle and is consumed by an in-plugin React tree. Especially high-risk on `major` version bumps of libraries that expose a `wp_localize_script`-style config object.
+
+**Tags**: vendor, react, upstream-upgrade, localize-script, wpbAcConfig, prop-audit, upgrade-checklist, phase-1-research
+
+---
+
+### 2026-07-01 — PATTERN-LOCALIZE-KEY-VERSIONED-GUARD
+
+**Why durable**
+`wp_localize_script` and `wp_add_inline_script('before')` inject data into a JS
+global whose shape evolves independently of the JS bundle. When a new plugin
+release adds a NEW key to that data (e.g. Feature 039 added
+`access_control_slug`), the following cache-skew scenario becomes possible:
+
+1. Admin loads WP-Admin page → HTML cached in browser with pre-release localize
+   data (missing the new key).
+2. Plugin deploys the new release → JS bundle version bumps, browser fetches
+   the new JS.
+3. Browser back-navigates or serves stale HTML → JS reads
+   `window.acrossaiAbilitiesManager.new_key` → `undefined`.
+
+If the JS uses that value in a template literal (e.g. `` `.../${config.new_key}/...` ``),
+the URL becomes `.../undefined/...` → typically 404 → `apiFetch(...).catch(()=>{})`
+swallows the error → user sees "plausibly working but empty" UI with no on-screen
+error. This is exactly the failure mode captured in
+`BUG-VENDOR-LIB-JS-URL-SLUG-MISSING`.
+
+Prevention: for every NEW localize key introduced by a release, every JS
+consumer must guard the key with a truthiness check before interpolation.
+Existing keys stable across releases don't need guards (they're contract).
+
+**Canonical implementations**
+- **Save-path guard** (early return): `src/js/abilities/components/AbilityForm.jsx:545-555` —
+  extends the AC-save gate condition with `&& abilitiesConfig.access_control_slug`.
+  Silently skip the sub-operation; the parent operation already succeeded.
+- **Render guard** (conditional mount): `src/js/abilities/components/AbilityForm.jsx:1489-1497` —
+  extends the mount JSX condition with `&& abilitiesConfig.access_control_slug`.
+  Component doesn't mount; degraded-mode fallback (empty/hidden section) is
+  automatically what the user sees.
+
+**Evidence**
+- Feature 039 commit `2a6d8c5` shipped the new `access_control_slug` localize key
+  and its two JS consumers without guards.
+- User feedback ("I am not see the whole value 5") surfaced
+  `BUG-VENDOR-LIB-JS-URL-SLUG-MISSING` at runtime.
+- Commit `b82fd39` added the two guards described above, closing SEC-006 from
+  `specs/039-composer-package-updates/security-review-staged.md`.
+
+**Applies to**
+Every new localize key introduced by a release. Refactoring an existing key
+(rename, reshape) is a breaking change requiring a bundle-version bump and
+does NOT need a guard — it needs a compat shim, which is a different pattern.
+
+**Tags**: localize-script, wp_add_inline_script, browser-cache-skew, defensive-coding, release-versioning, jsx-conditional, undefined-guard, deploy-hazard

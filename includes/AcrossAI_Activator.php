@@ -10,6 +10,7 @@
 namespace AcrossAI_Abilities_Manager\Includes;
 
 use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Table;
+use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control;
 use AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database\AcrossAI_Ability_Logs_Table;
 use WPBoilerplate\AccessControl\Database\Rule\RuleTable;
 
@@ -32,7 +33,7 @@ class AcrossAI_Activator {
 	 * Run activation tasks.
 	 *
 	 * Creates or upgrades the {prefix}acrossai_abilities,
-	 * {prefix}acrossai_ability_logs, and {prefix}wpb_access_control tables.
+	 * {prefix}acrossai_ability_logs, and {prefix}abilities_access_control tables.
 	 *
 	 * @since  0.0.1
 	 * @return void
@@ -40,6 +41,6 @@ class AcrossAI_Activator {
 	public static function activate(): void {
 		( new AcrossAI_Abilities_Table() )->maybe_upgrade();
 		( new AcrossAI_Ability_Logs_Table() )->maybe_upgrade();
-		( new RuleTable() )->maybe_upgrade();
+		( new RuleTable( AcrossAI_Abilities_Access_Control::TABLE_SLUG ) )->maybe_upgrade();
 	}
 }
