@@ -543,7 +543,7 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 			// Save AC state as part of the single save (T026).
 			// Only runs in edit/override mode — no slug exists in create mode (FR-014).
 			if (!isCreate && savedAbility?.ability_slug && acState !== null) {
-				const acUrl = `${abilitiesConfig.rest_url}/wpb-ac/v1/rules/acrossai-abilities/${savedAbility.ability_slug}`;
+				const acUrl = `${abilitiesConfig.rest_url}/wpb-ac/v1/${abilitiesConfig.access_control_slug}/rules/acrossai-abilities/${savedAbility.ability_slug}`;
 				let acSaveOk = false;
 				try {
 					if (acState.key === '') {
@@ -1490,6 +1490,9 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 								savedAbility?.ability_slug &&
 								abilitiesConfig.access_control_available && (
 									<AccessControl
+										pluginSlug={
+											abilitiesConfig.access_control_slug
+										}
 										namespace="acrossai-abilities"
 										resourceKey={savedAbility.ability_slug}
 										restApiRoot={

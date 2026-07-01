@@ -1218,3 +1218,31 @@ this convention and the host page becomes visually chaotic.
   'acrossai-settings' slug are not rendered — migrate them under a tab"* — confirms the
   tabbed-mode preference.
 - Feature 038 tasks.md T032 candidate (d).
+
+---
+
+### 2026-07-01 — PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT
+
+**Why durable**
+When a vendor PHP library ships with a bundled React (or other JS) component that consumers embed, an upgrade that adds a new PHP constructor arg often mirrors the change with a matching JS prop or `wpbAcConfig`-style global. PHP-only planning misses this because:
+- PHP grep (`grep 'new ClassName(' ...`) finds the constructor call sites but not the React `<Component ... />` mount points.
+- Composer's autoloader silently picks the newest vendor across all installed plugins, so the wrong JS bundle version is masked as "works on my machine" until a live install exercises the new REST route shape.
+- The built vendor JS is opaque — grep hits are minified variable names, not readable prop names.
+
+The audit protocol below turns this from "surprise post-deploy" into a plan-time checklist item.
+
+**Canonical audit steps (per vendor-library major-bump)**
+1. **Read the vendor's README for the new version** — look for any React config example (`wp_localize_script(..., 'wpbAcConfig', [...])`) or component prop signature (`<Component prop1=... prop2=... />`). New keys are the smoking gun.
+2. **Grep the built bundle for the new identifier** — `grep -oE '<new-key>|<new-prop>' vendor/<pkg>/assets/build/*.js`. Even minified, the identifier survives as a property access.
+3. **Grep the consumer plugin's JSX for existing component mount points** — `grep -rn '<VendorComponent' src/`. Every hit must be audited for the new prop.
+4. **Grep the consumer plugin's `wp_localize_script` calls** — any `wpbAcConfig`-shaped array needs the new key added. Source the value from a single PHP constant so PHP + JS stay in sync (Constitution §VI DRY).
+5. **Rebuild the JS bundle** (`npm run build`) and verify the built JS contains the new key/prop by grepping the output.
+
+**Evidence**
+- **Feature 039 (this feature)** — introduced the bug (planned "no JS changes needed"), then fixed as a follow-up. Vendor: `wpboilerplate/wpb-access-control` v1→v2. Missed prop: `pluginSlug`. Missed URL segment: `/wpb-ac/v1/{slug}/...`. See `BUG-VENDOR-LIB-JS-URL-SLUG-MISSING` (BUGS.md, 2026-07-01).
+- **Feature 036** — `wpb-access-control 1.2.1→1.6.0` bump; JS bundle path stayed the same → no consumer-side JS changes needed. This is why the "PHP-only" heuristic felt safe until v2.
+
+**Applies to**
+Any vendor Composer library that ships a `wp-scripts`-built bundle and is consumed by an in-plugin React tree. Especially high-risk on `major` version bumps of libraries that expose a `wp_localize_script`-style config object.
+
+**Tags**: vendor, react, upstream-upgrade, localize-script, wpbAcConfig, prop-audit, upgrade-checklist, phase-1-research

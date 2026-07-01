@@ -1602,3 +1602,24 @@ the narrower per-keyword-removal case where most module structure is preserved.
 **Repo evidence**: Feature 037 added 4 new test files under `tests/jest/ability-library/` (`collectTabGroups.test.js`, `filterItemsByTabGroup.test.js`, `titleCaseTabLabel.test.js`, `LibraryPage.test.js`); all use `/* global jest, describe, test, expect */`. Pre-existing files in the same directory still lack the declaration and fail lint with ~125 errors each (pre-existing baseline, not introduced by Feature 037).
 
 **Tags**: eslint, eslint9, flat-config, jest, env, globals, no-undef, tests
+
+---
+
+### 2026-07-01 — Vendor React component silently 404s when a new per-consumer slug arg isn't propagated to JS
+
+**Status**: Active
+
+**Pattern**: When a vendor PHP library adds a per-consumer identifier arg (e.g. `wpb-access-control` v2's `$table_slug` on `AccessControlManager`), its bundled React component almost always mirrors the change with a matching prop (e.g. `pluginSlug`) that gets interpolated into REST URLs. If the consumer plugin updates only the PHP call sites, the React component receives `undefined` for the new prop → URL becomes `/wpb-ac/v1/undefined/providers` → 404. `apiFetch(...).catch(() => {})` swallows the error and the component falls back to its empty-data default state, producing a **plausibly-working-but-empty UI** (e.g. dropdown showing only 2 hardcoded fallback options).
+
+**Symptoms observed in Feature 039**: After bumping `wpb-access-control ^1.6.0 → ^2.0.0`, the per-ability Access Control panel rendered but the "Who can access" dropdown showed only "No user access added by admin" and "Everyone (no restriction)". No console errors visible without opening DevTools Network tab. User feedback: "I am not see the whole value 5" (missing the 5 static WP role options).
+
+**Workaround / Fix**: Localize the slug from PHP to JS (single source of truth), pass it to the component prop, and use it in any consumer-side manual URL construction.
+- `admin/Main.php` localize_script: add `'access_control_slug' => AcrossAI_Abilities_Access_Control::TABLE_SLUG`
+- `AbilityForm.jsx` `<AccessControl>` mount: add `pluginSlug={abilitiesConfig.access_control_slug}` prop
+- `AbilityForm.jsx` save URL: interpolate `${abilitiesConfig.access_control_slug}` into the `/wpb-ac/v1/{slug}/rules/...` path
+
+**Prevention**: When a `/speckit-plan` mentions "no JS bundle changes" for a vendor-library upgrade, that claim requires **explicit verification against the vendor's built bundle** — grep the vendor's `assets/build/*.js` for any new prop, config key, or URL segment introduced by the version bump. `PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT` in ARCHITECTURE.md captures the audit protocol. Feature 039's plan explicitly stated "The JS-side localization `wpbAcConfig.namespace` value doesn't need to change" — that was wrong; the new `pluginSlug` prop was missed because the audit stopped at PHP.
+
+**Repo evidence**: Feature 039 commit `454f287` shipped the bug; follow-up commit fixes `admin/Main.php`, `src/js/abilities/components/AbilityForm.jsx`, `build/js/abilities.js`. SEC-review + arch-review both PASSED without catching this because both were scoped to PHP surfaces.
+
+**Tags**: vendor, upstream-upgrade, js-consumer, react-prop, localize-script, wpb-access-control, silent-404, empty-default-state
