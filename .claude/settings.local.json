@@ -205,7 +205,13 @@
       "Bash(ls docs/memory/)",
       "Bash(export CLAUDE_CODE_TMPDIR=/tmp/claude-work)",
       "Bash(mkdir -p /tmp/claude-work)",
-      "mcp__agents__deepwiki__ask_question"
+      "mcp__agents__deepwiki__ask_question",
+      "Bash(gh release *)",
+      "Bash(.specify/scripts/bash/setup-plan.sh *)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(composer --version)",
+      "Bash(echo \"\\(exit code $? — empty=clean\\)\")",
+      "Bash(echo \"---exit=$?---\")"
     ]
   }
 }
