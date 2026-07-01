@@ -542,7 +542,16 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 
 			// Save AC state as part of the single save (T026).
 			// Only runs in edit/override mode — no slug exists in create mode (FR-014).
-			if (!isCreate && savedAbility?.ability_slug && acState !== null) {
+			// SEC-006 hardening: guard against `access_control_slug` being undefined
+			// (stale browser cache serving pre-Feature 039 HTML) — silently skip the AC
+			// save rather than issuing a request to /wpb-ac/v1/undefined/... The ability
+			// save itself has already succeeded above; RT-AR-001 allows retry.
+			if (
+				!isCreate &&
+				savedAbility?.ability_slug &&
+				acState !== null &&
+				abilitiesConfig.access_control_slug
+			) {
 				const acUrl = `${abilitiesConfig.rest_url}/wpb-ac/v1/${abilitiesConfig.access_control_slug}/rules/acrossai-abilities/${savedAbility.ability_slug}`;
 				let acSaveOk = false;
 				try {
@@ -1486,9 +1495,13 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 									</p>
 								)}
 
+							{/* SEC-006 hardening: require access_control_slug to be present
+							     (stale browser cache guard) before mounting the vendor component,
+							     otherwise <AccessControl> would fetch /wpb-ac/v1/undefined/... */}
 							{!isCreate &&
 								savedAbility?.ability_slug &&
-								abilitiesConfig.access_control_available && (
+								abilitiesConfig.access_control_available &&
+								abilitiesConfig.access_control_slug && (
 									<AccessControl
 										pluginSlug={
 											abilitiesConfig.access_control_slug
