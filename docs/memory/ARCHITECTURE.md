@@ -1246,3 +1246,54 @@ The audit protocol below turns this from "surprise post-deploy" into a plan-time
 Any vendor Composer library that ships a `wp-scripts`-built bundle and is consumed by an in-plugin React tree. Especially high-risk on `major` version bumps of libraries that expose a `wp_localize_script`-style config object.
 
 **Tags**: vendor, react, upstream-upgrade, localize-script, wpbAcConfig, prop-audit, upgrade-checklist, phase-1-research
+
+---
+
+### 2026-07-01 — PATTERN-LOCALIZE-KEY-VERSIONED-GUARD
+
+**Why durable**
+`wp_localize_script` and `wp_add_inline_script('before')` inject data into a JS
+global whose shape evolves independently of the JS bundle. When a new plugin
+release adds a NEW key to that data (e.g. Feature 039 added
+`access_control_slug`), the following cache-skew scenario becomes possible:
+
+1. Admin loads WP-Admin page → HTML cached in browser with pre-release localize
+   data (missing the new key).
+2. Plugin deploys the new release → JS bundle version bumps, browser fetches
+   the new JS.
+3. Browser back-navigates or serves stale HTML → JS reads
+   `window.acrossaiAbilitiesManager.new_key` → `undefined`.
+
+If the JS uses that value in a template literal (e.g. `` `.../${config.new_key}/...` ``),
+the URL becomes `.../undefined/...` → typically 404 → `apiFetch(...).catch(()=>{})`
+swallows the error → user sees "plausibly working but empty" UI with no on-screen
+error. This is exactly the failure mode captured in
+`BUG-VENDOR-LIB-JS-URL-SLUG-MISSING`.
+
+Prevention: for every NEW localize key introduced by a release, every JS
+consumer must guard the key with a truthiness check before interpolation.
+Existing keys stable across releases don't need guards (they're contract).
+
+**Canonical implementations**
+- **Save-path guard** (early return): `src/js/abilities/components/AbilityForm.jsx:545-555` —
+  extends the AC-save gate condition with `&& abilitiesConfig.access_control_slug`.
+  Silently skip the sub-operation; the parent operation already succeeded.
+- **Render guard** (conditional mount): `src/js/abilities/components/AbilityForm.jsx:1489-1497` —
+  extends the mount JSX condition with `&& abilitiesConfig.access_control_slug`.
+  Component doesn't mount; degraded-mode fallback (empty/hidden section) is
+  automatically what the user sees.
+
+**Evidence**
+- Feature 039 commit `2a6d8c5` shipped the new `access_control_slug` localize key
+  and its two JS consumers without guards.
+- User feedback ("I am not see the whole value 5") surfaced
+  `BUG-VENDOR-LIB-JS-URL-SLUG-MISSING` at runtime.
+- Commit `b82fd39` added the two guards described above, closing SEC-006 from
+  `specs/039-composer-package-updates/security-review-staged.md`.
+
+**Applies to**
+Every new localize key introduced by a release. Refactoring an existing key
+(rename, reshape) is a breaking change requiring a bundle-version bump and
+does NOT need a guard — it needs a compat shim, which is a different pattern.
+
+**Tags**: localize-script, wp_add_inline_script, browser-cache-skew, defensive-coding, release-versioning, jsx-conditional, undefined-guard, deploy-hazard
