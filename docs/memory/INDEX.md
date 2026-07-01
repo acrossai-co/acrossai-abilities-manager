@@ -241,3 +241,4 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | specs/036-library-page-full-width-and-descriptions/security-constraints.md | plan | 2026-06-18 | INFORMATIONAL | C:0 H:0 M:0 L:0 | A03 |
 | specs/038-acrossai-main-menu-integration/security-review-plan.md | plan | 2026-06-30 | MODERATE | C:0 H:0 M:2 L:2 I:3 | A04,A05,A06 |
 | specs/038-acrossai-main-menu-integration/security-review-staged.md | staged | 2026-06-30 | LOW | C:0 H:0 M:0 L:1 I:1 | A06 |
+| specs/039-composer-package-updates/security-review-plan.md | plan | 2026-07-01 | LOW | C:0 H:0 M:0 L:1 I:4 | A01,A04,A05,A09 |

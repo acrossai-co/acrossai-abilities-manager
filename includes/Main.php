@@ -313,8 +313,10 @@ final class Main {
 		$this->loader->add_filter( 'acrossai_settings_tabs', $settings_menu, 'register_tab' );
 		$this->loader->add_action( 'admin_init', $settings_menu, 'register_settings' );
 
-		// Add-ons submenu page (Feature 026, updated Feature 030).
-		// Package rebranded: wpboilerplate/addons-page → acrossai-co/addons-page (AcrossAI_Addon\AddonsPage).
+		// Add-ons submenu page (Feature 026, updated Feature 030, moved Feature 039).
+		// Package migration: acrossai-co/addons-page → acrossai-co/main-menu (AddonsPage now bundled).
+		// Class name AcrossAI_Addon\AddonsPage preserved upstream to keep consumer call sites stable.
+		// Constructor signature (v0.0.8+): (?string $consumer_main_file, array $args, string $parent_slug='acrossai').
 		// The AddonsPage constructor self-registers all WordPress hooks — no Loader wiring needed.
 		// Accepted deviation from Boot Flow Rule: external package API does not expose individual hook methods.
 		// Guarded per Constitution §V Integration Resilience: fails gracefully when vendor is absent.
@@ -322,7 +324,6 @@ final class Main {
 		if ( class_exists( \AcrossAI_Addon\AddonsPage::class ) ) {
 			try {
 				new \AcrossAI_Addon\AddonsPage(
-					'acrossai',
 					ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE,
 					array(
 						'fs_product_id' => '31230',

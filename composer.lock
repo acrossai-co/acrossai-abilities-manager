@@ -4,73 +4,25 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ef83a8cba2d32ebec73d8b941ff1689a",
+    "content-hash": "0840ceb393f6f27ce5e929d5128b3d18",
     "packages": [
         {
-            "name": "acrossai-co/addons-page",
-            "version": "v0.0.19",
+            "name": "acrossai-co/main-menu",
+            "version": "0.0.8",
             "source": {
                 "type": "git",
-                "url": "https://github.com/acrossai-co/addons-page.git",
-                "reference": "a31780816ca9123478e92797a9e49abee803cb75"
+                "url": "https://github.com/acrossai-co/main-menu.git",
+                "reference": "00bc54a54aa80fb76a7604a0b2db4404c5d9de16"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/acrossai-co/addons-page/zipball/a31780816ca9123478e92797a9e49abee803cb75",
-                "reference": "a31780816ca9123478e92797a9e49abee803cb75",
+                "url": "https://api.github.com/repos/acrossai-co/main-menu/zipball/00bc54a54aa80fb76a7604a0b2db4404c5d9de16",
+                "reference": "00bc54a54aa80fb76a7604a0b2db4404c5d9de16",
                 "shasum": ""
             },
             "require": {
                 "automattic/jetpack-autoloader": "^5.0",
                 "freemius/wordpress-sdk": "^2.0",
-                "php": ">=8.1"
-            },
-            "require-dev": {
-                "brain/monkey": "^2.6",
-                "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
-                "doctrine/instantiator": "^1.5.0",
-                "phpcompatibility/phpcompatibility-wp": "*",
-                "phpunit/phpunit": "^9.6",
-                "szepeviktor/phpstan-wordpress": "^2.0",
-                "wp-coding-standards/wpcs": "*"
-            },
-            "type": "library",
-            "extra": {
-                "wp-requires": "6.0",
-                "autoloader-suffix": "AcrossAI_Addon"
-            },
-            "autoload": {
-                "psr-4": {
-                    "AcrossAI_Addon\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "description": "Reusable WordPress Add-ons page with free and paid add-ons support via Freemius.",
-            "support": {
-                "issues": "https://github.com/acrossai-co/addons-page/issues",
-                "source": "https://github.com/acrossai-co/addons-page/tree/v0.0.19"
-            },
-            "time": "2026-06-11T04:18:17+00:00"
-        },
-        {
-            "name": "acrossai-co/main-menu",
-            "version": "0.0.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/acrossai-co/main-menu.git",
-                "reference": "a2c02cf178dd8bf44e1416ceaad00dcb5b279fe3"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/acrossai-co/main-menu/zipball/a2c02cf178dd8bf44e1416ceaad00dcb5b279fe3",
-                "reference": "a2c02cf178dd8bf44e1416ceaad00dcb5b279fe3",
-                "shasum": ""
-            },
-            "require": {
-                "automattic/jetpack-autoloader": "^5.0",
                 "php": ">=8.1"
             },
             "type": "library",
@@ -80,6 +32,7 @@
             },
             "autoload": {
                 "psr-4": {
+                    "AcrossAI_Addon\\": "src/Addons/",
                     "AcrossAI_Main_Menu\\": "src/"
                 }
             },
@@ -87,12 +40,12 @@
             "license": [
                 "GPL-2.0-or-later"
             ],
-            "description": "AcrossAI Admin Dashboard parent menu and shared Settings page with SlotFill extension points.",
+            "description": "AcrossAI Admin Dashboard — parent menu, shared Settings page (Settings API), manager submenu slots, and an Add-ons page with Freemius integration.",
             "support": {
                 "issues": "https://github.com/acrossai-co/main-menu/issues",
-                "source": "https://github.com/acrossai-co/main-menu/tree/0.0.4"
+                "source": "https://github.com/acrossai-co/main-menu/tree/0.0.8"
             },
-            "time": "2026-06-30T15:06:06+00:00"
+            "time": "2026-07-01T07:01:09+00:00"
         },
         {
             "name": "automattic/jetpack-autoloader",
@@ -269,16 +222,16 @@
         },
         {
             "name": "wpboilerplate/wpb-access-control",
-            "version": "v1.6.0",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WPBoilerplate/wpb-access-control.git",
-                "reference": "29705aae974eee168a2da4e788516be545b66b32"
+                "reference": "4f0e94eef7c899c5155ea9351364d3efeeecb443"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WPBoilerplate/wpb-access-control/zipball/29705aae974eee168a2da4e788516be545b66b32",
-                "reference": "29705aae974eee168a2da4e788516be545b66b32",
+                "url": "https://api.github.com/repos/WPBoilerplate/wpb-access-control/zipball/4f0e94eef7c899c5155ea9351364d3efeeecb443",
+                "reference": "4f0e94eef7c899c5155ea9351364d3efeeecb443",
                 "shasum": ""
             },
             "require": {
@@ -346,7 +299,7 @@
                 "issues": "https://github.com/WPBoilerplate/wpb-access-control/issues",
                 "source": "https://github.com/WPBoilerplate/wpb-access-control"
             },
-            "time": "2026-06-17T18:17:31+00:00"
+            "time": "2026-06-30T18:42:47+00:00"
         }
     ],
     "packages-dev": [
