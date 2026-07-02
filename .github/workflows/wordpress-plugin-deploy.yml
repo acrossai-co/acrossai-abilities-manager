@@ -9,6 +9,16 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.1'
+                  tools: composer:v2
+                  coverage: none
+            - name: Install Composer dependencies (production only)
+              run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+            - name: Verify Composer autoloader was generated
+              run: test -f vendor/autoload_packages.php || { echo "::error::vendor/autoload_packages.php missing after composer install"; exit 1; }
             - name: Fix git safe directory
               run: git config --global --add safe.directory /github/workspace
             - name: WordPress Plugin Deploy
