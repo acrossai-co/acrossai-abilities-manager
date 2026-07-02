@@ -1,5 +1,16 @@
 <!--
 SYNC IMPACT REPORT
+Version change: 1.4.7 → 1.4.8
+Modified sections: §I Modular Architecture — enumeration corrected from six active feature areas to five (Ability Execution Logging removed); Directory Layout — `Logger/` submodule removed; Namespace Rule examples updated to use surviving module paths
+Rationale: Feature 040 (2026-07-01) removes the ability-execution Logger module in its entirety (Feature 006's establishing feature). No same-plugin replacement is provided; logging moves to a future companion plugin. The Constitution's §I explicit enumeration of six feature areas + the Directory Layout's `Logger/` entry became factually incorrect the moment the module was deleted. PATCH bump per §Governance ("clarifications, wording fixes, or non-semantic refinements") — no principle was added, removed, or materially changed. Enumeration correction only.
+Templates reviewed:
+  - .specify/templates/plan-template.md ✅ reviewed — no outdated references
+  - .specify/templates/spec-template.md ✅ reviewed — no outdated references
+  - .specify/templates/tasks-template.md ✅ reviewed — no outdated references
+  - .specify/templates/checklist-template.md ✅ reviewed — no outdated references
+Deferred TODOs: None
+
+SYNC IMPACT REPORT
 Version change: 1.4.6 → 1.4.7
 Modified sections: §Integration Resilience — RETRACTED the "MCP server listing MUST use the `wpboilerplate/wpb-mcp-servers-list` Composer package" canonical-pattern paragraph (added v1.4.1)
 Rationale: Feature 034 (2026-06-14) removes the `wpboilerplate/wpb-mcp-servers-list ^0.0.1` Composer dependency in its entirety, deletes the Allowed Servers UI it fed, and replaces the per-ability `mcp_servers` allowlist with an MCP-agnostic 5-hook extension surface. The abilities plugin no longer owns MCP-server enumeration; any plugin needing that (e.g., the future `acrossai-mcp-manager`) chooses its own mechanism. The v1.4.1 mandate becomes invalid because the wiring point it described no longer exists. PATCH bump — retraction of a sub-bullet under an existing principle; no principle itself was changed or removed.
@@ -101,9 +112,9 @@ Shared logic MUST be extracted to `includes/Utilities/`.
 No code duplication between modules is permitted under any circumstance.
 
 **Rationale**: Enables parallel development, isolated testing, and safe iteration on any single feature
-without risking regressions in others. The six active feature areas (Per-User Access
-Control, MCP Server Management, Custom Ability Registration, WebMCP Integration, Ability Execution Logging, AbilityAPI Registration Management) MUST each map to
-exactly one module. Ability override management is part of the `Abilities` module (Feature 012).
+without risking regressions in others. The five active feature areas (Per-User Access
+Control, MCP Server Management, Custom Ability Registration, WebMCP Integration, AbilityAPI Registration Management) MUST each map to
+exactly one module. Ability override management is part of the `Abilities` module (Feature 012). Ability execution logging was removed in Feature 040 (2026-07-01); logging moves to a future companion plugin.
 
 ### II. WordPress Standards Compliance
 All PHP code MUST conform to WordPress Coding Standards (WPCS strict profile).
@@ -238,7 +249,6 @@ includes/
     ├── PerUser/
     ├── McpServer/
     ├── Abilities/
-    ├── Logger/
     ├── Webmcp/
     └── AbilityAPI/
 src/
@@ -251,10 +261,10 @@ tests/
 
 **PHP Namespace Rule**: Every PHP class MUST use a namespace that mirrors its directory path under the plugin root, using `AcrossAI_Abilities_Manager` as the root and `\` as the separator. Examples:
 - `includes/Main.php` → `AcrossAI_Abilities_Manager\Includes`
-- `includes/Modules/Logger/AcrossAI_Ability_Logger.php` → `AcrossAI_Abilities_Manager\Includes\Modules\Logger`
-- `includes/Modules/Logger/Database/AcrossAI_Ability_Logs_Query.php` → `AcrossAI_Abilities_Manager\Includes\Modules\Logger\Database`
-- `includes/Modules/Logger/Rest/AcrossAI_Logger_Controller.php` → `AcrossAI_Abilities_Manager\Includes\Modules\Logger\Rest`
-- `includes/Utilities/AcrossAI_Logger_Formatter.php` → `AcrossAI_Abilities_Manager\Includes\Utilities`
+- `includes/Modules/Abilities/AcrossAI_Abilities_Access_Control.php` → `AcrossAI_Abilities_Manager\Includes\Modules\Abilities`
+- `includes/Modules/Abilities/Database/AcrossAI_Abilities_Table.php` → `AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database`
+- `includes/Modules/AbilityAPI/AcrossAI_Ability_API_Config.php` → `AcrossAI_Abilities_Manager\Includes\Modules\AbilityAPI`
+- `includes/Utilities/AcrossAI_Sanitizer.php` → `AcrossAI_Abilities_Manager\Includes\Utilities`
 - `admin/Partials/Menu.php` → `AcrossAI_Abilities_Manager\Admin\Partials`
 Never invent short namespaces like `AcrossAI\Abilities\Logger` — always derive from the full path.
 
@@ -361,4 +371,4 @@ constitution. Any implementation that appears to violate a principle MUST either
 include documented justification in the feature plan explaining why a compliant approach was not
 feasible.
 
-**Version**: 1.4.5 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-06-06
+**Version**: 1.4.8 | **Ratified**: 2026-05-11 | **Last Amended**: 2026-07-01

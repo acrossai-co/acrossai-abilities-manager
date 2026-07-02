@@ -13,9 +13,9 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | DEC-FAIL-OPEN-NOTICE | Fail-open library absence must pair with manage_options admin notice | Plugin-wide | fail-open, admin-notice, library | Active | DECISIONS.md |
 | DEC-PROTECTED-SLUGS-PATTERN | Centralized exclusion utility with filter extensibility | REST/Utilities | filtering, REST-API, extensibility | Active | DECISIONS.md |
 | DEC-EARLY-404-REST-CHECK | Early 404 checks before database lookups in REST controllers | REST | access-control, fail-fast, security | Active | DECISIONS.md |
-| DEC-HOOK-PARAM-EXTRACTION | Hook object parameter extraction via method_exists check | Logger | hook-adaption, objects, defensive | Active | DECISIONS.md |
-| DEC-DURATION-CALC-TIMESTAMPS | Duration calculation from start_time/end_time timestamps | Logger | timing, microtime, measurement | Active | DECISIONS.md |
-| DEC-VARIADIC-CALLBACK-WRAP | Variadic callback wrapping for forwards-compatible permission callbacks | Logger | callbacks, forwards-compatibility, wrapping | Active | DECISIONS.md |
+| DEC-HOOK-PARAM-EXTRACTION | Hook object parameter extraction via method_exists check | Logger | hook-adaption, objects, defensive | Superseded (Feature 040) | DECISIONS.md |
+| DEC-DURATION-CALC-TIMESTAMPS | Duration calculation from start_time/end_time timestamps | Logger | timing, microtime, measurement | Superseded (Feature 040) | DECISIONS.md |
+| DEC-VARIADIC-CALLBACK-WRAP | Variadic callback wrapping for forwards-compatible permission callbacks | Logger | callbacks, forwards-compatibility, wrapping | Superseded (Feature 040) | DECISIONS.md |
 | DEC-NAMESPACE-CONVENTION | Project uses AcrossAI_Abilities_Manager\Includes\* underscore convention | Plugin-wide | namespace, PSR-4, pattern | Active | DECISIONS.md |
 | DEC-UTILITY-STATIC-ONLY | Utility classes are 100% static; only orchestrators use singleton | Plugin-wide | utilities, singleton, stateless | Active | DECISIONS.md |
 | DEC-USE-STATEMENT-CONSISTENCY | All use statements must match underscore convention | Plugin-wide | imports, namespace, pr-review | Active | DECISIONS.md |
@@ -69,6 +69,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-CHECKBOX-SANITIZE | Checkbox sanitize_callback: absent→0, present→1; named public method, not closure | Admin/Settings | checkbox, sanitize, settings-api, absent-field | ARCHITECTURE.md |
 | PATTERN-UNINSTALL-DATA-GATE | uninstall.php wraps DROP TABLE in opt-in delete-data gate; config options always removed | Plugin-wide | uninstall, data-gate, destructive, default-safe | ARCHITECTURE.md |
 | PATTERN-LOGGER-OPTION-FEED-FILTER | Module reads option → feeds apply_filters() default; schedule guard short-circuits at 0 | Logger | logger, option, filter, retention, schedule | ARCHITECTURE.md |
+| PATTERN-GREP-AUDIT-VS-MANDATED-STRINGS | Full-repo "zero refs to X" audit must exclude files where FR-N mandates X; audit pattern ⊂ ¬mandate_pattern | Plugin-wide/Spec-authoring | grep-audit, spec-authoring, self-contradiction, removal-feature | ARCHITECTURE.md |
 
 ## Bug Patterns
 | ID | Pattern | Affected Area | Tags | Source |
@@ -116,7 +117,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | DEC-ACINITIAL-REF-BASELINE | acInitialRef.current set on first onChange (initial data load), not on mount | Abilities/React | ac, dirty-tracking, useRef, onChange, baseline | DECISIONS.md |
 | DEC-REVALIDATE-SECURITY-POST-UPGRADE | Re-validate security constraints (SEC-04, SEC-03, DEC-PERM-CB, DEC-FAIL-OPEN-NOTICE) after library upgrades | Dependencies, Security | security-constraints, validation, post-upgrade | DECISIONS.md |
 | DEC-ABILITYAPI-NAMESPACE | AbilityAPI module REST namespace is acrossai-abilities-api/v1; never share namespaces across modules | AbilityAPI/Plugin-wide | namespace, rest, abilityapi, isolation | Active | DECISIONS.md |
-| DEC-LOGGER-NAMESPACE-MIGRATION | Logger REST namespace moved to acrossai-abilities-log/v1 (Feature 027); all 5 touch-points must be updated atomically | Logger/Plugin-wide | namespace, logger, migration, rest, breaking-change | Active | DECISIONS.md |
+| DEC-LOGGER-NAMESPACE-MIGRATION | Logger REST namespace moved to acrossai-abilities-log/v1 (Feature 027); all 5 touch-points must be updated atomically | Logger/Plugin-wide | namespace, logger, migration, rest, breaking-change | Superseded (Feature 040) | DECISIONS.md |
 | DEC-FEATURE-027-NO-TESTS | Feature 027 ships without unit tests (accepted deviation from §VII); AcrossAI_Ability_API_Config and Processor are tech-debt test candidates | AbilityAPI | no-tests, constitution-deviation, unit-tests, phpunit | Active | DECISIONS.md |
 
 ## Architecture Patterns (continued)
@@ -236,6 +237,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT | Vendor major-bumps ship JS-side prop/config changes that PHP grep passes miss; audit vendor built bundle + consumer JSX mount points + wp_localize_script every upgrade | Vendor/JS/Upgrade | vendor, react, upstream-upgrade, localize-script, prop-audit, upgrade-checklist | ARCHITECTURE.md |
 | PATTERN-LOCALIZE-KEY-VERSIONED-GUARD | JS consumers of localize keys added in a specific release must guard against undefined; browser HTML cache and fresh JS bundle are versioned independently | Plugin-wide/JS/Deploy | localize-script, browser-cache-skew, defensive-coding, undefined-guard, deploy-hazard | ARCHITECTURE.md |
 | BUG-VENDOR-LIB-JS-URL-SLUG-MISSING | Vendor React component silently 404s + falls back to empty-default UI when a new per-consumer slug arg isn't propagated to JS (Feature 039 wpb-ac v2 pluginSlug prop) | Vendor/JS/REST | vendor, react-prop, wpb-access-control, silent-404, empty-default-state, upstream-upgrade | BUGS.md |
+| BUG-VENDOR-REBRAND-JS-DATA-KEY-DESYNC | Rebrand of HTML `data-*` attribute must sweep matching JS `dataset.*` lookups + built bundle in the same PR; missing the JS side = buttons render, clicks do nothing, zero AJAX (main-menu 0.0.9 Add-ons page) | Vendor packages | rebrand, dataset, data-attribute, silent-fail, addons-page, main-menu, minified-bundle | BUGS.md |
 | 2026-07-01 | Feature 039: wpb-access-control v2 + main-menu absorbs addons-page; 1 new pattern (PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT) + 1 new bug pattern (BUG-VENDOR-LIB-JS-URL-SLUG-MISSING) — planning gap: "no JS changes needed" was wrong, caught post-commit via live-install user feedback | Composer/Vendor/JS | feature-039, wpb-access-control, main-menu, per-consumer-table, addons-page, react-prop, silent-404 | WORKLOG.md |
 
 ## Security Reviews
@@ -247,3 +249,4 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | specs/038-acrossai-main-menu-integration/security-review-staged.md | staged | 2026-06-30 | LOW | C:0 H:0 M:0 L:1 I:1 | A06 |
 | specs/039-composer-package-updates/security-review-plan.md | plan | 2026-07-01 | LOW | C:0 H:0 M:0 L:1 I:4 | A01,A04,A05,A09 |
 | specs/039-composer-package-updates/security-review-staged.md | staged | 2026-07-01 | LOW | C:0 H:0 M:0 L:1 I:5 | A04,A05,A06 |
+| specs/040-remove-logs-module/security-review-plan.md | plan | 2026-07-01 | INFORMATIONAL | C:0 H:0 M:0 L:0 I:4 | A01,A05,A09 |

@@ -128,6 +128,8 @@ if ( AcrossAI_SingleSourceTruth::is_member( $slug ) ) { ... }
 
 ## PATTERN-STAGE-NAMING
 
+> **Forward-pointer note (Feature 040, 2026-07-01)**: The Logger was the establishing consumer for this pattern (raw event → formatted → validated → stored). The Logger module was removed in Feature 040 but the pattern remains conceptually valid — it applies to any multi-stage data transformation surface (e.g., ability payload sanitization, library registry normalization).
+
 In modules with multi-stage data transformations (raw → processed → formatted → stored), use distinct variable names for each transformation stage. This improves code clarity and prevents accidental overwrites.
 
 **Pattern**:
@@ -163,6 +165,8 @@ Feature 006 (2026-05-20): Refactored logger to use `$output_value` (raw), `$form
 ---
 
 ## PATTERN-FEATURE-ASSET-SEPARATION
+
+> **Forward-pointer note (Feature 040, 2026-07-01)**: The Logger's separate `js/logger` and `css/logger` webpack entries were the establishing example for this pattern. Feature 040 removed those entries alongside the module. The pattern remains valid for the surviving `js/abilities`, `js/ability-library`, and future module-specific bundles — feature-specific asset handles + independent rebuild/versioning is the right shape whenever a module owns its own UI surface.
 
 When a feature module has its own admin UI, separate its assets from the main manager assets. Use feature-specific asset handles instead of generic names to prevent coupling and enable independent rebuild/versioning.
 
@@ -563,9 +567,11 @@ Checkbox `register_setting()` sanitize callbacks MUST handle absent values. Brow
 
 ## PATTERN-LOGGER-OPTION-FEED-FILTER (2026-05-29, Feature 019)
 
+> **Forward-pointer note (Feature 040, 2026-07-01)**: The original consumer (`AcrossAI_Ability_Logger::schedule_cleanup()` + `cleanup_old_logs()`) was removed in Feature 040 alongside the Logger module. **The pattern still applies to any Settings API option that feeds an `apply_filters()` default**, including future settings that gate scheduled work — the "option 0 = never schedule" short-circuit remains a useful convention. The canonical example below has been retained for reference despite the code no longer existing on disk.
+
 When a module reads a settings option AND exposes an `apply_filters()` hook, feed the option value as the filter default: `apply_filters( 'hook', get_option( 'key', 0 ) )`. The scheduling guard short-circuits when the effective value is `0` (never schedule). This decouples "should I schedule?" from execution and preserves filter-based override for testing/programmatic control.
 
-**Canonical example**: `AcrossAI_Ability_Logger::schedule_cleanup()` + `cleanup_old_logs()` in `includes/Modules/Logger/AcrossAI_Ability_Logger.php`.
+**Canonical example (historical — removed in Feature 040)**: `AcrossAI_Ability_Logger::schedule_cleanup()` + `cleanup_old_logs()` in `includes/Modules/Logger/AcrossAI_Ability_Logger.php`.
 
 ---
 
@@ -1297,3 +1303,30 @@ Every new localize key introduced by a release. Refactoring an existing key
 does NOT need a guard — it needs a compat shim, which is a different pattern.
 
 **Tags**: localize-script, wp_add_inline_script, browser-cache-skew, defensive-coding, release-versioning, jsx-conditional, undefined-guard, deploy-hazard
+
+---
+
+### 2026-07-02 — PATTERN-GREP-AUDIT-VS-MANDATED-STRINGS
+
+**Status**: Active
+
+**Why durable**
+Full-repo audit greps that enforce "zero matches for identifier X" MUST exclude files that a functional requirement (FR-###) explicitly mandates references to X. When FR-N requires `uninstall.php` to reference the very strings a "removal audit" grep forbids plugin-wide, the audit task will always fail on a compliant implementation — the task cannot pass unless the mandate is violated. This self-contradiction is easy to introduce during removal-feature spec/task authoring: the FR-authoring reviewer thinks "we drop the table here" and the audit-authoring reviewer thinks "no references anywhere post-removal" — both are correct individually; together they collide.
+
+**Repo evidence**
+- **Feature 040** — `tasks.md:T026` (final full-repo grep audit merge blocker) scoped to `includes/ admin/ src/ tests/ acrossai-abilities-manager.php uninstall.php webpack.config.js` with pattern `Logger|acrossai_ability_logs|acrossai-abilities-log|acrossai_ability_logger|LogsTable|LogsMenu|is_logs_page|logger_asset_file|log_retention`. Simultaneously `spec.md:FR-007` mandates `uninstall.php` MUST reference `acrossai_ability_logs` (DROP TABLE), `acrossai_ability_logs_db_version` (delete_option), `acrossai_ability_logger_cleanup` (as_unschedule_all_actions), and `acrossai_abilities_log_retention_days` (delete_option) inside the opt-in delete-data gate. Running T026 against a compliant implementation returned 7 matches, all inside the FR-007 cleanup block at `uninstall.php:44-63`.
+- Surfaced by `/speckit-architecture-guard-architecture-review` in the same session as Feature 040 implementation.
+
+**Prevention**
+At spec/task-authoring time, execute the proposed audit grep pattern against the FR-mandated files. If it returns non-zero matches on the expected compliant implementation, the audit is misdesigned. Fix via one of:
+1. **File exclusion**: narrow the audit's file list to exclude the mandate's target file (e.g. `--exclude=uninstall.php` for cleanup patterns).
+2. **Pattern split**: separate "runtime identifiers that must be absent everywhere" (class names, admin URLs, JS globals) from "data-cleanup identifiers that must exist in uninstall.php only" (table names, option keys, hook names). Two greps, each with the right scope.
+3. **Explicit expected count**: `[uninstall.php grep matches = N with the current implementation; anywhere else = 0]`. Least preferred — brittle against implementation changes.
+
+**Rule of thumb**
+For every mandate-audit pair, the audit pattern MUST be strictly stronger than the mandate's negation. I.e. `audit_pattern ⊂ ¬mandate_pattern` when scoped to the same files. Test this at authoring time with `grep -c` on the expected post-implementation tree.
+
+**Applies to**
+Every removal / decommission / rebrand feature that pairs a "zero references" acceptance criterion with a functional requirement that mandates references in a specific file. Common in: uninstall cleanup, deprecation shims, backwards-compat removal, security-hardening rip-outs.
+
+**Tags**: grep-audit, spec-authoring, self-contradiction, removal-feature, uninstall, mandate-audit-pair, merge-blocker, task-design

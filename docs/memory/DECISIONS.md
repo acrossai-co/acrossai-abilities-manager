@@ -594,7 +594,7 @@ PR review checklist: grep all changed .php files before approval.
 
 ### 2026-05-20 — Hook object parameter extraction via method_exists check (DEC-HOOK-PARAM-EXTRACTION)
 
-**Status**: Active
+**Status**: Superseded (Feature 040, 2026-07-01) — original Logger consumer removed entirely. The pattern itself remains valid for any future hook-consumer that receives objects instead of primitives; if the companion logging plugin (`acrossai-ability-logs` or equivalent) re-implements ability-execution logging, its `mcp_adapter_pre_tool_call` handler should apply this same defensive extraction. Entry body preserved for that future author's reference.
 
 **Why this is durable**
 WordPress hook signatures change between versions and integrations. When a hook passes objects instead of primitives, extraction patterns need to be defensive to prevent runtime errors if the object structure changes.
@@ -640,7 +640,7 @@ MCP adapter documentation: hook parameter evolution.
 
 ### 2026-05-20 — Duration calculation from start_time/end_time timestamps (DEC-DURATION-CALC-TIMESTAMPS)
 
-**Status**: Active
+**Status**: Superseded (Feature 040, 2026-07-01) — Logger's duration measurement removed alongside the module. Pattern (record start via `microtime(true)`, record end, subtract) remains valid for any future measurement-adjacent code. Entry body preserved for reference.
 
 **Why this is durable**
 WordPress hooks often don't pass execution time as a parameter. When measuring execution duration, storing start time internally and calculating on completion is more reliable than relying on hook parameters.
@@ -677,7 +677,7 @@ Compared against manual timing: duration accurate to ±5ms. Tests pass; accuracy
 
 ### 2026-05-20 — Variadic callback wrapping for forwards-compatible permission callback hooks (DEC-VARIADIC-CALLBACK-WRAP)
 
-**Status**: Active
+**Status**: Superseded (Feature 040, 2026-07-01) — Logger's `wrap_permission_callback` at `wp_register_ability_args` P100001 removed. The wrapping pattern (variadic args + `call_user_func_array()` for forwards-compatible wrapping of registered callbacks) remains valid for any future consumer that needs to observe or gate registered abilities. If a companion logging plugin re-implements this, it should register at P100001 (the priority the Logger used) to preserve the "wraps every other consumer's callback" property. Entry body preserved.
 
 **Why this is durable**
 When wrapping WordPress permission callbacks, the callback signature might change in future versions (new parameters added). Using variadic args ensures the wrapper forwards any parameters the calling code passes, maintaining forwards compatibility.
@@ -1404,7 +1404,7 @@ Feature 027 plan.md D1; revised to dedicated namespace to avoid reusing `acrossa
 
 ### 2026-06-06 — Logger REST namespace migrated from acrossai-abilities/v1 to acrossai-abilities-log/v1 (DEC-LOGGER-NAMESPACE-MIGRATION)
 
-**Status**: Active
+**Status**: Superseded (Feature 040, 2026-07-01) — `acrossai-abilities-log/v1` REST namespace fully removed alongside the Logger module. No new registration replaces it in this plugin; a companion logging plugin would own its own namespace. The general rule ("each module owns exactly one REST namespace") remains valid and continues to govern the remaining Abilities / Library / AbilityAPI modules. Entry body preserved.
 
 **Why this is durable**
 The old `acrossai-abilities/v1` namespace was chosen early and without module-ownership intent. Feature 027 introduces `acrossai-abilities-api/v1`; to ensure each module owns exactly one namespace, the Logger was migrated. The migration is a breaking change for any REST client calling the old URL.

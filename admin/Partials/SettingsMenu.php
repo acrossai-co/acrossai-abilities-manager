@@ -107,16 +107,6 @@ class SettingsMenu {
 	 */
 	public function register_settings(): void {
 		$page_slug = \AcrossAI_Main_Menu\SettingsPage::tab_page_slug( self::TAB_SLUG );
-		// Log retention option.
-		register_setting(
-			'acrossai-settings',
-			'acrossai_abilities_log_retention_days',
-			array(
-				'sanitize_callback' => 'absint',
-				'default'           => 0,
-			)
-		);
-
 		// Uninstall delete data option.
 		register_setting(
 			'acrossai-settings',
@@ -151,22 +141,6 @@ class SettingsMenu {
 			array( $this, 'render_per_page_field' ),
 			$page_slug,
 			'acrossai_display_settings_section'
-		);
-
-		// Section 1: Log settings.
-		add_settings_section(
-			'acrossai_log_settings_section',
-			__( 'Log Settings', 'acrossai-abilities-manager' ),
-			'__return_false',
-			$page_slug
-		);
-
-		add_settings_field(
-			'acrossai_abilities_log_retention_days',
-			__( 'Delete logs after (days)', 'acrossai-abilities-manager' ),
-			array( $this, 'render_retention_field' ),
-			$page_slug,
-			'acrossai_log_settings_section'
 		);
 
 		// Section 2: Uninstall settings.
@@ -227,21 +201,6 @@ class SettingsMenu {
 	 */
 	public function sanitize_uninstall_flag( $value ): int {
 		return empty( $value ) ? 0 : 1;
-	}
-
-	/**
-	 * Renders the log retention days input field.
-	 *
-	 * @since 0.1.0
-	 * @return void
-	 */
-	public function render_retention_field(): void {
-		$value = (int) get_option( 'acrossai_abilities_log_retention_days', 0 );
-		printf(
-			'<input type="number" id="acrossai_abilities_log_retention_days" name="acrossai_abilities_log_retention_days" value="%s" min="0" step="1" /><p class="description">%s</p>',
-			esc_attr( (string) $value ),
-			esc_html__( 'Set to 0 to keep logs forever. If a number is entered, logs older than that many days will be automatically deleted.', 'acrossai-abilities-manager' )
-		);
 	}
 
 	/**

@@ -9,7 +9,6 @@
 
 namespace AcrossAI_Abilities_Manager\Admin;
 
-use AcrossAI_Abilities_Manager\Admin\Partials\LogsMenu;
 use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Registry;
 use AcrossAI_Abilities_Manager\Includes\Modules\Library\Rest\AcrossAI_Ability_Library_Rest_Controller;
 
@@ -77,15 +76,6 @@ class Main {
 
 
 	/**
-	 * Asset manifest for the logger JS/CSS bundle.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @var      array|null
-	 */
-	private $logger_asset_file;
-
-	/**
 	 * Asset manifest for the Custom Abilities JS/CSS bundle.
 	 *
 	 * @since    0.2.0
@@ -118,12 +108,6 @@ class Main {
 		$this->js_asset_file  = include \ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH . 'build/js/backend.asset.php';
 		$this->css_asset_file = include \ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH . 'build/css/backend.asset.php';
 
-		// Load logger asset file if it exists (built by @wordpress/scripts build).
-		$logger_asset_path = \ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH . 'build/js/logger.asset.php';
-		if ( file_exists( $logger_asset_path ) ) {
-			$this->logger_asset_file = include $logger_asset_path;
-		}
-
 		// Load Custom Abilities asset file if it exists (built by @wordpress/scripts build).
 		$abilities_asset_path = \ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH . 'build/js/abilities.asset.php';
 		if ( file_exists( $abilities_asset_path ) ) {
@@ -149,21 +133,9 @@ class Main {
 	 */
 	public function enqueue_styles( string $hook_suffix ) {
 		if ( ! $this->is_manager_page( $hook_suffix )
-			&& ! $this->is_logs_page( $hook_suffix )
 			&& ! $this->is_settings_page( $hook_suffix )
 			&& ! $this->is_library_page( $hook_suffix ) ) {
 			return;
-		}
-
-		// Enqueue logger styles only on Logs submenu page (T015: feature 006).
-		if ( $this->logger_asset_file && $this->is_logs_page( $hook_suffix ) ) {
-			wp_register_style(
-				'acrossai-abilities-logger',
-				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/css/logger.css',
-				array(),
-				$this->logger_asset_file['version']
-			);
-			wp_enqueue_style( 'acrossai-abilities-logger' );
 		}
 
 		// Enqueue Abilities Manager styles only on main manager page (feature 011).
@@ -211,33 +183,9 @@ class Main {
 	 */
 	public function enqueue_scripts( string $hook_suffix ) {
 		if ( ! $this->is_manager_page( $hook_suffix )
-			&& ! $this->is_logs_page( $hook_suffix )
 			&& ! $this->is_settings_page( $hook_suffix )
 			&& ! $this->is_library_page( $hook_suffix ) ) {
 			return;
-		}
-
-		// Enqueue logger scripts only on Logs submenu page (T015: feature 006).
-		if ( $this->logger_asset_file && $this->is_logs_page( $hook_suffix ) ) {
-			wp_register_script(
-				'acrossai-abilities-logger',
-				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/js/logger.js',
-				$this->logger_asset_file['dependencies'],
-				$this->logger_asset_file['version'],
-				true
-			);
-			wp_enqueue_script( 'acrossai-abilities-logger' );
-
-			wp_add_inline_script(
-				'acrossai-abilities-logger',
-				'window.acrossaiAbilitiesLogger = ' . wp_json_encode(
-					array(
-						'restEndpoint' => untrailingslashit( rest_url( 'acrossai-abilities-log/v1/logger/logs' ) ),
-						'nonce'        => wp_create_nonce( 'wp_rest' ),
-					)
-				) . ';',
-				'before'
-			);
 		}
 
 		// Enqueue Abilities Manager scripts only on main manager page (feature 011).
@@ -323,18 +271,6 @@ class Main {
 	}
 
 	/**
-	 * Check if currently viewing the Logs submenu page
-	 *
-	 * @since    0.1.0
-	 * @param string $hook_suffix Current admin page hook suffix.
-	 * @return bool True if on Logs submenu page.
-	 */
-	private function is_logs_page( string $hook_suffix ): bool {
-		$logs_menu = LogsMenu::instance();
-		return $hook_suffix === $logs_menu->get_hook_suffix();
-	}
-
-	/**
 	 * Check if currently viewing the main Abilities Manager page.
 	 *
 	 * SC-011-04: Uses === strict comparison to prevent type-coercion bypass.
@@ -373,8 +309,7 @@ class Main {
 	/**
 	 * Checks whether the current admin screen is the Ability Library page.
 	 *
-	 * Uses the hook suffix captured by LibraryMenu::register_submenu() — the same
-	 * reliable pattern used by is_logs_page(). WordPress generates the submenu hook
+	 * Uses the hook suffix captured by LibraryMenu::register_submenu(). WordPress generates the submenu hook
 	 * suffix from sanitize_title($menu_title), not the $menu_slug, so a hardcoded
 	 * string based on the parent slug would be wrong (and was: BUG-LIBRARY-HOOK-SUFFIX).
 	 *
@@ -398,8 +333,7 @@ class Main {
 	public function plugin_action_links( $links, $file ) {
 		if ( 'acrossai-abilities-manager/acrossai-abilities-manager.php' === $file ) {
 			$settings_link = '<a href="' . esc_url( admin_url( 'admin.php?page=acrossai-abilities-manager' ) ) . '">' . esc_html__( 'Settings', 'acrossai-abilities-manager' ) . '</a>';
-			$logs_link     = '<a href="' . esc_url( admin_url( 'admin.php?page=acrossai-abilities-logs' ) ) . '">' . esc_html__( 'Logs', 'acrossai-abilities-manager' ) . '</a>';
-			array_unshift( $links, $settings_link, $logs_link );
+			array_unshift( $links, $settings_link );
 		}
 		return $links;
 	}

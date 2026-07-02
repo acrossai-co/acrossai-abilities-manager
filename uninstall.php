@@ -41,6 +41,24 @@ if ( $acrossai_delete_data ) {
 	);
 	\delete_option( 'wpb_ac_abilities_db_version' );
 
+	// Legacy Logger table (Feature 006 → removed in Feature 040).
+	// The plugin no longer creates this table on activation, but existing installs
+	// may still have it and its schema-version option. Drop both on opt-in uninstall.
+	$acrossai_logs_table = $wpdb->prefix . 'acrossai_ability_logs';
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange
+	$wpdb->query(
+		$wpdb->prepare( 'DROP TABLE IF EXISTS %i', $acrossai_logs_table )
+	);
+	\delete_option( 'acrossai_ability_logs_db_version' );
+
+	// Action Scheduler cleanup — the Logger scheduled recurring cleanup actions
+	// on the acrossai_ability_logger_cleanup hook (removed in Feature 040).
+	// Drain any pending queue entries. Guarded — safe when AS is inactive.
+	if ( function_exists( 'as_unschedule_all_actions' ) ) {
+		as_unschedule_all_actions( 'acrossai_ability_logger_cleanup' );
+	}
+
 	// Remove plugin settings options on uninstall.
 	\delete_option( 'acrossai_abilities_log_retention_days' );
 	\delete_option( 'acrossai_abilities_uninstall_delete_data' );
