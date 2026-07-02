@@ -1623,3 +1623,34 @@ the narrower per-keyword-removal case where most module structure is preserved.
 **Repo evidence**: Feature 039 commit `454f287` shipped the bug; follow-up commit fixes `admin/Main.php`, `src/js/abilities/components/AbilityForm.jsx`, `build/js/abilities.js`. SEC-review + arch-review both PASSED without catching this because both were scoped to PHP surfaces.
 
 **Tags**: vendor, upstream-upgrade, js-consumer, react-prop, localize-script, wpb-access-control, silent-404, empty-default-state
+
+---
+
+### 2026-07-02 — Vendor rebrand renames HTML `data-*` attribute but misses JS `dataset.*` lookup and built bundle
+
+**Status**: Active
+
+**Pattern**: When rebranding a vendor package's HTML data attribute (e.g. `data-wpb-*` → `data-acrossai-*`), the sweep MUST also update every JS `dataset.<camelCase>` lookup that reads it AND the built/minified bundle that ships with the release. Missing the JS side produces a silent, symptomless-until-clicked failure: the template renders the new attribute name, JS reads the old key via `dataset.*` and gets `undefined`, downstream `window[global_name]` lookup misses the `wp_localize_script` payload, and click-handler binding blocks gated on that config being truthy short-circuit. Buttons render but fire zero AJAX requests. No console error. No PHP fatal. Bug is invisible to code review, invisible to Plugin Check, invisible to PHPStan — only detectable via manual click-test on the affected page.
+
+**Symptoms observed in acrossai-co/main-menu 0.0.9**: Add-ons page (`?page=acrossai-addons`) rendered with Install / Activate / Deactivate buttons visible. Clicks did nothing. DevTools Network showed zero requests to `admin-ajax.php`. `window['acrossaiAddonsPage_acrossai']` returned the wp_localize_script payload (proof: PHP side worked). `document.querySelector('.acrossai-addons-page').dataset.wpbAddonsInstance` returned `undefined` (proof: template had already been renamed to `data-acrossai-addons-instance`). The JS bundle at `build/addons-page.js` still read `dataset.wpbAddonsInstance`, computing the global name as `"acrossaiAddonsPage_"` (empty suffix) — undefined. Click-handler binding block gated on `if (i && (...))` skipped entirely.
+
+**Repo evidence**
+- Vendor: `acrossai-co/main-menu` (first-party org, owns the shared AcrossAI parent admin menu + Add-ons page).
+- Origin commit: `d69f94a` — "Rename addons-page wpb-* prefixes to acrossai-addons-*". Renamed the `<div class="wrap acrossai-addons-page" data-acrossai-addons-instance="...">` attribute but did NOT rename `page.dataset.wpbAddonsInstance` in `src/Addons/assets/js/addons-page.js:18` OR in the minified `build/addons-page.js:1`.
+- Shipped in tag `0.0.9`. Every consumer plugin bumping to 0.0.9 (`acrossai-abilities-manager`, future siblings) lost its Add-ons page buttons.
+- Fix: `acrossai-co/main-menu@5173abb` (tag `0.0.10`) — renamed both `src/Addons/assets/js/addons-page.js` and minified `build/addons-page.js` to `dataset.acrossaiAddonsInstance`.
+
+**Prevention**
+For any rebrand PR against a vendor package we own that ships an HTML template + JS bundle pair, the PR checklist MUST touch all three surfaces:
+1. **HTML template**: `grep -rEn 'data-<oldPrefix>-' src/**/Views/` → rename to new prefix.
+2. **JS source**: `grep -rEn 'dataset\.<oldPrefixCamel>' src/**/assets/js/` → rename to new camelCase (`data-acrossai-addons-instance` in HTML ↔ `dataset.acrossaiAddonsInstance` in JS).
+3. **Built bundle**: `grep -En 'dataset\.<oldPrefixCamel>' build/*.js` → same rename in the minified artifact, OR rebuild before tagging.
+
+Bonus check: after the rename, verify the JS-side global lookup key does not depend on the renamed value. If it does (`window["prefix_" + instanceKey]`), the template's attribute value MUST match what `wp_localize_script` publishes downstream. That contract is enforced by the code, not by naming — grep proof required.
+
+**Applies to**
+Any AcrossAI-org Composer package that ships an HTML template + JS bundle where JS reads `dataset.*` to look up a `wp_localize_script` payload keyed by a slug value. Especially: `acrossai-co/main-menu` (this bug), any future `acrossai-*-manager` sibling packages that adopt the same shared Settings/Add-ons page pattern.
+
+Cross-reference: `PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT` (2026-07-01) covers the consumer-side audit-after-upgrade discipline; `BUG-VENDOR-LIB-JS-URL-SLUG-MISSING` (2026-07-01) is a sibling maintainer-side bug at a different surface (React prop instead of dataset key). This entry covers the maintainer-side rename-sweep discipline that would prevent the ship in the first place.
+
+**Tags**: vendor, rebrand, dataset, data-attribute, silent-fail, addons-page, main-menu, minified-bundle, dom-js-contract
