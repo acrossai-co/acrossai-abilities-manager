@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.2
+Stable tag: 0.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -117,6 +117,9 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.3 =
+* **Fix: plugin now activates on installs from WordPress.org.** The 0.0.2 release ZIP shipped without the Composer autoloader (`vendor/autoload_packages.php`) because the WordPress.org deploy workflow did not run `composer install` before uploading. Users installing 0.0.2 from the WordPress.org plugin directory saw the plugin activation guard trigger: *"AcrossAI Abilities Manager cannot activate: the Composer autoloader is missing…"*. The 0.0.3 release ZIP includes the full production autoloader; no other code changes. If you already installed 0.0.2 and hit the activation error, delete the plugin folder and reinstall 0.0.3.
+
 = 0.0.2 =
 * **Composer dependency refresh** — `wpb-access-control` bumped to v2.0.0 (per-consumer database tables); `acrossai-co/main-menu` bumped to v0.0.10 (now bundles the Add-ons page and includes the JS-side rebrand-sync fix that restores Install / Activate / Deactivate button behavior). The standalone `acrossai-co/addons-page` package has been removed from direct dependencies; the same `AcrossAI_Addon\AddonsPage` class now ships from the `main-menu` package.
 * **Per-consumer access-control storage** — this plugin now owns its own `{prefix}abilities_access_control` database table, keeping its rules fully isolated from any other plugin embedding the same access-control library. The dedicated table is created automatically on plugin activation.
@@ -132,6 +135,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.3 =
+Fixes the 0.0.2 activation error on WordPress.org installs — the release ZIP now includes the Composer autoloader. No functional or user-facing changes vs 0.0.2. If you hit the "Composer autoloader is missing" error on 0.0.2, delete the plugin folder and reinstall 0.0.3.
 
 = 0.0.2 =
 IMPORTANT: (1) This release does NOT migrate Access Control rules from previous versions. If you had configured any Access Control rules on abilities, audit and reconfigure them after upgrading. Pre-existing rules remain in the database (in the orphaned `{prefix}wpb_access_control` table) but are no longer applied. (2) Ability execution logging has been removed — the Logs admin page is gone; ability-execution denials are no longer recorded by this plugin. Install a compatible logging plugin if you need this signal.
