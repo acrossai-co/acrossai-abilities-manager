@@ -39,6 +39,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | DEC-FREEMIUS-PER-PLUGIN-INIT | fs_dynamic_init() keyed per product_id; each consumer passes own credentials (id, public_key, slug); never hardcode in shared package | Plugin-wide/Freemius | freemius, per-plugin, product-id, multi-instance | Active | DECISIONS.md |
 | DEC-MCP-TOOLS-PASSTHROUGH-COLUMN | Per-ability MCP tool pass-through column + registry injection (pass_as_tool tinyint, AcrossAI_Ability_Override_Processor::inject_mcp_tools, mcp_adapter_init P20 + Reflection, ARCH-ADV-001) | Abilities/DB | mcp, tools, registry, abilities, berlindb | Superseded (Feature 035) | DECISIONS.md |
 | DEC-PASS-AS-TOOL-REMOVED | Removes per-ability MCP tool pass-through entirely; supersedes DEC-MCP-TOOLS-PASSTHROUGH-COLUMN; responsibility deferred to future acrossai-mcp-manager plugin; manual deactivate-drop-reactivate migration | Abilities/DB | mcp, tools, removal, reflection-removal, supersession | Active | DECISIONS.md |
+| DEC-META-ACROSSAI-NAMESPACE | Consolidate plugin-specific ability fields under $args['meta']['acrossai']; Feature 041 retires the Features 033/037 top-level shape; hard cut, no BC layer; namespace reserved for acrossai-abilities-manager only | Abilities/Plugin-wide | meta, namespace, hard-cut, feature-041, extension-fields | Active | DECISIONS.md |
 
 ## Architecture Constraints
 | ID | Constraint | Scope | Tags | Source |
@@ -70,6 +71,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-UNINSTALL-DATA-GATE | uninstall.php wraps DROP TABLE in opt-in delete-data gate; config options always removed | Plugin-wide | uninstall, data-gate, destructive, default-safe | ARCHITECTURE.md |
 | PATTERN-LOGGER-OPTION-FEED-FILTER | Module reads option → feeds apply_filters() default; schedule guard short-circuits at 0 | Logger | logger, option, filter, retention, schedule | ARCHITECTURE.md |
 | PATTERN-GREP-AUDIT-VS-MANDATED-STRINGS | Full-repo "zero refs to X" audit must exclude files where FR-N mandates X; audit pattern ⊂ ¬mandate_pattern | Plugin-wide/Spec-authoring | grep-audit, spec-authoring, self-contradiction, removal-feature | ARCHITECTURE.md |
+| PATTERN-META-ACROSSAI-NAMESPACE | Plugin-specific ability extension fields live under $args['meta']['acrossai'], sibling of meta['mcp']/meta['annotations']; top-level $args reserved for WP core; Feature 041 hard-cut migration | Abilities/Library | meta, namespace, extension-fields, library, acrossai, feature-041 | ARCHITECTURE.md |
 
 ## Bug Patterns
 | ID | Pattern | Affected Area | Tags | Source |
@@ -239,6 +241,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | BUG-VENDOR-LIB-JS-URL-SLUG-MISSING | Vendor React component silently 404s + falls back to empty-default UI when a new per-consumer slug arg isn't propagated to JS (Feature 039 wpb-ac v2 pluginSlug prop) | Vendor/JS/REST | vendor, react-prop, wpb-access-control, silent-404, empty-default-state, upstream-upgrade | BUGS.md |
 | BUG-VENDOR-REBRAND-JS-DATA-KEY-DESYNC | Rebrand of HTML `data-*` attribute must sweep matching JS `dataset.*` lookups + built bundle in the same PR; missing the JS side = buttons render, clicks do nothing, zero AJAX (main-menu 0.0.9 Add-ons page) | Vendor packages | rebrand, dataset, data-attribute, silent-fail, addons-page, main-menu, minified-bundle | BUGS.md |
 | 2026-07-01 | Feature 039: wpb-access-control v2 + main-menu absorbs addons-page; 1 new pattern (PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT) + 1 new bug pattern (BUG-VENDOR-LIB-JS-URL-SLUG-MISSING) — planning gap: "no JS changes needed" was wrong, caught post-commit via live-install user feedback | Composer/Vendor/JS | feature-039, wpb-access-control, main-menu, per-consumer-table, addons-page, react-prop, silent-404 | WORKLOG.md |
+| 2026-07-03 | Feature 041: Library display fields (sub_group / sub_group_label / tab_group) consolidated under $args['meta']['acrossai']; hard-cut migration retiring Features 033/037 top-level shape; 1 new pattern (PATTERN-META-ACROSSAI-NAMESPACE) + 1 new decision (DEC-META-ACROSSAI-NAMESPACE) | Abilities/Library | feature-041, meta, namespace, extension-fields, hard-cut, library | WORKLOG.md |
 
 ## Security Reviews
 

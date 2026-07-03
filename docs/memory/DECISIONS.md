@@ -1627,3 +1627,31 @@ freely without breaking this plugin.
 `docs/memory/BUGS.md` (`BUG-INJECT-MCP-TOOLS-PERMISSION-BYPASS` annotation),
 `specs/035-remove-pass-as-tool/upgrade-notes.md` (manual migration procedure),
 `tests/phpunit/abilities/AbilitiesPassAsToolRemovalTest.php` (silent-ignore contract pin).
+
+---
+
+### 2026-07-03 — DEC-META-ACROSSAI-NAMESPACE
+
+**Status**: Active
+
+**Decision**
+Consolidate plugin-specific ability extension fields under a new `$args['meta']['acrossai']` sub-namespace — sibling of `$args['meta']['mcp']` (this plugin's MCP fields) and `$args['meta']['annotations']` (WP-core annotations). Hard cut: retire the top-level `$args['sub_group']` / `$args['sub_group_label']` / `$args['tab_group']` shape introduced by Features 033 and 037. Add-on developers who extend `Ability_Definition` MUST use the nested shape post-Feature 041.
+
+**Rationale**
+Consistency of the extension API. The plugin already established the `meta.<ns>` nesting pattern for both its own MCP integration and WP-core annotations. Features 033/037 introduced three Library display fields at the top level of `$args` as an oversight — that placement mixes ownership (top-level `$args` is WordPress core's namespace) and creates future collision risk if WP core ever adds a `sub_group` or `tab_group` field of its own. Feature 041 corrects the placement and captures the convention in `PATTERN-META-ACROSSAI-NAMESPACE` so future field additions follow the same pattern automatically.
+
+**Alternatives considered and rejected**
+- **Backward compat with deprecation notice** — rejected. Fields introduced 2-3 weeks ago; no known third-party consumer relies on the top-level shape. A BC layer would live forever as ambient dual-shape support. Feature 040's hard-cut Logger removal is the recent precedent.
+- **Fragmented per-feature sub-namespaces** (`meta.library`, `meta.ui`, `meta.abilities-manager`) — rejected. Too fine-grained for a single plugin's own extension surface. `meta.acrossai` acts as this plugin's single reserved namespace, matching how `meta.mcp` is scoped to the MCP integration domain.
+- **Rename to `meta.acrossai_abilities` or `meta.acrossai-abilities-manager`** — rejected. Longer keys with no meaningful disambiguation gain. Sibling AcrossAI-org plugins (hypothetical `acrossai-mcp-manager`, `acrossai-ability-logs`) MUST use their own key (`meta.acrossai_mcp` or similar) rather than sharing `meta.acrossai` with `acrossai-abilities-manager`. The short key `meta.acrossai` belongs exclusively to this plugin.
+
+**Trade-offs**
+- Gained: consistent extension pattern; smaller `ALLOWED_ARGS_FIELDS` surface (8 entries vs 11); documented reserved namespace; future field additions follow the pattern by default via memory synthesis in `/speckit-plan`.
+- Reconsider: if a future sibling AcrossAI-org plugin needs to write into `meta.acrossai` alongside this plugin (collision scenario), split into `meta.acrossai.<per-plugin-sub-key>` or move that plugin to its own top-level meta key.
+
+**Where to look next**
+- `includes/Modules/Library/Ability_Definition.php` (post-041 `push_definition()` refactor).
+- `includes/Modules/Library/AcrossAI_Ability_Library_Registry.php` (`ALLOWED_ARGS_FIELDS` constant, docblock).
+- `docs/memory/ARCHITECTURE.md` (`PATTERN-META-ACROSSAI-NAMESPACE`).
+- `tests/phpunit/Modules/Library/Test_Ability_Definition.php` (negative regression tests for the hard cut).
+- `specs/041-library-fields-meta-acrossai-namespace/` (full Spec-Kit artefacts).
