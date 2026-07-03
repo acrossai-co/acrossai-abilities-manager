@@ -1,13 +1,15 @@
 <?php
 /**
- * Tests: AcrossAI_Ability_Library_Registry — Feature 033 CHANGE-B-2.
+ * Tests: AcrossAI_Ability_Library_Registry — Feature 041 update of Feature 033/037 tests.
  *
- * Verifies the OPTIONAL sub_group / sub_group_label pass-through through
- * validate_and_normalize(), the sanitize_sub_group helper, and the
- * ALLOWED_ARGS_FIELDS allowlist now containing 'sub_group' /
- * 'sub_group_label'. validate_and_normalize() is private; tests call it
- * via Reflection (the public collect() path is filter-driven and our
- * apply_filters() stub returns the first value unchanged).
+ * Verifies the OPTIONAL sub_group / sub_group_label / tab_group pass-through
+ * through validate_and_normalize(). Registry reads these fields from row-top
+ * (already flattened by Ability_Definition::push_definition()) — those
+ * row-top reads are UNCHANGED by Feature 041. What DID change:
+ * ALLOWED_ARGS_FIELDS no longer contains 'sub_group', 'sub_group_label',
+ * or 'tab_group' as top-level args keys; the canonical shape is
+ * $args['meta']['acrossai']. See PATTERN-META-ACROSSAI-NAMESPACE.
+ * validate_and_normalize() is private; tests call it via Reflection.
  *
  * @package AcrossAI_Abilities_Manager
  */
@@ -71,9 +73,13 @@ class Test_Ability_Library_Registry extends TestCase {
 			array(
 				'sub_group' => 'core',
 				'args'      => array(
-					'label'     => 'Read File',
-					'category'  => 'file-manager',
-					'sub_group' => 'core',
+					'label'    => 'Read File',
+					'category' => 'file-manager',
+					'meta'     => array(
+						'acrossai' => array(
+							'sub_group' => 'core',
+						),
+					),
 				),
 			)
 		);
@@ -112,16 +118,28 @@ class Test_Ability_Library_Registry extends TestCase {
 		$this->assertArrayNotHasKey( 'sub_group_label', $rows[0] );
 	}
 
-	public function test_registry_allows_sub_group_in_args_allowlist(): void {
-		// 'sub_group' MUST be in ALLOWED_ARGS_FIELDS so the
-		// array_intersect_key() strip does NOT remove it.
+	public function test_registry_strips_top_level_sub_group_from_args_post_041(): void {
+		// Feature 041 hard cut: 'sub_group' and 'sub_group_label' are NO LONGER
+		// in ALLOWED_ARGS_FIELDS. Top-level shape gets stripped by
+		// array_intersect_key(). Canonical shape lives under meta.acrossai
+		// and survives via the 'meta' allowlist entry.
 		$row = $this->valid_row(
 			array(
-				'args' => array(
+				'sub_group'       => 'core',
+				'sub_group_label' => 'Core (custom)',
+				'args'            => array(
 					'label'           => 'Read File',
 					'category'        => 'file-manager',
-					'sub_group'       => 'core',
-					'sub_group_label' => 'Core (custom)',
+					// Legacy top-level shape — must be stripped by the allowlist.
+					'sub_group'       => 'legacy',
+					'sub_group_label' => 'Legacy Label',
+					// Canonical Feature 041 shape — survives via the 'meta' allowlist entry.
+					'meta'            => array(
+						'acrossai' => array(
+							'sub_group'       => 'core',
+							'sub_group_label' => 'Core (custom)',
+						),
+					),
 					'NOT_ALLOWED_KEY' => 'should be stripped',
 				),
 			)
@@ -129,10 +147,20 @@ class Test_Ability_Library_Registry extends TestCase {
 
 		$rows = $this->normalize( array( $row ) );
 
-		$this->assertArrayHasKey( 'sub_group', $rows[0]['args'] );
-		$this->assertSame( 'core', $rows[0]['args']['sub_group'] );
-		$this->assertArrayHasKey( 'sub_group_label', $rows[0]['args'] );
-		$this->assertSame( 'Core (custom)', $rows[0]['args']['sub_group_label'] );
+		// Row-top values (already flattened by push_definition() in production) survive.
+		$this->assertSame( 'core', $rows[0]['sub_group'] );
+		$this->assertSame( 'Core (custom)', $rows[0]['sub_group_label'] );
+
+		// Legacy top-level shape in args is stripped by the allowlist.
+		$this->assertArrayNotHasKey( 'sub_group', $rows[0]['args'] );
+		$this->assertArrayNotHasKey( 'sub_group_label', $rows[0]['args'] );
+
+		// Canonical meta.acrossai shape survives via the 'meta' allowlist entry.
+		$this->assertArrayHasKey( 'meta', $rows[0]['args'] );
+		$this->assertSame( 'core', $rows[0]['args']['meta']['acrossai']['sub_group'] );
+		$this->assertSame( 'Core (custom)', $rows[0]['args']['meta']['acrossai']['sub_group_label'] );
+
+		// Unrelated non-allowlisted key still stripped.
 		$this->assertArrayNotHasKey( 'NOT_ALLOWED_KEY', $rows[0]['args'] );
 	}
 
@@ -165,9 +193,13 @@ class Test_Ability_Library_Registry extends TestCase {
 			array(
 				'tab_group' => 'sales',
 				'args'      => array(
-					'label'     => 'Read File',
-					'category'  => 'file-manager',
-					'tab_group' => 'sales',
+					'label'    => 'Read File',
+					'category' => 'file-manager',
+					'meta'     => array(
+						'acrossai' => array(
+							'tab_group' => 'sales',
+						),
+					),
 				),
 			)
 		);
@@ -203,15 +235,24 @@ class Test_Ability_Library_Registry extends TestCase {
 		$this->assertArrayNotHasKey( 'tab_group', $rows[0] );
 	}
 
-	public function test_registry_allows_tab_group_in_args_allowlist(): void {
-		// 'tab_group' MUST be in ALLOWED_ARGS_FIELDS so the
-		// array_intersect_key() strip does NOT remove it.
+	public function test_registry_strips_top_level_tab_group_from_args_post_041(): void {
+		// Feature 041 hard cut: 'tab_group' is NO LONGER in ALLOWED_ARGS_FIELDS.
+		// Top-level shape gets stripped by array_intersect_key(). Canonical
+		// shape lives under meta.acrossai and survives via 'meta' allowlist entry.
 		$row = $this->valid_row(
 			array(
-				'args' => array(
+				'tab_group' => 'sales',
+				'args'      => array(
 					'label'           => 'Read File',
 					'category'        => 'file-manager',
-					'tab_group'       => 'sales',
+					// Legacy top-level shape — must be stripped by the allowlist.
+					'tab_group'       => 'legacy-tab',
+					// Canonical Feature 041 shape — survives via the 'meta' allowlist entry.
+					'meta'            => array(
+						'acrossai' => array(
+							'tab_group' => 'sales',
+						),
+					),
 					'NOT_ALLOWED_KEY' => 'should be stripped',
 				),
 			)
@@ -219,8 +260,16 @@ class Test_Ability_Library_Registry extends TestCase {
 
 		$rows = $this->normalize( array( $row ) );
 
-		$this->assertArrayHasKey( 'tab_group', $rows[0]['args'] );
-		$this->assertSame( 'sales', $rows[0]['args']['tab_group'] );
+		// Row-top value (already flattened by push_definition() in production) survives.
+		$this->assertSame( 'sales', $rows[0]['tab_group'] );
+
+		// Legacy top-level shape in args is stripped by the allowlist.
+		$this->assertArrayNotHasKey( 'tab_group', $rows[0]['args'] );
+
+		// Canonical meta.acrossai shape survives via the 'meta' allowlist entry.
+		$this->assertArrayHasKey( 'meta', $rows[0]['args'] );
+		$this->assertSame( 'sales', $rows[0]['args']['meta']['acrossai']['tab_group'] );
+
 		$this->assertArrayNotHasKey( 'NOT_ALLOWED_KEY', $rows[0]['args'] );
 	}
 }
