@@ -53,10 +53,12 @@ class AcrossAI_Ability_Library_Registry {
 	/**
 	 * Allowlist of permitted keys in the definition's args array (SC-027-02).
 	 *
-	 * Feature 033 added 'sub_group' and 'sub_group_label' as optional
-	 * display-only keys for the Library Specific panel sub-heading.
-	 * Feature 037 added 'tab_group' as an optional display-only key for
-	 * page-level tab navigation on the Library admin page.
+	 * Feature 041 removed the top-level 'sub_group', 'sub_group_label',
+	 * and 'tab_group' entries from this allowlist. Those Library display
+	 * fields now live under $args['meta']['acrossai'] (which passes through
+	 * the 'meta' allowlist entry). Hard cut — old top-level shape is
+	 * silently dropped by the allowlist filter. See
+	 * PATTERN-META-ACROSSAI-NAMESPACE + DEC-META-ACROSSAI-NAMESPACE.
 	 *
 	 * @var string[]
 	 */
@@ -64,9 +66,6 @@ class AcrossAI_Ability_Library_Registry {
 		'label',
 		'description',
 		'category',
-		'sub_group',
-		'sub_group_label',
-		'tab_group',
 		'execute_callback',
 		'permission_callback',
 		'input_schema',

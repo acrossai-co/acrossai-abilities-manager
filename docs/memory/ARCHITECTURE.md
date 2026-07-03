@@ -1024,6 +1024,8 @@ preflight grep result.
 
 ### 2026-06-23 — PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH
 
+> **Forward-pointer note (Feature 041, 2026-07-03)**: The `ALLOWED_ARGS_FIELDS` allowlist changed — `sub_group`, `sub_group_label`, and `tab_group` are no longer top-level allowlist entries; their canonical location is `$args['meta']['acrossai']['<field>']` (passed through opaquely via the `'meta'` allowlist entry). The Registry-boundary sanitize-vs-passthrough discipline described below is UNCHANGED; only the location of these specific fields inside `$args` moved. See `PATTERN-META-ACROSSAI-NAMESPACE`.
+
 **Pattern**
 `AcrossAI_Ability_Library_Registry::validate_and_normalize()` applies `wp_kses_post()` to
 `category_label` and `slug_label`, but only **key-allowlist-filters** the `args` sub-array
@@ -1330,3 +1332,55 @@ For every mandate-audit pair, the audit pattern MUST be strictly stronger than t
 Every removal / decommission / rebrand feature that pairs a "zero references" acceptance criterion with a functional requirement that mandates references in a specific file. Common in: uninstall cleanup, deprecation shims, backwards-compat removal, security-hardening rip-outs.
 
 **Tags**: grep-audit, spec-authoring, self-contradiction, removal-feature, uninstall, mandate-audit-pair, merge-blocker, task-design
+
+---
+
+### 2026-07-03 — PATTERN-META-ACROSSAI-NAMESPACE
+
+**Status**: Active
+
+**Why durable**
+Plugin-specific ability extension fields — the ones this plugin owns and adds to the ability shape beyond what WordPress core defines — MUST live under `$args['meta']['acrossai'][<field>]`. Sibling of `$args['meta']['mcp']` (this plugin's MCP integration fields) and `$args['meta']['annotations']` (WP-core-owned annotations). Never at the top level of `$args`.
+
+**Rationale**
+The top level of `$args` is WordPress core's namespace. Placing plugin-specific fields there mixes ownership: WP core may add a `sub_group` field in a future release, colliding with the plugin's field. The `meta` sub-namespace convention is WordPress's established extension point, and this plugin already uses it consistently for MCP fields. Feature 041 corrects the Features 033/037 oversight (which placed `sub_group`, `sub_group_label`, `tab_group` at top level) and formalizes the convention.
+
+**Repo evidence**
+Feature 041 (2026-07-03) — refactored `sub_group`, `sub_group_label`, `tab_group` from top-level `$args` into `$args['meta']['acrossai']`. Hard-cut migration; top-level shape no longer read by `Ability_Definition::push_definition()`. `AcrossAI_Ability_Library_Registry::ALLOWED_ARGS_FIELDS` no longer contains those three top-level entries; `meta` remains and carries the nested shape through the allowlist.
+
+**Canonical example (post-041)**
+```php
+// includes/Modules/Library/Ability_Definition.php:65+ (push_definition)
+$meta_acrossai = ( isset( $args['meta']['acrossai'] ) && is_array( $args['meta']['acrossai'] ) )
+    ? $args['meta']['acrossai']
+    : array();
+
+$sub_group = isset( $meta_acrossai['sub_group'] ) ? (string) $meta_acrossai['sub_group'] : '';
+$tab_group = isset( $meta_acrossai['tab_group'] ) ? (string) $meta_acrossai['tab_group'] : '';
+```
+
+Add-on subclass:
+```php
+return array(
+    'name' => 'my-plugin/my-ability',
+    'args' => array(
+        'label' => 'My Ability',
+        'meta'  => array(
+            'acrossai' => array(
+                'sub_group'       => 'debug-log',
+                'sub_group_label' => 'Debug Log',   // optional
+                'tab_group'       => 'sales',
+            ),
+        ),
+    ),
+);
+```
+
+**Applies to**
+Every future field added to the ability shape that is specific to `acrossai-abilities-manager`'s UI, Library, or non-execution behavior. Excludes WP-core-owned fields (annotations, show_in_rest) which stay at their canonical WP-core locations. Excludes MCP-related fields (continue using `meta['mcp']`). Reserved namespace — sibling AcrossAI-org plugins (e.g. a hypothetical `acrossai-mcp-manager`) MUST use their own key (`meta.acrossai_mcp` or similar); `meta.acrossai` belongs exclusively to `acrossai-abilities-manager`.
+
+**Sibling patterns**
+- `PATTERN-LIBRARY-ARGS-RAW-PASSTHROUGH` — Registry `ALLOWED_ARGS_FIELDS` allowlist strips unknown keys; the `'meta'` allowlist entry passes nested sub-arrays through opaquely. Feature 041 relies on this passthrough for the `meta.acrossai.*` sub-keys.
+- `DEC-META-ACROSSAI-NAMESPACE` — the hard-cut decision behind this pattern.
+
+**Tags**: meta, namespace, extension-fields, library, acrossai, plugin-specific, sibling-mcp, sibling-annotations, feature-041
