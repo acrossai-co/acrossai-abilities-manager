@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.4
+Stable tag: 0.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -117,6 +117,9 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.5 =
+* **Dependencies: `acrossai-co/main-menu` bumped to `0.0.11`.** Picks up the latest AcrossAI shared parent menu / dashboard / settings / add-ons page code from that package. No plugin-owned code changes in this release — the bump is the only functional delta vs 0.0.4.
+
 = 0.0.4 =
 * **BREAKING (add-on developers) — Library display fields moved from top-level `$args` into `$args['meta']['acrossai']`.** The three Library-only fields introduced by Features 033 and 037 — `sub_group`, `sub_group_label`, and `tab_group` — are no longer read from the top level of the `$args` array passed to `wp_register_ability()`. They must now be nested under `$args['meta']['acrossai']`, matching the existing `meta.mcp` (MCP integration) and `meta.annotations` (WP-core annotations) convention. This is a hard cut with no back-compat shim: any add-on that still passes the fields at the top level will silently render its Library card without a sub-group heading or custom tab placement. Migration: change `'sub_group' => 'x'` to `'meta' => [ 'acrossai' => [ 'sub_group' => 'x' ] ]` (same for `sub_group_label` and `tab_group`). Only affects add-ons that extend `Ability_Definition` and use these Library display fields; abilities without them are unaffected. No end-user data migration, no DB schema change, no REST API change.
 * **Plugin icon replaced with a vector (SVG) asset.** The WordPress.org plugin directory now serves `.wordpress-org/icon.svg` in place of the previous 128×128 / 256×256 JPG icons, so the icon renders sharp at any display density. Also removes the 772×250 and 1544×500 header banners from the directory listing — the plugin page will show the WordPress.org default header until banners are re-added. wp.org-assets-only change.
@@ -139,6 +142,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.5 =
+Dependency-only release: refreshes the bundled `acrossai-co/main-menu` package to `0.0.11`. No functional changes to this plugin. Safe upgrade.
 
 = 0.0.4 =
 IMPORTANT for add-on developers: Library display fields `sub_group`, `sub_group_label`, and `tab_group` must now be nested under `$args['meta']['acrossai']` when calling `wp_register_ability()`. The old top-level shape is silently dropped — cards will render without their sub-group heading or custom tab placement until you migrate. End users and site administrators are not affected; no data migration, no DB or REST changes. Also swaps the WordPress.org plugin icon to an SVG and drops the directory banners.
