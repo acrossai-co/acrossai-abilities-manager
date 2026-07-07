@@ -263,6 +263,7 @@ class Main {
 						'definitions' => AcrossAI_Ability_Library_Registry::instance()->get_definitions(),
 						'restBase'    => rest_url( AcrossAI_Ability_Library_Rest_Controller::REST_NAMESPACE ),
 						'nonce'       => wp_create_nonce( 'wp_rest' ),
+						'addonsUrl'   => admin_url( 'admin.php?page=acrossai-addons' ),
 					)
 				) . ';',
 				'before'

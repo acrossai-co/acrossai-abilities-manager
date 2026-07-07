@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
-import { Notice, TabPanel } from '@wordpress/components';
+import { Button, Notice, TabPanel } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { Icon, plugins, external } from '@wordpress/icons';
 import { fetchConfig, saveConfig } from '../api';
 import LibraryCard from './LibraryCard';
 
@@ -223,12 +224,51 @@ export default function LibraryPage() {
 			)}
 
 			{items.length === 0 && (
-				<p className="acrossai-library-page__empty">
-					{__(
-						'No abilities registered yet. Activate an add-on that provides abilities.',
-						'acrossai-abilities-manager'
+				<div
+					className="acrossai-library-page__empty"
+					role="region"
+					aria-labelledby="acrossai-library-empty-title"
+				>
+					<div className="acrossai-library-page__empty-icon">
+						<Icon icon={plugins} size={40} />
+					</div>
+					<h2
+						id="acrossai-library-empty-title"
+						className="acrossai-library-page__empty-title"
+					>
+						{__(
+							'No abilities registered yet',
+							'acrossai-abilities-manager'
+						)}
+					</h2>
+					<p className="acrossai-library-page__empty-description">
+						{__(
+							'Abilities are provided by AcrossAI add-ons. Install and activate an add-on such as “AcrossAI Core Abilities” to see registered abilities appear in this library.',
+							'acrossai-abilities-manager'
+						)}
+					</p>
+					{data.addonsUrl && (
+						<div className="acrossai-library-page__empty-actions">
+							<Button
+								variant="primary"
+								href={data.addonsUrl}
+								icon={external}
+								iconPosition="right"
+							>
+								{__(
+									'Browse add-ons',
+									'acrossai-abilities-manager'
+								)}
+							</Button>
+						</div>
 					)}
-				</p>
+					<p className="acrossai-library-page__empty-hint">
+						{__(
+							'Tip: open the Add-ons page and install “AcrossAI Core Abilities” (and any other add-ons you need) to populate this library.',
+							'acrossai-abilities-manager'
+						)}
+					</p>
+				</div>
 			)}
 
 			{items.length > 0 && tabGroups.length === 0 && renderCards(items)}
