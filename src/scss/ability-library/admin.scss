@@ -29,8 +29,68 @@ $bg:        #f6f7f7;
 	margin-bottom: 10px;
 }
 
+// ---------------------------------------------------------------------------
+// Empty state (shown when zero abilities are registered)
+// ---------------------------------------------------------------------------
 .acrossai-library-page__empty {
-	color: $muted;
+	background:      #fff;
+	border:          1px solid $border-dk;
+	border-radius:   8px;
+	padding:         40px 24px;
+	margin:          16px 0;
+	text-align:      center;
+	max-width:       640px;
+	margin-left:     auto;
+	margin-right:    auto;
+	box-shadow:      0 1px 2px rgba(0, 0, 0, 0.05);
+
+	&-icon {
+		display:          inline-flex;
+		align-items:      center;
+		justify-content:  center;
+		width:            72px;
+		height:           72px;
+		margin:           0 auto 16px;
+		border-radius:    50%;
+		background:       #f0f6fc;
+		color:            #2271b1;
+
+		svg {
+			fill: currentColor;
+		}
+	}
+
+	&-title {
+		margin:      0 0 8px;
+		font-size:   18px;
+		font-weight: 600;
+		color:       $txt;
+	}
+
+	&-description {
+		margin:      0 auto 20px;
+		max-width:   480px;
+		color:       $muted;
+		font-size:   14px;
+		line-height: 1.6;
+	}
+
+	&-actions {
+		margin-bottom: 16px;
+
+		.components-button svg {
+			margin-left: 4px;
+		}
+	}
+
+	&-hint {
+		margin:      16px 0 0;
+		padding-top: 16px;
+		border-top:  1px dashed $border;
+		font-size:   12px;
+		color:       $muted;
+		line-height: 1.5;
+	}
 }
 
 // ---------------------------------------------------------------------------
