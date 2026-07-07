@@ -10,6 +10,7 @@
 import { useEffect, useRef } from '@wordpress/element';
 import { useSelect } from '@wordpress/data';
 import { STORE_NAME } from '../store/index';
+import useUrlViewSync from '../hooks/useUrlViewSync';
 import AbilitiesList from './AbilitiesList';
 import AbilityForm from './AbilityForm';
 
@@ -23,6 +24,9 @@ const SCROLL_KEY = 'acrossai_abilities_list_scroll';
  * @return {JSX.Element}
  */
 export default function AbilitiesManager() {
+	// Sync store `view` <-> URL (?action=edit&slug=…) so Edit is deep-linkable.
+	useUrlViewSync();
+
 	const view = useSelect((select) => select(STORE_NAME).getView(), []);
 	const isDirty = useSelect((select) => select(STORE_NAME).getIsDirty(), []);
 	const prevViewRef = useRef(view);
