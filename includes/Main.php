@@ -298,11 +298,13 @@ final class Main {
 		$ability_library_menu = \AcrossAI_Abilities_Manager\Admin\Partials\LibraryMenu::instance();
 		$this->loader->add_action( 'admin_menu', $ability_library_menu, 'register_submenu' );
 
-		// Settings sections (Feature 019; reparented to host page in Feature 038).
+		// Settings sections (Feature 019; reparented to host page in Feature 038;
+		// migrated to instance-method API in Feature 045).
 		// Host page rendering owned by acrossai-co/main-menu — the plugin
 		// only contributes (a) an "Abilities" tab via the
 		// `acrossai_settings_tabs` filter, and (b) three settings sections
-		// targeting the per-tab page slug derived by SettingsPage::tab_page_slug().
+		// targeting the per-tab page slug derived by
+		// SettingsPage::get_settings_renderer()->tab_page_slug() (main-menu v0.0.12+).
 		// option_group stays 'acrossai-settings' (shared across all tabs).
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern (AC-HOOKS-MAIN).
 		$settings_menu = \AcrossAI_Abilities_Manager\Admin\Partials\SettingsMenu::instance();

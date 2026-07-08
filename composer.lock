@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "141ae05afcc2374c991cae34bf7b1faf",
+    "content-hash": "2e680ba789629da6086bfb02aad2b8c6",
     "packages": [
         {
             "name": "acrossai-co/main-menu",
-            "version": "0.0.11",
+            "version": "0.0.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/acrossai-co/main-menu.git",
-                "reference": "ed6d21b3760d7066b2ade409379868ba14bbc355"
+                "reference": "12c05c9d30c58cc215125442310cd7024791cebd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/acrossai-co/main-menu/zipball/ed6d21b3760d7066b2ade409379868ba14bbc355",
-                "reference": "ed6d21b3760d7066b2ade409379868ba14bbc355",
+                "url": "https://api.github.com/repos/acrossai-co/main-menu/zipball/12c05c9d30c58cc215125442310cd7024791cebd",
+                "reference": "12c05c9d30c58cc215125442310cd7024791cebd",
                 "shasum": ""
             },
             "require": {
@@ -43,9 +43,9 @@
             "description": "AcrossAI Admin Dashboard — parent menu, shared Settings page (Settings API), manager submenu slots, and an Add-ons page with Freemius integration.",
             "support": {
                 "issues": "https://github.com/acrossai-co/main-menu/issues",
-                "source": "https://github.com/acrossai-co/main-menu/tree/0.0.11"
+                "source": "https://github.com/acrossai-co/main-menu/tree/0.0.12"
             },
-            "time": "2026-07-04T01:01:24+00:00"
+            "time": "2026-07-08T13:45:42+00:00"
         },
         {
             "name": "automattic/jetpack-autoloader",
@@ -169,16 +169,16 @@
         },
         {
             "name": "freemius/wordpress-sdk",
-            "version": "2.13.2",
+            "version": "2.13.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Freemius/wordpress-sdk.git",
-                "reference": "20358d1ef8e11ef17038fc9cb8fca6c6a544c519"
+                "reference": "8aeb7f4e351cb8dba3af17d5a3401fc568608061"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Freemius/wordpress-sdk/zipball/20358d1ef8e11ef17038fc9cb8fca6c6a544c519",
-                "reference": "20358d1ef8e11ef17038fc9cb8fca6c6a544c519",
+                "url": "https://api.github.com/repos/Freemius/wordpress-sdk/zipball/8aeb7f4e351cb8dba3af17d5a3401fc568608061",
+                "reference": "8aeb7f4e351cb8dba3af17d5a3401fc568608061",
                 "shasum": ""
             },
             "require": {
@@ -216,9 +216,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Freemius/wordpress-sdk/issues",
-                "source": "https://github.com/Freemius/wordpress-sdk/tree/2.13.2"
+                "source": "https://github.com/Freemius/wordpress-sdk/tree/2.13.3"
             },
-            "time": "2026-06-16T08:33:57+00:00"
+            "time": "2026-07-05T11:40:08+00:00"
         },
         {
             "name": "wpboilerplate/wpb-access-control",
