@@ -304,7 +304,7 @@ final class Main {
 		// only contributes (a) an "Abilities" tab via the
 		// `acrossai_settings_tabs` filter, and (b) settings sections
 		// targeting the per-tab page slug derived by
-		// SettingsPage::get_settings_renderer()->tab_page_slug() (main-menu v0.0.13+).
+		// SettingsPage::get_settings_renderer()->tab_page_slug() (main-menu v0.0.14+).
 		// option_group is the SAME tab-scoped slug, so each tab has its own
 		// whitelist — preventing the cross-tab option-clobber bug that
 		// shared-`acrossai-settings` had in 0.0.12.

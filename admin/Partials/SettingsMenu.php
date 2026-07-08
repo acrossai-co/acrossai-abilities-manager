@@ -71,7 +71,7 @@ class SettingsMenu {
 	 * Registers the "Abilities" tab on the shared AcrossAI Settings page.
 	 *
 	 * Hooked to the `acrossai_settings_tabs` filter provided by
-	 * acrossai-co/main-menu v0.0.13+. The tab carries the plugin's scope so
+	 * acrossai-co/main-menu v0.0.14+. The tab carries the plugin's scope so
 	 * individual section titles can stay plain ("Display Settings",
 	 * "Log Settings", "Uninstall Settings") rather than each repeating
 	 * "Abilities".
@@ -100,7 +100,7 @@ class SettingsMenu {
 	 * Hooked to admin_init. Sections AND `option_group` both target the
 	 * per-tab page slug derived from the host package's
 	 * `SettingsPage::get_settings_renderer()->tab_page_slug()` helper
-	 * (acrossai-co/main-menu v0.0.13+). Each tab having its own
+	 * (acrossai-co/main-menu v0.0.14+). Each tab having its own
 	 * `option_group` is what prevents the cross-tab option-clobber bug that
 	 * shared-`acrossai-settings` had in 0.0.12 (saving one tab silently
 	 * wiped other tabs' options).
