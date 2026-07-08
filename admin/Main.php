@@ -94,6 +94,19 @@ class Main {
 	private $library_asset_file;
 
 	/**
+	 * Asset manifest for the MCP Manager Abilities-tab extension JS bundle.
+	 *
+	 * Feature 044: enqueued only on the sibling `acrossai-mcp-manager` plugin's
+	 * per-server Abilities tab. Appends an Action column via the sibling's
+	 * `acrossaiMcpManager.abilities.fields` JS filter.
+	 *
+	 * @since    0.0.6
+	 * @access   private
+	 * @var      array|null
+	 */
+	private $mcp_extension_asset_file;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    0.0.1
@@ -122,6 +135,15 @@ class Main {
 		$library_asset_path = \ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH . 'build/js/ability-library.asset.php';
 		if ( file_exists( $library_asset_path ) ) {
 			$this->library_asset_file = include $library_asset_path;
+		}
+
+		// Feature 044: MCP Manager Abilities-tab extension asset manifest.
+		$mcp_extension_asset_path = \ACROSSAI_ABILITIES_MANAGER_PLUGIN_PATH . 'build/js/mcp-abilities-extension.asset.php';
+		if ( file_exists( $mcp_extension_asset_path ) ) {
+			$this->mcp_extension_asset_file = include $mcp_extension_asset_path;
+		} elseif ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'acrossai-abilities-manager: build/js/mcp-abilities-extension.asset.php not found — run npm run build.' );
 		}
 	}
 
@@ -184,7 +206,8 @@ class Main {
 	public function enqueue_scripts( string $hook_suffix ) {
 		if ( ! $this->is_manager_page( $hook_suffix )
 			&& ! $this->is_settings_page( $hook_suffix )
-			&& ! $this->is_library_page( $hook_suffix ) ) {
+			&& ! $this->is_library_page( $hook_suffix )
+			&& ! $this->is_mcp_manager_abilities_tab() ) {
 			return;
 		}
 
@@ -269,6 +292,35 @@ class Main {
 				'before'
 			);
 		}
+
+		// Feature 044: MCP Manager Abilities-tab extension. Appends the Action
+		// column with a deep-link Edit button (URL scheme owned by Feature 043).
+		// Depends on the sibling plugin's `acrossai-mcp-manager-abilities` handle
+		// so ordering is enforced and enqueue is a silent no-op when the sibling
+		// plugin is deactivated.
+		if ( $this->mcp_extension_asset_file && $this->is_mcp_manager_abilities_tab() ) {
+			$deps = array_merge(
+				$this->mcp_extension_asset_file['dependencies'],
+				array( 'acrossai-mcp-manager-abilities' )
+			);
+			wp_register_script(
+				'acrossai-abilities-manager-mcp-extension',
+				\ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL . 'build/js/mcp-abilities-extension.js',
+				$deps,
+				$this->mcp_extension_asset_file['version'],
+				true
+			);
+			wp_add_inline_script(
+				'acrossai-abilities-manager-mcp-extension',
+				'window.acrossaiAbilitiesManagerMcpExtension = ' . wp_json_encode(
+					array(
+						'editBaseUrl' => admin_url( 'admin.php?page=acrossai-abilities-manager' ),
+					)
+				) . ';',
+				'before'
+			);
+			wp_enqueue_script( 'acrossai-abilities-manager-mcp-extension' );
+		}
 	}
 
 	/**
@@ -321,6 +373,32 @@ class Main {
 	private function is_library_page( string $hook_suffix ): bool {
 		$library_suffix = \AcrossAI_Abilities_Manager\Admin\Partials\LibraryMenu::instance()->get_hook_suffix();
 		return '' !== $library_suffix && $library_suffix === $hook_suffix;
+	}
+
+	/**
+	 * Detect the acrossai-mcp-manager plugin's per-server Abilities tab.
+	 *
+	 * Feature 044: we cannot rely on a hook suffix because that page belongs
+	 * to the sibling plugin's add_submenu_page() call. Instead we mirror the
+	 * sibling plugin's own guard style (see acrossai-mcp-manager/admin/Main.php)
+	 * and check the same three GET params it uses to gate its Abilities-tab
+	 * bundle: `page=acrossai_mcp_manager` + `action=edit` + `tab=abilities`.
+	 *
+	 * @since 0.0.6
+	 * @return bool True when on the sibling plugin's Abilities tab.
+	 */
+	private function is_mcp_manager_abilities_tab(): bool {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['page'], $_GET['action'], $_GET['tab'] ) ) {
+			return false;
+		}
+		$page   = sanitize_key( wp_unslash( $_GET['page'] ) );
+		$action = sanitize_key( wp_unslash( $_GET['action'] ) );
+		$tab    = sanitize_key( wp_unslash( $_GET['tab'] ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		return 'acrossai_mcp_manager' === $page
+			&& 'edit' === $action
+			&& 'abilities' === $tab;
 	}
 
 	/**

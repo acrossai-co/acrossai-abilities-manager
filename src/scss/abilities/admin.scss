@@ -497,6 +497,21 @@ $warn:    #dba617;
 	padding-left: 32px;
 }
 
+// Red-tinted warning callout inside a section header (Feature 044).
+// Used to flag site-wide side-effects of a per-ability toggle.
+.sect-note-warn {
+	margin:        10px 0 0 32px;
+	padding:       8px 12px;
+	background:    #fceaea;
+	border-left:   3px solid $red;
+	border-radius: 2px;
+	color:         $red;
+	font-size:     12px;
+	line-height:   1.5;
+
+	strong { font-weight: 600; }
+}
+
 // ---------------------------------------------------------------------------
 // Form rows (Wireframe: 200px label / 1fr field, padded left 32px)
 // ---------------------------------------------------------------------------
