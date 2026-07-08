@@ -96,6 +96,11 @@ module.exports = {
 			'src/scss/ability-library',
 			'admin.scss'
 		),
+		'js/mcp-abilities-extension': path.resolve(
+			process.cwd(),
+			'src/js/mcp-abilities-extension',
+			'index.js'
+		),
 	},
 	output: {
 		...defaultConfig.output,

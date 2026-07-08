@@ -1186,6 +1186,18 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 												'acrossai-abilities-manager'
 											)}
 								</div>
+								<div className="sect-note-warn" role="note">
+									<strong>
+										{__(
+											'Heads up:',
+											'acrossai-abilities-manager'
+										)}
+									</strong>{' '}
+									{__(
+										'Enabling MCP here applies this ability to all MCP servers on this site.',
+										'acrossai-abilities-manager'
+									)}
+								</div>
 							</div>
 
 							{/* Show in MCP */}
