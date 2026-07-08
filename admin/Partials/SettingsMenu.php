@@ -71,7 +71,7 @@ class SettingsMenu {
 	 * Registers the "Abilities" tab on the shared AcrossAI Settings page.
 	 *
 	 * Hooked to the `acrossai_settings_tabs` filter provided by
-	 * acrossai-co/main-menu v0.0.4+. The tab carries the plugin's scope so
+	 * acrossai-co/main-menu v0.0.14+. The tab carries the plugin's scope so
 	 * individual section titles can stay plain ("Display Settings",
 	 * "Log Settings", "Uninstall Settings") rather than each repeating
 	 * "Abilities".
@@ -97,19 +97,32 @@ class SettingsMenu {
 	/**
 	 * Registers settings sections and fields via the WordPress Settings API.
 	 *
-	 * Hooked to admin_init. Sections target the per-tab page slug derived from
-	 * the host package's `SettingsPage::tab_page_slug()` helper — `option_group`
-	 * stays the shared `'acrossai-settings'` so the form submission and nonce
-	 * flow continue to resolve regardless of which tab the user is on.
+	 * Hooked to admin_init. Sections AND `option_group` both target the
+	 * per-tab page slug derived from the host package's
+	 * `SettingsPage::get_settings_renderer()->tab_page_slug()` helper
+	 * (acrossai-co/main-menu v0.0.14+). Each tab having its own
+	 * `option_group` is what prevents the cross-tab option-clobber bug that
+	 * shared-`acrossai-settings` had in 0.0.12 (saving one tab silently
+	 * wiped other tabs' options).
+	 *
+	 * Returns silently if the main-menu package has not booted this request
+	 * (defensive guard — the bootstrap in acrossai-abilities-manager.php on
+	 * plugins_loaded priority 0 makes this practically unreachable, but a
+	 * null renderer here just means "skip Settings API registration this
+	 * request" rather than fataling).
 	 *
 	 * @since 0.1.0
 	 * @return void
 	 */
 	public function register_settings(): void {
-		$page_slug = \AcrossAI_Main_Menu\SettingsPage::tab_page_slug( self::TAB_SLUG );
+		$renderer = \AcrossAI_Main_Menu\SettingsPage::get_settings_renderer();
+		if ( ! $renderer ) {
+			return;
+		}
+		$page_slug = $renderer->tab_page_slug( self::TAB_SLUG );
 		// Uninstall delete data option.
 		register_setting(
-			'acrossai-settings',
+			$page_slug,
 			'acrossai_abilities_uninstall_delete_data',
 			array(
 				'sanitize_callback' => array( $this, 'sanitize_uninstall_flag' ),
@@ -119,7 +132,7 @@ class SettingsMenu {
 
 		// Per-page display option.
 		register_setting(
-			'acrossai-settings',
+			$page_slug,
 			'acrossai_abilities_per_page',
 			array(
 				'sanitize_callback' => array( $this, 'sanitize_per_page' ),
