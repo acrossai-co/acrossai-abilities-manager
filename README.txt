@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.5
+Stable tag: 0.0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -117,6 +117,14 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.6 =
+* **BREAKING (downstream integrators) — 17 ability category slugs rebranded from `acrossai-core-abilities-<domain>` to `acrossai-abilities-manager-<domain>`, and 176 ability slugs rebranded from `acrossai-core-abilities/<verb>` to `acrossai-abilities-manager/<verb>`.** The companion `acrossai-core-abilities` plugin's entire 201-file runtime (17 Category_Registrars, 176 ability classes, 8 helper classes, plus the extra-MIME-types admin field) is absorbed into this plugin. Every category and ability slug is renamed uniformly; ability payload shapes and permission callbacks are preserved verbatim. Downstream code (MCP servers, REST/WP-CLI callers, integration tests) that referenced the legacy `acrossai-core-abilities-*` slugs by string must update on cutover. Ability payloads themselves are unchanged. See PR [#65](https://github.com/acrossai-co/acrossai-abilities-manager/pull/65).
+* **Absorbed extra-MIME-types Settings field lands under the Abilities tab.** The companion plugin's Core settings tab is retired; its "extra allowed upload MIME types" field now renders inside the shared Settings → Abilities tab. The companion's separate uninstall opt-in is folded into the manager's existing single `acrossai_abilities_uninstall_delete_data` opt-in — no second checkbox appears. Activation-time migration copies the legacy option (`acrossai_core_abilities_extra_mimes` → `acrossai_abilities_manager_extra_mimes`), OR-monotonically folds the legacy uninstall opt-in into the manager's opt-in (never demotes a manager-true value), and deletes both legacy option rows. Existing admin configuration is preserved. See PR [#65](https://github.com/acrossai-co/acrossai-abilities-manager/pull/65).
+* **Retire the `acrossai-core-abilities` companion plugin.** After upgrading to 0.0.6, deactivate and uninstall the standalone `acrossai-core-abilities` plugin — all 176 abilities are now provided by this manager plugin directly. Keeping both plugins active will emit duplicate-registration notices from the WP Abilities API on every request. Removal of the companion plugin folder from production sites is an operational task, separate from this release.
+* **Library page — Themes / Blocks / Plugins / Users / Database / Cron / Cache / File Manager get their own tabs.** The absorbed categories are promoted from the shared "Core" tab into their own top-level tabs on the Ability Library page (`?page=acrossai-abilities-library`). The "Core" tab stays pinned as the second option (immediately after "All") regardless of alphabetical ordering. The "No abilities registered yet" empty-state copy is updated for the new bundled reality.
+* **Dependencies: `acrossai-co/main-menu` bumped from `0.0.11` to `0.0.14`.** Adopts the Tabs base class extraction (0.0.14) and tab-scoped `option_group` (0.0.13) — the latter fixes the cross-tab option-clobber bug where saving one Settings tab silently wiped other tabs' options. See PR [#66](https://github.com/acrossai-co/acrossai-abilities-manager/pull/66).
+* **Freemius product identifiers rotated** — `fs_product_id` changed from `31230` to `34418`, `fs_public_key` rotated to `pk_d61a7ddb1a619f7697fbb4fc397b6`. If you have a Freemius account tied to the previous product ID, reconnect on the Account submenu after upgrade.
+
 = 0.0.5 =
 * **Dependencies: `acrossai-co/main-menu` bumped to `0.0.11`.** Picks up the latest AcrossAI shared parent menu / dashboard / settings / add-ons page code from that package. No plugin-owned code changes in this release — the bump is the only functional delta vs 0.0.4.
 
@@ -142,6 +150,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.6 =
+IMPORTANT: this release absorbs the companion `acrossai-core-abilities` plugin — deactivate and uninstall that plugin after upgrading to avoid duplicate ability registrations. BREAKING for downstream integrators: 17 category slugs rebranded `acrossai-core-abilities-<domain>` → `acrossai-abilities-manager-<domain>` and 176 ability slugs `acrossai-core-abilities/<verb>` → `acrossai-abilities-manager/<verb>`; update any MCP/REST/WP-CLI callers that referenced the legacy slugs. Ability payload shapes and permission callbacks unchanged. Also promotes Themes / Blocks / Plugins / Users / Database / Cron / Cache / File Manager to their own Library page tabs, bumps `acrossai-co/main-menu` to `0.0.14`, and rotates Freemius credentials.
 
 = 0.0.5 =
 Dependency-only release: refreshes the bundled `acrossai-co/main-menu` package to `0.0.11`. No functional changes to this plugin. Safe upgrade.
