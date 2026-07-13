@@ -20,6 +20,10 @@ jest.mock('@wordpress/element', () => ({
 	useState: (init) => [init, () => {}],
 }));
 jest.mock('@wordpress/i18n', () => ({ __: (v) => v }));
+jest.mock('@wordpress/icons', () => ({
+	Icon: () => null,
+	plugins: null,
+}));
 jest.mock('../../../src/js/ability-library/api', () => ({
 	fetchConfig: jest.fn(() => Promise.resolve({})),
 	saveConfig: jest.fn(() => Promise.resolve()),
@@ -110,5 +114,42 @@ describe('collectTabGroups', () => {
 			]),
 		];
 		expect(collectTabGroups(items)).toEqual(['sales']);
+	});
+
+	test('pins the `core` tab_group to first position (Feature 046)', () => {
+		const items = [
+			itemWithSlugs([
+				slug({ slug: 'a', tabGroup: 'themes' }),
+				slug({ slug: 'b', tabGroup: 'blocks' }),
+				slug({ slug: 'c', tabGroup: 'core' }),
+				slug({ slug: 'd', tabGroup: 'users' }),
+			]),
+		];
+		expect(collectTabGroups(items)).toEqual([
+			'core',
+			'blocks',
+			'themes',
+			'users',
+		]);
+	});
+
+	test('is a no-op when `core` is absent', () => {
+		const items = [
+			itemWithSlugs([
+				slug({ slug: 'a', tabGroup: 'themes' }),
+				slug({ slug: 'b', tabGroup: 'blocks' }),
+			]),
+		];
+		expect(collectTabGroups(items)).toEqual(['blocks', 'themes']);
+	});
+
+	test('leaves `core` alone when already first', () => {
+		const items = [
+			itemWithSlugs([
+				slug({ slug: 'a', tabGroup: 'core' }),
+				slug({ slug: 'b', tabGroup: 'themes' }),
+			]),
+		];
+		expect(collectTabGroups(items)).toEqual(['core', 'themes']);
 	});
 });

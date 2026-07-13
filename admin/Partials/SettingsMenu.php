@@ -120,7 +120,18 @@ class SettingsMenu {
 			return;
 		}
 		$page_slug = $renderer->tab_page_slug( self::TAB_SLUG );
-		// Uninstall delete data option.
+
+		// Both persisted options are registered here so the option_group whitelist
+		// is complete before either section renders (option_group is one-shot per
+		// admin_init request).
+		register_setting(
+			$page_slug,
+			'acrossai_abilities_per_page',
+			array(
+				'sanitize_callback' => array( $this, 'sanitize_per_page' ),
+				'default'           => 20,
+			)
+		);
 		register_setting(
 			$page_slug,
 			'acrossai_abilities_uninstall_delete_data',
@@ -130,17 +141,12 @@ class SettingsMenu {
 			)
 		);
 
-		// Per-page display option.
-		register_setting(
-			$page_slug,
-			'acrossai_abilities_per_page',
-			array(
-				'sanitize_callback' => array( $this, 'sanitize_per_page' ),
-				'default'           => 20,
-			)
-		);
-
-		// Section 0: Display settings.
+		// Section 1 of 3 (rendered first): Display settings.
+		//
+		// The Uninstall Settings section is registered separately by
+		// register_uninstall_settings() at admin_init priority 20 so it always
+		// renders LAST — after Core_Settings_Menu's Upload Media Abilities
+		// section (Feature 046). Sections render in the order they were added.
 		add_settings_section(
 			'acrossai_display_settings_section',
 			__( 'Display Settings', 'acrossai-abilities-manager' ),
@@ -155,8 +161,27 @@ class SettingsMenu {
 			$page_slug,
 			'acrossai_display_settings_section'
 		);
+	}
 
-		// Section 2: Uninstall settings.
+	/**
+	 * Registers the "Uninstall Settings" section at admin_init priority 20.
+	 *
+	 * Wired separately so it lands AFTER every other section registered at
+	 * default priority 10 (Display Settings above, plus
+	 * `Core_Settings_Menu`'s Upload Media Abilities section — Feature 046).
+	 * Sections render in the order they were added, so a later hook priority
+	 * pushes this section to the bottom of the Abilities tab.
+	 *
+	 * @since 0.1.0
+	 * @return void
+	 */
+	public function register_uninstall_settings(): void {
+		$renderer = \AcrossAI_Main_Menu\SettingsPage::get_settings_renderer();
+		if ( ! $renderer ) {
+			return;
+		}
+		$page_slug = $renderer->tab_page_slug( self::TAB_SLUG );
+
 		add_settings_section(
 			'acrossai_uninstall_settings_section',
 			__( 'Uninstall Settings', 'acrossai-abilities-manager' ),

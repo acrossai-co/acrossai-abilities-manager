@@ -34,11 +34,47 @@ class AcrossAI_Activator {
 	 * Creates or upgrades the {prefix}acrossai_abilities
 	 * and {prefix}abilities_access_control tables.
 	 *
+	 * Feature 046: also runs the one-time absorbed-code option-key migration.
+	 *
 	 * @since  0.0.1
 	 * @return void
 	 */
 	public static function activate(): void {
 		( new AcrossAI_Abilities_Table() )->maybe_upgrade();
 		( new RuleTable( AcrossAI_Abilities_Access_Control::TABLE_SLUG ) )->maybe_upgrade();
+		self::migrate_absorbed_options();
+	}
+
+	/**
+	 * One-time absorbed-code option-key migration (Feature 046).
+	 *
+	 * Idempotent: repeated activation is a no-op once the legacy keys are gone.
+	 * OR-monotonic for the uninstall opt-in: only ever transitions the
+	 * manager's existing key false → true, never demotes a manager true.
+	 *
+	 * @since 0.1.0
+	 * @return void
+	 */
+	private static function migrate_absorbed_options(): void {
+		// (a) Copy the extra-MIME-types option under its new manager-branded key.
+		// Preserve any manual edits: only copy when the target key is unset.
+		$legacy_mimes = get_option( 'acrossai_core_abilities_extra_mimes', null );
+		if ( null !== $legacy_mimes ) {
+			$existing_mimes = get_option( 'acrossai_abilities_manager_extra_mimes', null );
+			if ( null === $existing_mimes ) {
+				update_option( 'acrossai_abilities_manager_extra_mimes', $legacy_mimes );
+			}
+			delete_option( 'acrossai_core_abilities_extra_mimes' );
+		}
+
+		// (b) Fold the legacy uninstall opt-in into the manager's existing one.
+		// Monotonic OR: only ever flip false → true.
+		$legacy_uninstall = get_option( 'acrossai_core_abilities_uninstall_delete_data', null );
+		if ( null !== $legacy_uninstall ) {
+			if ( ! empty( $legacy_uninstall ) && empty( get_option( 'acrossai_abilities_uninstall_delete_data', 0 ) ) ) {
+				update_option( 'acrossai_abilities_uninstall_delete_data', 1 );
+			}
+			delete_option( 'acrossai_core_abilities_uninstall_delete_data' );
+		}
 	}
 }

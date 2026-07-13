@@ -33,6 +33,11 @@
 		<testsuite name="includes-unit">
 			<file>tests/phpunit/Includes/Test_Boot_Resilience.php</file>
 		</testsuite>
+		<testsuite name="absorbed-unit">
+			<file>tests/phpunit/abilities/Absorbed/Test_Feature_046_Contracts.php</file>
+			<file>tests/phpunit/abilities/Absorbed/Test_Feature_046_Payload_Shape.php</file>
+			<file>tests/phpunit/abilities/Absorbed/Test_Feature_046_Permission_Gates.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>
