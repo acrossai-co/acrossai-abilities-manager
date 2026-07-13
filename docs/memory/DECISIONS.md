@@ -1655,3 +1655,28 @@ Consistency of the extension API. The plugin already established the `meta.<ns>`
 - `docs/memory/ARCHITECTURE.md` (`PATTERN-META-ACROSSAI-NAMESPACE`).
 - `tests/phpunit/Modules/Library/Test_Ability_Definition.php` (negative regression tests for the hard cut).
 - `specs/041-library-fields-meta-acrossai-namespace/` (full Spec-Kit artefacts).
+
+---
+
+### 2026-07-13 — DEC-ABSORBED-CODE-INCLUDES-TIER
+
+**Status**
+Active (accepted deviation from Constitution §I Directory Layout pending PATCH bump in spec 047)
+
+**Why this is durable**
+Constitution §I enumerates 5 modules under `includes/Modules/` (PerUser, McpServer, Abilities, Webmcp, AbilityAPI). Feature 046 absorbed a companion plugin's 176-ability runtime that spans 17 heterogeneous capability domains (Block, Cache, Comments, Content, …) — this doesn't fit the "one module per feature area" module contract. Placing it under `Modules/` would (a) collide naming-wise with the existing `Modules/Abilities/` registry-override module and (b) misrepresent the absorbed set as a single feature.
+
+**Decision**
+Absorbed heterogeneous capability domains live at the `includes/`-tier (sibling to `Modules/` and `Utilities/`), inside a dedicated folder — currently `includes/Abilities/`. Bootstrap orchestration for the tier lives in one class (`AcrossAI_Core_Abilities_Bootstrap`) wired from `Main.php` via the Loader. New self-contained feature modules still go under `Modules/`. Follow-up spec 047 amends the Constitution's Directory Layout to enumerate the new tier (PATCH bump 1.4.8 → 1.4.9).
+
+**Tradeoffs / Prevention**
+- Gained: isolated, greppable absorbed tree that never risks name collision with the manager's own modules.
+- Reconsider: a future absorption of an unrelated sibling plugin should get its own top-level tier (e.g., `includes/MediaLibrary/`) rather than being mixed under `includes/Abilities/`. The tier's identity is "absorbed acrossai-core-abilities" — not a generic "any-absorbed-runtime" bucket.
+
+**Where to look next**
+- `includes/Abilities/AcrossAI_Core_Abilities_Bootstrap.php` (the sole hook-adder for the absorbed tree).
+- `includes/Main.php::define_public_hooks()` (Bootstrap wiring — variable-first per AC-HOOKS-MAIN).
+- `specs/046-absorb-core-abilities-into-manager/plan.md` §Complexity Tracking (V-02 deviation row).
+- `specs/047-constitution-include-abilities-tier/spec.md` (follow-up governance stub).
+
+**Tags**: absorption, directory-layout, tier, constitution-deviation, feature-046

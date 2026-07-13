@@ -40,6 +40,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | DEC-MCP-TOOLS-PASSTHROUGH-COLUMN | Per-ability MCP tool pass-through column + registry injection (pass_as_tool tinyint, AcrossAI_Ability_Override_Processor::inject_mcp_tools, mcp_adapter_init P20 + Reflection, ARCH-ADV-001) | Abilities/DB | mcp, tools, registry, abilities, berlindb | Superseded (Feature 035) | DECISIONS.md |
 | DEC-PASS-AS-TOOL-REMOVED | Removes per-ability MCP tool pass-through entirely; supersedes DEC-MCP-TOOLS-PASSTHROUGH-COLUMN; responsibility deferred to future acrossai-mcp-manager plugin; manual deactivate-drop-reactivate migration | Abilities/DB | mcp, tools, removal, reflection-removal, supersession | Active | DECISIONS.md |
 | DEC-META-ACROSSAI-NAMESPACE | Consolidate plugin-specific ability fields under $args['meta']['acrossai']; Feature 041 retires the Features 033/037 top-level shape; hard cut, no BC layer; namespace reserved for acrossai-abilities-manager only | Abilities/Plugin-wide | meta, namespace, hard-cut, feature-041, extension-fields | Active | DECISIONS.md |
+| DEC-ABSORBED-CODE-INCLUDES-TIER | Absorbed heterogeneous capability domains live at includes/-tier not under Modules/; Bootstrap orchestrator wired via Loader; Constitution PATCH pending (spec 047) | Plugin-wide | absorption, directory-layout, tier, constitution-deviation, feature-046 | Active | DECISIONS.md |
 
 ## Architecture Constraints
 | ID | Constraint | Scope | Tags | Source |
@@ -134,6 +135,8 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-PROTECTED-SLUGS-JS-LOCALIZE | PHP-managed lists (e.g. protected slugs) must be localized to JS via window.acrossaiAbilitiesManager, not hardcoded in JSX | Abilities/Admin | protected-slugs, localize-script, jsx, window, dry | ARCHITECTURE.md |
 | ARCH-PHPUNIT-BOOTSTRAP | ABSPATH define MUST precede autoloader; phpunit.xml.dist must exclude BerlinDB-loading test files | Testing | phpunit, bootstrap, abspath, berlinddb | ARCHITECTURE.md |
 | PATTERN-ADDON-FILTER-LATE-INIT | Add-on registration filters MUST fire at init P99; early priority silently drops add-ons that hook later | Plugin-wide | filter, init, add-on, registration, priority | ARCHITECTURE.md |
+| PATTERN-BULK-REWRITE-MATRIX | 9-step ordered PHP rewrite for sibling-plugin absorption; exact-string first, partial-match last; sed/perl per-file synchronous | Plugin-wide/Migration | rewrite, absorption, sed, perl, phpcbf, order, feature-046 | ARCHITECTURE.md |
+| PATTERN-OPTION-KEY-MIGRATION-OR-MONOTONIC | Idempotent + OR-monotonic option-key migration; never overwrite manager edits; never demote a truthy opt-in | Plugin-wide/Activator | activation, wp_options, migration, idempotent, monotonic, feature-046 | ARCHITECTURE.md |
 
 ## Bug Patterns (continued)
 | BUG-AC-NULL-RETURN-SILENT-FAIL | Access control permission checks silently fail when library returns null instead of false | Access Control | type-safety, null-return, silent-fail | BUGS.md |
@@ -240,6 +243,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-LOCALIZE-KEY-VERSIONED-GUARD | JS consumers of localize keys added in a specific release must guard against undefined; browser HTML cache and fresh JS bundle are versioned independently | Plugin-wide/JS/Deploy | localize-script, browser-cache-skew, defensive-coding, undefined-guard, deploy-hazard | ARCHITECTURE.md |
 | BUG-VENDOR-LIB-JS-URL-SLUG-MISSING | Vendor React component silently 404s + falls back to empty-default UI when a new per-consumer slug arg isn't propagated to JS (Feature 039 wpb-ac v2 pluginSlug prop) | Vendor/JS/REST | vendor, react-prop, wpb-access-control, silent-404, empty-default-state, upstream-upgrade | BUGS.md |
 | BUG-VENDOR-REBRAND-JS-DATA-KEY-DESYNC | Rebrand of HTML `data-*` attribute must sweep matching JS `dataset.*` lookups + built bundle in the same PR; missing the JS side = buttons render, clicks do nothing, zero AJAX (main-menu 0.0.9 Add-ons page) | Vendor packages | rebrand, dataset, data-attribute, silent-fail, addons-page, main-menu, minified-bundle | BUGS.md |
+| BUG-CLASS-EXISTS-AUTOLOAD-FALSE-SILENT | class_exists($x, false) silently no-ops when composer hasn't loaded the class yet; use default autoload=ON in Bootstrap guards | Plugin-wide/Boot | class_exists, autoload, bootstrap, silent-fail, composer, feature-046 | BUGS.md |
 | 2026-07-01 | Feature 039: wpb-access-control v2 + main-menu absorbs addons-page; 1 new pattern (PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT) + 1 new bug pattern (BUG-VENDOR-LIB-JS-URL-SLUG-MISSING) — planning gap: "no JS changes needed" was wrong, caught post-commit via live-install user feedback | Composer/Vendor/JS | feature-039, wpb-access-control, main-menu, per-consumer-table, addons-page, react-prop, silent-404 | WORKLOG.md |
 | 2026-07-03 | Feature 041: Library display fields (sub_group / sub_group_label / tab_group) consolidated under $args['meta']['acrossai']; hard-cut migration retiring Features 033/037 top-level shape; 1 new pattern (PATTERN-META-ACROSSAI-NAMESPACE) + 1 new decision (DEC-META-ACROSSAI-NAMESPACE) | Abilities/Library | feature-041, meta, namespace, extension-fields, hard-cut, library | WORKLOG.md |
 
@@ -253,3 +257,4 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | specs/039-composer-package-updates/security-review-plan.md | plan | 2026-07-01 | LOW | C:0 H:0 M:0 L:1 I:4 | A01,A04,A05,A09 |
 | specs/039-composer-package-updates/security-review-staged.md | staged | 2026-07-01 | LOW | C:0 H:0 M:0 L:1 I:5 | A04,A05,A06 |
 | specs/040-remove-logs-module/security-review-plan.md | plan | 2026-07-01 | INFORMATIONAL | C:0 H:0 M:0 L:0 I:4 | A01,A05,A09 |
+| specs/046-absorb-core-abilities-into-manager/security-review-plan.md | plan | 2026-07-13 | INFORMATIONAL | C:0 H:0 M:0 L:1 I:4 | A03,A05,A08 |

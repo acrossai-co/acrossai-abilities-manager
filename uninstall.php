@@ -66,4 +66,9 @@ if ( $acrossai_delete_data ) {
 
 	// Remove Library config on uninstall (Feature 027).
 	\delete_site_option( 'acrossai_library_config' );
+
+	// Feature 046 — Absorbed Core Settings option (extra MIME types).
+	// Sits inside the existing $acrossai_delete_data gate per
+	// PATTERN-UNINSTALL-DATA-GATE / BUG-UNINSTALL-OPTIONS-OUTSIDE-GATE.
+	\delete_option( 'acrossai_abilities_manager_extra_mimes' );
 }
