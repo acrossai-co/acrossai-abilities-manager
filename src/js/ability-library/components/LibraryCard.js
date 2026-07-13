@@ -67,7 +67,12 @@ export default function LibraryCard({ item, config, onChange }) {
 	// (matches the "see what's inside without flipping the radio" UX added
 	// in turn 2). No persistence; resets per page load.
 	const [expanded, setExpanded] = useState(true);
-	const canExpand = enabled && slugs.length > 0;
+
+	// The chevron shows whenever the category has any slugs — regardless of
+	// enabled state — so the header row stays visually aligned between
+	// enabled and disabled cards. When disabled the chevron is still shown
+	// but the slug panel below stays hidden (its gate keeps `enabled &&`).
+	const canExpand = slugs.length > 0;
 
 	function update(patch) {
 		onChange(category, { ...entry, ...patch });
@@ -131,17 +136,20 @@ export default function LibraryCard({ item, config, onChange }) {
 				)}
 			</div>
 
-			{/* Slug list — Feature 033 contract: rendered when (a) enabled, (b) at
-			    least one slug, AND (c) the per-card disclosure is expanded. Under
-			    mode === 'specific' the rows are interactive checkboxes; under
-			    mode === 'all' they're read-only label rows. */}
-			{enabled && slugs.length > 0 && expanded && (
+			{/* Slug list — rendered when the category has slugs AND the
+			    per-card disclosure is expanded. When enabled + mode==='specific'
+			    the rows are interactive checkboxes; otherwise (mode==='all' OR
+			    disabled) they are readonly label rows. Feature 052 turn 2:
+			    disabled cards can still expand the readonly list — the All/
+			    Specific radio stays hidden (line 107 gate) so no interactive
+			    controls escape the disabled contract. */}
+			{slugs.length > 0 && expanded && (
 				<div
 					className={
 						'acrossai-library-card__slugs' +
-						(mode === 'all'
-							? ' acrossai-library-card__slugs--readonly'
-							: '')
+						(enabled && mode === 'specific'
+							? ''
+							: ' acrossai-library-card__slugs--readonly')
 					}
 				>
 					{groupBySubGroupPreservingOrder(slugs).map(
@@ -154,7 +162,7 @@ export default function LibraryCard({ item, config, onChange }) {
 								)}
 								{items.map(
 									({ slug, slugLabel, name, description }) =>
-										mode === 'specific' ? (
+										enabled && mode === 'specific' ? (
 											<div
 												key={slug}
 												className="acrossai-library-card__slug-row"

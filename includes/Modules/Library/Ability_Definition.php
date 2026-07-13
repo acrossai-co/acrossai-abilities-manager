@@ -10,6 +10,9 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Modules\Library;
 
+use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Config;
+use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Registry;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -112,5 +115,96 @@ abstract class Ability_Definition {
 		$definitions[] = $row;
 
 		return $definitions;
+	}
+
+	/**
+	 * Returns true when the saved library config represents an all-enabled state.
+	 *
+	 * Every persisted entry must have enabled=true. Empty saved config (the
+	 * post-Enable-All sparse-storage state) also returns true because absent
+	 * entries default to enabled=true.
+	 *
+	 * @since 0.1.0
+	 * @return bool
+	 */
+	public static function is_all_enabled(): bool {
+		$config = AcrossAI_Ability_Library_Config::get_config();
+		foreach ( $config as $entry ) {
+			if ( isset( $entry['enabled'] ) && false === (bool) $entry['enabled'] ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Returns true when every currently registered category has an explicit
+	 * enabled=false entry in the saved library config.
+	 *
+	 * Cross-references the Registry to know the full set of registered
+	 * categories — an admin-visible "Disable All" state requires an
+	 * explicit false for every one of them (sparse storage never yields
+	 * this state implicitly).
+	 *
+	 * @since 0.1.0
+	 * @return bool
+	 */
+	public static function is_all_disabled(): bool {
+		$config     = AcrossAI_Ability_Library_Config::get_config();
+		$registered = self::registered_category_slugs();
+		if ( empty( $registered ) ) {
+			return false;
+		}
+		foreach ( $registered as $category ) {
+			$entry = $config[ $category ] ?? null;
+			if ( ! is_array( $entry ) || true === ( $entry['enabled'] ?? true ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Returns the tri-state of the bulk toggle across the FULL registered set.
+	 *
+	 * This is the value the JS reads on first paint (initial 'All' tab).
+	 * After first paint the JS re-derives per-tab state from the live config;
+	 * this helper is not consulted for tab-scoped decisions.
+	 *
+	 * @since 0.1.0
+	 * @return string One of 'all' | 'none' | 'mixed'.
+	 */
+	public static function bulk_toggle_state(): string {
+		if ( self::is_all_enabled() ) {
+			return 'all';
+		}
+		if ( self::is_all_disabled() ) {
+			return 'none';
+		}
+		return 'mixed';
+	}
+
+	/**
+	 * Collect the unique category slugs from the Library Registry.
+	 *
+	 * SEC-052-I-001: class_exists() uses default autoload=on. Passing false
+	 * as the second argument silently no-ops when nothing else has referenced
+	 * the class yet (BUG-CLASS-EXISTS-AUTOLOAD-FALSE-SILENT). Do not change.
+	 *
+	 * @since 0.1.0
+	 * @return string[]
+	 */
+	private static function registered_category_slugs(): array {
+		if ( ! class_exists( AcrossAI_Ability_Library_Registry::class ) ) {
+			return array();
+		}
+		$definitions = AcrossAI_Ability_Library_Registry::instance()->get_definitions();
+		$slugs       = array();
+		foreach ( $definitions as $def ) {
+			if ( isset( $def['category'] ) && '' !== $def['category'] ) {
+				$slugs[ $def['category'] ] = true;
+			}
+		}
+		return array_keys( $slugs );
 	}
 }

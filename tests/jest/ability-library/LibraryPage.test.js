@@ -10,9 +10,15 @@
  */
 
 jest.mock('@wordpress/components', () => ({
+	Button: () => null,
 	Notice: () => null,
 	TabPanel: ({ children }) =>
 		typeof children === 'function' ? children({ name: '__all__' }) : null,
+}));
+jest.mock('@wordpress/icons', () => ({ Icon: () => null, plugins: null }));
+jest.mock('../../../src/js/ability-library/hooks/useLibraryTabSync', () => ({
+	__esModule: true,
+	default: () => {},
 }));
 jest.mock('@wordpress/element', () => ({
 	useEffect: () => {},
