@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.6
+Stable tag: 0.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -117,6 +117,11 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.7 =
+* **Library page — bulk Enable All / Disable All action buttons.** A new right-aligned header row above the tab strip on `?page=acrossai-abilities-library` renders two side-by-side buttons that toggle every ability category currently in view with a single click. Actions are scoped to the active tab: on the `All` tab they touch every registered category; on a specific tab (Core, Blocks, Themes, Users, Cache, File Manager, Cron, Database, Plugins) they only touch categories whose ability metadata declares that `tab_group`. Categories in other tabs pass through byte-for-byte unchanged. Each category's mode (All / Specific) and per-slug selections are preserved on both actions — a Disable All → Enable All cycle is a lossless round-trip. Persisted via the existing `POST /acrossai-abilities-library/v1/abilities/config` REST route (`manage_options` + nonce, unchanged). See PR [#68](https://github.com/acrossai-co/acrossai-abilities-manager/pull/68).
+* **URL-synced tabs on the Library page.** The active tab is now reflected in the browser URL as `?tab=<slug>`. Deep-linkable, bookmarkable, and browser back / forward navigation re-syncs the visible tab. Direct-navigation to `?page=acrossai-abilities-library&tab=themes` opens the Themes tab on first paint. Invalid tab values silently fall back to the default `All` view — no error, no console warning. The default `All` view keeps the canonical URL clean by removing the `tab` query arg entirely.
+* **Disabled-card UI refresh on the Library page.** Disabled category cards now show the master toggle + category label + chevron (visible whenever the category has at least one registered ability). Expanding the chevron on a disabled card reveals a readonly bullet-style preview of the abilities in that category (with descriptions). The All / Specific mode selector and interactive per-ability checkboxes remain hidden while the card is disabled — no interactive control can render on a disabled card even when the stored mode is `Specific`. The stored mode and per-slug selections are preserved so re-enabling restores the prior configuration exactly. Manual per-card disable and bulk `Disable All` produce identical card DOM.
+
 = 0.0.6 =
 * **BREAKING (downstream integrators) — 17 ability category slugs rebranded from `acrossai-core-abilities-<domain>` to `acrossai-abilities-manager-<domain>`, and 176 ability slugs rebranded from `acrossai-core-abilities/<verb>` to `acrossai-abilities-manager/<verb>`.** The companion `acrossai-core-abilities` plugin's entire 201-file runtime (17 Category_Registrars, 176 ability classes, 8 helper classes, plus the extra-MIME-types admin field) is absorbed into this plugin. Every category and ability slug is renamed uniformly; ability payload shapes and permission callbacks are preserved verbatim. Downstream code (MCP servers, REST/WP-CLI callers, integration tests) that referenced the legacy `acrossai-core-abilities-*` slugs by string must update on cutover. Ability payloads themselves are unchanged. See PR [#65](https://github.com/acrossai-co/acrossai-abilities-manager/pull/65).
 * **Absorbed extra-MIME-types Settings field lands under the Abilities tab.** The companion plugin's Core settings tab is retired; its "extra allowed upload MIME types" field now renders inside the shared Settings → Abilities tab. The companion's separate uninstall opt-in is folded into the manager's existing single `acrossai_abilities_uninstall_delete_data` opt-in — no second checkbox appears. Activation-time migration copies the legacy option (`acrossai_core_abilities_extra_mimes` → `acrossai_abilities_manager_extra_mimes`), OR-monotonically folds the legacy uninstall opt-in into the manager's opt-in (never demotes a manager-true value), and deletes both legacy option rows. Existing admin configuration is preserved. See PR [#65](https://github.com/acrossai-co/acrossai-abilities-manager/pull/65).
@@ -150,6 +155,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.7 =
+Adds Library page bulk Enable All / Disable All buttons scoped to the active tab, URL-synced tabs (`?tab=<slug>`) for deep-linkable views, and a readonly ability preview on disabled cards. No breaking changes; no database schema changes; no new REST endpoints; no new capability requirements. `mode` and per-slug selections are preserved through disable / enable cycles. Safe upgrade.
 
 = 0.0.6 =
 IMPORTANT: this release absorbs the companion `acrossai-core-abilities` plugin — deactivate and uninstall that plugin after upgrading to avoid duplicate ability registrations. BREAKING for downstream integrators: 17 category slugs rebranded `acrossai-core-abilities-<domain>` → `acrossai-abilities-manager-<domain>` and 176 ability slugs `acrossai-core-abilities/<verb>` → `acrossai-abilities-manager/<verb>`; update any MCP/REST/WP-CLI callers that referenced the legacy slugs. Ability payload shapes and permission callbacks unchanged. Also promotes Themes / Blocks / Plugins / Users / Database / Cron / Cache / File Manager to their own Library page tabs, bumps `acrossai-co/main-menu` to `0.0.14`, and rotates Freemius credentials.
