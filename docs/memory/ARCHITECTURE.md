@@ -1384,3 +1384,41 @@ Every future field added to the ability shape that is specific to `acrossai-abil
 - `DEC-META-ACROSSAI-NAMESPACE` — the hard-cut decision behind this pattern.
 
 **Tags**: meta, namespace, extension-fields, library, acrossai, plugin-specific, sibling-mcp, sibling-annotations, feature-041
+
+---
+
+### 2026-07-13 — PATTERN-BULK-REWRITE-MATRIX
+
+**Status**
+Active
+
+**Why this is durable**
+When absorbing a sibling plugin's PHP tree into this manager (Feature 046 pattern), the bulk rewrite must apply an ordered set of transforms per file. Order matters: exact-string transforms (namespace decl, `use` imports, text-domain string, plugin constants) MUST run before partial-match transforms (visible label text, category slugs, identifier names) so manager-branded strings emitted by earlier passes are never re-rewritten. Discovered via Feature 046 slash-form ability slug hit that leaked past the initial dash-suffix rule.
+
+**Pattern**
+9-step ordered PHP rewrite per file, in this order: (5a) namespace decl; (5b) `use` imports + FQCN refs; (5c) text-domain string; (5d) plugin constants (URL/PATH/BASENAME/FILE/NAME_SLUG/NAME/VERSION); (5e) visible label text (`Foo Bar` → `Baz Qux`); (5f) category/ability slug prefixes (both `-` and `/` separators); (5g) class/function/method/constant/variable names; (5h) singleton property `$_instance` → `$instance` (per DEC-SINGLETON-PSR2-PROPERTY); (5i) docblock `@package`/`@subpackage`/`@since` header. Use `sed`/`perl` per-file with synchronous writes (per BUG-PYTHON-STRREPLACE-PARTIAL-WRITE). Run `phpcbf` after the matrix to normalize whitespace before PHPCS.
+
+**Tradeoffs / Prevention**
+- Gained: deterministic, order-safe bulk rebrand of 200+ file trees in one shell script (`scripts/046-rewrite-matrix.sh` reference).
+- Reconsider: hand-editing is still required for docblock `@param` descriptions and code-level rules (short-ternary, Yoda). Automate those in a follow-up if a future absorption is planned.
+
+**Tags**: rewrite, absorption, sed, perl, phpcbf, order, feature-046
+
+---
+
+### 2026-07-13 — PATTERN-OPTION-KEY-MIGRATION-OR-MONOTONIC
+
+**Status**
+Active
+
+**Why this is durable**
+Activation-time option-key migrations must combine two properties to be safe: **idempotent** on repeated activation, and **OR-monotonic** when folding a legacy boolean into a still-live target. Missing either property causes silent data-integrity regressions (Feature 046 activation migration would have overwritten manual manager edits with stale companion values if the null-check was omitted, or silently disabled an admin's prior "delete on uninstall" choice if the OR-fold demoted a true).
+
+**Pattern**
+For a value-copy migration: read the legacy option; if it is not null, THEN read the target key; only `update_option( target, legacy )` if the target key is null (never overwrite manual manager edits); THEN unconditionally `delete_option( legacy )`. For a boolean opt-in fold: read the legacy option; if it is truthy AND the target opt-in is falsy, `update_option( target, 1 )` — never demote. THEN unconditionally `delete_option( legacy )`. Both properties yield a no-op on repeat activation.
+
+**Tradeoffs / Prevention**
+- Gained: safe upgrade path from a companion/sibling plugin without data loss and without silent config reset.
+- Reconsider: when the target key is expected to differ semantically (not just a rename), a full merge step must be added before the delete.
+
+**Tags**: activation, wp_options, migration, idempotent, monotonic, feature-046

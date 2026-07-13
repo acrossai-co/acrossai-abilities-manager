@@ -1654,3 +1654,26 @@ Any AcrossAI-org Composer package that ships an HTML template + JS bundle where 
 Cross-reference: `PATTERN-VENDOR-LIB-JS-CONSUMER-AUDIT` (2026-07-01) covers the consumer-side audit-after-upgrade discipline; `BUG-VENDOR-LIB-JS-URL-SLUG-MISSING` (2026-07-01) is a sibling maintainer-side bug at a different surface (React prop instead of dataset key). This entry covers the maintainer-side rename-sweep discipline that would prevent the ship in the first place.
 
 **Tags**: vendor, rebrand, dataset, data-attribute, silent-fail, addons-page, main-menu, minified-bundle, dom-js-contract
+
+---
+
+### 2026-07-13 — BUG-CLASS-EXISTS-AUTOLOAD-FALSE-SILENT
+
+**Status**
+Active
+
+**Why this is durable**
+`class_exists( $fqcn, false )` — passing `false` as the second argument — DISABLES the composer autoloader for that check. If nothing else has referenced the class yet, the check returns `false` and the surrounding guard silently no-ops. Manifests as a "nothing happened" runtime symptom with no PHP fatal, no log entry, no test failure (source-inspection tests can't see the missed instantiation).
+
+**Bug**
+Feature 046 Bootstrap used `class_exists( 'Ability_Definition', false )` as a guard-early check inside `register_abilities()` wired at `plugins_loaded @ P20`. At that hook nothing had referenced `Ability_Definition` yet, so the guard returned `false` and 176 ability instantiations were silently skipped. The Library page rendered an empty state ("No abilities registered yet") while all 176 classes were on disk and properly namespaced. Diagnosed by comparing to the companion Main.php which used the default (autoload=ON) form.
+
+**Prevention**
+Default `class_exists()` autoload behavior (second arg omitted or `true`) is REQUIRED for guard-early Bootstrap patterns. Only use the `false` form when the check is inside a hot loop that runs after the class has definitely been loaded (e.g., inside a `wp_abilities_api_init` callback after boot). Document the reason with an inline comment so future edits don't "optimize" the `false` back in.
+
+**Applies to**
+Any Bootstrap orchestrator, Loader-wired hook callback, or activation guard that runs before the surrounding request has referenced the guarded class through some other code path. Especially: Feature-046-style tier bootstraps, external-package guards (`class_exists( \VendorClass::class )` — safe because that syntax auto-loads, but a stringified FQCN + `false` second arg is the trap).
+
+Cross-reference: `BUG-EXTERNAL-PACKAGE-CTOR-SILENT` covers a different silent-fail mechanism (bare try/catch swallowing constructor exceptions). This entry is specifically about the `class_exists(..., false)` autoload-disable trap.
+
+**Tags**: class_exists, autoload, bootstrap, silent-fail, composer, feature-046

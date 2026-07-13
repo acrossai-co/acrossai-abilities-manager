@@ -313,6 +313,20 @@ final class Main {
 		$this->loader->add_filter( 'acrossai_settings_tabs', $settings_menu, 'register_tab' );
 		$this->loader->add_action( 'admin_init', $settings_menu, 'register_settings' );
 
+		// Feature 046 — Absorbed Core Settings field (extra MIME types) renders
+		// INSIDE the existing Abilities tab. Core_Settings_Menu does not register
+		// its own tab and does not register a second uninstall-opt-in; the
+		// manager's SettingsMenu owns both concerns. Variable-first per AC-HOOKS-MAIN.
+		$core_settings_menu = \AcrossAI_Abilities_Manager\Admin\Partials\Core_Settings_Menu::instance();
+		$this->loader->add_action( 'admin_init', $core_settings_menu, 'register_settings' );
+
+		// Uninstall Settings section is wired LAST — priority 20 pushes it below
+		// every default-priority section (Display Settings above, plus
+		// Core_Settings_Menu's Upload Media Abilities section). Sections render
+		// in the order they were added, so a later priority puts this at the
+		// bottom of the Abilities tab.
+		$this->loader->add_action( 'admin_init', $settings_menu, 'register_uninstall_settings', 20 );
+
 		// Add-ons submenu page (Feature 026, updated Feature 030, moved Feature 039).
 		// Package migration: acrossai-co/addons-page → acrossai-co/main-menu (AddonsPage now bundled).
 		// Class name AcrossAI_Addon\AddonsPage preserved upstream to keep consumer call sites stable.
@@ -326,8 +340,8 @@ final class Main {
 				new \AcrossAI_Addon\AddonsPage(
 					ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE,
 					array(
-						'fs_product_id' => '31230',
-						'fs_public_key' => 'pk_0f116582ac1b8e608827094024b1f',
+						'fs_product_id' => '34418',
+						'fs_public_key' => 'pk_d61a7ddb1a619f7697fbb4fc397b6',
 						'fs_slug'       => 'acrossai-abilities-manager',
 					)
 				);
@@ -407,6 +421,15 @@ final class Main {
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
 		$ability_library_processor = \AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Processor::instance();
 		$this->loader->add_action( 'wp_abilities_api_init', $ability_library_processor, 'register_abilities', 5 );
+
+		// Feature 046 — Absorbed Core Abilities Bootstrap. Registers 17 category
+		// callbacks with the Loader (each is one $this->loader->add_action on
+		// wp_abilities_api_categories_init) and hooks the 176-class ability
+		// instantiation to plugins_loaded @ P20 matching the companion plugin's
+		// original hook point. See specs/046-absorb-core-abilities-into-manager/.
+		$core_abilities_bootstrap = \AcrossAI_Abilities_Manager\Includes\Abilities\AcrossAI_Core_Abilities_Bootstrap::instance();
+		$core_abilities_bootstrap->register_category_callbacks( $this->loader );
+		$this->loader->add_action( 'plugins_loaded', $core_abilities_bootstrap, 'register_abilities', 20 );
 	}
 
 	/**

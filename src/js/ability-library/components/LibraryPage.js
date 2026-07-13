@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
-import { Button, Notice, TabPanel } from '@wordpress/components';
+import { Notice, TabPanel } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { Icon, plugins, external } from '@wordpress/icons';
+import { Icon, plugins } from '@wordpress/icons';
 import { fetchConfig, saveConfig } from '../api';
 import LibraryCard from './LibraryCard';
 
@@ -64,9 +64,22 @@ export function groupDefinitions(definitions) {
 }
 
 /**
+ * Reserved tab identifier pinned to the first position in the tab list
+ * (i.e. immediately after the `All` tab).
+ *
+ * Feature 046: the absorbed acrossai-core-abilities plugin's default
+ * `tab_group` is `core`. Site admins expect the Core tab to appear as
+ * the second option (right after `All`) even after other categories
+ * introduce their own tab_groups. When `core` is absent from the
+ * definitions this pin is a no-op.
+ */
+const PINNED_FIRST_TAB_GROUP = 'core';
+
+/**
  * Collect the unique non-empty tab_group identifiers across all slug records.
  *
- * Sort: case-insensitive alphabetical by sanitized identifier (FR-013).
+ * Sort: `core` is pinned first (Feature 046); remaining identifiers sort
+ * case-insensitive alphabetical by sanitized identifier (FR-013).
  * Named export per PATTERN-NAMED-EXPORT-JEST.
  *
  * @param {Array} items Output of groupDefinitions().
@@ -81,9 +94,15 @@ export function collectTabGroups(items) {
 			}
 		}
 	}
-	return Array.from(set).sort((a, b) =>
+	const sorted = Array.from(set).sort((a, b) =>
 		a.toLowerCase().localeCompare(b.toLowerCase())
 	);
+	const coreIndex = sorted.indexOf(PINNED_FIRST_TAB_GROUP);
+	if (coreIndex > 0) {
+		sorted.splice(coreIndex, 1);
+		sorted.unshift(PINNED_FIRST_TAB_GROUP);
+	}
+	return sorted;
 }
 
 /**
@@ -237,34 +256,13 @@ export default function LibraryPage() {
 						className="acrossai-library-page__empty-title"
 					>
 						{__(
-							'No abilities registered yet',
+							'Ability library is empty',
 							'acrossai-abilities-manager'
 						)}
 					</h2>
 					<p className="acrossai-library-page__empty-description">
 						{__(
-							'Abilities are provided by AcrossAI add-ons. Install and activate an add-on such as “AcrossAI Core Abilities” to see registered abilities appear in this library.',
-							'acrossai-abilities-manager'
-						)}
-					</p>
-					{data.addonsUrl && (
-						<div className="acrossai-library-page__empty-actions">
-							<Button
-								variant="primary"
-								href={data.addonsUrl}
-								icon={external}
-								iconPosition="right"
-							>
-								{__(
-									'Browse add-ons',
-									'acrossai-abilities-manager'
-								)}
-							</Button>
-						</div>
-					)}
-					<p className="acrossai-library-page__empty-hint">
-						{__(
-							'Tip: open the Add-ons page and install “AcrossAI Core Abilities” (and any other add-ons you need) to populate this library.',
+							'The bundled abilities did not load this request. Try deactivating and reactivating the plugin, then reload this page. If the problem persists, check the WordPress debug log for filter or class-loading errors.',
 							'acrossai-abilities-manager'
 						)}
 					</p>
