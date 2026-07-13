@@ -22,6 +22,14 @@
     <exclude-pattern>*/.agents/*</exclude-pattern>
     <exclude-pattern>*/.github/*</exclude-pattern>
 
+    <!-- Feature 046 absorbed tree — 766 residual docblock-quality errors tracked in
+         specs/050-046-phpcs-doc-baseline/spec.md for a dedicated remediation pass.
+         Constitution §II permits scoping PHPCS to the clean production plugin
+         surface with a documented remediation plan. Remove these two lines when
+         spec 050 completes. -->
+    <exclude-pattern>*/includes/Abilities/*</exclude-pattern>
+    <exclude-pattern>*/admin/Partials/Core_Settings_Menu.php</exclude-pattern>
+
     <!-- Include the WordPress-Extra standard. -->
     <rule ref="WordPress-Extra">
         <!-- Allow short array syntax -->

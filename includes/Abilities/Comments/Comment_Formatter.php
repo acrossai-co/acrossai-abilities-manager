@@ -42,8 +42,8 @@ final class Comment_Formatter {
 			'author_url'         => (string) $comment->comment_author_url,
 			'author_ip'          => (string) $comment->comment_author_IP, // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			'author_user_agent'  => (string) $comment->comment_agent,
-			'date'               => mysql_to_rfc3339( $comment->comment_date ),
-			'date_gmt'           => mysql_to_rfc3339( $comment->comment_date_gmt ),
+			'date'               => mysql_to_rfc3339( $comment->comment_date ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
+			'date_gmt'           => mysql_to_rfc3339( $comment->comment_date_gmt ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
 			'content'            => array(
 				'rendered' => (string) apply_filters( 'comment_text', $comment->comment_content, $comment, array() ),
 				'raw'      => (string) $comment->comment_content,

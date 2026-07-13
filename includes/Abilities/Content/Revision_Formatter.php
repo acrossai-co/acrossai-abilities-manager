@@ -38,10 +38,10 @@ final class Revision_Formatter {
 		return array(
 			'id'           => (int) $rev->ID,
 			'parent'       => (int) $rev->post_parent,
-			'date'         => mysql_to_rfc3339( $rev->post_date ),
-			'date_gmt'     => mysql_to_rfc3339( $rev->post_date_gmt ),
-			'modified'     => mysql_to_rfc3339( $rev->post_modified ),
-			'modified_gmt' => mysql_to_rfc3339( $rev->post_modified_gmt ),
+			'date'         => mysql_to_rfc3339( $rev->post_date ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
+			'date_gmt'     => mysql_to_rfc3339( $rev->post_date_gmt ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
+			'modified'     => mysql_to_rfc3339( $rev->post_modified ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
+			'modified_gmt' => mysql_to_rfc3339( $rev->post_modified_gmt ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
 			'author'       => $author_id,
 			'author_name'  => $author_name,
 			'title'        => (string) $rev->post_title,

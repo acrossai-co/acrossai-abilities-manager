@@ -44,14 +44,14 @@ final class Media_Formatter {
 
 		return array(
 			'id'                  => $id,
-			'date'                => mysql_to_rfc3339( $post->post_date ),
-			'date_gmt'            => mysql_to_rfc3339( $post->post_date_gmt ),
+			'date'                => mysql_to_rfc3339( $post->post_date ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
+			'date_gmt'            => mysql_to_rfc3339( $post->post_date_gmt ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
 			'guid'                => array(
 				'rendered' => (string) apply_filters( 'get_the_guid', $post->guid, $id ),
 				'raw'      => (string) $post->guid,
 			),
-			'modified'            => mysql_to_rfc3339( $post->post_modified ),
-			'modified_gmt'        => mysql_to_rfc3339( $post->post_modified_gmt ),
+			'modified'            => mysql_to_rfc3339( $post->post_modified ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
+			'modified_gmt'        => mysql_to_rfc3339( $post->post_modified_gmt ), // phpcs:ignore PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved -- WordPress core function, false positive
 			'slug'                => (string) $post->post_name,
 			'status'              => (string) $post->post_status,
 			'type'                => 'attachment',
