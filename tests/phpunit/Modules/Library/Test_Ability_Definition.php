@@ -13,7 +13,10 @@
 namespace AcrossAI_Abilities_Manager\Tests\Modules\Library;
 
 use AcrossAI_Abilities_Manager\Includes\Modules\Library\Ability_Definition;
+use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Config;
+use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Registry;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * The Ability_Definition push_definition() OPTIONAL sub_group pass-through test.
@@ -300,5 +303,149 @@ class Test_Ability_Definition extends TestCase {
 		$this->assertSame( 'canonical', $row['sub_group'] );
 		$this->assertSame( 'Canonical Label', $row['sub_group_label'] );
 		$this->assertSame( 'canonical-tab', $row['tab_group'] );
+	}
+
+	// -----------------------------------------------------------------------
+	// Feature 052 — bulk-toggle static helpers
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Reset the shared site-option store and the Registry singleton between tests.
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		acrossai_test_site_options( array() );
+		$this->reset_registry_definitions();
+	}
+
+	/**
+	 * Reset the Library Registry's cached definitions via reflection.
+	 */
+	private function reset_registry_definitions(): void {
+		$refl = new ReflectionClass( AcrossAI_Ability_Library_Registry::class );
+		$prop = $refl->getProperty( 'definitions' );
+		$prop->setAccessible( true );
+		$prop->setValue( null, null );
+	}
+
+	/**
+	 * Seed the Registry singleton with a fixed set of category-tagged definitions.
+	 *
+	 * @param string[] $categories Category slugs to register.
+	 */
+	private function seed_registry_definitions( array $categories ): void {
+		$definitions = array();
+		foreach ( $categories as $category ) {
+			$definitions[] = array(
+				'category'       => $category,
+				'category_label' => ucwords( str_replace( '-', ' ', $category ) ),
+				'slug'           => $category . '/read',
+				'slug_label'     => 'Read',
+				'name'           => $category . '/read',
+				'args'           => array(),
+			);
+		}
+		$refl = new ReflectionClass( AcrossAI_Ability_Library_Registry::class );
+		$prop = $refl->getProperty( 'definitions' );
+		$prop->setAccessible( true );
+		$prop->setValue( null, $definitions );
+	}
+
+	public function test_is_all_enabled_returns_true_for_empty_config(): void {
+		acrossai_test_site_options( array( AcrossAI_Ability_Library_Config::OPTION_KEY => array() ) );
+		$this->assertTrue( Ability_Definition::is_all_enabled() );
+	}
+
+	public function test_is_all_enabled_returns_false_when_any_entry_disabled(): void {
+		acrossai_test_site_options(
+			array(
+				AcrossAI_Ability_Library_Config::OPTION_KEY => array(
+					'block' => array(
+						'enabled'  => false,
+						'mode'     => 'all',
+						'sub_keys' => array(),
+					),
+				),
+			)
+		);
+		$this->assertFalse( Ability_Definition::is_all_enabled() );
+	}
+
+	public function test_is_all_disabled_requires_every_registered_category_disabled(): void {
+		$this->seed_registry_definitions( array( 'block', 'themes' ) );
+		acrossai_test_site_options(
+			array(
+				AcrossAI_Ability_Library_Config::OPTION_KEY => array(
+					'block'  => array(
+						'enabled'  => false,
+						'mode'     => 'all',
+						'sub_keys' => array(),
+					),
+					'themes' => array(
+						'enabled'  => false,
+						'mode'     => 'all',
+						'sub_keys' => array(),
+					),
+				),
+			)
+		);
+		$this->assertTrue( Ability_Definition::is_all_disabled() );
+
+		// Remove one entry — now not every registered category is explicitly disabled.
+		acrossai_test_site_options(
+			array(
+				AcrossAI_Ability_Library_Config::OPTION_KEY => array(
+					'block' => array(
+						'enabled'  => false,
+						'mode'     => 'all',
+						'sub_keys' => array(),
+					),
+				),
+			)
+		);
+		$this->assertFalse( Ability_Definition::is_all_disabled() );
+	}
+
+	public function test_bulk_toggle_state_returns_all_when_empty(): void {
+		acrossai_test_site_options( array( AcrossAI_Ability_Library_Config::OPTION_KEY => array() ) );
+		$this->assertSame( 'all', Ability_Definition::bulk_toggle_state() );
+	}
+
+	public function test_bulk_toggle_state_returns_none_when_all_disabled(): void {
+		$this->seed_registry_definitions( array( 'block', 'themes' ) );
+		acrossai_test_site_options(
+			array(
+				AcrossAI_Ability_Library_Config::OPTION_KEY => array(
+					'block'  => array(
+						'enabled'  => false,
+						'mode'     => 'all',
+						'sub_keys' => array(),
+					),
+					'themes' => array(
+						'enabled'  => false,
+						'mode'     => 'all',
+						'sub_keys' => array(),
+					),
+				),
+			)
+		);
+		$this->assertSame( 'none', Ability_Definition::bulk_toggle_state() );
+	}
+
+	public function test_bulk_toggle_state_returns_mixed_when_partial(): void {
+		$this->seed_registry_definitions( array( 'block', 'themes' ) );
+		acrossai_test_site_options(
+			array(
+				AcrossAI_Ability_Library_Config::OPTION_KEY => array(
+					'block' => array(
+						'enabled'  => false,
+						'mode'     => 'all',
+						'sub_keys' => array(),
+					),
+					// 'themes' absent → defaults to enabled=true (sparse storage).
+				),
+			)
+		);
+		$this->assertSame( 'mixed', Ability_Definition::bulk_toggle_state() );
 	}
 }

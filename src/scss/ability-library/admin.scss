@@ -19,6 +19,17 @@ $bg:        #f6f7f7;
 	// Full WordPress admin content width; no artificial cap.
 }
 
+// Feature 052 — bulk-action header row (Enable All / Disable All)
+.acrossai-library-page__header {
+	display:         flex;
+	justify-content: flex-end;
+	align-items:     center;
+	gap:             8px;
+	padding:         12px 0;
+	margin-bottom:   12px;
+	border-bottom:   1px solid $border-dk;
+}
+
 // Saving indicator
 .acrossai-library-page__saving {
 	display:     flex;

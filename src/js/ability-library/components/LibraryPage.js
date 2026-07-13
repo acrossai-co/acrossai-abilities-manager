@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
-import { Notice, TabPanel } from '@wordpress/components';
+import { Button, Notice, TabPanel } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { Icon, plugins } from '@wordpress/icons';
 import { fetchConfig, saveConfig } from '../api';
+import useLibraryTabSync from '../hooks/useLibraryTabSync';
 import LibraryCard from './LibraryCard';
 
 /**
@@ -159,6 +160,100 @@ export function titleCaseTabLabel(value) {
 }
 
 /**
+ * Collect the set of category slugs currently in scope for a bulk action,
+ * based on the active tab.
+ *
+ * When `activeTab === allTabsKey`, returns every unique category present in
+ * `items`. Otherwise returns only the categories whose slugs include at least
+ * one with `tabGroup === activeTab`. Matches the same tab-membership rule
+ * used by `filterItemsByTabGroup()`.
+ *
+ * Named export per PATTERN-NAMED-EXPORT-JEST.
+ *
+ * @param {Array}  items      Grouped category items (from groupDefinitions).
+ * @param {string} activeTab  Current tab slug (or ALL_TABS_KEY sentinel).
+ * @param {string} allTabsKey The sentinel for the "All" tab.
+ * @return {string[]}         In-scope category slugs.
+ */
+export function collectInScopeCategories(items, activeTab, allTabsKey) {
+	const out = [];
+	for (const item of items) {
+		if (!item.category) {
+			continue;
+		}
+		if (activeTab === allTabsKey) {
+			out.push(item.category);
+			continue;
+		}
+		if (item.slugs.some((s) => s.tabGroup === activeTab)) {
+			out.push(item.category);
+		}
+	}
+	return out;
+}
+
+/**
+ * Build a bulk-toggle patch scoped to a specific set of categories.
+ *
+ * Only entries for `inScopeCategories` are rewritten — their `enabled`
+ * boolean is set to `enabled` and their prior `mode` + `sub_keys` are
+ * preserved. Entries outside the scope pass through byte-for-byte.
+ *
+ * Named export per PATTERN-NAMED-EXPORT-JEST.
+ *
+ * @param {Object}   currentConfig     Existing config keyed by category.
+ * @param {string[]} inScopeCategories Categories the action targets.
+ * @param {boolean}  enabled           Target enabled value for in-scope entries.
+ * @return {Object}                    New config object.
+ */
+export function buildBulkPatch(currentConfig, inScopeCategories, enabled) {
+	const next = { ...currentConfig };
+	for (const category of inScopeCategories) {
+		const prior = currentConfig[category] ?? { mode: 'all', sub_keys: {} };
+		next[category] = {
+			enabled,
+			mode: prior.mode ?? 'all',
+			sub_keys: prior.sub_keys ?? {},
+		};
+	}
+	return next;
+}
+
+/**
+ * Return 'all' | 'none' | 'mixed' for the given in-scope categories against
+ * the current config. Missing entries default to enabled=true (matching the
+ * server-side sparse-storage semantics).
+ *
+ * Named export per PATTERN-NAMED-EXPORT-JEST.
+ *
+ * @param {Object}   currentConfig     Full config keyed by category.
+ * @param {string[]} inScopeCategories Categories to evaluate.
+ * @return {'all' | 'none' | 'mixed'}
+ */
+export function computeInScopeBulkState(currentConfig, inScopeCategories) {
+	if (inScopeCategories.length === 0) {
+		return 'all';
+	}
+	let anyEnabled = false;
+	let anyDisabled = false;
+	for (const category of inScopeCategories) {
+		const isEnabled = currentConfig[category]?.enabled ?? true;
+		if (isEnabled) {
+			anyEnabled = true;
+		} else {
+			anyDisabled = true;
+		}
+		if (anyEnabled && anyDisabled) {
+			return 'mixed';
+		}
+	}
+	if (anyEnabled && !anyDisabled) {
+		return 'all';
+	}
+	return 'none';
+}
+
+/**
  * Library admin page — renders one LibraryCard per registered ability group.
  */
 export default function LibraryPage() {
@@ -167,6 +262,7 @@ export default function LibraryPage() {
 
 	const [config, setConfig] = useState({});
 	const [error, setError] = useState(null);
+	const [activeTab, setActiveTab] = useState(ALL_TABS_KEY);
 
 	const initialLoadComplete = useRef(false);
 
@@ -208,6 +304,42 @@ export default function LibraryPage() {
 
 	const tabGroups = useMemo(() => collectTabGroups(items), [items]);
 
+	useLibraryTabSync(activeTab, setActiveTab, tabGroups);
+
+	const inScopeCategories = useMemo(
+		() => collectInScopeCategories(items, activeTab, ALL_TABS_KEY),
+		[items, activeTab]
+	);
+
+	const inScopeBulkState = useMemo(
+		() => computeInScopeBulkState(config, inScopeCategories),
+		[config, inScopeCategories]
+	);
+
+	function runBulkPatch(enabled) {
+		// FR-008: click is a silent no-op when already at target state.
+		if (enabled && inScopeBulkState === 'all') {
+			return;
+		}
+		if (!enabled && inScopeBulkState === 'none') {
+			return;
+		}
+		const next = buildBulkPatch(config, inScopeCategories, enabled);
+		setConfig(next);
+		setError(null);
+		saveConfig(next).catch(() =>
+			setError(__('Failed to save.', 'acrossai-abilities-manager'))
+		);
+	}
+
+	function handleEnableAll() {
+		runBulkPatch(true);
+	}
+
+	function handleDisableAll() {
+		runBulkPatch(false);
+	}
+
 	function renderCards(visibleItems) {
 		return visibleItems.map((item) => (
 			<LibraryCard
@@ -242,6 +374,19 @@ export default function LibraryPage() {
 				</Notice>
 			)}
 
+			<div className="acrossai-library-page__header">
+				<Button variant="primary" onClick={handleEnableAll}>
+					{__('Enable All', 'acrossai-abilities-manager')}
+				</Button>
+				<Button
+					variant="secondary"
+					isDestructive
+					onClick={handleDisableAll}
+				>
+					{__('Disable All', 'acrossai-abilities-manager')}
+				</Button>
+			</div>
+
 			{items.length === 0 && (
 				<div
 					className="acrossai-library-page__empty"
@@ -273,9 +418,11 @@ export default function LibraryPage() {
 
 			{items.length > 0 && tabGroups.length > 0 && (
 				<TabPanel
+					key={activeTab}
 					className="acrossai-library-page__tabs"
 					tabs={tabs}
-					initialTabName={ALL_TABS_KEY}
+					initialTabName={activeTab}
+					onSelect={setActiveTab}
 				>
 					{(tab) =>
 						renderCards(filterItemsByTabGroup(items, tab.name))

@@ -9,6 +9,7 @@
 
 namespace AcrossAI_Abilities_Manager\Admin;
 
+use AcrossAI_Abilities_Manager\Includes\Modules\Library\Ability_Definition;
 use AcrossAI_Abilities_Manager\Includes\Modules\Library\AcrossAI_Ability_Library_Registry;
 use AcrossAI_Abilities_Manager\Includes\Modules\Library\Rest\AcrossAI_Ability_Library_Rest_Controller;
 
@@ -283,10 +284,11 @@ class Main {
 				'acrossai-ability-library-js',
 				'window.acrossaiAbilityLibraryData = ' . wp_json_encode(
 					array(
-						'definitions' => AcrossAI_Ability_Library_Registry::instance()->get_definitions(),
-						'restBase'    => rest_url( AcrossAI_Ability_Library_Rest_Controller::REST_NAMESPACE ),
-						'nonce'       => wp_create_nonce( 'wp_rest' ),
-						'addonsUrl'   => admin_url( 'admin.php?page=acrossai-addons' ),
+						'definitions'     => AcrossAI_Ability_Library_Registry::instance()->get_definitions(),
+						'restBase'        => rest_url( AcrossAI_Ability_Library_Rest_Controller::REST_NAMESPACE ),
+						'nonce'           => wp_create_nonce( 'wp_rest' ),
+						'addonsUrl'       => admin_url( 'admin.php?page=acrossai-addons' ),
+						'bulkToggleState' => Ability_Definition::bulk_toggle_state(),
 					)
 				) . ';',
 				'before'
