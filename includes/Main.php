@@ -287,6 +287,13 @@ final class Main {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 		$this->loader->add_action( 'plugin_action_links', $plugin_admin, 'plugin_action_links', 1000, 2 );
+
+		// Feature 053: remove THIS plugin's own entry from the shared
+		// `acrossai_addons` list rendered by the acrossai-co/main-menu Add-ons
+		// page. This plugin is obviously active when the page renders — no
+		// point offering to install itself.
+		$this->loader->add_filter( 'acrossai_addons', $plugin_admin, 'filter_out_self_from_addons' );
+
 		/**
 		 * Add the Plugin Main Menu
 		 */

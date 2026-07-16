@@ -418,4 +418,31 @@ class Main {
 		}
 		return $links;
 	}
+
+	/**
+	 * Remove this plugin's own entry from the shared `acrossai_addons` list.
+	 *
+	 * The `acrossai-co/main-menu` package (0.0.21+) ships a baseline add-ons
+	 * list that includes `acrossai-abilities-manager`. Since this plugin is
+	 * obviously already active when the Add-ons page renders (its own
+	 * `admin/Main` is on the hook that produced the filter), listing itself
+	 * as an installable add-on is redundant and confusing. Filter it out.
+	 *
+	 * @since 0.1.0
+	 * @param array $addons Add-on entries keyed by 0..N, each with a `slug` key.
+	 * @return array
+	 */
+	public function filter_out_self_from_addons( $addons ) {
+		if ( ! is_array( $addons ) ) {
+			return $addons;
+		}
+		$filtered = array();
+		foreach ( $addons as $addon ) {
+			if ( is_array( $addon ) && isset( $addon['slug'] ) && 'acrossai-abilities-manager' === $addon['slug'] ) {
+				continue;
+			}
+			$filtered[] = $addon;
+		}
+		return $filtered;
+	}
 }
