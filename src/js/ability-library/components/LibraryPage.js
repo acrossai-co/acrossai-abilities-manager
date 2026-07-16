@@ -375,16 +375,21 @@ export default function LibraryPage() {
 			)}
 
 			<div className="acrossai-library-page__header">
-				<Button variant="primary" onClick={handleEnableAll}>
-					{__('Enable All', 'acrossai-abilities-manager')}
-				</Button>
-				<Button
-					variant="secondary"
-					isDestructive
-					onClick={handleDisableAll}
-				>
-					{__('Disable All', 'acrossai-abilities-manager')}
-				</Button>
+				<h1 className="acrossai-library-page__title">
+					{__('Ability Library', 'acrossai-abilities-manager')}
+				</h1>
+				<div className="acrossai-library-page__header-actions">
+					<Button variant="primary" onClick={handleEnableAll}>
+						{__('Enable All', 'acrossai-abilities-manager')}
+					</Button>
+					<Button
+						variant="secondary"
+						isDestructive
+						onClick={handleDisableAll}
+					>
+						{__('Disable All', 'acrossai-abilities-manager')}
+					</Button>
+				</div>
 			</div>
 
 			{items.length === 0 && (

@@ -101,9 +101,11 @@ class LibraryMenu {
 	 * @return void
 	 */
 	public function render(): void {
+		// The page <h1> is rendered by the React app inside the header row
+		// (aligned with the Enable All / Disable All buttons) — the container
+		// stays here as a bare React mount point.
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Ability Library', 'acrossai-abilities-manager' ); ?></h1>
 			<div id="acrossai-library-root"></div>
 		</div>
 		<?php
