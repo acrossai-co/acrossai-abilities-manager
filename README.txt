@@ -37,9 +37,8 @@ All overrides are stored in a dedicated database table. The WordPress ability re
 **Third-party integrations (optional):**
 
 * **MCP Adapter plugin** — if active, the plugin displays a list of registered MCP servers inside the ability edit panel. No data is sent to any external service. The MCP Adapter plugin communicates only with your own WordPress installation.
-* **Freemius** — the Add-ons page uses Freemius to handle paid add-on purchases, license management, and automatic updates. Data is only sent after explicit user action (see "External Services" below).
 
-No data is sent to any external server automatically by this plugin.
+This plugin makes no external HTTP requests. The Add-ons page lists free companion plugins hosted on WordPress.org; installing one uses the standard WordPress plugin installer, which contacts WordPress.org directly.
 
 == Installation ==
 
@@ -49,9 +48,8 @@ No data is sent to any external server automatically by this plugin.
 
 **Add-ons:**
 
-1. Go to **AcrossAI Abilities Manager → Add-ons** to browse available add-ons.
-2. Free add-ons can be installed with one click via the standard WordPress plugin installer.
-3. Paid add-ons require connecting your account — click **Buy** on any paid add-on to begin.
+1. Go to **AcrossAI → Add-ons** to browse available companion plugins.
+2. All add-ons are free and hosted on WordPress.org; each card offers a one-click Install / Activate / Deactivate action via the standard WordPress plugin installer.
 
 == Frequently Asked Questions ==
 
@@ -77,7 +75,7 @@ If the MCP Adapter plugin is active on your site, AcrossAI Abilities Manager wil
 
 = Does this plugin make external HTTP requests? =
 
-Only when you explicitly interact with the Add-ons page to connect your account or purchase a paid add-on. In that case, data is sent to Freemius (see "External Services"). No external requests are made otherwise.
+No. The plugin makes no external HTTP requests itself. The Add-ons page lists free companion plugins hosted on WordPress.org; installing one uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs.
 
 == Screenshots ==
 
@@ -85,33 +83,17 @@ Only when you explicitly interact with the Add-ons page to connect your account 
 2. The edit drawer — tri-state override controls for each ability field.
 3. Bulk actions toolbar for allow/disallow/reset across multiple abilities.
 4. The Ability Library page — enable/disable add-on ability groups.
-5. The Add-ons page — browse free and premium add-ons.
+5. The Add-ons page — browse free companion plugins.
 
 == External Services ==
 
-**Freemius** (https://freemius.com)
+This plugin makes no external HTTP requests on its own.
 
-The Add-ons page is powered by [wpb-addons-page](https://github.com/WPBoilerplate/wpb-addons-page), which integrates with Freemius to handle paid add-on purchases, license management, and automatic updates for premium add-ons.
-
-When a user chooses to connect their account or purchase a paid add-on, the following data is sent to Freemius servers:
-
-- WordPress admin email address
-- Site URL
-- WordPress and PHP version
-
-This only happens after explicit user action (clicking **Login / Connect** or **Buy** on the Add-ons page). No data is sent automatically on plugin activation or on any other page.
-
-Freemius Terms of Service: https://freemius.com/terms/
-Freemius Privacy Policy:   https://freemius.com/privacy/
-
-Free add-ons listed on the Add-ons page are hosted on WordPress.org and installed via the standard WordPress plugin installer. No external service is involved for free add-ons.
+The Add-ons page lists free companion plugins hosted on WordPress.org. Installing a listed add-on uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs — no external service is involved on the plugin's side.
 
 == Privacy Policy ==
 
-This plugin does not collect or store any user data by itself.
-
-If a user chooses to connect their account via the Add-ons page, data is handled by Freemius in accordance with their privacy policy:
-https://freemius.com/privacy/
+This plugin does not collect, store, or transmit any user data.
 
 No data is sent to any external server without explicit user action.
 
