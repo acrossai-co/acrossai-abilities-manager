@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.7
+Stable tag: 0.0.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -99,6 +99,12 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.8 =
+* **Freemius integration removed entirely.** The `freemius/wordpress-sdk` composer dependency is dropped (upstream `acrossai-co/main-menu` 0.0.21+ no longer requires it). The plugin no longer sends any data to Freemius, no longer shows a Connect / Login / Buy affordance on the Add-ons page, and the entire Freemius vendored SDK tree (~2,000 files) is removed from the installable ZIP. If you previously connected a Freemius account tied to this plugin, that connection is now inert; any `fs_*` or `freemius_*` rows in `wp_options` are no longer read by anything and can be safely deleted (e.g. `wp option list --search='fs_*'` then `wp option delete <name>` for each). This supersedes the 0.0.6 changelog entry about Freemius credentials — those credentials are no longer used. See PR [#69](https://github.com/acrossai-co/acrossai-abilities-manager/pull/69).
+* **Add-ons page — free-only, and this plugin excluded from its own listing.** The Add-ons page (`?page=acrossai-addons`) now lists only free companion plugins hosted on WordPress.org (Install / Activate / Deactivate via the standard WP plugin installer). This plugin no longer appears in its own Add-ons page — a small self-filter on the `acrossai_addons` hook removes it, since it's obviously already active when the page renders. Other AcrossAI companion plugins (MCP Manager, Model Manager, Turn Off AI Features) still list normally.
+* **Library page — title and Enable All / Disable All buttons on a single horizontal row.** The "Ability Library" page heading and the bulk-action buttons introduced in 0.0.7 (Feature 052) now share one line at the top of the page (title anchored left, buttons anchored right). Saves vertical space; matches administrator expectations for admin page layouts.
+* **Dependencies: `acrossai-co/main-menu` bumped from `0.0.14` to `0.0.23`.** Three-hop bump (0.0.21 → 0.0.22 → 0.0.23) accumulated during the release cycle. Consumer API surface (`SettingsPage`, `MenuRegistrar`, `AddonsPageRenderer`) preserved across each hop; no code changes required beyond removing the old `\AcrossAI_Addon\AddonsPage` instantiation (class deleted upstream in 0.0.21 — its responsibilities moved into `\AcrossAI_Main_Menu\MenuRegistrar` which is registered automatically when the shared `SettingsPage` bootstrap runs).
+
 = 0.0.7 =
 * **Library page — bulk Enable All / Disable All action buttons.** A new right-aligned header row above the tab strip on `?page=acrossai-abilities-library` renders two side-by-side buttons that toggle every ability category currently in view with a single click. Actions are scoped to the active tab: on the `All` tab they touch every registered category; on a specific tab (Core, Blocks, Themes, Users, Cache, File Manager, Cron, Database, Plugins) they only touch categories whose ability metadata declares that `tab_group`. Categories in other tabs pass through byte-for-byte unchanged. Each category's mode (All / Specific) and per-slug selections are preserved on both actions — a Disable All → Enable All cycle is a lossless round-trip. Persisted via the existing `POST /acrossai-abilities-library/v1/abilities/config` REST route (`manage_options` + nonce, unchanged). See PR [#68](https://github.com/acrossai-co/acrossai-abilities-manager/pull/68).
 * **URL-synced tabs on the Library page.** The active tab is now reflected in the browser URL as `?tab=<slug>`. Deep-linkable, bookmarkable, and browser back / forward navigation re-syncs the visible tab. Direct-navigation to `?page=acrossai-abilities-library&tab=themes` opens the Themes tab on first paint. Invalid tab values silently fall back to the default `All` view — no error, no console warning. The default `All` view keeps the canonical URL clean by removing the `tab` query arg entirely.
@@ -137,6 +143,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.8 =
+IMPORTANT: this release **removes the Freemius integration entirely** — the plugin no longer sends any data to Freemius and no longer offers a Connect / Login / Buy affordance on the Add-ons page. If you previously connected a Freemius account tied to this plugin, that connection is now inert; stale `fs_*` or `freemius_*` rows in `wp_options` are safe to delete manually. Also: the Add-ons page now shows only free WordPress.org companion plugins (and no longer lists this plugin itself); the Library page compacts its title + bulk-action buttons onto one horizontal row; and `acrossai-co/main-menu` bumps `0.0.14 → 0.0.23`. No breaking changes to REST endpoints, capability requirements, or database schema. Safe upgrade.
 
 = 0.0.7 =
 Adds Library page bulk Enable All / Disable All buttons scoped to the active tab, URL-synced tabs (`?tab=<slug>`) for deep-linkable views, and a readonly ability preview on disabled cards. No breaking changes; no database schema changes; no new REST endpoints; no new capability requirements. `mode` and per-slug selections are preserved through disable / enable cycles. Safe upgrade.
