@@ -38,6 +38,9 @@
 			<file>tests/phpunit/abilities/Absorbed/Test_Feature_046_Payload_Shape.php</file>
 			<file>tests/phpunit/abilities/Absorbed/Test_Feature_046_Permission_Gates.php</file>
 		</testsuite>
+		<testsuite name="feature-041-unit">
+			<file>tests/phpunit/abilities/Test_Feature_041_Backup_Abilities.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>

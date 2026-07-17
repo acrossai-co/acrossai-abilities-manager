@@ -105,6 +105,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Plugins\Plugin_Activate();
 		new Plugins\Plugin_Deactivate();
 		new Plugins\Plugin_Install();
+		new Plugins\Plugin_Update();
 		new Plugins\Plugin_List();
 		new Plugins\Update_Check();
 		new Settings\Permalink_Get();
@@ -120,6 +121,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Themes\Theme_Activate();
 		new Themes\Theme_Delete();
 		new Themes\Theme_Install();
+		new Themes\Theme_Update();
 		new Themes\Theme_List();
 		new Users\User_Get();
 		new Users\User_List();
@@ -155,6 +157,12 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new FileManager\Wp_Config_Edit();
 		new FileManager\Debug_Log_Read();
 		new FileManager\Debug_Log_Clear();
+		new FileManager\Zip_Create();
+		new FileManager\Zip_Upload();
+		new FileManager\Zip_Extract();
+		new FileManager\Zip_Download();
+		new FileManager\Zip_List();
+		new FileManager\Zip_Delete();
 		new Block\Pattern_List();
 		new Block\Pattern_Read();
 		new Block\Pattern_Create();
@@ -285,5 +293,9 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		Cron_Helpers::register_filter();
 		add_action( Media\Upload_Media::CHUNK_SWEEP_HOOK, array( Media\Upload_Media::class, 'sweep_chunk_sessions' ) );
 		Media\Upload_Media::register_sweep_cron();
+
+		// Feature 041: Zip_Upload chunk sweeper — same shape as Upload_Media.
+		add_action( FileManager\Zip_Upload::CHUNK_SWEEP_HOOK, array( FileManager\Zip_Upload::class, 'sweep_chunk_sessions' ) );
+		FileManager\Zip_Upload::register_sweep_cron();
 	}
 }
