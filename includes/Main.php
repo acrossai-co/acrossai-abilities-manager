@@ -287,6 +287,13 @@ final class Main {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 		$this->loader->add_action( 'plugin_action_links', $plugin_admin, 'plugin_action_links', 1000, 2 );
+
+		// Feature 053: remove THIS plugin's own entry from the shared
+		// `acrossai_addons` list rendered by the acrossai-co/main-menu Add-ons
+		// page. This plugin is obviously active when the page renders — no
+		// point offering to install itself.
+		$this->loader->add_filter( 'acrossai_addons', $plugin_admin, 'filter_out_self_from_addons' );
+
 		/**
 		 * Add the Plugin Main Menu
 		 */
@@ -327,40 +334,16 @@ final class Main {
 		// bottom of the Abilities tab.
 		$this->loader->add_action( 'admin_init', $settings_menu, 'register_uninstall_settings', 20 );
 
-		// Add-ons submenu page (Feature 026, updated Feature 030, moved Feature 039).
-		// Package migration: acrossai-co/addons-page → acrossai-co/main-menu (AddonsPage now bundled).
-		// Class name AcrossAI_Addon\AddonsPage preserved upstream to keep consumer call sites stable.
-		// Constructor signature (v0.0.8+): (?string $consumer_main_file, array $args, string $parent_slug='acrossai').
-		// The AddonsPage constructor self-registers all WordPress hooks — no Loader wiring needed.
-		// Accepted deviation from Boot Flow Rule: external package API does not expose individual hook methods.
-		// Guarded per Constitution §V Integration Resilience: fails gracefully when vendor is absent.
-		// See DEC-EXTERNAL-PACKAGE-HOOK-CTOR.
-		if ( class_exists( \AcrossAI_Addon\AddonsPage::class ) ) {
-			try {
-				new \AcrossAI_Addon\AddonsPage(
-					ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE,
-					array(
-						'fs_product_id' => '34418',
-						'fs_public_key' => 'pk_d61a7ddb1a619f7697fbb4fc397b6',
-						'fs_slug'       => 'acrossai-abilities-manager',
-					)
-				);
-			} catch ( \Throwable $e ) {
-				$error_message = $e->getMessage();
-				add_action(
-					'admin_notices',
-					function () use ( $error_message ) {
-						if ( ! current_user_can( 'manage_options' ) ) {
-							return;
-						}
-						printf(
-							'<div class="notice notice-error"><p><strong>AcrossAI Abilities Manager:</strong> %s</p></div>',
-							esc_html( $error_message )
-						);
-					}
-				);
-			}
-		}
+		// Add-ons submenu page (Feature 026 → 030 → 039 → 053).
+		// As of acrossai-co/main-menu 0.0.21 the `\AcrossAI_Addon\AddonsPage`
+		// entry-class is removed and the Add-ons submenu is registered
+		// internally by `\AcrossAI_Main_Menu\MenuRegistrar` when the shared
+		// `\AcrossAI_Main_Menu\SettingsPage` bootstrap runs (done at
+		// `plugins_loaded @ P0` in this plugin's entry file, see
+		// acrossai-abilities-manager.php). Consumers extend the shared list
+		// via `add_filter( 'acrossai_addons', … )`; freemius integration was
+		// dropped upstream in 0.0.21 so no `fs_*` args are passed anymore.
+		// The submenu URL admin.php?page=acrossai-addons is unchanged.
 
 		// Abilities DB table setup — BerlinDB hooks maybe_upgrade() to admin_init.
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern (AC-HOOKS-MAIN).

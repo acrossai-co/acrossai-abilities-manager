@@ -1357,24 +1357,24 @@ If a future column were added to `COLUMN_DEFAULTS` with `false`, existing users 
 
 ### 2026-06-06 — DEC-FREEMIUS-PER-PLUGIN-INIT: Freemius `fs_dynamic_init()` must be called with per-consumer product credentials keyed by product_id
 
-**Status**: Active
+**Status**: **Superseded (Feature 053, 2026-07-17)** — `acrossai-co/main-menu 0.0.21` dropped the `freemius/wordpress-sdk` composer dependency entirely and removed the `\AcrossAI_Addon\AddonsPage` entry class. Feature 053 removed all Freemius integration from this plugin (no `fs_*` args passed, no Freemius vendored SDK in `vendor/`, no external HTTP requests to `freemius.com`). The per-consumer-product-credentials rule no longer applies because there is no Freemius surface to key. See `specs/053-main-menu-0-0-21-freemius-removal/` for the supersession scope.
 
 **Context**
 `wpboilerplate/addons-page` is a shared Composer package consumed by multiple plugins. Initially `FreemiusInitializer` held a single shared instance. Using shared/hardcoded credentials would cause analytics and opt-in data to route to the wrong Freemius product when two plugins using the package were active simultaneously.
 
-**Decision**
+**Decision (historical)**
 `FreemiusInitializer::init()` accepts `$product_id`, `$public_key`, and `$slug` as parameters. Instances are memoized in a static array keyed by `$product_id`. Each consumer plugin must pass its own Freemius product credentials; the package never hardcodes them.
 
-**Rule**
+**Rule (historical — no longer applies as of Feature 053)**
 When calling `new AddonsPage(...)`, always pass `fs_product_id`, `fs_public_key`, and `fs_slug` in the `$args` array. Missing credentials throw `InvalidArgumentException`. Credentials live in the consuming plugin (e.g., `includes/Main.php`), never in the shared package.
 
-**Evidence**
+**Evidence (historical)**
 `wpb-addons-page/src/FreemiusInitializer.php` — `init()` signature accepts `$product_id`, `$public_key`, `$slug`; static `$instances` array keyed by `$product_id`.
 `includes/Main.php` — AddonsPage instantiation with `'fs_product_id' => '31230', 'fs_public_key' => 'pk_0f116582ac1b8e608827094024b1f'`.
 
-**Tradeoffs**
+**Tradeoffs (historical)**
 - Gained: per-plugin Freemius isolation, correct analytics per product, multi-plugin safe
-- Reconsider: if the package ever needs an anonymous/no-Freemius mode, the init path would need an optional bypass
+- Reconsider: if the package ever needs an anonymous/no-Freemius mode, the init path would need an optional bypass — **exactly what happened in acrossai-co/main-menu 0.0.21 (Freemius removed entirely). Rule and decision superseded.**
 
 ---
 
