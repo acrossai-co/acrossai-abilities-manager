@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.10
+Stable tag: 0.0.11
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -99,6 +99,12 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.11 =
+* **New — WordPress core update abilities under a new "Core" category.** Two new abilities: `acrossai-abilities-manager/wp-core-update-check` reports whether a WordPress core update is available (returns `current_version`, `new_version`, download URL, PHP / MySQL requirements — flattens WP's core update offer into a JSON-friendly shape); `acrossai-abilities-manager/wp-core-update` applies the update via WP core's `Core_Upgrader::upgrade()`. When called with no arguments it upgrades to the first `response=upgrade` offer from `get_core_updates()`; pass `version` (+ optional `locale`) to pin to a specific offer. Requires BOTH `manage_options` AND `update_core` (matches WP core's own admin gate). Honours `DISALLOW_FILE_MODS` via `File_Mods_Guard`. Multisite guard bails cleanly if the current user lacks network-level `update_core`. Idempotent — re-running when no update is available returns a clean success envelope with `updated=false`. Uses WP core functions exclusively; no bundled updater, no custom HTTP, no custom integrity checks. See PR [#75](https://github.com/acrossai-co/acrossai-abilities-manager/pull/75).
+* **New Core category folder.** `includes/Abilities/Core/` joins the existing 17 Category folders (Plugins, Themes, FileManager, Cache, Database, Users, Block, Settings, Fonts, Content, Taxonomies, Media, Comments, Menus, Options, Cron, SiteHealth). Displayed as a new "Core" tab on the Ability Library page. Not a new module — Constitution §I locks the module count at five; Category folders are sub-partitions of the existing Custom Ability Registration module.
+* **Backup filenames — human-readable and time-sortable.** Filenames produced by `zip-create` (and finalized zips from `zip-upload`) change from `backup-{type}-{slug}-{random-12-chars}.zip` to `{slug}-{unix-timestamp}-{ms}.zip` (e.g. `hello-dolly-1721260800-517.zip`). Lexicographic sort now equals chronological sort; the target is readable at a glance. The 3-digit millisecond suffix from `microtime(true)` prevents same-second collisions when two back-to-back calls target the same slug. Trade-off: dropping the 12-char random suffix removes the enumeration-by-guessing defense the old scheme provided. Mitigations still in force: the `.htaccess` in `wp-content/uploads/acrossai-backups/` still disables directory listing (`Options -Indexes`) and still blocks execution of PHP-family extensions, and `zip-list` / `zip-download` still require `manage_options`. Backups created on 0.0.9 / 0.0.10 with the old scheme continue to work — the filename change only affects new backups.
+* **Spec-Kit backfill for Feature 041.** `specs/041-backup-restore-abilities-and-updates/` now exists with the full artifact set (spec, plan, tasks, checklists, security-constraints, memory-synthesis, architecture-review) documenting the 8 abilities that shipped in 0.0.9 and the 0.0.10 include_hidden fix. Same seven-file layout used by Feature 053's backfill.
+
 = 0.0.10 =
 * **Fix (Zip_Create) — `include_hidden=false` now applies recursively.** The 0.0.9 implementation used `RecursiveIteratorIterator::SELF_FIRST` with a per-entry basename check that only skipped the top-level hidden directory itself; the iterator kept descending into it, so files INSIDE a hidden directory (e.g. `.git/objects/xxx`) were still added because their basenames don't start with `.`. Fixed to check EVERY segment of the entry's relative path — same approach the reference `download-plugin` uses in its `app/Plugins/Base.php`. Applied to both the archive assembly (`append_dir_to_zip`) and the pre-write size guard (`estimate_tree_size`). If you called `zip-create` with `include_hidden=false` against a dev checkout in 0.0.9, the archive contained the full contents of every hidden directory beneath the source — regenerate any such archives on 0.0.10. See PR [#73](https://github.com/acrossai-co/acrossai-abilities-manager/pull/73).
 
@@ -153,6 +159,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.11 =
+Adds two WordPress-core-scoped abilities under a new "Core" tab in the Ability Library — `wp-core-update-check` (report availability) and `wp-core-update` (apply via `Core_Upgrader`). The update ability requires both `manage_options` and `update_core`; honours `DISALLOW_FILE_MODS`; multisite-guarded. Also changes backup filenames from `backup-{type}-{slug}-{random}.zip` to `{slug}-{unix-timestamp}-{ms}.zip` — human-readable and time-sortable, but predictable (directory listing remains disabled on the backups dir). Existing backups continue to work; the filename change only affects new backups. No breaking changes; no database, REST, or capability changes to existing abilities. Safe upgrade.
 
 = 0.0.10 =
 Bugfix release. `Zip_Create` with `include_hidden=false` was silently descending into hidden directories and archiving their contents in 0.0.9 (only the top-level `.git/` etc. entry was skipped, not the files beneath it). Fixed to check every segment of each entry's relative path. Regenerate any `include_hidden=false` archives created on 0.0.9 if their source tree contained hidden directories. No breaking changes; no database, REST, or capability changes. Safe upgrade.
