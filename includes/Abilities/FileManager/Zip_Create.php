@@ -228,11 +228,17 @@ class Zip_Create extends Ability_Definition {
 	/**
 	 * Best-effort size estimate for a source directory, used purely as an
 	 * up-front guard against ballooning archives. Skips unreadable entries.
+	 *
+	 * The include_hidden=false branch checks EVERY segment of the entry's
+	 * relative path — not just the current entry's basename — so files inside
+	 * a hidden directory (e.g. `.git/objects/xxx`) are also excluded, not just
+	 * the top-level `.git/` entry itself.
 	 */
 	private static function estimate_tree_size( string $dir, bool $include_hidden ): int {
 		if ( ! is_dir( $dir ) ) {
 			return 0;
 		}
+		$dir   = rtrim( $dir, '/' );
 		$total = 0;
 		try {
 			$iter = new \RecursiveIteratorIterator(
@@ -244,13 +250,17 @@ class Zip_Create extends Ability_Definition {
 		}
 		/** @var \SplFileInfo $entry */
 		foreach ( $iter as $entry ) {
-			$name = $entry->getFilename();
-			if ( ! $include_hidden && '' !== $name && '.' === $name[0] ) {
+			if ( ! $entry->isFile() ) {
 				continue;
 			}
-			if ( $entry->isFile() ) {
-				$total += (int) $entry->getSize();
+			$rel = self::normalize_relative( $entry->getPathname(), $dir );
+			if ( '' === $rel ) {
+				continue;
 			}
+			if ( ! $include_hidden && self::has_hidden_segment( $rel ) ) {
+				continue;
+			}
+			$total += (int) $entry->getSize();
 		}
 		return $total;
 	}
@@ -302,16 +312,16 @@ class Zip_Create extends Ability_Definition {
 
 		/** @var \SplFileInfo $entry */
 		foreach ( $iter as $entry ) {
-			$name = $entry->getFilename();
-			if ( ! $include_hidden && '' !== $name && '.' === $name[0] ) {
+			$rel = self::normalize_relative( $entry->getPathname(), $src );
+			if ( '' === $rel ) {
 				continue;
 			}
 
-			$path = $entry->getPathname();
-			$rel  = ltrim( str_replace( $src, '', $path ), '/\\' );
-			$rel  = str_replace( '\\', '/', $rel );
-
-			if ( '' === $rel ) {
+			// SELF_FIRST does not stop descent when we `continue` on a hidden
+			// entry, so we must check every segment of the relative path here
+			// — otherwise files INSIDE a hidden directory (e.g. .git/objects/x)
+			// would still be added even when the top-level .git/ was skipped.
+			if ( ! $include_hidden && self::has_hidden_segment( $rel ) ) {
 				continue;
 			}
 
@@ -320,7 +330,7 @@ class Zip_Create extends Ability_Definition {
 				continue;
 			}
 			if ( $entry->isFile() ) {
-				if ( ! $zip->addFile( $path, $prefix . $rel ) ) {
+				if ( ! $zip->addFile( $entry->getPathname(), $prefix . $rel ) ) {
 					return new \WP_Error(
 						'zip_add_failed',
 						sprintf(
@@ -335,5 +345,32 @@ class Zip_Create extends Ability_Definition {
 		}
 
 		return $count;
+	}
+
+	/**
+	 * Convert an absolute pathname into a forward-slashed path relative to $src.
+	 */
+	private static function normalize_relative( string $pathname, string $src ): string {
+		$src_norm = str_replace( '\\', '/', rtrim( $src, '/' ) );
+		$path     = str_replace( '\\', '/', $pathname );
+		if ( 0 === strpos( $path, $src_norm . '/' ) ) {
+			return substr( $path, strlen( $src_norm ) + 1 );
+		}
+		return ltrim( $path, '/' );
+	}
+
+	/**
+	 * True when any segment of a forward-slashed relative path starts with `.`.
+	 * Mirrors the every-segment check used by download-plugin's Base.php so
+	 * files INSIDE a hidden directory are also skipped, not just the dir
+	 * entry itself.
+	 */
+	private static function has_hidden_segment( string $relative ): bool {
+		foreach ( explode( '/', $relative ) as $segment ) {
+			if ( '' !== $segment && '.' === $segment[0] ) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
