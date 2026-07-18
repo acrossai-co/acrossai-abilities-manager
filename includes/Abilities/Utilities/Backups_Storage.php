@@ -63,26 +63,54 @@ final class Backups_Storage {
 	}
 
 	/**
-	 * Generate a random filename for a new backup: `backup-{type}-{slug}-{rand}.zip`.
+	 * Generate a filename for a new backup: `{slug}-{unix-timestamp}-{ms}.zip`.
 	 *
-	 * The random suffix always contains 12 chars of [A-Za-z0-9]. type/slug are
-	 * sanitized through sanitize_key(); when they are empty the segments are
-	 * omitted so callers never introduce path separators through this helper.
+	 * The slug segment is the sanitized target descriptor (`hello-dolly` for a
+	 * plugin, sanitized filename hint for uploads, etc.). When the caller
+	 * doesn't supply one, we fall back to the sanitized $target_type so we
+	 * always have a base word (e.g. `uploads-...zip`, `mu-plugins-...zip`).
+	 * The timestamp + millisecond suffix guarantees two back-to-back calls
+	 * for the same target don't overwrite each other.
+	 *
+	 * The `.` separator between path characters is replaced with `-` so
+	 * callers can never smuggle in a path segment through the slug.
 	 */
 	public static function random_backup_filename( string $target_type, string $target ): string {
-		$type_seg = sanitize_key( $target_type );
-		$slug_seg = sanitize_key( str_replace( array( '/', '\\', '.' ), '-', $target ) );
+		$slug = self::filename_slug_segment( $target_type, $target );
 
-		$parts = array( 'backup' );
-		if ( '' !== $type_seg ) {
-			$parts[] = $type_seg;
-		}
-		if ( '' !== $slug_seg ) {
-			$parts[] = $slug_seg;
-		}
-		$parts[] = wp_generate_password( 12, false, false );
+		list( $unix, $ms ) = self::filename_time_segments();
 
-		return implode( '-', $parts ) . '.zip';
+		return $slug . '-' . $unix . '-' . $ms . '.zip';
+	}
+
+	/**
+	 * Resolve the slug segment for `random_backup_filename()`. Prefer the
+	 * sanitized $target; fall back to the sanitized $target_type; ultimate
+	 * fallback is `backup` so the returned filename is never just `-{ts}.zip`.
+	 */
+	private static function filename_slug_segment( string $target_type, string $target ): string {
+		$slug = sanitize_key( str_replace( array( '/', '\\', '.' ), '-', $target ) );
+		if ( '' !== $slug ) {
+			return $slug;
+		}
+		$type = sanitize_key( $target_type );
+		if ( '' !== $type ) {
+			return $type;
+		}
+		return 'backup';
+	}
+
+	/**
+	 * Return `[$unix, $ms_padded_to_3_digits]` — used by random_backup_filename()
+	 * so two calls within the same second still produce distinct filenames.
+	 *
+	 * @return array{0: string, 1: string}
+	 */
+	private static function filename_time_segments(): array {
+		$now  = microtime( true );
+		$unix = (int) floor( $now );
+		$ms   = (int) floor( ( $now - $unix ) * 1000 );
+		return array( (string) $unix, str_pad( (string) $ms, 3, '0', STR_PAD_LEFT ) );
 	}
 
 	/**

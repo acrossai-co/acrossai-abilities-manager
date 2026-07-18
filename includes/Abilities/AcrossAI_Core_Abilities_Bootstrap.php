@@ -79,6 +79,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		$loader->add_action( 'wp_abilities_api_categories_init', Options\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Cron\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', SiteHealth\Category_Registrar::instance(), 'register' );
+		$loader->add_action( 'wp_abilities_api_categories_init', Core\Category_Registrar::instance(), 'register' );
 	}
 
 	/**
@@ -286,6 +287,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Cron\Cron_Delete_Schedule();
 		new SiteHealth\Site_Health_Status();
 		new SiteHealth\Site_Health_Info();
+		new Core\Wp_Core_Update_Check();
+		new Core\Wp_Core_Update();
 
 		// Extras the companion Main.php also ran alongside the ability
 		// instantiations. See docs/planning/046-absorb-core-abilities-into-manager.md

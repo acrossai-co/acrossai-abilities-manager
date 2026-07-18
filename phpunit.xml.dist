@@ -41,6 +41,9 @@
 		<testsuite name="feature-041-unit">
 			<file>tests/phpunit/abilities/Test_Feature_041_Backup_Abilities.php</file>
 		</testsuite>
+		<testsuite name="feature-042-unit">
+			<file>tests/phpunit/abilities/Test_Feature_042_Core_Update.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>
