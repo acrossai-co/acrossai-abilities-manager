@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.11
+Stable tag: 0.0.12
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -99,6 +99,10 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.12 =
+* **New — WordPress core rollback ability under the Core category.** `acrossai-abilities-manager/wp-core-rollback` rolls back WordPress core to an earlier offered version via WP core's `Core_Upgrader::upgrade()` — the same class the WordPress dashboard uses for forward updates. Fetches the offer list from the WP.org Core API 1.7 endpoint (`https://api.wordpress.org/core/version-check/1.7/`) via `wp_remote_get()`, picks the requested version, and hands the offer directly to the upgrader. Uses only WordPress functions; no bundled updater code. Requires BOTH `manage_options` AND `update_core`; honours `DISALLOW_FILE_MODS` via `File_Mods_Guard`; multisite-guarded; refuses when the target version is equal to or newer than the currently-installed version (steers callers to `wp-core-update`). The per-locale offer list is cached in a site transient with a day-long TTL. Annotated `destructive=true` — rolling WordPress back is a real production operation and clients should surface it accordingly. Inspired by Andy Fragen's [core-rollback](https://github.com/afragen/core-rollback) plugin (MIT-licensed). See PR [#77](https://github.com/acrossai-co/acrossai-abilities-manager/pull/77).
+* **First outbound HTTP request from the plugin.** Historically the plugin has made zero outbound HTTP requests on its own (the Add-ons page delegates to the WordPress plugin installer's own contact with WordPress.org; other abilities operate on the local site). `wp-core-rollback` introduces the plugin's first direct outbound request — to `api.wordpress.org/core/version-check/1.7/`. The URL is a hardcoded class constant (no SSRF surface), the request has a 15-second timeout, and only the sanitized locale is derived from user input. The per-locale offer list is cached in a site transient with a day-long TTL, so the request rate is bounded to at most one call per day per locale per site.
+
 = 0.0.11 =
 * **New — WordPress core update abilities under a new "Core" category.** Two new abilities: `acrossai-abilities-manager/wp-core-update-check` reports whether a WordPress core update is available (returns `current_version`, `new_version`, download URL, PHP / MySQL requirements — flattens WP's core update offer into a JSON-friendly shape); `acrossai-abilities-manager/wp-core-update` applies the update via WP core's `Core_Upgrader::upgrade()`. When called with no arguments it upgrades to the first `response=upgrade` offer from `get_core_updates()`; pass `version` (+ optional `locale`) to pin to a specific offer. Requires BOTH `manage_options` AND `update_core` (matches WP core's own admin gate). Honours `DISALLOW_FILE_MODS` via `File_Mods_Guard`. Multisite guard bails cleanly if the current user lacks network-level `update_core`. Idempotent — re-running when no update is available returns a clean success envelope with `updated=false`. Uses WP core functions exclusively; no bundled updater, no custom HTTP, no custom integrity checks. See PR [#75](https://github.com/acrossai-co/acrossai-abilities-manager/pull/75).
 * **New Core category folder.** `includes/Abilities/Core/` joins the existing 17 Category folders (Plugins, Themes, FileManager, Cache, Database, Users, Block, Settings, Fonts, Content, Taxonomies, Media, Comments, Menus, Options, Cron, SiteHealth). Displayed as a new "Core" tab on the Ability Library page. Not a new module — Constitution §I locks the module count at five; Category folders are sub-partitions of the existing Custom Ability Registration module.
@@ -159,6 +163,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.12 =
+Adds a third ability to the Core tab — `wp-core-rollback` — that rolls back WordPress core to an earlier version via WP core's `Core_Upgrader::upgrade()`, the same class the dashboard uses for forward updates. Requires both `manage_options` and `update_core`; honours `DISALLOW_FILE_MODS`; refuses when the target version isn't strictly older than the currently-installed version. Introduces the plugin's first outbound HTTP request (to `api.wordpress.org/core/version-check/1.7/`), rate-bounded to at most one request per day per locale per site via a site-transient cache. No breaking changes; no database, REST, or capability changes to existing abilities. Safe upgrade.
 
 = 0.0.11 =
 Adds two WordPress-core-scoped abilities under a new "Core" tab in the Ability Library — `wp-core-update-check` (report availability) and `wp-core-update` (apply via `Core_Upgrader`). The update ability requires both `manage_options` and `update_core`; honours `DISALLOW_FILE_MODS`; multisite-guarded. Also changes backup filenames from `backup-{type}-{slug}-{random}.zip` to `{slug}-{unix-timestamp}-{ms}.zip` — human-readable and time-sortable, but predictable (directory listing remains disabled on the backups dir). Existing backups continue to work; the filename change only affects new backups. No breaking changes; no database, REST, or capability changes to existing abilities. Safe upgrade.
