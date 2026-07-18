@@ -308,6 +308,29 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Zip_Create's include_hidden=false path must check EVERY segment of the
+	 * relative path, not just the current entry basename. Otherwise
+	 * SELF_FIRST would still descend into files INSIDE a hidden directory
+	 * (e.g. .git/objects/xxx) after `continue`-ing on the top-level .git/
+	 * entry. Enforces the fix inspired by the reference download-plugin.
+	 *
+	 * @return void
+	 */
+	public function test_zip_create_skips_hidden_at_every_segment(): void {
+		$src = $this->sources['zip_create'];
+		$this->assertStringContainsString(
+			'has_hidden_segment',
+			$src,
+			'Zip_Create must consult a per-segment hidden-path check.'
+		);
+		$this->assertMatchesRegularExpression(
+			"/explode\(\s*'\\/',\s*\\\$relative\s*\)/",
+			$src,
+			'has_hidden_segment must explode on "/" so every path segment is inspected.'
+		);
+	}
+
 	// =========================================================================
 	// Bootstrap wires every new ability
 	// =========================================================================
