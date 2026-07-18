@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.9
+Stable tag: 0.0.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -99,6 +99,9 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.10 =
+* **Fix (Zip_Create) — `include_hidden=false` now applies recursively.** The 0.0.9 implementation used `RecursiveIteratorIterator::SELF_FIRST` with a per-entry basename check that only skipped the top-level hidden directory itself; the iterator kept descending into it, so files INSIDE a hidden directory (e.g. `.git/objects/xxx`) were still added because their basenames don't start with `.`. Fixed to check EVERY segment of the entry's relative path — same approach the reference `download-plugin` uses in its `app/Plugins/Base.php`. Applied to both the archive assembly (`append_dir_to_zip`) and the pre-write size guard (`estimate_tree_size`). If you called `zip-create` with `include_hidden=false` against a dev checkout in 0.0.9, the archive contained the full contents of every hidden directory beneath the source — regenerate any such archives on 0.0.10. See PR [#73](https://github.com/acrossai-co/acrossai-abilities-manager/pull/73).
+
 = 0.0.9 =
 * **New — six Zip abilities under FileManager for backup / restore workflows.** `acrossai-abilities-manager/zip-create` archives a plugin, theme, uploads folder, mu-plugins folder, or any ABSPATH-relative path into `wp-content/uploads/acrossai-backups/<random>.zip` and returns the download URL + SHA-256. `zip-upload` accepts a zip via base64, chunked (up to 8 MB per chunk / 64 MB per session, filterable), or a remote URL and finalizes it into the same directory after validating the `PK\x03\x04` magic bytes. `zip-extract` extracts a zip already on disk or fetched from a URL into a resolved target directory (plugin / theme / uploads / mu-plugins / path); every archive entry is audited for zip-slip (`..` segments, absolute paths, backslashes, null bytes) before extraction. `zip-download` returns a fresh URL + metadata for any managed zip. `zip-list` paginates the managed directories, newest first. `zip-delete` removes a zip from the managed directories idempotently. The backups directory is hardened on first use with an `.htaccess` that blocks PHP execution while keeping `.zip` downloads reachable, plus an empty `index.php` for enumeration defense. All abilities enforce `manage_options`; every mutating ability honours `DISALLOW_FILE_MODS` via the shared `File_Mods_Guard`. See PR #TBD.
 * **New — `acrossai-abilities-manager/plugin-update` and `acrossai-abilities-manager/theme-update` abilities.** The Plugins and Themes categories previously shipped an `update-check` reporter but no way to apply updates through the abilities API. The new abilities wrap WP core `Plugin_Upgrader::bulk_upgrade()` / `Theme_Upgrader::bulk_upgrade()` (same pattern as the existing `plugin-install` / `theme-install`), accept an array of plugin files / slugs or theme stylesheets, and return per-slug results with `from_version`, `to_version`, `updated`, and `message`. Plugin_Update additionally requires `update_plugins`; Theme_Update additionally requires `update_themes`. Idempotent: re-running when no update is available reports `updated_count: 0` with a clean success envelope.
@@ -150,6 +153,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.10 =
+Bugfix release. `Zip_Create` with `include_hidden=false` was silently descending into hidden directories and archiving their contents in 0.0.9 (only the top-level `.git/` etc. entry was skipped, not the files beneath it). Fixed to check every segment of each entry's relative path. Regenerate any `include_hidden=false` archives created on 0.0.9 if their source tree contained hidden directories. No breaking changes; no database, REST, or capability changes. Safe upgrade.
 
 = 0.0.9 =
 Adds eight new abilities: six under FileManager for zip-based backup / restore workflows (`zip-create`, `zip-upload`, `zip-extract`, `zip-download`, `zip-list`, `zip-delete`) plus `plugin-update` and `theme-update` that finally let AI clients apply pending WordPress core updates through the Abilities API. All new abilities enforce `manage_options`; mutating abilities additionally honour `DISALLOW_FILE_MODS`. Zip extraction rejects zip-slip archives (any entry containing `..`, an absolute path, a backslash, or a null byte). Zip uploads are validated for the `PK` magic signature before finalization. A new `wp-content/uploads/acrossai-backups/` directory is created on first use, hardened with an `.htaccess` that blocks PHP execution but permits `.zip` downloads (required so the URLs returned by `zip-create` remain reachable). No breaking changes to existing abilities, REST endpoints, capability requirements, or database schema. Safe upgrade.
