@@ -44,6 +44,9 @@
 		<testsuite name="feature-042-unit">
 			<file>tests/phpunit/abilities/Test_Feature_042_Core_Update.php</file>
 		</testsuite>
+		<testsuite name="feature-043-unit">
+			<file>tests/phpunit/abilities/Test_Feature_043_Core_Rollback.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>
