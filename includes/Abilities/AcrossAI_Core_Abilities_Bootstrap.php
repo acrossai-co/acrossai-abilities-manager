@@ -289,6 +289,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new SiteHealth\Site_Health_Info();
 		new Core\Wp_Core_Update_Check();
 		new Core\Wp_Core_Update();
+		new Core\Wp_Core_Rollback();
 
 		// Extras the companion Main.php also ran alongside the ability
 		// instantiations. See docs/planning/046-absorb-core-abilities-into-manager.md
