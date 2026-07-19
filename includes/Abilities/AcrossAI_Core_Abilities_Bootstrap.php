@@ -80,6 +80,9 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		$loader->add_action( 'wp_abilities_api_categories_init', Cron\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', SiteHealth\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Core\Category_Registrar::instance(), 'register' );
+		// Feature 055 — two new categories.
+		$loader->add_action( 'wp_abilities_api_categories_init', AdminMenu\Category_Registrar::instance(), 'register' );
+		$loader->add_action( 'wp_abilities_api_categories_init', ContentSearch\Category_Registrar::instance(), 'register' );
 	}
 
 	/**
@@ -290,6 +293,42 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Core\Wp_Core_Update_Check();
 		new Core\Wp_Core_Update();
 		new Core\Wp_Core_Rollback();
+
+		// Feature 055 — 31 new abilities across 10 domains.
+		new Users\Current_Access();
+		new Taxonomies\Set_Term_Image();
+		new Comments\Comments_Bulk_Update();
+		new Media\Media_Rename_File();
+		new Menus\Navigation_Get_Context();
+		new Menus\Navigation_List_Locations();
+		new Content\Content_Update_Block();
+		new Content\Content_Autosaves_Inspect();
+		new Block\Site_Editor_Get_Context();
+		new Block\Site_Editor_Refresh_Context();
+		new Block\Reusable_Blocks_List();
+		new Block\Block_Areas_List();
+		new SiteHealth\Site_Maintenance_Report();
+		new Plugins\Plugin_Lifecycle_Get_Plugin();
+		new Themes\Theme_Lifecycle_Get_Theme();
+		new AdminMenu\Admin_Menu_Get_Context();
+		new AdminMenu\Admin_Menu_Refresh_Context();
+		new AdminMenu\Admin_Menu_List_Pages();
+		new AdminMenu\Admin_Menu_Get_Navigation_Target();
+		new AdminMenu\Admin_Menu_List_Settings();
+		new ContentSearch\Content_Index_Refresh_Batch();
+		new ContentSearch\Content_Search_Items();
+		new ContentSearch\Content_Search_Chunks();
+		new ContentSearch\Content_Find_Related();
+		new ContentSearch\Content_Find_Internal_Links();
+		new ContentSearch\Internal_Link_Policy();
+		new ContentSearch\Internal_Link_Suggestions_Create();
+		new ContentSearch\Internal_Link_Suggestions_List();
+		new ContentSearch\Internal_Link_Suggestion_Review();
+		new ContentSearch\Internal_Link_Suggestion_Apply();
+		new ContentSearch\Content_Audit_Internal_Links();
+
+		// Feature 055 — register the option-backed lifecycle event log.
+		Utilities\Lifecycle_Event_Log::register_hooks();
 
 		// Extras the companion Main.php also ran alongside the ability
 		// instantiations. See docs/planning/046-absorb-core-abilities-into-manager.md

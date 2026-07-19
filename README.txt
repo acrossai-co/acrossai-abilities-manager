@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.12
+Stable tag: 0.0.13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -99,6 +99,13 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.13 =
+* **31 new abilities across 10 domains — 187 → 218.** Ships the entire backlog surfaced by the external AI-tool inventory audit. Two new categories are added: `acrossai-abilities-manager-admin-menu` (5 abilities) and `acrossai-abilities-manager-content-search` (11 abilities). Single-item additions land in existing categories: `users-current-access` (Users), `taxonomy-set-term-image` (Taxonomies), `comments-bulk-update` (Comments), `media-rename-file` (Media), `navigation-get-context` + `navigation-list-locations` (Menus), `content-update-block` + `content-autosaves-inspect` (Content), `site-editor-get-context` + `site-editor-refresh-context` + `site-structure-list-reusable-blocks` + `site-structure-list-block-areas` (Block), `site-maintenance-report` (SiteHealth), `plugin-lifecycle-get-plugin` (Plugins), `theme-lifecycle-get-theme` (Themes).
+* **New option-backed lifecycle event log.** `plugin-lifecycle-get-plugin` and `theme-lifecycle-get-theme` return `last_activated_at` / `last_deactivated_at` / `last_updated_at` timestamps from a rolling event log (`acrossai_abilities_manager_lifecycle_log` option, capped at 50 events per plugin/theme). Events are recorded from 0.0.13 forward — pre-0.0.13 lifecycle history is not backfilled and those timestamps read `0` until the next event fires.
+* **New option-backed internal-link suggestion store.** The 5 `content-internal-link-*` abilities (create, list, review, apply, policy) plus `content-audit-internal-links` persist to `acrossai_abilities_manager_link_suggestions` (option-backed, capped at 500 total suggestions). Zero external HTTP; zero new database tables.
+* **No breaking changes.** No existing ability slug / input schema / output schema / permission callback is altered. Every previously-registered ability still resolves to the same class.
+* **Safety notes.** `media-rename-file` refuses filenames with a directory separator, null byte, or leading dot; enforces realpath containment inside the attachment's original upload sub-directory; refuses to clobber an existing target. `comments-bulk-update` requires `moderate_comments` and caps at 100 comment ids per call. `content-internal-link-suggestion-apply` requires `edit_others_posts`, re-validates the target as same-site, and only mutates on first-occurrence substring match.
+
 = 0.0.12 =
 * **New — WordPress core rollback ability under the Core category.** `acrossai-abilities-manager/wp-core-rollback` rolls back WordPress core to an earlier offered version via WP core's `Core_Upgrader::upgrade()` — the same class the WordPress dashboard uses for forward updates. Fetches the offer list from the WP.org Core API 1.7 endpoint (`https://api.wordpress.org/core/version-check/1.7/`) via `wp_remote_get()`, picks the requested version, and hands the offer directly to the upgrader. Uses only WordPress functions; no bundled updater code. Requires BOTH `manage_options` AND `update_core`; honours `DISALLOW_FILE_MODS` via `File_Mods_Guard`; multisite-guarded; refuses when the target version is equal to or newer than the currently-installed version (steers callers to `wp-core-update`). The per-locale offer list is cached in a site transient with a day-long TTL. Annotated `destructive=true` — rolling WordPress back is a real production operation and clients should surface it accordingly. Inspired by Andy Fragen's [core-rollback](https://github.com/afragen/core-rollback) plugin (MIT-licensed). See PR [#77](https://github.com/acrossai-co/acrossai-abilities-manager/pull/77).
 * **First outbound HTTP request from the plugin.** Historically the plugin has made zero outbound HTTP requests on its own (the Add-ons page delegates to the WordPress plugin installer's own contact with WordPress.org; other abilities operate on the local site). `wp-core-rollback` introduces the plugin's first direct outbound request — to `api.wordpress.org/core/version-check/1.7/`. The URL is a hardcoded class constant (no SSRF surface), the request has a 15-second timeout, and only the sanitized locale is derived from user input. The per-locale offer list is cached in a site transient with a day-long TTL, so the request rate is bounded to at most one call per day per locale per site.
@@ -163,6 +170,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.13 =
+Adds 31 new abilities across 10 domains (187 → 218). Two new categories join the Ability Library: Admin Menu (5 abilities) and Content Search (11 abilities). Introduces two option-backed data stores: a lifecycle event log for plugin/theme activate/deactivate/update timestamps, and an internal-link suggestion queue capped at 500 entries. Zero new REST endpoints, zero new capability requirements beyond the operation-specific caps already enforced by WP core (moderate_comments, upload_files, edit_others_posts). Zero external HTTP; zero new database tables. No breaking changes to existing abilities. Safe upgrade.
 
 = 0.0.12 =
 Adds a third ability to the Core tab — `wp-core-rollback` — that rolls back WordPress core to an earlier version via WP core's `Core_Upgrader::upgrade()`, the same class the dashboard uses for forward updates. Requires both `manage_options` and `update_core`; honours `DISALLOW_FILE_MODS`; refuses when the target version isn't strictly older than the currently-installed version. Introduces the plugin's first outbound HTTP request (to `api.wordpress.org/core/version-check/1.7/`), rate-bounded to at most one request per day per locale per site via a site-transient cache. No breaking changes; no database, REST, or capability changes to existing abilities. Safe upgrade.
