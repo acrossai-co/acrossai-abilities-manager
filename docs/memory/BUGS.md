@@ -1677,3 +1677,31 @@ Any Bootstrap orchestrator, Loader-wired hook callback, or activation guard that
 Cross-reference: `BUG-EXTERNAL-PACKAGE-CTOR-SILENT` covers a different silent-fail mechanism (bare try/catch swallowing constructor exceptions). This entry is specifically about the `class_exists(..., false)` autoload-disable trap.
 
 **Tags**: class_exists, autoload, bootstrap, silent-fail, composer, feature-046
+
+---
+
+### 2026-07-18 — BUG-RIT-SELF-FIRST-CONTINUE-DESCENT
+
+**Status**: Active
+
+**Bug pattern**
+`RecursiveIteratorIterator::SELF_FIRST` visits directories BEFORE their contents. Running `continue` in the outer `foreach` on a hidden / excluded directory entry does NOT stop descent — the iterator still visits every file inside that directory on the next iteration. If the exclusion check is basename-only (`$name[0] === '.'`), files inside the "skipped" directory get processed anyway because their basenames don't start with `.`.
+
+Real-world hit: `Zip_Create` 0.0.9 with `include_hidden=false` skipped the top-level `.git/` entry itself but still added `.git/objects/xxx` and every other file beneath it to the archive. Silent information leak — an operator asking for "no hidden files" got the full contents of every hidden directory in the archive. Fixed in 0.0.10 (PR [#73](https://github.com/acrossai-co/acrossai-abilities-manager/pull/73)).
+
+**Prevention**
+Check EVERY segment of the entry's forward-slashed relative path, not just the current basename. Use a helper like `has_hidden_segment($relative)` that iterates `explode('/', $relative)` and returns true if any segment starts with the exclusion character. Apply the check to both the assembly loop AND any pre-scan estimator (e.g. `estimate_tree_size()`) — otherwise size-cap checks disagree with what actually gets written.
+
+Alternative when empty-dir preservation isn't needed: use `RecursiveIteratorIterator::LEAVES_ONLY` instead. Leaves-only skips directory entries entirely so the descent question doesn't arise — but you also lose empty-dir preservation. Pick per use case.
+
+**Applies to**
+Any code using `RecursiveIteratorIterator + SELF_FIRST` with a per-basename exclusion rule. Especially: archive builders, backup enumerators, sync scanners, "list all files EXCEPT hidden" reports. The bug is silent — the operator gets no warning, just a bloated archive with the hidden data smuggled in.
+
+Cross-reference: the reference `download-plugin/app/Plugins/Base.php` (per-segment path check, line 282) implements the correct pattern.
+
+**Where to look**
+- `includes/Abilities/FileManager/Zip_Create.php::has_hidden_segment()` + `normalize_relative()` (the fix, applied to both `append_dir_to_zip()` and `estimate_tree_size()`).
+- `tests/phpunit/abilities/Test_Feature_041_Backup_Abilities.php::test_zip_create_skips_hidden_at_every_segment` (regression guard).
+- `specs/041-backup-restore-abilities-and-updates/spec.md` §Fixes (0.0.10 documentation).
+
+**Tags**: recursive-iterator, self-first, continue, descent, hidden-files, per-segment, feature-041, silent-fail

@@ -1422,3 +1422,72 @@ For a value-copy migration: read the legacy option; if it is not null, THEN read
 - Reconsider: when the target key is expected to differ semantically (not just a rename), a full merge step must be added before the delete.
 
 **Tags**: activation, wp_options, migration, idempotent, monotonic, feature-046
+
+---
+
+### 2026-07-18 — PATTERN-WP-CORE-UPGRADER-ABILITY
+
+**Status**: Active
+
+**Pattern**
+Canonical wrap of a WP core upgrader (`Core_Upgrader::upgrade()`, `Plugin_Upgrader::install()/bulk_upgrade()`, `Theme_Upgrader::install()/bulk_upgrade()`, future `Language_Pack_Upgrader`) inside an Abilities-API ability:
+
+1. `require_once` block: `wp-admin/includes/update.php` + `class-wp-upgrader.php` + `misc.php` + `file.php`.
+2. `permission_callback` ANDs `manage_options` with the WP core capability for the action (`update_core` / `update_plugins` / `update_themes`).
+3. `execute()` begins with `File_Mods_Guard::blocked_response('install')` short-circuit.
+4. For core specifically: multisite guard bails cleanly if `is_multisite() && ! current_user_can('update_core')`.
+5. Fetch the update object via WP core (`get_core_updates()` / `find_core_update()` / `get_plugin_updates()` / `get_theme_updates()`).
+6. Reject cleanly (return success + `updated=false`) when the offer is null, false, or has `response !== 'upgrade'`.
+7. Instantiate `WP_Ajax_Upgrader_Skin` (the same silent skin `Plugin_Install.php` uses).
+8. Call `$upgrader->upgrade($update)` (or `->install()` / `->bulk_upgrade()`).
+9. Result-interpretation ladder: `WP_Error` → failure with message; `null`/`false` → drain `$skin->get_errors()` for message; anything else → success. Read `get_bloginfo('version')` before + after for `from_version`/`to_version` (core).
+
+**Rollback path (Feature 043 extension)**
+`Core_Upgrader::upgrade($offer)` does NOT check whether `$offer->version` is older or newer than currently-installed — it installs whatever the offer describes. WP core does NOT need a `WP_Downgrader`; feed the upgrader an older offer and it's a downgrade. Older offers aren't in the WP core update transient (that only holds the latest), so fetch them directly from the WP.org Core API 1.7 endpoint (`https://api.wordpress.org/core/version-check/1.7/?locale={locale}`) via `wp_remote_get()`. Force `$offer->response = 'upgrade'` before invoking the upgrader (shape parity with `get_core_updates()`). Cache the per-locale offer list in a site transient with `DAY_IN_SECONDS` TTL. Add a `version_compare($target, get_bloginfo('version'), '>=')` guardrail refusing non-downgrade requests (steer callers to `wp-core-update` for the forward path). See sibling pattern `PATTERN-WP-CORE-ROLLBACK-VIA-API-OFFER` for the API-offer manipulation flow.
+
+**Why this is durable**
+Every future Abilities-API-facing WP core upgrade — forward or backward — wraps this recipe. Deviating from any step introduces a subtle bug (missing require = fatal at runtime, missing skin = swallowed errors, missing multisite guard = unauthorized network upgrade, forward-path assumptions that block rollback). Complements `PATTERN-WP-CORE-ROLLBACK-VIA-API-OFFER` (rollback specifics) and the shared `File_Mods_Guard` gate.
+
+**Where to look**
+- `includes/Abilities/Core/Wp_Core_Update.php` (canonical forward-path implementation).
+- `includes/Abilities/Core/Wp_Core_Rollback.php` (rollback-path implementation).
+- `includes/Abilities/Plugins/Plugin_Update.php` + `Plugins/Plugin_Install.php`.
+- `includes/Abilities/Themes/Theme_Update.php` + `Themes/Theme_Install.php`.
+- `specs/042-core-category-and-wp-core-update/plan.md` §"WP core update flow (mirrors wp-admin/update-core.php)".
+
+**Tags**: wp-core, upgrader, canonical, plugin-update, theme-update, wp-core-update, wp-core-rollback, ability-pattern, feature-042, feature-043
+
+---
+
+### 2026-07-18 — PATTERN-WP-CORE-ROLLBACK-VIA-API-OFFER
+
+**Status**: Active
+
+**Pattern**
+Rolling WordPress core back to an earlier version via the Abilities API — WP-core-only, no bundled updater code:
+
+1. Fetch `https://api.wordpress.org/core/version-check/1.7/?locale={locale}` via `wp_remote_get()`. WP.org returns an `offers` array with every version it still exposes.
+2. Cache the per-locale offer list in a site transient (`acrossai_abilities_manager_core_offers_{locale}` in this codebase) with `DAY_IN_SECONDS` TTL — matches the reference `core-rollback` plugin and the WP.org API's own cache posture.
+3. Look up the caller's requested version in the cache. On miss, refresh once; still miss → clean "not in offer list" error.
+4. Manipulate two shape-parity fields on the offer: `$offer->response = 'upgrade'`; `$offer->current = $offer->version`. Do NOT modify `$offer->download`, `$offer->packages`, or `$offer->version` — those come from WP.org and are the bytes/checksums Core_Upgrader will verify.
+5. Hand the offer directly to `Core_Upgrader::upgrade($offer)`. The upgrader is version-direction-agnostic.
+6. Interpret the result with the shared ladder from `PATTERN-WP-CORE-UPGRADER-ABILITY`.
+
+**Why this is durable**
+The technique isn't obvious from `Core_Upgrader`'s code alone — you have to know WP.org's API returns older offers too, and that Core_Upgrader is direction-agnostic. Andy Fragen's `core-rollback` plugin proved the technique with WP admin UI wiring; the Abilities-API version simplifies by calling the upgrader directly (skipping the `pre_http_request` + `site_transient_update_core` injection dance the dashboard flow requires).
+
+**Alternative path considered and rejected**
+Manipulating `site_transient_update_core` + hooking `pre_http_request` on the WP core update-check URL (the `core-rollback` plugin's approach). Justified for that plugin because it funnels through `update-core.php?action=do-core-reinstall`. Overkill for a headless Abilities API — direct `Core_Upgrader::upgrade()` invocation is simpler and has fewer moving parts.
+
+**Tradeoffs / Prevention**
+- Gained: no `WP_Downgrader` needed; reuse WP core's signed-tarball verification via the WP.org offer.
+- Prevention: always run the `version_compare('>=' )` guardrail so a caller confusing upgrade/rollback doesn't overwrite a newer install with an older one. Always force `$offer->response = 'upgrade'` — `Core_Upgrader` inspects `->download`/`->packages`/`->version` but shape parity with `get_core_updates()` future-proofs against WP core adding a response check.
+- Reconsider IF: WP.org changes its API contract (endpoint bump beyond 1.7, offer schema change, or removes the `offers[]` array). Cache-poisoning: `set_site_transient` is per-locale, so a hostile locale value can only affect its own cache row (`sanitize_key` on the transient suffix).
+
+**Where to look**
+- `includes/Abilities/Core/Wp_Core_Rollback.php::fetch_offer()` + `fetch_all_offers()`.
+- `wp-content/plugins/core-rollback/src/Core.php` (external MIT-licensed reference).
+- `specs/043-wp-core-rollback-via-wporg-api/spec.md`.
+- `specs/043-wp-core-rollback-via-wporg-api/security-constraints.md` (13-constraint list).
+
+**Tags**: wp-core, rollback, downgrade, wp-org-api, core-upgrader, direction-agnostic, feature-043

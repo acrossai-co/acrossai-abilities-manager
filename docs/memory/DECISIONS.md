@@ -1680,3 +1680,51 @@ Absorbed heterogeneous capability domains live at the `includes/`-tier (sibling 
 - `specs/047-constitution-include-abilities-tier/spec.md` (follow-up governance stub).
 
 **Tags**: absorption, directory-layout, tier, constitution-deviation, feature-046
+
+---
+
+### 2026-07-18 — DEC-042-BACKUP-FILENAME-TIME-BASED
+
+**Status**: Active
+
+**Decision**
+`Backups_Storage::random_backup_filename()` emits `{slug}-{unix-timestamp}-{ms}.zip`. Previously (0.0.9 / 0.0.10) it emitted `backup-{type}-{slug}-{wp_generate_password(12,false)}.zip`.
+
+**Why this is durable**
+The trade-off recurs any time someone asks "why aren't backup filenames random?" — new backups gain human-readability + lexicographic-sort = chronological-sort at the cost of the enumeration-by-guessing defense a random suffix provided. Directory listing remains disabled by `.htaccess` (`Options -Indexes`) and PHP execution is still blocked by `FilesMatch` for PHP-family extensions, so the practical attack requires guessing both the slug AND the creation time within the millisecond, then a bypass of one of the two `.htaccess` defenses. The `manage_options` gate on `zip-list` / `zip-download` remains as a third layer.
+
+**Tradeoffs / Prevention**
+- Gained: readable filenames, chronological sort, sub-second collision safety via the 3-digit `ms` suffix from `microtime(true)`.
+- Reconsider IF: backups start containing site-secrets that an unauthenticated attacker could enumerate; or if the `.htaccess` becomes unreliable (nginx serves index.php but not `.htaccess`). In that case switch to a REST-streaming download endpoint gated by `manage_options` instead of exposing raw URLs.
+
+**Where to look**
+- `includes/Abilities/Utilities/Backups_Storage.php::random_backup_filename()` (the helper).
+- `includes/Abilities/Utilities/Backups_Storage.php::filename_slug_segment()` + `filename_time_segments()` (private helpers).
+- `includes/Abilities/Utilities/Backups_Storage.php::resolve_dir()` (`.htaccess` hardening — the enumeration mitigation this decision relies on).
+- `specs/042-core-category-and-wp-core-update/spec.md` (Clarifications section).
+
+**Tags**: backup, filename, time-based, enumeration, tradeoff, feature-042
+
+---
+
+### 2026-07-18 — DEC-CATEGORY-FOLDER-NOT-MODULE
+
+**Status**: Active
+
+**Decision**
+Adding a new folder under `includes/Abilities/<Category>/` is NOT the creation of a new module per Constitution §I. Category folders are the sub-partitioning strategy inside the existing **Custom Ability Registration** module — same layer occupied by `Plugins/`, `Themes/`, `FileManager/`, `Cache/`, `Database/`, `Users/`, `Block/`, `Settings/`, `Fonts/`, `Content/`, `Taxonomies/`, `Media/`, `Comments/`, `Menus/`, `Options/`, `Cron/`, `SiteHealth/`, and (as of Feature 042) `Core/`.
+
+**Why this is durable**
+Constitution §I locks the module list at five. Anyone adding new abilities will otherwise wonder whether they can create a new Category folder without amending the Constitution. Answer: yes — as long as the folder ships a `Category_Registrar.php` mirroring `FileManager/Category_Registrar.php`, contains only ability classes extending `Ability_Definition`, and is wired via `AcrossAI_Core_Abilities_Bootstrap::register_category_callbacks()` + `register_abilities()`. Complements the existing `DEC-ABSORBED-CODE-INCLUDES-TIER` (which established the includes/-tier placement for the absorbed abilities in Feature 046).
+
+**Tradeoffs / Prevention**
+- Gained: freedom to add new Category folders freely for logical grouping without Constitution amendment.
+- Reconsider IF: a proposed Category would introduce cross-cutting concerns beyond ability registration (persistence, external service integration, custom UI beyond DataForm/DataViews). Those belong in one of the five actual modules or trigger a Constitution amendment.
+
+**Where to look**
+- `includes/Abilities/Core/` (Feature 042 addition — the concrete case that triggered this decision).
+- `includes/Abilities/AcrossAI_Core_Abilities_Bootstrap.php::register_category_callbacks()` + `register_abilities()`.
+- `.specify/memory/CONSTITUTION.md` §I (module enumeration lock).
+- `specs/042-core-category-and-wp-core-update/architecture-review.md` (module-enumeration table).
+
+**Tags**: category-folder, module-boundary, constitution, sub-partition, feature-042
