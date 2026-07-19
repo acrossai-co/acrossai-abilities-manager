@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.12
+Stable tag: 0.0.13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -84,6 +84,7 @@ No. The plugin makes no external HTTP requests itself. The Add-ons page lists fr
 3. Bulk actions toolbar for allow/disallow/reset across multiple abilities.
 4. The Ability Library page — enable/disable add-on ability groups.
 5. The Add-ons page — browse free companion plugins.
+6. Settings — Display (abilities-per-page) and Upload Media Abilities (allowed-MIME list + Add file types).
 
 == External Services ==
 
@@ -98,6 +99,10 @@ This plugin does not collect, store, or transmit any user data.
 No data is sent to any external server without explicit user action.
 
 == Changelog ==
+
+= 0.0.13 =
+* **Docs — ability gap audit landed under `specs/054-ability-gap-audit/`.** Tracks 31 abilities across 10 domains that external AI-tool inventories expect but the plugin does not yet expose (Site editor / structure, Admin menu, Navigation, Users, Content index / search / linking, Content advanced, Taxonomy, Media, Site lifecycle, Comments). Current registered inventory: 187 abilities under `acrossai-abilities-manager/*`, verified via grep against `wp_register_ability` and confirmed wired 1:1 into `AcrossAI_Core_Abilities_Bootstrap.php`. For every missing ability, the audit names the closest existing ability in the plugin (or explicitly declares the domain as absent) so future implementation waves do not accidentally duplicate work. Each missing ability becomes its own follow-up spec later. No runtime code changes; audit-only release.
+* **wp.org assets — banner (1544×500 and 772×250) and a sixth screenshot added.** The plugin directory listing now shows a proper header banner (previously falling back to the WordPress.org default header since 0.0.4) and a sixth screenshot covering the Settings page (Display + Upload Media Abilities sections). Metadata-only change to `.wordpress-org/` — no plugin code touched.
 
 = 0.0.12 =
 * **New — WordPress core rollback ability under the Core category.** `acrossai-abilities-manager/wp-core-rollback` rolls back WordPress core to an earlier offered version via WP core's `Core_Upgrader::upgrade()` — the same class the WordPress dashboard uses for forward updates. Fetches the offer list from the WP.org Core API 1.7 endpoint (`https://api.wordpress.org/core/version-check/1.7/`) via `wp_remote_get()`, picks the requested version, and hands the offer directly to the upgrader. Uses only WordPress functions; no bundled updater code. Requires BOTH `manage_options` AND `update_core`; honours `DISALLOW_FILE_MODS` via `File_Mods_Guard`; multisite-guarded; refuses when the target version is equal to or newer than the currently-installed version (steers callers to `wp-core-update`). The per-locale offer list is cached in a site transient with a day-long TTL. Annotated `destructive=true` — rolling WordPress back is a real production operation and clients should surface it accordingly. Inspired by Andy Fragen's [core-rollback](https://github.com/afragen/core-rollback) plugin (MIT-licensed). See PR [#77](https://github.com/acrossai-co/acrossai-abilities-manager/pull/77).
@@ -163,6 +168,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.13 =
+Docs + wp.org assets only. Adds `specs/054-ability-gap-audit/` (a reference audit of abilities that external AI-tool inventories expect but the plugin does not yet expose) and commits the previously-untracked `.wordpress-org` banner (1544×500 + 772×250) and a sixth screenshot covering the Settings page. No functional changes; no REST, DB, or capability changes; no code touched under `includes/` or `src/`. Safe upgrade.
 
 = 0.0.12 =
 Adds a third ability to the Core tab — `wp-core-rollback` — that rolls back WordPress core to an earlier version via WP core's `Core_Upgrader::upgrade()`, the same class the dashboard uses for forward updates. Requires both `manage_options` and `update_core`; honours `DISALLOW_FILE_MODS`; refuses when the target version isn't strictly older than the currently-installed version. Introduces the plugin's first outbound HTTP request (to `api.wordpress.org/core/version-check/1.7/`), rate-bounded to at most one request per day per locale per site via a site-transient cache. No breaking changes; no database, REST, or capability changes to existing abilities. Safe upgrade.
