@@ -58,7 +58,7 @@ class Mark_As_Spam extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'comments',
 						'sub_group'       => 'moderation',
 						'sub_group_label' => __( 'Moderation', 'acrossai-abilities-manager' ),
 					),
