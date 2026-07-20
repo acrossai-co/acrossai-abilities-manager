@@ -137,6 +137,8 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | PATTERN-ADDON-FILTER-LATE-INIT | Add-on registration filters MUST fire at init P99; early priority silently drops add-ons that hook later | Plugin-wide | filter, init, add-on, registration, priority | ARCHITECTURE.md |
 | PATTERN-BULK-REWRITE-MATRIX | 9-step ordered PHP rewrite for sibling-plugin absorption; exact-string first, partial-match last; sed/perl per-file synchronous | Plugin-wide/Migration | rewrite, absorption, sed, perl, phpcbf, order, feature-046 | ARCHITECTURE.md |
 | PATTERN-OPTION-KEY-MIGRATION-OR-MONOTONIC | Idempotent + OR-monotonic option-key migration; never overwrite manager edits; never demote a truthy opt-in | Plugin-wide/Activator | activation, wp_options, migration, idempotent, monotonic, feature-046 | ARCHITECTURE.md |
+| PATTERN-CLIENT-SIDE-BULK-THUNK | Bulk store thunks MUST mirror bulkUpdateStatus shape (SET_SAVING bracket + Promise.all + refetch + SET_SAVE_ERROR + re-throw + null-response guard) | Sitewide/React | store, bulk, thunk, promise-all, sec-001, feature-056 | ARCHITECTURE.md |
+| PATTERN-BULK-BUSY-OVERLAY-WP-NATIVE-SPINNER | Full-screen busy overlay for bulk ops: shared BulkBusyOverlay.jsx + WP-native .spinner is-active scaled 48×48 + backdrop-blur + body scroll-lock via useEffect + role=status a11y | Sitewide/React/UI | bulk, overlay, spinner, wp-native, backdrop-filter, scroll-lock, a11y, feature-056 | ARCHITECTURE.md |
 
 ## Bug Patterns (continued)
 | BUG-AC-NULL-RETURN-SILENT-FAIL | Access control permission checks silently fail when library returns null instead of false | Access Control | type-safety, null-return, silent-fail | BUGS.md |
@@ -160,6 +162,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | BUG-BERLINDDB-QUERY-PRIVATE-CTOR | `new AcrossAI_Abilities_Query()` causes fatal PHP error — private constructor; always use `::instance()` | Abilities/DB | berlinddb, query, private-constructor, singleton, fatal | BUGS.md |
 | BUG-PHP-ABSINT-NEGATIVE-RANGE | absint(-5)=5, valid in [1,200]; only large negatives (absint > max) fall back to default — test both cases | PHP | absint, negative, sanitize, range-check | BUGS.md |
 | BUG-PHPUNIT-TYPED-PROPERTY-SETUP | WP_UnitTestCase typed class property uninitialized if set_up() is used — call singleton inline per test instead | Testing/PHPUnit | phpunit, typed-property, wp_unittestcase, singleton | BUGS.md |
+| BUG-COMPOSER-AC-SLUG-DOUBLE-ENCODE | encodeURIComponent(slug) on wpb-ac/v1 PUT path strips %2F → corrupt DB key (observed: acrossai-abilities-managerblock-pattern-delete); pass slug raw; SEC-01 validates server-side | Abilities/API/Composer | slug, url-encoding, wpb-ac, composer, corruption, sanitize_ability_slug, feature-056 | BUGS.md |
 
 ## Worklog Milestones (continued)
 | 2026-05-20 | 4-Phase library upgrade workflow validated; zero-code dependency upgrade with 100% test pass rate | Feature 007 | workflow, library-upgrade, zero-code, testing | WORKLOG.md |

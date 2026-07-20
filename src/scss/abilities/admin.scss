@@ -414,6 +414,139 @@ $warn:    #dba617;
 	gap:         6px;
 }
 
+// Feature 056: Full-screen busy overlay while a bulk dispatch is in flight.
+// Blurs the underlying admin page and blocks click-through.
+.acrossai-abilities-bulk-busy-overlay {
+	position:         fixed;
+	inset:            0;
+	background:       rgba(255, 255, 255, 0.35);
+	backdrop-filter:  blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+	display:          flex;
+	flex-direction:   column;
+	align-items:      center;
+	justify-content:  center;
+	gap:              14px;
+	z-index:          100001;
+	cursor:           progress;
+
+	// Scale the native WP .spinner (default 20×20) up for the overlay,
+	// and override its float:right / margins so it centers cleanly.
+	&__spinner.spinner {
+		width:            48px;
+		height:           48px;
+		background-size:  48px 48px;
+		float:            none;
+		margin:           0;
+		opacity:          1;
+	}
+
+	&__label {
+		font-size:   14px;
+		font-weight: 500;
+		color:       #1e1e1e;
+		background:  rgba(255, 255, 255, 0.85);
+		padding:     6px 12px;
+		border-radius: 4px;
+		box-shadow:  0 1px 3px rgba(0, 0, 0, 0.08);
+	}
+}
+
+// Feature 056: Bulk-actions dropdown uses <optgroup> to separate
+// Site Access / MCP Exposure / User Access categories. Native browser
+// rendering of <optgroup> is inconsistent — normalise it.
+.acrossai-abilities-list__bulk-select {
+	optgroup {
+		font-style:  italic;
+		font-weight: 600;
+		color:       var(--wp-admin-theme-color, #2271b1);
+		background:  #f6f7f7;
+	}
+	optgroup option {
+		font-style:   normal;
+		font-weight:  normal;
+		color:        #1e1e1e;
+		padding-left: 12px;
+	}
+}
+
+// Feature 056: Bulk User Access modal chrome (plain HTML — spec §Out-of-Scope
+// forbids new npm deps so @wordpress/components Modal is not used).
+.acrossai-abilities-user-access-bulk-modal__backdrop {
+	position:         fixed;
+	inset:            0;
+	background:       rgba(0, 0, 0, 0.5);
+	display:          flex;
+	align-items:      center;
+	justify-content:  center;
+	z-index:          100000;
+}
+
+.acrossai-abilities-user-access-bulk-modal {
+	background:      #fff;
+	border-radius:   4px;
+	box-shadow:      0 4px 24px rgba(0, 0, 0, 0.2);
+	width:           640px;
+	max-width:       90vw;
+	max-height:      90vh;
+	display:         flex;
+	flex-direction:  column;
+
+	&__header {
+		display:         flex;
+		align-items:     center;
+		justify-content: space-between;
+		padding:         16px 20px;
+		border-bottom:   1px solid #ddd;
+
+		h2 {
+			margin:      0;
+			font-size:   16px;
+			line-height: 1.4;
+		}
+	}
+
+	&__close {
+		background:  transparent;
+		border:      0;
+		font-size:   24px;
+		line-height: 1;
+		cursor:      pointer;
+		padding:     4px 8px;
+		color:       #50575e;
+
+		&:hover  { color: #000; }
+		&:disabled { opacity: 0.5; cursor: not-allowed; }
+	}
+
+	&__body {
+		padding:      20px;
+		overflow-y:   auto;
+		flex-grow:    1;
+
+		.inline-notice {
+			margin: 0 0 12px;
+			padding: 8px 12px;
+			border-left-width: 4px;
+
+			p { margin: 0; }
+		}
+	}
+
+	&__ac {
+		margin-top: 12px;
+	}
+
+	&__footer {
+		display:         flex;
+		justify-content: flex-end;
+		gap:             8px;
+		padding:         12px 20px;
+		border-top:      1px solid #ddd;
+		background:      #f6f7f7;
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Form layout (2-column grid: main + sticky sidebar)
 // Wireframe: 1fr 260px

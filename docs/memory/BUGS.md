@@ -1705,3 +1705,38 @@ Cross-reference: the reference `download-plugin/app/Plugins/Base.php` (per-segme
 - `specs/041-backup-restore-abilities-and-updates/spec.md` §Fixes (0.0.10 documentation).
 
 **Tags**: recursive-iterator, self-first, continue, descent, hidden-files, per-segment, feature-041, silent-fail
+
+---
+
+### 2026-07-21 — `encodeURIComponent(slug)` on `wpb-ac/v1` PUT path corrupts stored key (BUG-COMPOSER-AC-SLUG-DOUBLE-ENCODE)
+
+**Status**: Active
+
+**Symptoms**
+Rows in `{prefix}abilities_access_control` stored with the ability slug's `/` character stripped: `acrossai-abilities-managerblock-pattern-delete` instead of `acrossai-abilities-manager/block-pattern-delete`. The resulting key cannot be found by subsequent GET / DELETE calls; the rule is orphaned in the DB.
+
+**Root Cause**
+Client-side JS passed the ability slug through `encodeURIComponent()` before interpolating into the composer's `PUT /wpb-ac/v1/{slug}/rules/{namespace}/{key}` URL. WordPress's REST layer + the composer's key sanitizer strip the resulting `%2F` rather than decoding it back to `/`, producing a truncated key.
+
+**Future mistake prevented**
+Never `encodeURIComponent()` an ability slug that contains a literal `/` before feeding it to the composer's `wpb-ac/v1` PUT/GET/DELETE endpoints. The composer's route regex `(?P<key>.+)` greedy-matches literal slashes, but only if the URL contains them literally. Match the pattern the per-row edit drawer uses at `AbilityForm.jsx:555`: raw slug interpolation.
+
+**Evidence**
+- Introduced in `src/js/abilities/api/client.js` `setAccessControlRule()` (Feature 056, 2026-07-20).
+- Observed via DB inspection on the local WP 7.0 install (rows 43/44).
+- Fixed same day by removing `encodeURIComponent(slug)`; `encodeURIComponent(access_control_slug)` retained (that value is a plugin config, no slashes expected).
+- Guarded by `tests/jest/abilities/store.bulkSetUserAccessRule.test.js` regression case: asserts `opts.path` contains a literal `/` and does NOT contain `%2F` / `%2f`.
+
+**Safety rationale for raw pass-through**
+Ability slugs are server-sanitized via `AcrossAI_Utilities\AcrossAI_Sanitizer::sanitize_ability_slug()` (SEC-01) to the character set `[a-z0-9-/]+`. No path-traversal risk from client-side raw interpolation — the server validates independently.
+
+**Prevention / Detection**
+Grep: `grep -rn "encodeURIComponent" src/js/*/api/client.js` — every hit on an ability-slug-bearing endpoint must be reviewed. The composer's `wpb-ac/v1` PUT/GET/DELETE endpoints specifically must NOT encode the ability slug.
+
+**Where to look next**
+- `src/js/abilities/api/client.js` — `setAccessControlRule()` (client-side helper)
+- `src/js/abilities/components/AbilityForm.jsx:555` — per-row drawer's inline PUT (pattern reference)
+- `vendor/wpboilerplate/wpb-access-control/src/RestApi/RulesController.php` — composer route registration + sanitizer
+- `docs/security-reviews/2026-07-21-056-staged.md` — SEC-006 remediation context
+
+**Tags**: slug, url-encoding, wpb-ac, composer, corruption, sanitize_ability_slug, feature-056

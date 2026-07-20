@@ -1491,3 +1491,39 @@ Manipulating `site_transient_update_core` + hooking `pre_http_request` on the WP
 - `specs/043-wp-core-rollback-via-wporg-api/security-constraints.md` (13-constraint list).
 
 **Tags**: wp-core, rollback, downgrade, wp-org-api, core-upgrader, direction-agnostic, feature-043
+
+---
+
+## PATTERN-CLIENT-SIDE-BULK-THUNK
+
+Client-side bulk operations (Redux-style thunks that loop a per-slug REST call for a checkbox-selected set) MUST mirror the reference `bulkUpdateStatus` shape at `src/js/abilities/store/index.js`:
+
+1. **SET_SAVING bracket**: dispatch `{ type: SET_SAVING, isSaving: true }` first; the corresponding `false` dispatch goes in a `finally` block (not the try-body) so it fires on both success and failure paths.
+2. **`Promise.all(perSlug)` in the try body**: unbounded parallelism — same behaviour the reference shape has never exceeded in production. Do NOT add a chunker without evidence of server-side load pressure.
+3. **`dispatch(actions.fetchAbilities())` after resolve**: on success only, before the finally. Refetches the list so every affected row reflects the new state.
+4. **`SET_SAVE_ERROR + throw` in catch**: dispatch `{ type: SET_SAVE_ERROR, error: err.message }` THEN `throw err;`. Re-throw is critical — it lets the calling component's `handleBulkApply` catch, keep the selection intact for retry, and skip the "clear selection on success" step. Without the re-throw, SEC-001 partial-failure discipline breaks silently.
+5. **For endpoints that resolve with `null` on soft failure**: after `Promise.all`, filter results for `null`/`undefined` and throw a synthetic `Error(`${failedCount} of ${slugs.length} …`)`. Guards `BUG-AC-NULL-RETURN-SILENT-FAIL` + `BUG-COMPOSER-AC-SLUG-DOUBLE-ENCODE`. Required for composer PUT paths; may be required for other external integrations too.
+
+Reference implementations (Feature 056): `bulkUpdateTristate`, `bulkClearOverrides`, `bulkSetUserAccessRule` in `src/js/abilities/store/index.js`. Jest coverage template: `tests/jest/abilities/store.bulkUpdateTristate.test.js` (payload discipline + partial-failure re-throw + SET_SAVING bracket).
+
+**Tags**: store, bulk, thunk, promise-all, sec-001, feature-056
+
+---
+
+## PATTERN-BULK-BUSY-OVERLAY-WP-NATIVE-SPINNER
+
+Full-screen busy overlay for bulk client-side operations. Consistent with WP-admin visual language, zero new npm deps, ~35 SCSS lines.
+
+**Composition**:
+
+1. **Shared component**: `src/js/abilities/components/BulkBusyOverlay.jsx` (~35 LoC). Takes one prop: `label` (also used as `aria-label`). Consumers mount conditionally on their own `busy` state.
+2. **WP-native spinner**: `<span class="spinner is-active">` — the same spinner WP admin uses next to Save Draft. No bundled GIF asset; the browser fetches `wp-admin/images/spinner.gif` automatically.
+3. **Scale override**: WP's default spinner is 20×20 with `float: right` + margins. For a centered fullscreen overlay, override to `width/height: 48px; background-size: 48px 48px; float: none; margin: 0; opacity: 1;` via a scoped selector (`.acrossai-abilities-bulk-busy-overlay__spinner.spinner`).
+4. **Backdrop-blur overlay**: `position: fixed; inset: 0; background: rgba(255, 255, 255, 0.35); backdrop-filter: blur(4px); z-index: 100001; cursor: progress;` + centered flex layout.
+5. **A11y**: `role="status"` + `aria-live="polite"` + `aria-label={label}` — announced to screen readers as the busy state changes.
+6. **Body scroll-lock**: consumers pair with `useEffect(() => { document.body.style.overflow = "hidden"; return () => { document.body.style.overflow = prev; }; }, [busyFlag])`. Restored on cleanup; nested lifecycles compose safely if each guarding component saves/restores its own `prevOverflow`.
+7. **Modal integration**: modals that mount their own overlay pair also render `<BulkBusyOverlay>` inside when their internal `busy` state is true. Escape-to-dismiss on the wrapping modal MUST be suppressed while busy (prevents half-applied state on the underlying multi-slug write).
+
+Reference: Feature 056 (2026-07-21) — `src/js/abilities/components/{AbilitiesList,UserAccessBulkModal,BulkBusyOverlay}.jsx` + `.acrossai-abilities-bulk-busy-overlay*` rules in `src/scss/abilities/admin.scss`.
+
+**Tags**: bulk, overlay, spinner, wp-native, backdrop-filter, scroll-lock, a11y, feature-056

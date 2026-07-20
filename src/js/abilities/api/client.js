@@ -123,3 +123,38 @@ export async function deleteOverride(slug) {
 export async function getCategories() {
 	return apiFetch({ path: `${BASE}/categories` });
 }
+
+/**
+ * Set the wpb-access-control rule for a single ability slug (Feature 056).
+ *
+ * Delegates to the composer-provided PUT endpoint under the plugin's
+ * access_control_slug namespace. Sending `acKey=''` clears the rule
+ * (equivalent to "Everyone allowed").
+ *
+ * @param {string}   slug      Ability slug.
+ * @param {string}   acKey     Provider id (e.g. 'wp_role') or '' to clear.
+ * @param {string[]} acOptions Provider-specific options; empty when clearing.
+ * @return {Promise<Object>} Composer response body.
+ */
+export async function setAccessControlRule(slug, acKey, acOptions) {
+	const cfg = window.acrossaiAbilitiesManager || {};
+	if (!cfg.access_control_slug) {
+		throw new Error(
+			'Access control is not configured on this site (access_control_slug missing).'
+		);
+	}
+	// The ability slug contains a literal '/' (e.g. "acrossai-abilities-manager/foo")
+	// which the composer route's `(?P<key>.+)` regex greedy-matches. Do NOT
+	// encodeURIComponent the slug — WordPress's REST layer + the composer's
+	// sanitizer strip %2F rather than decoding it, producing a corrupt key
+	// (observed: "acrossai-abilities-managerblock-pattern-delete"). Matches
+	// AbilityForm.jsx per-row save at line ~555 which passes the raw slug.
+	// Slugs are server-sanitized to [a-z0-9-/]+ by sanitize_ability_slug (SEC-01),
+	// so no path-traversal risk from raw pass-through.
+	const path = `/wpb-ac/v1/${encodeURIComponent(cfg.access_control_slug)}/rules/acrossai-abilities/${slug}`;
+	return apiFetch({
+		path,
+		method: 'PUT',
+		data: { ac_key: acKey, ac_options: acOptions },
+	});
+}
