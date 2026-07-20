@@ -7,6 +7,7 @@ import {
 import { Fragment, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { chevronDown, chevronUp } from '@wordpress/icons';
+import { titleCaseTabLabel } from './LibraryPage';
 
 /**
  * Group slugs by sub_group while preserving registration order — Feature 033.
@@ -52,7 +53,7 @@ export function groupBySubGroupPreservingOrder(slugs) {
  * @param {Function} props.onChange Called with (category, updatedEntry) on any change.
  */
 export default function LibraryCard({ item, config, onChange }) {
-	const { category, categoryLabel, slugs } = item;
+	const { category, categoryLabel, slugs, tabGroups = [] } = item;
 	const entry = config[category] ?? {
 		enabled: true,
 		mode: 'all',
@@ -104,7 +105,29 @@ export default function LibraryCard({ item, config, onChange }) {
 
 				<ToggleControl
 					__nextHasNoMarginBottom
-					label={<strong>{categoryLabel}</strong>}
+					label={
+						<span className="acrossai-library-card__title">
+							<strong>{categoryLabel}</strong>
+							{tabGroups.length > 0 && (
+								<span
+									className="acrossai-library-card__tab-chips"
+									aria-label={__(
+										'Tab membership',
+										'acrossai-abilities-manager'
+									)}
+								>
+									{tabGroups.map((tg) => (
+										<span
+											key={tg}
+											className="acrossai-library-card__tab-chip"
+										>
+											{titleCaseTabLabel(tg)}
+										</span>
+									))}
+								</span>
+							)}
+						</span>
+					}
 					checked={enabled}
 					onChange={(value) => update({ enabled: value })}
 				/>

@@ -171,6 +171,33 @@ $bg:        #f6f7f7;
 		color:       $muted;
 	}
 
+	// Feature 055 UI — inline chips inside the header toggle label showing
+	// which Library tab(s) this category is registered under.
+	&__title {
+		display:     inline-flex;
+		align-items: center;
+		gap:         8px;
+		flex-wrap:   wrap;
+	}
+
+	&__tab-chips {
+		display: inline-flex;
+		gap:     4px;
+	}
+
+	&__tab-chip {
+		display:        inline-block;
+		padding:        2px 8px;
+		background:     #f0f4ff;
+		color:          #2271b1;
+		border:         1px solid #c8d7ff;
+		border-radius:  10px;
+		font-size:      11px;
+		font-weight:    500;
+		line-height:    1.4;
+		white-space:    nowrap;
+	}
+
 	// Radio buttons displayed inline (horizontal) in the header.
 	&__mode {
 		flex-shrink: 0;
