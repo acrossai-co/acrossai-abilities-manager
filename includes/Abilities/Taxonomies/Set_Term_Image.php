@@ -93,8 +93,8 @@ class Set_Term_Image extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$term_id       = (int) ( $input['term_id'] ?? 0 );
-		$attachment_id = (int) ( $input['attachment_id'] ?? 0 );
+		$term_id       = absint( $input['term_id'] ?? 0 );
+		$attachment_id = absint( $input['attachment_id'] ?? 0 );
 
 		if ( $term_id <= 0 ) {
 			return array(
@@ -112,6 +112,16 @@ class Set_Term_Image extends Ability_Definition {
 			);
 		}
 
+		// Feature 055 hardening — the current user must be able to edit the
+		// term's taxonomy (matches WP core's term-edit UI gate).
+		$taxonomy_obj = get_taxonomy( (string) $term->taxonomy );
+		if ( ! $taxonomy_obj instanceof \WP_Taxonomy || ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'You do not have permission to edit terms in this taxonomy.', 'acrossai-abilities-manager' ),
+			);
+		}
+
 		if ( $attachment_id > 0 ) {
 			$attachment = get_post( $attachment_id );
 			if ( ! $attachment instanceof \WP_Post || 'attachment' !== $attachment->post_type ) {
@@ -119,6 +129,20 @@ class Set_Term_Image extends Ability_Definition {
 					'success' => false,
 					/* translators: %d: attachment ID */
 					'message' => sprintf( __( 'Attachment #%d does not exist.', 'acrossai-abilities-manager' ), $attachment_id ),
+				);
+			}
+			// Feature 055 hardening — the attachment must actually be an image,
+			// and the current user must be allowed to read it.
+			if ( ! function_exists( 'wp_attachment_is_image' ) || ! wp_attachment_is_image( $attachment_id ) ) {
+				return array(
+					'success' => false,
+					'message' => __( 'Attachment must be an image.', 'acrossai-abilities-manager' ),
+				);
+			}
+			if ( ! current_user_can( 'read_post', $attachment_id ) ) {
+				return array(
+					'success' => false,
+					'message' => __( 'You do not have permission to use this attachment.', 'acrossai-abilities-manager' ),
 				);
 			}
 			update_term_meta( $term_id, '_thumbnail_id', $attachment_id );

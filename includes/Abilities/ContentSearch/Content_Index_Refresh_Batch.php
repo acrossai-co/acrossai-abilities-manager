@@ -89,7 +89,7 @@ class Content_Index_Refresh_Batch extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$post_ids = array_values( array_filter( array_map( 'intval', (array) ( $input['post_ids'] ?? array() ) ) ) );
+		$post_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) ( $input['post_ids'] ?? array() ) ) ) ) );
 		if ( array() === $post_ids ) {
 			return array(
 				'success' => true,

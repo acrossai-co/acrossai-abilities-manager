@@ -112,12 +112,18 @@ class Content_Audit_Internal_Links extends Ability_Definition {
 			if ( ! $post instanceof \WP_Post ) {
 				continue;
 			}
+			// Hardened per-post cap: skip items the caller cannot read.
+			if ( ! current_user_can( 'read_post', (int) $post->ID ) ) {
+				continue;
+			}
+			// Feature 055 hardening — parse raw content, not the full
+			// the_content filter chain.
 			$content = (string) $post->post_content;
 			if ( ! preg_match_all( '/<a\s+[^>]*href=(["\'])(.*?)\1[^>]*>/is', $content, $matches, PREG_SET_ORDER ) ) {
 				continue;
 			}
 			foreach ( $matches as $m ) {
-				$href = (string) $m[2];
+				$href = esc_url_raw( (string) $m[2] );
 				$host = wp_parse_url( $href, PHP_URL_HOST );
 				if ( '' === $href || null === $host || $host !== $site_host ) {
 					continue;

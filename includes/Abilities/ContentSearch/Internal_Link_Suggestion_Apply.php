@@ -87,7 +87,7 @@ class Internal_Link_Suggestion_Apply extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$id = (int) ( $input['suggestion_id'] ?? 0 );
+		$id = absint( $input['suggestion_id'] ?? 0 );
 		if ( $id <= 0 ) {
 			return array(
 				'success' => false,
@@ -107,12 +107,29 @@ class Internal_Link_Suggestion_Apply extends Ability_Definition {
 				'message' => __( 'Only approved suggestions can be applied.', 'acrossai-abilities-manager' ),
 			);
 		}
-		$post_id = (int) $s['post_id'];
+		$post_id = absint( $s['post_id'] );
 		$post    = get_post( $post_id );
 		if ( ! $post instanceof \WP_Post ) {
 			return array(
 				'success' => false,
 				'message' => __( 'Target post not found.', 'acrossai-abilities-manager' ),
+			);
+		}
+
+		// Feature 055 hardening — per-target-post cap check + internal-CPT filter.
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'You do not have permission to edit this target post.', 'acrossai-abilities-manager' ),
+			);
+		}
+		$post_type_obj = get_post_type_object( (string) $post->post_type );
+		if ( ! $post_type_obj instanceof \WP_Post_Type
+			|| in_array( $post_type_obj->name, array( 'revision', 'nav_menu_item', 'custom_css', 'customize_changeset', 'oembed_cache', 'user_request' ), true )
+			|| ! ( (bool) $post_type_obj->public || (bool) $post_type_obj->show_ui || (bool) $post_type_obj->show_in_rest ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'This post type is not editable through this ability.', 'acrossai-abilities-manager' ),
 			);
 		}
 

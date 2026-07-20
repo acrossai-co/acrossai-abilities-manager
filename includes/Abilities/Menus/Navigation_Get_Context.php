@@ -91,8 +91,8 @@ class Navigation_Get_Context extends Ability_Definition {
 				}
 				$menus[] = array(
 					'id'         => (int) $menu->term_id,
-					'name'       => (string) $menu->name,
-					'slug'       => (string) $menu->slug,
+					'name'       => sanitize_text_field( (string) $menu->name ),
+					'slug'       => sanitize_title( (string) $menu->slug ),
 					'item_count' => (int) $menu->count,
 				);
 			}
@@ -102,7 +102,7 @@ class Navigation_Get_Context extends Ability_Definition {
 		$assignments      = get_nav_menu_locations();
 		if ( is_array( $assignments ) ) {
 			foreach ( $assignments as $location => $menu_id ) {
-				$assigned_by_menu[ (int) $menu_id ] = (string) $location;
+				$assigned_by_menu[ absint( $menu_id ) ] = sanitize_key( (string) $location );
 			}
 		}
 
@@ -112,15 +112,15 @@ class Navigation_Get_Context extends Ability_Definition {
 			foreach ( $registered as $slug => $label ) {
 				$menu_id             = 0;
 				$menu_name           = '';
-				$assigned_menu       = array_search( (string) $slug, $assigned_by_menu, true );
+				$assigned_menu       = array_search( sanitize_key( (string) $slug ), $assigned_by_menu, true );
 				if ( false !== $assigned_menu ) {
-					$menu_id     = (int) $assigned_menu;
+					$menu_id     = absint( $assigned_menu );
 					$menu_term   = get_term( $menu_id );
-					$menu_name   = $menu_term instanceof \WP_Term ? (string) $menu_term->name : '';
+					$menu_name   = $menu_term instanceof \WP_Term ? sanitize_text_field( (string) $menu_term->name ) : '';
 				}
 				$locations[] = array(
-					'slug'               => (string) $slug,
-					'label'              => (string) $label,
+					'slug'               => sanitize_key( (string) $slug ),
+					'label'              => sanitize_text_field( (string) $label ),
 					'assigned_menu_id'   => $menu_id,
 					'assigned_menu_name' => $menu_name,
 				);

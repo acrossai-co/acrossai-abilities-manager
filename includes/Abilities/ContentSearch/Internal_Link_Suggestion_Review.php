@@ -90,9 +90,9 @@ class Internal_Link_Suggestion_Review extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$id      = (int) ( $input['suggestion_id'] ?? 0 );
+		$id      = absint( $input['suggestion_id'] ?? 0 );
 		$verdict = sanitize_key( (string) ( $input['verdict'] ?? '' ) );
-		$notes   = (string) ( $input['notes'] ?? '' );
+		$notes   = sanitize_text_field( (string) ( $input['notes'] ?? '' ) );
 		if ( $id <= 0 || ! in_array( $verdict, array( 'approved', 'rejected' ), true ) ) {
 			return array(
 				'success' => false,

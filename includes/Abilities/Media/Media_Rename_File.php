@@ -99,7 +99,7 @@ class Media_Rename_File extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$attachment_id = (int) ( $input['attachment_id'] ?? 0 );
+		$attachment_id = absint( $input['attachment_id'] ?? 0 );
 		$new_filename  = (string) ( $input['new_filename'] ?? '' );
 
 		if ( $attachment_id <= 0 ) {
@@ -114,6 +114,15 @@ class Media_Rename_File extends Ability_Definition {
 			return array(
 				'success' => false,
 				'message' => __( 'Attachment not found.', 'acrossai-abilities-manager' ),
+			);
+		}
+
+		// Feature 055 hardening — per-attachment cap check (attachments
+		// respect edit_post like any other post).
+		if ( ! current_user_can( 'edit_post', $attachment_id ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'You do not have permission to edit this attachment.', 'acrossai-abilities-manager' ),
 			);
 		}
 

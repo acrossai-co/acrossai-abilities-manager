@@ -116,6 +116,11 @@ class Internal_Link_Suggestions_Create extends Ability_Definition {
 			);
 		}
 
+		// Feature 055 hardening — reject suggestions whose target URL is
+		// off-site at ingest time (defence in depth on top of the
+		// apply-time re-check).
+		$site_host = wp_parse_url( (string) home_url( '/' ), PHP_URL_HOST );
+
 		$created  = array();
 		$rejected = array();
 		foreach ( $suggestions as $idx => $s ) {
@@ -126,12 +131,21 @@ class Internal_Link_Suggestions_Create extends Ability_Definition {
 				);
 				continue;
 			}
+			$target_url = esc_url_raw( (string) ( $s['target_url'] ?? '' ) );
+			$host       = wp_parse_url( $target_url, PHP_URL_HOST );
+			if ( '' === $target_url || null === $host || $host !== $site_host ) {
+				$rejected[] = array(
+					'index'  => $idx,
+					'reason' => 'target-not-same-site',
+				);
+				continue;
+			}
 			$id = Suggestion_Store::insert(
 				array(
 					'post_id'     => $post_id,
-					'target_url'  => (string) ( $s['target_url'] ?? '' ),
-					'anchor_text' => (string) ( $s['anchor_text'] ?? '' ),
-					'notes'       => (string) ( $s['notes'] ?? '' ),
+					'target_url'  => $target_url,
+					'anchor_text' => sanitize_text_field( (string) ( $s['anchor_text'] ?? '' ) ),
+					'notes'       => sanitize_text_field( (string) ( $s['notes'] ?? '' ) ),
 				)
 			);
 			if ( $id > 0 ) {

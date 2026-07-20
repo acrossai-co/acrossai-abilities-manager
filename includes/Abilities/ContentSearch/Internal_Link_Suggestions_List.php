@@ -88,11 +88,14 @@ class Internal_Link_Suggestions_List extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$post_id = isset( $input['post_id'] ) ? (int) $input['post_id'] : null;
+		$post_id = isset( $input['post_id'] ) ? absint( $input['post_id'] ) : null;
 		if ( null !== $post_id && $post_id <= 0 ) {
 			$post_id = null;
 		}
-		$status = isset( $input['status'] ) ? (string) $input['status'] : null;
+		$status = isset( $input['status'] ) ? sanitize_key( (string) $input['status'] ) : null;
+		if ( null !== $status && ! in_array( $status, array( 'pending', 'approved', 'rejected', 'applied' ), true ) ) {
+			$status = null;
+		}
 		$items  = Suggestion_Store::list( $post_id, $status );
 		return array(
 			'success' => true,

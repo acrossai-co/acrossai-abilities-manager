@@ -86,6 +86,13 @@ class Admin_Menu_List_Settings extends Ability_Definition {
 
 		$page_filter = isset( $input['page'] ) ? sanitize_key( (string) $input['page'] ) : '';
 
+		// Feature 055 hardening — hard-cap title lengths on emitted fields.
+		$max = 200;
+		$cap = static function ( string $raw ) use ( $max ): string {
+			$t = sanitize_text_field( wp_strip_all_tags( $raw ) );
+			return strlen( $t ) > $max ? rtrim( substr( $t, 0, $max ) ) . '...' : $t;
+		};
+
 		$items = array();
 
 		if ( is_array( $wp_settings_sections ) ) {
@@ -97,19 +104,19 @@ class Admin_Menu_List_Settings extends Ability_Definition {
 					continue;
 				}
 				foreach ( $sections as $section_id => $section ) {
-					$section_title = is_array( $section ) ? wp_strip_all_tags( (string) ( $section['title'] ?? '' ) ) : '';
+					$section_title = is_array( $section ) ? $cap( (string) ( $section['title'] ?? '' ) ) : '';
 					$fields        = array();
 					if ( isset( $wp_settings_fields[ $page ][ $section_id ] ) && is_array( $wp_settings_fields[ $page ][ $section_id ] ) ) {
 						foreach ( $wp_settings_fields[ $page ][ $section_id ] as $field_id => $field ) {
 							$fields[] = array(
-								'id'    => (string) $field_id,
-								'label' => is_array( $field ) ? wp_strip_all_tags( (string) ( $field['title'] ?? '' ) ) : '',
+								'id'    => sanitize_text_field( (string) $field_id ),
+								'label' => is_array( $field ) ? $cap( (string) ( $field['title'] ?? '' ) ) : '',
 							);
 						}
 					}
 					$items[] = array(
-						'page'    => (string) $page,
-						'section' => (string) $section_id,
+						'page'    => sanitize_text_field( (string) $page ),
+						'section' => sanitize_text_field( (string) $section_id ),
 						'title'   => $section_title,
 						'fields'  => $fields,
 					);

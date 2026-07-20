@@ -96,7 +96,13 @@ class Admin_Menu_Get_Navigation_Target extends Ability_Definition {
 	public function execute( array $input = array() ): array {
 		global $menu, $submenu;
 
-		$intent = strtolower( trim( (string) ( $input['intent'] ?? '' ) ) );
+		// Feature 055 hardening — hard-cap intent length (a 100 KB input
+		// would still hit the tokeniser regardless of the JSON schema).
+		$intent_raw = sanitize_text_field( (string) ( $input['intent'] ?? '' ) );
+		if ( strlen( $intent_raw ) > 500 ) {
+			$intent_raw = substr( $intent_raw, 0, 500 );
+		}
+		$intent = strtolower( trim( $intent_raw ) );
 		if ( '' === $intent ) {
 			return array(
 				'success' => false,

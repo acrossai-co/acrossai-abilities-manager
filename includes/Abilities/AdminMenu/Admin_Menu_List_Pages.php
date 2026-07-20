@@ -92,16 +92,28 @@ class Admin_Menu_List_Pages extends Ability_Definition {
 			require_once ABSPATH . 'wp-admin/includes/menu.php';
 		}
 
+		// Feature 055 hardening — hard-cap title length so a registrar can't
+		// bloat responses; sanitize + limit every emitted field.
+		$title_max = 200;
+		$sanitize_title = static function ( string $raw ) use ( $title_max ): string {
+			$t = sanitize_text_field( wp_strip_all_tags( $raw ) );
+			return strlen( $t ) > $title_max ? rtrim( substr( $t, 0, $title_max ) ) . '...' : $t;
+		};
+
 		$items = array();
 		if ( is_array( $menu ) ) {
 			foreach ( $menu as $entry ) {
 				if ( ! is_array( $entry ) ) {
 					continue;
 				}
-				$title      = wp_strip_all_tags( (string) ( $entry[0] ?? '' ) );
-				$capability = (string) ( $entry[1] ?? '' );
-				$slug       = (string) ( $entry[2] ?? '' );
+				$title      = $sanitize_title( (string) ( $entry[0] ?? '' ) );
+				$capability = sanitize_key( (string) ( $entry[1] ?? '' ) );
+				$slug       = sanitize_text_field( (string) ( $entry[2] ?? '' ) );
 				if ( '' === $slug ) {
+					continue;
+				}
+				// Only surface menu entries the current user could actually reach.
+				if ( '' !== $capability && ! current_user_can( $capability ) ) {
 					continue;
 				}
 				$sub = array();
@@ -110,10 +122,15 @@ class Admin_Menu_List_Pages extends Ability_Definition {
 						if ( ! is_array( $sub_entry ) ) {
 							continue;
 						}
+						$sub_cap  = sanitize_key( (string) ( $sub_entry[1] ?? '' ) );
+						$sub_slug = sanitize_text_field( (string) ( $sub_entry[2] ?? '' ) );
+						if ( '' !== $sub_cap && ! current_user_can( $sub_cap ) ) {
+							continue;
+						}
 						$sub[] = array(
-							'title'      => wp_strip_all_tags( (string) ( $sub_entry[0] ?? '' ) ),
-							'capability' => (string) ( $sub_entry[1] ?? '' ),
-							'slug'       => (string) ( $sub_entry[2] ?? '' ),
+							'title'      => $sanitize_title( (string) ( $sub_entry[0] ?? '' ) ),
+							'capability' => $sub_cap,
+							'slug'       => $sub_slug,
 						);
 					}
 				}
@@ -121,7 +138,7 @@ class Admin_Menu_List_Pages extends Ability_Definition {
 					'title'      => $title,
 					'capability' => $capability,
 					'slug'       => $slug,
-					'url'        => menu_page_url( $slug, false ),
+					'url'        => esc_url_raw( (string) menu_page_url( $slug, false ) ),
 					'submenu'    => $sub,
 				);
 			}

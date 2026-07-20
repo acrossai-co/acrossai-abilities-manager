@@ -114,9 +114,9 @@ class Block_Areas_List extends Ability_Definition {
 					);
 				}
 				$areas_meta[ $area ]['parts'][] = array(
-					'id'    => isset( $part->id ) ? (string) $part->id : '',
-					'slug'  => isset( $part->slug ) ? (string) $part->slug : '',
-					'title' => isset( $part->title ) ? (string) $part->title : '',
+					'id'    => isset( $part->id ) ? sanitize_text_field( (string) $part->id ) : '',
+					'slug'  => isset( $part->slug ) ? sanitize_title( (string) $part->slug ) : '',
+					'title' => isset( $part->title ) ? sanitize_text_field( (string) $part->title ) : '',
 				);
 			}
 		}

@@ -89,7 +89,7 @@ class Content_Autosaves_Inspect extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$post_id = (int) ( $input['post_id'] ?? 0 );
+		$post_id = absint( $input['post_id'] ?? 0 );
 		if ( $post_id <= 0 ) {
 			return array(
 				'success' => false,
@@ -101,6 +101,23 @@ class Content_Autosaves_Inspect extends Ability_Definition {
 			return array(
 				'success' => false,
 				'message' => __( 'Post not found.', 'acrossai-abilities-manager' ),
+			);
+		}
+
+		// Feature 055 hardening — per-post cap check + internal-CPT filter
+		// (autosaves can leak draft/private content).
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'You do not have permission to inspect autosaves for this post.', 'acrossai-abilities-manager' ),
+			);
+		}
+		$post_type_obj = get_post_type_object( (string) $post->post_type );
+		if ( ! $post_type_obj instanceof \WP_Post_Type
+			|| in_array( $post_type_obj->name, array( 'revision', 'nav_menu_item', 'custom_css', 'customize_changeset', 'oembed_cache', 'user_request' ), true ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'This post type is not supported by this ability.', 'acrossai-abilities-manager' ),
 			);
 		}
 

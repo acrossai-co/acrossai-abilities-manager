@@ -102,7 +102,14 @@ class Comments_Bulk_Update extends Ability_Definition {
 	 */
 	public function execute( array $input = array() ): array {
 		$status      = sanitize_key( (string) ( $input['status'] ?? '' ) );
-		$comment_ids = array_values( array_filter( array_map( 'intval', (array) ( $input['comment_ids'] ?? array() ) ) ) );
+		$comment_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) ( $input['comment_ids'] ?? array() ) ) ) ) );
+
+		// Feature 055 hardening — accept the same aliases WP core admins are used to.
+		$status = match ( $status ) {
+			'approved'   => 'approve',
+			'pending', 'unapproved', 'unapprove' => 'hold',
+			default      => $status,
+		};
 
 		if ( '' === $status || ! in_array( $status, array( 'approve', 'hold', 'spam', 'trash' ), true ) ) {
 			return array(
@@ -130,7 +137,7 @@ class Comments_Bulk_Update extends Ability_Definition {
 		$failed    = array();
 
 		foreach ( $comment_ids as $id ) {
-			$id = (int) $id;
+			$id = absint( $id );
 			if ( $id <= 0 ) {
 				$failed[] = array(
 					'id'      => $id,
@@ -143,6 +150,17 @@ class Comments_Bulk_Update extends Ability_Definition {
 				$failed[] = array(
 					'id'      => $id,
 					'message' => __( 'Comment not found.', 'acrossai-abilities-manager' ),
+				);
+				continue;
+			}
+			// Feature 055 hardening — per-comment cap check on top of the
+			// role-level `moderate_comments` gate. Also require `edit_post`
+			// on the parent post so a mod cannot flip comments on a post
+			// they cannot edit.
+			if ( ! current_user_can( 'edit_comment', $id ) && ! current_user_can( 'edit_post', (int) $comment->comment_post_ID ) ) {
+				$failed[] = array(
+					'id'      => $id,
+					'message' => __( 'You do not have permission to moderate this comment.', 'acrossai-abilities-manager' ),
 				);
 				continue;
 			}

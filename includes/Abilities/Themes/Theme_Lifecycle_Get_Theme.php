@@ -126,14 +126,26 @@ class Theme_Lifecycle_Get_Theme extends Ability_Definition {
 
 		$summary = Lifecycle_Event_Log::get_summary( 'theme', $stylesheet );
 
+		// Feature 055 hardening — cap free-form header fields.
+		$name_max = 200;
+		$auth_max = 200;
+		$name     = wp_strip_all_tags( (string) $theme->get( 'Name' ) );
+		$author   = wp_strip_all_tags( (string) $theme->get( 'Author' ) );
+		if ( strlen( $name ) > $name_max ) {
+			$name = rtrim( substr( $name, 0, $name_max ) ) . '...';
+		}
+		if ( strlen( $author ) > $auth_max ) {
+			$author = rtrim( substr( $author, 0, $auth_max ) ) . '...';
+		}
+
 		return array(
 			'success'             => true,
 			'stylesheet'          => $stylesheet,
 			'header'              => (object) array(
-				'name'    => (string) $theme->get( 'Name' ),
-				'version' => (string) $theme->get( 'Version' ),
-				'author'  => wp_strip_all_tags( (string) $theme->get( 'Author' ) ),
-				'template' => (string) $theme->get_template(),
+				'name'     => $name,
+				'version'  => sanitize_text_field( (string) $theme->get( 'Version' ) ),
+				'author'   => $author,
+				'template' => sanitize_text_field( (string) $theme->get_template() ),
 			),
 			'is_active'           => $stylesheet === (string) get_stylesheet(),
 			'is_child'            => '' !== $parent_slug,

@@ -102,7 +102,7 @@ class Content_Update_Block extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$post_id = (int) ( $input['post_id'] ?? 0 );
+		$post_id = absint( $input['post_id'] ?? 0 );
 		if ( $post_id <= 0 ) {
 			return array(
 				'success' => false,
@@ -117,6 +117,23 @@ class Content_Update_Block extends Ability_Definition {
 			);
 		}
 
+		// Feature 055 hardening — per-post cap check + internal-CPT filter.
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'You do not have permission to edit this post.', 'acrossai-abilities-manager' ),
+			);
+		}
+		$post_type_obj = get_post_type_object( (string) $post->post_type );
+		if ( ! $post_type_obj instanceof \WP_Post_Type
+			|| in_array( $post_type_obj->name, array( 'revision', 'nav_menu_item', 'custom_css', 'customize_changeset', 'oembed_cache', 'user_request' ), true )
+			|| ! ( (bool) $post_type_obj->public || (bool) $post_type_obj->show_ui || (bool) $post_type_obj->show_in_rest ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'This post type is not editable through this ability.', 'acrossai-abilities-manager' ),
+			);
+		}
+
 		$blocks = parse_blocks( (string) $post->post_content );
 		if ( ! is_array( $blocks ) || array() === $blocks ) {
 			return array(
@@ -128,7 +145,7 @@ class Content_Update_Block extends Ability_Definition {
 		$target_index = null;
 		if ( isset( $input['block_index'] ) ) {
 			$target_index = (int) $input['block_index'];
-			if ( ! isset( $blocks[ $target_index ] ) ) {
+			if ( $target_index < 0 || ! isset( $blocks[ $target_index ] ) ) {
 				return array(
 					'success' => false,
 					/* translators: %d: block index */
@@ -136,12 +153,14 @@ class Content_Update_Block extends Ability_Definition {
 				);
 			}
 		} else {
+			// Feature 055 hardening — allow only Gutenberg block-name shape
+			// (e.g. "core/paragraph"): namespace/name pairs of [A-Za-z0-9_-].
 			$block_name = (string) ( $input['block_name'] ?? '' );
-			$occurrence = (int) ( $input['occurrence'] ?? 0 );
-			if ( '' === $block_name ) {
+			$occurrence = max( 0, (int) ( $input['occurrence'] ?? 0 ) );
+			if ( '' === $block_name || ! preg_match( '/^[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+$/', $block_name ) ) {
 				return array(
 					'success' => false,
-					'message' => __( 'One of block_index or block_name is required.', 'acrossai-abilities-manager' ),
+					'message' => __( 'One of block_index or a valid block_name (e.g. "core/paragraph") is required.', 'acrossai-abilities-manager' ),
 				);
 			}
 			$hits = 0;

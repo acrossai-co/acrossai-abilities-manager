@@ -88,7 +88,7 @@ class Site_Editor_Get_Context extends Ability_Definition {
 
 		$is_block_theme = function_exists( 'wp_is_block_theme' ) && wp_is_block_theme();
 		$theme          = wp_get_theme();
-		$active_name    = $theme instanceof \WP_Theme ? (string) $theme->get( 'Name' ) : '';
+		$active_name    = $theme instanceof \WP_Theme ? sanitize_text_field( (string) $theme->get( 'Name' ) ) : '';
 
 		$style_variation = '';
 		if ( function_exists( 'WP_Theme_JSON_Resolver::get_user_data' ) ) {
@@ -105,10 +105,10 @@ class Site_Editor_Get_Context extends Ability_Definition {
 			'success'                => true,
 			'is_block_theme'         => (bool) $is_block_theme,
 			'active_theme'           => $active_name,
-			'active_style_variation' => $style_variation,
+			'active_style_variation' => sanitize_text_field( $style_variation ),
 			'template_count'         => is_array( $templates ) ? count( $templates ) : 0,
 			'template_part_count'    => is_array( $template_parts ) ? count( $template_parts ) : 0,
-			'site_editor_url'        => admin_url( 'site-editor.php' ),
+			'site_editor_url'        => esc_url_raw( (string) admin_url( 'site-editor.php' ) ),
 			'message'                => $is_block_theme
 				? __( 'Block theme active; Site Editor available.', 'acrossai-abilities-manager' )
 				: __( 'Classic theme active; Site Editor is limited or unavailable.', 'acrossai-abilities-manager' ),

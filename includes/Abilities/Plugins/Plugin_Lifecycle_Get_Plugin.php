@@ -95,11 +95,16 @@ class Plugin_Lifecycle_Get_Plugin extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
+		// Feature 055 hardening — reject basenames containing path traversal
+		// or absolute paths; only match /^[A-Za-z0-9_\-\/\.]+$/ shape.
 		$basename = ltrim( (string) ( $input['plugin'] ?? '' ), '/' );
-		if ( '' === $basename ) {
+		if ( '' === $basename
+			|| str_contains( $basename, '..' )
+			|| str_contains( $basename, '\\' )
+			|| ! preg_match( '/^[A-Za-z0-9_\-\/\.]+$/', $basename ) ) {
 			return array(
 				'success' => false,
-				'message' => __( 'A plugin basename is required (e.g. "hello-dolly/hello.php").', 'acrossai-abilities-manager' ),
+				'message' => __( 'A valid plugin basename is required (e.g. "hello-dolly/hello.php").', 'acrossai-abilities-manager' ),
 			);
 		}
 
@@ -126,16 +131,34 @@ class Plugin_Lifecycle_Get_Plugin extends Ability_Definition {
 
 		$summary = Lifecycle_Event_Log::get_summary( 'plugin', $basename );
 
+		// Feature 055 hardening — cap free-form header fields so a plugin
+		// with a malicious multi-KB Description cannot bloat responses.
+		$name_max = 200;
+		$auth_max = 200;
+		$desc_max = 500;
+		$name     = wp_strip_all_tags( (string) ( $header['Name'] ?? '' ) );
+		$author   = wp_strip_all_tags( (string) ( $header['Author'] ?? '' ) );
+		$descr    = wp_strip_all_tags( (string) ( $header['Description'] ?? '' ) );
+		if ( strlen( $name ) > $name_max ) {
+			$name = rtrim( substr( $name, 0, $name_max ) ) . '...';
+		}
+		if ( strlen( $author ) > $auth_max ) {
+			$author = rtrim( substr( $author, 0, $auth_max ) ) . '...';
+		}
+		if ( strlen( $descr ) > $desc_max ) {
+			$descr = rtrim( substr( $descr, 0, $desc_max ) ) . '...';
+		}
+
 		return array(
 			'success'             => true,
 			'basename'            => $basename,
 			'header'              => (object) array(
-				'name'        => (string) ( $header['Name'] ?? '' ),
-				'version'     => (string) ( $header['Version'] ?? '' ),
-				'author'      => wp_strip_all_tags( (string) ( $header['Author'] ?? '' ) ),
-				'description' => wp_strip_all_tags( (string) ( $header['Description'] ?? '' ) ),
-				'requires_wp' => (string) ( $header['RequiresWP'] ?? '' ),
-				'requires_php' => (string) ( $header['RequiresPHP'] ?? '' ),
+				'name'         => $name,
+				'version'      => sanitize_text_field( (string) ( $header['Version'] ?? '' ) ),
+				'author'       => $author,
+				'description'  => $descr,
+				'requires_wp'  => sanitize_text_field( (string) ( $header['RequiresWP'] ?? '' ) ),
+				'requires_php' => sanitize_text_field( (string) ( $header['RequiresPHP'] ?? '' ) ),
 			),
 			'is_active'           => (bool) $is_active,
 			'is_network_active'   => (bool) $is_network_active,

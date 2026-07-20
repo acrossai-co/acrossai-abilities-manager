@@ -116,10 +116,10 @@ class Reusable_Blocks_List extends Ability_Definition {
 			}
 			$items[] = array(
 				'id'         => (int) $post->ID,
-				'title'      => (string) $post->post_title,
-				'slug'       => (string) $post->post_name,
-				'status'     => (string) $post->post_status,
-				'modified'   => (string) $post->post_modified_gmt,
+				'title'      => sanitize_text_field( (string) $post->post_title ),
+				'slug'       => sanitize_title( (string) $post->post_name ),
+				'status'     => sanitize_key( (string) $post->post_status ),
+				'modified'   => sanitize_text_field( (string) $post->post_modified_gmt ),
 				'has_content' => '' !== trim( (string) $post->post_content ),
 			);
 		}

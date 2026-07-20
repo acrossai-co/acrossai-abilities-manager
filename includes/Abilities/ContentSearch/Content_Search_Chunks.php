@@ -92,7 +92,7 @@ class Content_Search_Chunks extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$query    = trim( (string) ( $input['query'] ?? '' ) );
+		$query    = sanitize_text_field( (string) ( $input['query'] ?? '' ) );
 		$per_page = max( 1, min( 50, (int) ( $input['per_page'] ?? 10 ) ) );
 		if ( '' === $query ) {
 			return array(
@@ -110,11 +110,16 @@ class Content_Search_Chunks extends Ability_Definition {
 			)
 		);
 
-		$chunks   = array();
-		$needle   = strtolower( $query );
-		$per_post = 3; // Return at most 3 matching chunks per post.
+		$chunks         = array();
+		$needle         = strtolower( $query );
+		$per_post       = 3;   // Return at most 3 matching chunks per post.
+		$max_chunk_len  = 500; // Hardened: hard-cap each chunk at 500 chars.
 		foreach ( $wp_query->posts as $post ) {
 			if ( ! $post instanceof \WP_Post ) {
+				continue;
+			}
+			// Hardened per-post cap: skip items the caller cannot read.
+			if ( ! current_user_can( 'read_post', (int) $post->ID ) ) {
 				continue;
 			}
 			$plain      = wp_strip_all_tags( (string) $post->post_content );
@@ -124,10 +129,14 @@ class Content_Search_Chunks extends Ability_Definition {
 				if ( false === stripos( $para, $needle ) ) {
 					continue;
 				}
+				$text = trim( $para );
+				if ( strlen( $text ) > $max_chunk_len ) {
+					$text = rtrim( substr( $text, 0, $max_chunk_len ) ) . '...';
+				}
 				$chunks[] = array(
 					'post_id'     => (int) $post->ID,
 					'chunk_index' => (int) $idx,
-					'text'        => trim( $para ),
+					'text'        => $text,
 					'score'       => 1.0,
 				);
 				++$hits;

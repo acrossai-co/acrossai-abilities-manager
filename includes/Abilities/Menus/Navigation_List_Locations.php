@@ -90,17 +90,17 @@ class Navigation_List_Locations extends Ability_Definition {
 		$registered = get_registered_nav_menus();
 		if ( is_array( $registered ) ) {
 			foreach ( $registered as $slug => $label ) {
-				$menu_id   = isset( $assignments[ $slug ] ) ? (int) $assignments[ $slug ] : 0;
+				$menu_id   = isset( $assignments[ $slug ] ) ? absint( $assignments[ $slug ] ) : 0;
 				$menu_name = '';
 				if ( $menu_id > 0 ) {
 					$menu = get_term( $menu_id );
 					if ( $menu instanceof \WP_Term ) {
-						$menu_name = (string) $menu->name;
+						$menu_name = sanitize_text_field( (string) $menu->name );
 					}
 				}
 				$out[] = array(
-					'slug'               => (string) $slug,
-					'label'              => (string) $label,
+					'slug'               => sanitize_key( (string) $slug ),
+					'label'              => sanitize_text_field( (string) $label ),
 					'assigned_menu_id'   => $menu_id,
 					'assigned_menu_name' => $menu_name,
 				);

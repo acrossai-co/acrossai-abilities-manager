@@ -86,7 +86,7 @@ class Content_Find_Internal_Links extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$post_id = (int) ( $input['post_id'] ?? 0 );
+		$post_id = absint( $input['post_id'] ?? 0 );
 		if ( $post_id <= 0 ) {
 			return array(
 				'success' => false,
@@ -100,15 +100,30 @@ class Content_Find_Internal_Links extends Ability_Definition {
 				'message' => __( 'Post not found.', 'acrossai-abilities-manager' ),
 			);
 		}
+		// Feature 055 hardening — caller must be able to read the source post
+		// (avoids leaking private-post outbound link inventories).
+		if ( ! current_user_can( 'read_post', $post_id ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'You do not have permission to read this post.', 'acrossai-abilities-manager' ),
+			);
+		}
 
 		$site_host = wp_parse_url( (string) home_url( '/' ), PHP_URL_HOST );
-		$content   = apply_filters( 'the_content', (string) $post->post_content );
+		// Feature 055 hardening — parse raw post_content (do NOT run the
+		// full the_content filter chain, which triggers shortcode + oEmbed
+		// side effects with the current user context).
+		$content = (string) $post->post_content;
 
-		$links = array();
-		if ( preg_match_all( '/<a\s+[^>]*href=(["\'])(.*?)\1[^>]*>(.*?)<\/a>/is', (string) $content, $matches, PREG_SET_ORDER ) ) {
+		$links       = array();
+		$max_anchor  = 200; // Hard-cap anchor text length.
+		if ( preg_match_all( '/<a\s+[^>]*href=(["\'])(.*?)\1[^>]*>(.*?)<\/a>/is', $content, $matches, PREG_SET_ORDER ) ) {
 			foreach ( $matches as $m ) {
-				$href = (string) $m[2];
+				$href = esc_url_raw( (string) $m[2] );
 				$text = wp_strip_all_tags( (string) $m[3] );
+				if ( strlen( $text ) > $max_anchor ) {
+					$text = rtrim( substr( $text, 0, $max_anchor ) ) . '...';
+				}
 				$host = wp_parse_url( $href, PHP_URL_HOST );
 				if ( '' === $href || null === $host || $host !== $site_host ) {
 					continue;
@@ -117,7 +132,7 @@ class Content_Find_Internal_Links extends Ability_Definition {
 				$links[]   = array(
 					'target_url' => $href,
 					'target_id'  => (int) $target_id,
-					'anchor'     => $text,
+					'anchor'     => sanitize_text_field( $text ),
 				);
 			}
 		}

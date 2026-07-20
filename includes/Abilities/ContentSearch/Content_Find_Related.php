@@ -91,7 +91,7 @@ class Content_Find_Related extends Ability_Definition {
 	 * @return array<string,mixed>
 	 */
 	public function execute( array $input = array() ): array {
-		$post_id  = (int) ( $input['post_id'] ?? 0 );
+		$post_id  = absint( $input['post_id'] ?? 0 );
 		$per_page = max( 1, min( 50, (int) ( $input['per_page'] ?? 5 ) ) );
 		if ( $post_id <= 0 ) {
 			return array(
@@ -104,6 +104,13 @@ class Content_Find_Related extends Ability_Definition {
 			return array(
 				'success' => false,
 				'message' => __( 'Post not found.', 'acrossai-abilities-manager' ),
+			);
+		}
+		// Feature 055 hardening — caller must be able to read the source post.
+		if ( ! current_user_can( 'read_post', $post_id ) ) {
+			return array(
+				'success' => false,
+				'message' => __( 'You do not have permission to read this post.', 'acrossai-abilities-manager' ),
 			);
 		}
 
@@ -148,9 +155,12 @@ class Content_Find_Related extends Ability_Definition {
 			if ( ! $rel instanceof \WP_Post ) {
 				continue;
 			}
+			if ( ! current_user_can( 'read_post', (int) $rel->ID ) ) {
+				continue;
+			}
 			$related[] = array(
 				'id'     => (int) $rel->ID,
-				'title'  => (string) $rel->post_title,
+				'title'  => sanitize_text_field( (string) $rel->post_title ),
 				'url'    => (string) get_permalink( $rel ),
 				'reason' => 'shared-terms',
 			);

@@ -99,13 +99,13 @@ class Site_Maintenance_Report extends Ability_Definition {
 		$core_updates = function_exists( 'get_core_updates' ) ? get_core_updates() : array();
 		$core_offer   = array(
 			'available' => false,
-			'version'   => (string) $wp_version,
+			'version'   => sanitize_text_field( (string) $wp_version ),
 		);
 		if ( is_array( $core_updates ) ) {
 			foreach ( $core_updates as $offer ) {
 				if ( isset( $offer->response ) && 'upgrade' === $offer->response ) {
 					$core_offer['available'] = true;
-					$core_offer['version']   = (string) ( $offer->version ?? '' );
+					$core_offer['version']   = sanitize_text_field( (string) ( $offer->version ?? '' ) );
 					break;
 				}
 			}
@@ -118,11 +118,11 @@ class Site_Maintenance_Report extends Ability_Definition {
 		$disk_total = @disk_total_space( ABSPATH ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 		$theme        = wp_get_theme();
-		$active_theme = $theme instanceof \WP_Theme ? (string) $theme->get( 'Name' ) : '';
+		$active_theme = $theme instanceof \WP_Theme ? sanitize_text_field( (string) $theme->get( 'Name' ) ) : '';
 
 		$mysql_version = '';
 		if ( isset( $wpdb ) && is_object( $wpdb ) && method_exists( $wpdb, 'db_version' ) ) {
-			$mysql_version = (string) $wpdb->db_version();
+			$mysql_version = sanitize_text_field( (string) $wpdb->db_version() );
 		}
 
 		return array(
@@ -135,9 +135,9 @@ class Site_Maintenance_Report extends Ability_Definition {
 			'disk_total_bytes' => (int) ( is_float( $disk_total ) ? $disk_total : 0 ),
 			'php_version'      => PHP_VERSION,
 			'mysql_version'    => $mysql_version,
-			'wp_version'       => (string) $wp_version,
+			'wp_version'       => sanitize_text_field( (string) $wp_version ),
 			'active_theme'     => $active_theme,
-			'site_url'         => (string) home_url( '/' ),
+			'site_url'         => esc_url_raw( (string) home_url( '/' ) ),
 			'is_multisite'     => is_multisite(),
 			/* translators: 1: core, 2: plugin, 3: theme */
 			'message'          => sprintf(
