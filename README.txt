@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.14
+Stable tag: 0.0.15
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -100,6 +100,14 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.15 =
+* **Bulk Actions overhaul on the Custom Abilities admin page — Site Access / MCP Exposure / User Access / Overrides.** Replaces the misleading Publish / Unpublish / Delete dropdown (WP-CPT vocabulary that never mapped to how ability overrides behave) with four ability-native optgroups that mirror the per-row edit drawer: **Site Access** tri-state (Force Allow / Inherit / Force Block writing `site_allowed`), **MCP Exposure** tri-state (Enable / Default / Disable writing `show_in_mcp`), **User Access** (opens a modal that mounts the composer's `<AccessControl>` picker and applies one rule across every selected slug, plus a "Reset to Default — allow everyone" quick action), and **Overrides → Force Reset** (clears every override column per slug via the existing `DELETE /abilities/{slug}/override` endpoint). Destructive transitions (Force Block, MCP Disable, User Access Reset, Force Reset) prompt for confirmation before dispatch.
+* **Row-level checkbox and Edit action now work on every ability regardless of Source.** The pre-0.0.15 checkbox gate limited selection to Custom (`db`) rows only — a hangover from the deleted Publish/Unpublish/Delete flow. Bulk tri-state operations apply to any Source, so every visible row now shows a checkbox and can be included in a bulk selection. The Edit action was already unconditional across sources; verified with the same release.
+* **Full-screen busy overlay with WP-native spinner + body scroll-lock during every bulk apply.** Uses `<span class="spinner is-active">` (the same spinner WP admin shows next to Save Draft) over a backdrop-blurred wash; the underlying page is un-clickable and the body cannot scroll until the bulk request set resolves. Escape-to-dismiss on the User Access modal is suppressed while its apply is in flight to prevent half-applied state on the underlying multi-slug write.
+* **Client-side only release. No PHP changes, no new REST endpoints, no new database tables, no new composer or npm packages.** All storage, sanitisation, capability enforcement, and REST controllers are unchanged. The feature loops the pre-existing per-slug endpoints under `Promise.all` inside three new Redux thunks (`bulkUpdateTristate`, `bulkClearOverrides`, `bulkSetUserAccessRule`); the composer package's provider enumeration and rule storage are reused verbatim.
+* **25 new Jest tests across three suites** cover payload discipline (raw JSON `true` / `false` / `null` on tri-state writes), partial-failure re-throw discipline (operator sees an error and keeps the selection for retry instead of a silent success), composer null-response guard, and a slug-encoding regression guard (see below). Also adds two new architecture patterns and one new bug pattern to `docs/memory/`.
+* **Fixed: composer User Access rule keys were storing the ability slug with the `/` character stripped when applied via the bulk path.** Root cause: client-side `encodeURIComponent(slug)` on the composer PUT URL was collapsed to nothing by the composer's key sanitizer (`%2F` was stripped rather than decoded back to `/`), producing orphan rows like `acrossai-abilities-managerblock-pattern-delete`. Fixed by matching the per-row edit drawer's pattern — passing the slug raw into the URL. Server-side `sanitize_ability_slug()` still validates independently, so no security regression. Guarded by a Jest regression test.
+
 = 0.0.14 =
 * **wp.org banner artwork refreshed + filenames renamed to the WP.org canonical convention.** `banner1544x500.png` → `banner-1544x500.png` and `banner772x250.png` → `banner-772x250.png`. WordPress.org's plugin directory only auto-detects banners at the dashed paths (`.wordpress-org/banner-{width}x{height}.png`) — the un-dashed variants shipped in 0.0.13 were not being surfaced on the plugin listing page. Both banners also carry updated artwork in this release. wp.org-assets-only change; no plugin code touched.
 
@@ -176,6 +184,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.15 =
+UI-only release. Replaces the Custom Abilities Bulk Actions dropdown (Publish / Unpublish / Delete) with Site Access, MCP Exposure, User Access, and Overrides operations that match the per-row edit drawer. Row-level checkbox now works on every ability regardless of Source. Reuses existing REST endpoints; no new database tables, no new endpoints, no PHP changes, no dependency changes, no permission changes. Also fixes a bug that stored composer User Access rule keys with the ability slug's `/` character stripped when applied via the (new) bulk path. Safe upgrade.
 
 = 0.0.14 =
 wp.org assets only. Refreshes the banner artwork and renames both banner files from `banner{width}x{height}.png` to the WP.org-canonical `banner-{width}x{height}.png` (the 0.0.13 filenames were not being auto-detected by the plugin directory). No plugin code touched; no REST, DB, or capability changes. Safe upgrade.
