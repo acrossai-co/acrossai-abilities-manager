@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.13
+Stable tag: 0.0.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -100,6 +100,9 @@ No data is sent to any external server without explicit user action.
 
 == Changelog ==
 
+= 0.0.14 =
+* **wp.org banner artwork refreshed + filenames renamed to the WP.org canonical convention.** `banner1544x500.png` → `banner-1544x500.png` and `banner772x250.png` → `banner-772x250.png`. WordPress.org's plugin directory only auto-detects banners at the dashed paths (`.wordpress-org/banner-{width}x{height}.png`) — the un-dashed variants shipped in 0.0.13 were not being surfaced on the plugin listing page. Both banners also carry updated artwork in this release. wp.org-assets-only change; no plugin code touched.
+
 = 0.0.13 =
 * **Docs — ability gap audit landed under `specs/054-ability-gap-audit/`.** Tracks 31 abilities across 10 domains that external AI-tool inventories expect but the plugin does not yet expose (Site editor / structure, Admin menu, Navigation, Users, Content index / search / linking, Content advanced, Taxonomy, Media, Site lifecycle, Comments). Current registered inventory: 187 abilities under `acrossai-abilities-manager/*`, verified via grep against `wp_register_ability` and confirmed wired 1:1 into `AcrossAI_Core_Abilities_Bootstrap.php`. For every missing ability, the audit names the closest existing ability in the plugin (or explicitly declares the domain as absent) so future implementation waves do not accidentally duplicate work. Each missing ability becomes its own follow-up spec later. No runtime code changes; audit-only release.
 * **wp.org assets — banner (1544×500 and 772×250) and a sixth screenshot added.** The plugin directory listing now shows a proper header banner (previously falling back to the WordPress.org default header since 0.0.4) and a sixth screenshot covering the Settings page (Display + Upload Media Abilities sections). Metadata-only change to `.wordpress-org/` — no plugin code touched.
@@ -173,6 +176,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.14 =
+wp.org assets only. Refreshes the banner artwork and renames both banner files from `banner{width}x{height}.png` to the WP.org-canonical `banner-{width}x{height}.png` (the 0.0.13 filenames were not being auto-detected by the plugin directory). No plugin code touched; no REST, DB, or capability changes. Safe upgrade.
 
 = 0.0.13 =
 
