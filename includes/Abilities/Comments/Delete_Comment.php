@@ -63,7 +63,7 @@ class Delete_Comment extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'comments',
 						'sub_group'       => 'manage',
 						'sub_group_label' => __( 'Manage', 'acrossai-abilities-manager' ),
 					),

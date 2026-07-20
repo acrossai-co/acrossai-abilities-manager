@@ -75,9 +75,9 @@ class Comments_Bulk_Update extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
-						'sub_group'       => 'comments',
-						'sub_group_label' => __( 'Comments', 'acrossai-abilities-manager' ),
+						'tab_group'       => 'comments',
+						'sub_group'       => 'moderation',
+						'sub_group_label' => __( 'Moderation', 'acrossai-abilities-manager' ),
 					),
 					'show_in_rest' => true,
 					'mcp'          => array(

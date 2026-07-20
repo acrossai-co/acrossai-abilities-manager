@@ -45,10 +45,19 @@ export function groupDefinitions(definitions) {
 				id: category,
 				category,
 				categoryLabel,
+				// Feature 055 UI — sorted-unique tab_group identifiers this
+				// category contributes to. Usually one entry (a single
+				// category maps 1:1 to one tab), but a category whose
+				// abilities declare mixed tab_groups will surface all of
+				// them so the header chip shows the full membership.
+				tabGroups: new Set(),
 				slugs: [],
 			});
 		}
 		const group = map.get(category);
+		if (tabGroup) {
+			group.tabGroups.add(tabGroup);
+		}
 		if (!group.slugs.some((s) => s.slug === slug)) {
 			group.slugs.push({
 				slug,
@@ -61,7 +70,13 @@ export function groupDefinitions(definitions) {
 			});
 		}
 	}
-	return Array.from(map.values());
+	// Freeze tabGroups as a sorted array (deterministic React key order).
+	return Array.from(map.values()).map((item) => ({
+		...item,
+		tabGroups: Array.from(item.tabGroups).sort((a, b) =>
+			a.toLowerCase().localeCompare(b.toLowerCase())
+		),
+	}));
 }
 
 /**

@@ -62,7 +62,7 @@ class Update_Comment_Meta extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'comments',
 						'sub_group'       => 'meta',
 						'sub_group_label' => __( 'Meta', 'acrossai-abilities-manager' ),
 					),
