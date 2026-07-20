@@ -298,6 +298,104 @@ const actions = {
 		};
 	},
 
+	/**
+	 * Bulk-apply a tri-state override to many abilities.
+	 *
+	 * Loops the existing per-slug POST /abilities/{slug} endpoint under
+	 * Promise.all — mirrors the shape of bulkUpdateStatus (Feature 056).
+	 *
+	 * @param {string[]}                     slugs Ability slugs.
+	 * @param {'site_allowed'|'show_in_mcp'} field Tri-state field to write.
+	 * @param {boolean|null}                 value true | false | null.
+	 */
+	bulkUpdateTristate(slugs, field, value) {
+		return async ({ dispatch }) => {
+			dispatch({ type: SET_SAVING, isSaving: true });
+			try {
+				await Promise.all(
+					slugs.map((slug) =>
+						api.updateAbility(slug, { [field]: value })
+					)
+				);
+				dispatch(actions.fetchAbilities());
+			} catch (err) {
+				dispatch({ type: SET_SAVE_ERROR, error: err.message });
+				// Re-throw so the caller in AbilitiesList.jsx handleBulkApply
+				// can surface a notice + keep the selection intact (SEC-001).
+				throw err;
+			} finally {
+				dispatch({ type: SET_SAVING, isSaving: false });
+			}
+		};
+	},
+
+	/**
+	 * Bulk clear overrides on many abilities — returns each to source defaults.
+	 *
+	 * Loops the existing per-slug DELETE /abilities/{slug}/override endpoint
+	 * under Promise.all. Feature 056 "Force Reset" bulk action.
+	 *
+	 * @param {string[]} slugs Ability slugs.
+	 */
+	bulkClearOverrides(slugs) {
+		return async ({ dispatch }) => {
+			dispatch({ type: SET_SAVING, isSaving: true });
+			try {
+				await Promise.all(
+					slugs.map((slug) => api.deleteOverride(slug))
+				);
+				dispatch(actions.fetchAbilities());
+			} catch (err) {
+				dispatch({ type: SET_SAVE_ERROR, error: err.message });
+				throw err;
+			} finally {
+				dispatch({ type: SET_SAVING, isSaving: false });
+			}
+		};
+	},
+
+	/**
+	 * Bulk-apply a wpb-access-control rule to many abilities (Feature 056).
+	 *
+	 * Loops the composer's per-slug PUT rule endpoint under Promise.all.
+	 * Sending `acKey=''` clears the rule for every selected slug
+	 * (equivalent to "Everyone allowed").
+	 *
+	 * @param {string[]} slugs     Ability slugs.
+	 * @param {string}   acKey     Provider id or '' to clear.
+	 * @param {string[]} acOptions Provider-specific options; empty when clearing.
+	 */
+	bulkSetUserAccessRule(slugs, acKey, acOptions) {
+		return async ({ dispatch }) => {
+			dispatch({ type: SET_SAVING, isSaving: true });
+			try {
+				const results = await Promise.all(
+					slugs.map((slug) =>
+						api.setAccessControlRule(slug, acKey, acOptions)
+					)
+				);
+				// SEC-006 / BUG-AC-NULL-RETURN-SILENT-FAIL: the composer PUT
+				// endpoint may resolve with `null` on a soft failure rather
+				// than throwing. Treat any null/undefined response as failure
+				// so the operator sees an error notice instead of false success.
+				const failedCount = results.filter(
+					(r) => null === r || undefined === r
+				).length;
+				if (failedCount > 0) {
+					throw new Error(
+						`${failedCount} of ${slugs.length} User Access rules did not save.`
+					);
+				}
+				dispatch(actions.fetchAbilities());
+			} catch (err) {
+				dispatch({ type: SET_SAVE_ERROR, error: err.message });
+				throw err;
+			} finally {
+				dispatch({ type: SET_SAVING, isSaving: false });
+			}
+		};
+	},
+
 	clearOverrides(slug) {
 		return async ({ dispatch }) => {
 			dispatch({ type: SET_SAVING, isSaving: true });

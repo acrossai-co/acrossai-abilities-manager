@@ -11,9 +11,11 @@
  */
 import { useState, useEffect, useCallback } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { STORE_NAME } from '../store/index';
 import SourceBadge from './cells/SourceBadge';
+import UserAccessBulkModal from './UserAccessBulkModal';
+import BulkBusyOverlay from './BulkBusyOverlay';
 
 const SLUG_PREFIX = 'acrossai-abilities/';
 
@@ -217,6 +219,20 @@ export default function AbilitiesList() {
 	// ---- checkbox state ----
 	const [selected, setSelected] = useState(new Set());
 	const [bulkAction, setBulkAction] = useState('');
+	const [userAccessModalOpen, setUserAccessModalOpen] = useState(false);
+	const [bulkBusy, setBulkBusy] = useState(false);
+
+	// Lock body scroll and prevent interaction while a bulk dispatch is in flight.
+	useEffect(() => {
+		if (!bulkBusy) {
+			return undefined;
+		}
+		const prevOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		return () => {
+			document.body.style.overflow = prevOverflow;
+		};
+	}, [bulkBusy]);
 
 	// ---- column visibility state ----
 	const [visibleColumns, setVisibleColumns] = useState(loadColumnPrefs);
@@ -293,19 +309,21 @@ export default function AbilitiesList() {
 	const draftCount = abilities.filter((a) => 'draft' === a.status).length;
 
 	// ---- checkbox helpers ----
-	const dbAbilities = abilities.filter((a) => 'db' === (a.source || 'db'));
-	const allDbSlugs = new Set(dbAbilities.map((a) => a.ability_slug));
+	// Feature 056: bulk actions write tri-state overrides that apply to any
+	// source (Plugin / Core / Theme / Custom), so every visible row is
+	// selectable — not just db-source rows.
+	const allSlugs = new Set(abilities.map((a) => a.ability_slug));
 	const allChecked =
-		allDbSlugs.size > 0 && [...allDbSlugs].every((s) => selected.has(s));
+		allSlugs.size > 0 && [...allSlugs].every((s) => selected.has(s));
 
 	const toggleAll = useCallback(() => {
 		if (allChecked) {
 			setSelected(new Set());
 		} else {
-			setSelected(new Set(allDbSlugs));
+			setSelected(new Set(allSlugs));
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [allChecked, JSON.stringify([...allDbSlugs])]);
+	}, [allChecked, JSON.stringify([...allSlugs])]);
 
 	const toggleOne = useCallback((slug) => {
 		setSelected((prev) => {
@@ -326,48 +344,97 @@ export default function AbilitiesList() {
 	}
 
 	// ---- bulk apply ----
-	function handleBulkApply() {
+	// Feature 056: parse-and-dispatch shape. Bulk action values are
+	// "<domain>:<value>" strings (e.g. "site_access:force_block"). Destructive
+	// transitions (site_access:force_block, mcp:disable) prompt for
+	// window.confirm() before dispatching. See docs/planning/056-bulk-actions-overhaul.md.
+	async function handleBulkApply() {
 		if (!bulkAction || !selected.size) {
 			return;
 		}
 		const slugs = [...selected];
 
-		if ('publish' === bulkAction) {
-			dispatch.bulkUpdateStatus(slugs, 'publish');
-			setSelected(new Set());
-		} else if ('unpublish' === bulkAction) {
-			dispatch.bulkUpdateStatus(slugs, 'draft');
-			setSelected(new Set());
-		} else if ('delete' === bulkAction) {
-			// Block mixed-source bulk delete: only db-source abilities may be deleted.
-			const nonDbInSelection = slugs.filter((s) => !allDbSlugs.has(s));
-			if (nonDbInSelection.length > 0) {
-				// eslint-disable-next-line no-alert
-				window.alert(
-					__(
-						'Bulk delete is only available for custom (db) abilities. Deselect non-custom abilities and try again.',
-						'acrossai-abilities-manager'
-					)
-				);
+		// User Access "Configure…" opens a modal; nothing dispatches here.
+		// Selection + dropdown state persist until the modal completes.
+		if ('user_access:configure' === bulkAction) {
+			setUserAccessModalOpen(true);
+			return;
+		}
+
+		// Destructive-transition confirms (SEC-010-02 shape).
+		// Force Block / MCP Disable / User Access Reset / Force Reset all prompt.
+		const DESTRUCTIVE_LABELS = {
+			'site_access:force_block': __(
+				'force-block',
+				'acrossai-abilities-manager'
+			),
+			'mcp:disable': __('disable MCP on', 'acrossai-abilities-manager'),
+			'user_access:reset': __(
+				'reset User Access to default (allow everyone) on',
+				'acrossai-abilities-manager'
+			),
+			'overrides:reset': __(
+				'reset all overrides on',
+				'acrossai-abilities-manager'
+			),
+		};
+		if (bulkAction in DESTRUCTIVE_LABELS) {
+			const msg = sprintf(
+				/* translators: 1: action label, 2: count of selected abilities */
+				__('%1$s %2$d abilities?', 'acrossai-abilities-manager'),
+				DESTRUCTIVE_LABELS[bulkAction],
+				slugs.length
+			);
+			// eslint-disable-next-line no-alert
+			if (!window.confirm(msg)) {
 				return;
 			}
-			const count = slugs.length;
-			// SEC-010-02: require explicit confirmation.
-			if (
-				// eslint-disable-next-line no-alert
-				window.confirm(
-					1 === count
-						? __(
-								'Delete 1 ability? This cannot be undone.',
-								'acrossai-abilities-manager'
-							)
-						: `${__('Delete', 'acrossai-abilities-manager')} ${count} ${__('abilities? This cannot be undone.', 'acrossai-abilities-manager')}`
-				)
-			) {
-				dispatch.bulkDeleteAbilities(slugs);
-				setSelected(new Set());
-			}
 		}
+
+		// Value maps — raw JSON true/false/null; string aliases forbidden
+		// (guards BUG-MERGER-BOOL-STRING-CAST).
+		const SITE_ACCESS_MAP = {
+			force_allow: true,
+			force_block: false,
+			inherit: null,
+		};
+		const MCP_MAP = {
+			enable: true,
+			disable: false,
+			default: null,
+		};
+		const [domain, value] = bulkAction.split(':');
+
+		setBulkBusy(true);
+		try {
+			if ('site_access' === domain && value in SITE_ACCESS_MAP) {
+				await dispatch.bulkUpdateTristate(
+					slugs,
+					'site_allowed',
+					SITE_ACCESS_MAP[value]
+				);
+			} else if ('mcp' === domain && value in MCP_MAP) {
+				await dispatch.bulkUpdateTristate(
+					slugs,
+					'show_in_mcp',
+					MCP_MAP[value]
+				);
+			} else if ('user_access' === domain && 'reset' === value) {
+				// Empty acKey + empty acOptions = clear rule (Everyone allowed).
+				await dispatch.bulkSetUserAccessRule(slugs, '', []);
+			} else if ('overrides' === domain && 'reset' === value) {
+				await dispatch.bulkClearOverrides(slugs);
+			}
+		} catch {
+			// SEC-001: per-slug failures surface via the store's SET_SAVE_ERROR
+			// path (rendered by the top-of-page error notice). Keep selection
+			// intact so the operator can retry without re-selecting.
+			setBulkBusy(false);
+			return;
+		}
+		setBulkBusy(false);
+
+		setSelected(new Set());
 		setBulkAction('');
 	}
 
@@ -454,6 +521,7 @@ export default function AbilitiesList() {
 			<div className="tablenav">
 				<div className="bulk-row">
 					<select
+						className="acrossai-abilities-list__bulk-select"
 						value={bulkAction}
 						onChange={(e) => setBulkAction(e.target.value)}
 						aria-label={__(
@@ -464,15 +532,76 @@ export default function AbilitiesList() {
 						<option value="">
 							{__('Bulk Actions', 'acrossai-abilities-manager')}
 						</option>
-						<option value="publish">
-							{__('Publish', 'acrossai-abilities-manager')}
-						</option>
-						<option value="unpublish">
-							{__('Unpublish', 'acrossai-abilities-manager')}
-						</option>
-						<option value="delete">
-							{__('Delete', 'acrossai-abilities-manager')}
-						</option>
+						<optgroup
+							label={__(
+								'Site Access',
+								'acrossai-abilities-manager'
+							)}
+						>
+							<option value="site_access:force_allow">
+								{__(
+									'Force Allow',
+									'acrossai-abilities-manager'
+								)}
+							</option>
+							<option value="site_access:inherit">
+								{__('Inherit', 'acrossai-abilities-manager')}
+							</option>
+							<option value="site_access:force_block">
+								{__(
+									'Force Block',
+									'acrossai-abilities-manager'
+								)}
+							</option>
+						</optgroup>
+						<optgroup
+							label={__(
+								'MCP Exposure',
+								'acrossai-abilities-manager'
+							)}
+						>
+							<option value="mcp:enable">
+								{__('Enable', 'acrossai-abilities-manager')}
+							</option>
+							<option value="mcp:default">
+								{__('Default', 'acrossai-abilities-manager')}
+							</option>
+							<option value="mcp:disable">
+								{__('Disable', 'acrossai-abilities-manager')}
+							</option>
+						</optgroup>
+						<optgroup
+							label={__(
+								'User Access',
+								'acrossai-abilities-manager'
+							)}
+						>
+							<option value="user_access:configure">
+								{__(
+									'Add / edit access rule…',
+									'acrossai-abilities-manager'
+								)}
+							</option>
+							<option value="user_access:reset">
+								{__(
+									'Reset to Default (allow everyone)',
+									'acrossai-abilities-manager'
+								)}
+							</option>
+						</optgroup>
+						<optgroup
+							label={__(
+								'Overrides',
+								'acrossai-abilities-manager'
+							)}
+						>
+							<option value="overrides:reset">
+								{__(
+									'Force Reset (clear all overrides)',
+									'acrossai-abilities-manager'
+								)}
+							</option>
+						</optgroup>
 					</select>
 					<button
 						type="button"
@@ -747,14 +876,12 @@ export default function AbilitiesList() {
 								className={isCustom ? '' : 'inh-row'}
 							>
 								<td className="chk-col">
-									{isCustom && (
-										<input
-											type="checkbox"
-											checked={isChecked}
-											onChange={() => toggleOne(itemSlug)}
-											aria-label={`${__('Select', 'acrossai-abilities-manager')} ${item.ability_slug}`}
-										/>
-									)}
+									<input
+										type="checkbox"
+										checked={isChecked}
+										onChange={() => toggleOne(itemSlug)}
+										aria-label={`${__('Select', 'acrossai-abilities-manager')} ${item.ability_slug}`}
+									/>
 								</td>
 								<td>
 									<SlugCell item={item} />
@@ -977,6 +1104,25 @@ export default function AbilitiesList() {
 					</button>
 				</span>
 			</div>
+			{userAccessModalOpen && (
+				<UserAccessBulkModal
+					slugs={[...selected]}
+					onClose={() => setUserAccessModalOpen(false)}
+					onApplied={() => {
+						setUserAccessModalOpen(false);
+						setBulkAction('');
+						setSelected(new Set());
+					}}
+				/>
+			)}
+			{bulkBusy && (
+				<BulkBusyOverlay
+					label={__(
+						'Applying bulk action…',
+						'acrossai-abilities-manager'
+					)}
+				/>
+			)}
 		</div>
 	);
 }
