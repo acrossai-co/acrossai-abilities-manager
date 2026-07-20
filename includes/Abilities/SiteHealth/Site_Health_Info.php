@@ -64,7 +64,7 @@ class Site_Health_Info extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'site-health',
 						'sub_group'       => 'read',
 						'sub_group_label' => __( 'Read Site Health', 'acrossai-abilities-manager' ),
 					),

@@ -82,7 +82,7 @@ class Permalink_Set extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'settings',
 						'sub_group'       => 'permalinks',
 						'sub_group_label' => __( 'Permalinks', 'acrossai-abilities-manager' ),
 					),

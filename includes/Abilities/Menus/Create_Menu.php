@@ -61,7 +61,7 @@ class Create_Menu extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'menus',
 						'sub_group'       => 'menus',
 						'sub_group_label' => __( 'Menus', 'acrossai-abilities-manager' ),
 					),

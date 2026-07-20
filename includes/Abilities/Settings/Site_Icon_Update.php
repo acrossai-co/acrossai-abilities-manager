@@ -66,7 +66,7 @@ class Site_Icon_Update extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'settings',
 						'sub_group'       => 'site-identity',
 						'sub_group_label' => __( 'Site Identity', 'acrossai-abilities-manager' ),
 					),

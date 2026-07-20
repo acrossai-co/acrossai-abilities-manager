@@ -95,7 +95,7 @@ class Font_Face_Create extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'fonts',
 						'sub_group'       => 'font-faces',
 						'sub_group_label' => __( 'Font Faces', 'acrossai-abilities-manager' ),
 					),

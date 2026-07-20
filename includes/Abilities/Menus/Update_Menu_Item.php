@@ -76,7 +76,7 @@ class Update_Menu_Item extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'menus',
 						'sub_group'       => 'menu-items',
 						'sub_group_label' => __( 'Menu Items', 'acrossai-abilities-manager' ),
 					),

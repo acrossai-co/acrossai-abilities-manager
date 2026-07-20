@@ -63,7 +63,7 @@ class Font_Family_Get extends Ability_Definition {
 				),
 				'meta'                => array(
 					'acrossai'     => array(
-						'tab_group'       => 'core',
+						'tab_group'       => 'fonts',
 						'sub_group'       => 'font-families',
 						'sub_group_label' => __( 'Font Families', 'acrossai-abilities-manager' ),
 					),
