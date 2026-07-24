@@ -293,6 +293,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Core\Wp_Core_Update_Check();
 		new Core\Wp_Core_Update();
 		new Core\Wp_Core_Rollback();
+		new Core\Wp_Core_Reinstall();
 
 		// Feature 055 — 31 new abilities across 10 domains.
 		new Users\Current_Access();
