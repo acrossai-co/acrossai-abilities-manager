@@ -1387,7 +1387,7 @@ Each plugin module must own exactly one REST namespace. Sharing namespaces acros
 
 **Decision**
 The AbilityAPI module's REST orchestrator (`AcrossAI_Ability_API_Rest_Controller`) uses `acrossai-abilities-api/v1` as its `REST_NAMESPACE` constant. This namespace is distinct from:
-- `acrossai-abilities-manager/v1` — Abilities CRUD (Read, Write, Category, Exposure sub-controllers)
+- `acrossai/v1` — Abilities CRUD (Read, Write, Category, Exposure sub-controllers)
 - `acrossai-abilities-log/v1` — Logger logs (migrated Feature 027)
 
 No future module or sub-feature may register routes under these namespaces unless it is a sub-controller of that module's orchestrator.
@@ -1398,7 +1398,7 @@ No future module or sub-feature may register routes under these namespaces unles
 - Reconsider: if WP REST API namespace-per-module ever becomes too many namespace registrations to manage; at that point consider a plugin-wide namespace with resource-scoped sub-paths.
 
 **Evidence**
-Feature 027 plan.md D1; revised to dedicated namespace to avoid reusing `acrossai-abilities-manager/v1` and prevent wildcard shadowing with existing `GET /abilities/(?P<slug>[^/]+)` route.
+Feature 027 plan.md D1; revised to dedicated namespace to avoid reusing `acrossai/v1` and prevent wildcard shadowing with existing `GET /abilities/(?P<slug>[^/]+)` route.
 
 ---
 

@@ -26,7 +26,7 @@ class Update_Option extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/update-option',
+			'name' => 'acrossai/update-option',
 			'args' => array(
 				'label'               => __( 'Update Option', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Write a wp_options row via update_option(). Creates the option if it does not exist.', 'acrossai-abilities-manager' ),

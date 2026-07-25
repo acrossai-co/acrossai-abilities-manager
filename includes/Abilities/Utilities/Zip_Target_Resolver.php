@@ -1,6 +1,6 @@
 <?php
 /**
- * Target resolver shared by Zip_Create and Zip_Extract (Feature 041).
+ * Target resolver shared by Create_Zip_Backup and Extract_Zip_Backup (Feature 041).
  *
  * @license    GPL-2.0-or-later
  * @package    AcrossAI_Abilities_Manager
@@ -13,8 +13,8 @@ namespace AcrossAI_Abilities_Manager\Includes\Abilities\Utilities;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Resolves the (target_type, target) input pair used by the Zip_Create /
- * Zip_Extract abilities into an absolute filesystem path that lives inside
+ * Resolves the (target_type, target) input pair used by the Create_Zip_Backup /
+ * Extract_Zip_Backup abilities into an absolute filesystem path that lives inside
  * the WordPress install.
  *
  * Supported target_type values:

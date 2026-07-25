@@ -321,7 +321,7 @@ final class Backups_Storage {
 		if ( ! file_exists( $htaccess ) ) {
 			// Block PHP execution and disable directory listing, but allow
 			// direct downloads of the finalized .zip files so the URLs returned
-			// by Zip_Create / Zip_Download remain fetchable. Random filenames
+			// by Create_Zip_Backup / Download_Zip_Backup remain fetchable. Random filenames
 			// provide the enumeration defense.
 			$rules = "Options -Indexes\n"
 				. "<FilesMatch \"\\.(php|phtml|phar|pl|py|jsp|asp|htm|html|shtml)$\">\n"

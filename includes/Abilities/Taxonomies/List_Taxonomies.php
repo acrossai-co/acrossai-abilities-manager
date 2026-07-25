@@ -26,7 +26,7 @@ class List_Taxonomies extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/list-taxonomies',
+			'name' => 'acrossai/list-taxonomies',
 			'args' => array(
 				'label'               => __( 'List Taxonomies', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List registered taxonomies via the core REST endpoint GET /wp/v2/taxonomies.', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Get_Menu_Item extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-menu-item',
+			'name' => 'acrossai/get-menu-item',
 			'args' => array(
 				'label'               => __( 'Get Menu Item', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a menu item via GET /wp/v2/menu-items/{id}.', 'acrossai-abilities-manager' ),

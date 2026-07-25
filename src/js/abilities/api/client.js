@@ -143,7 +143,7 @@ export async function setAccessControlRule(slug, acKey, acOptions) {
 			'Access control is not configured on this site (access_control_slug missing).'
 		);
 	}
-	// The ability slug contains a literal '/' (e.g. "acrossai-abilities-manager/foo")
+	// The ability slug contains a literal '/' (e.g. "acrossai/foo")
 	// which the composer route's `(?P<key>.+)` regex greedy-matches. Do NOT
 	// encodeURIComponent the slug — WordPress's REST layer + the composer's
 	// sanitizer strip %2F rather than decoding it, producing a corrupt key

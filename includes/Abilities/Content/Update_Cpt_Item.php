@@ -26,7 +26,7 @@ class Update_Cpt_Item extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/update-cpt-item',
+			'name' => 'acrossai/update-cpt-item',
 			'args' => array(
 				'label'               => __( 'Update CPT Item', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update a custom post type record via wp_update_post(). post_type is validated against the post; only supplied fields are touched.', 'acrossai-abilities-manager' ),

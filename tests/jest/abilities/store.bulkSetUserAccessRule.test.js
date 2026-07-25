@@ -9,7 +9,7 @@
  * - SEC-001: partial per-slug failure re-throws so the modal keeps its
  *   busy/error state intact.
  * - BUG-BULK-USER-ACCESS-SLASH-CORRUPTION (analysis I4): the ability slug
- *   contains a literal '/' (e.g. "acrossai-abilities-manager/foo") which
+ *   contains a literal '/' (e.g. "acrossai/foo") which
  *   MUST pass through the URL raw. Do NOT encodeURIComponent — %2F gets
  *   stripped by the composer sanitizer and produces a corrupt key
  *   (observed: "acrossai-abilities-managerblock-pattern-delete").
@@ -31,7 +31,7 @@ jest.mock('@wordpress/api-fetch', () => mockApiFetch, { virtual: true });
 // Provide the abilitiesConfig the client reads at module-load time.
 globalThis.window = globalThis.window || {};
 globalThis.window.acrossaiAbilitiesManager = {
-	rest_namespace: 'acrossai-abilities-manager/v1',
+	rest_namespace: 'acrossai/v1',
 	access_control_slug: 'abilities',
 };
 
@@ -92,7 +92,7 @@ describe('bulkSetUserAccessRule — slug pass-through (I4 regression guard)', ()
 	});
 
 	test('slug with literal "/" reaches URL raw, NOT percent-encoded', async () => {
-		const slug = 'acrossai-abilities-manager/delete-block-pattern';
+		const slug = 'acrossai/delete-block-pattern';
 		const thunk = actions.bulkSetUserAccessRule(
 			[slug],
 			'wp_capability',
@@ -104,7 +104,7 @@ describe('bulkSetUserAccessRule — slug pass-through (I4 regression guard)', ()
 		// The path MUST contain the literal slash — %2F would be silently
 		// stripped by the composer sanitizer, producing a corrupt DB key.
 		expect(opts.path).toContain(
-			'acrossai-abilities-manager/delete-block-pattern'
+			'acrossai/delete-block-pattern'
 		);
 		expect(opts.path).not.toContain('%2F');
 		expect(opts.path).not.toContain('%2f');
@@ -112,7 +112,7 @@ describe('bulkSetUserAccessRule — slug pass-through (I4 regression guard)', ()
 
 	test('access_control_slug is still URL-encoded (safe: no slashes expected there)', async () => {
 		const thunk = actions.bulkSetUserAccessRule(
-			['acrossai-abilities-manager/foo'],
+			['acrossai/foo'],
 			'',
 			[]
 		);

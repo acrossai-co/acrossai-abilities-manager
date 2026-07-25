@@ -26,7 +26,7 @@ class Update_Comment_Meta extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/update-comment-meta',
+			'name' => 'acrossai/update-comment-meta',
 			'args' => array(
 				'label'               => __( 'Update Comment Meta', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Write meta values on a comment via POST /wp/v2/comments/{id} with a meta object. Only keys registered with register_meta show_in_rest=true accept writes.', 'acrossai-abilities-manager' ),

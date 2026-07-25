@@ -37,7 +37,7 @@ and a REST-API-first admin UI backed by @wordpress/dataviews.
 
 ## Boundaries
 
-- **Manager REST namespace** (`acrossai-abilities-manager/v1`): PATH A —
+- **Manager REST namespace** (`acrossai/v1`): PATH A —
   override injection is skipped entirely. All Manager UI reads see pure
   WP registry values, never merged override values.
 - **All other requests** (PATH B): override injection fires at boot; blocked
@@ -1438,7 +1438,7 @@ Canonical wrap of a WP core upgrader (`Core_Upgrader::upgrade()`, `Plugin_Upgrad
 4. For core specifically: multisite guard bails cleanly if `is_multisite() && ! current_user_can('update_core')`.
 5. Fetch the update object via WP core (`get_core_updates()` / `find_core_update()` / `get_plugin_updates()` / `get_theme_updates()`).
 6. Reject cleanly (return success + `updated=false`) when the offer is null, false, or has `response !== 'upgrade'`.
-7. Instantiate `WP_Ajax_Upgrader_Skin` (the same silent skin `Plugin_Install.php` uses).
+7. Instantiate `WP_Ajax_Upgrader_Skin` (the same silent skin `Install_Plugin.php` uses).
 8. Call `$upgrader->upgrade($update)` (or `->install()` / `->bulk_upgrade()`).
 9. Result-interpretation ladder: `WP_Error` → failure with message; `null`/`false` → drain `$skin->get_errors()` for message; anything else → success. Read `get_bloginfo('version')` before + after for `from_version`/`to_version` (core).
 
@@ -1449,10 +1449,10 @@ Canonical wrap of a WP core upgrader (`Core_Upgrader::upgrade()`, `Plugin_Upgrad
 Every future Abilities-API-facing WP core upgrade — forward or backward — wraps this recipe. Deviating from any step introduces a subtle bug (missing require = fatal at runtime, missing skin = swallowed errors, missing multisite guard = unauthorized network upgrade, forward-path assumptions that block rollback). Complements `PATTERN-WP-CORE-ROLLBACK-VIA-API-OFFER` (rollback specifics) and the shared `File_Mods_Guard` gate.
 
 **Where to look**
-- `includes/Abilities/Core/Wp_Core_Update.php` (canonical forward-path implementation).
-- `includes/Abilities/Core/Wp_Core_Rollback.php` (rollback-path implementation).
-- `includes/Abilities/Plugins/Plugin_Update.php` + `Plugins/Plugin_Install.php`.
-- `includes/Abilities/Themes/Theme_Update.php` + `Themes/Theme_Install.php`.
+- `includes/Abilities/Core/Update_Wp_Core.php` (canonical forward-path implementation).
+- `includes/Abilities/Core/Rollback_Wp_Core.php` (rollback-path implementation).
+- `includes/Abilities/Plugins/Update_Plugin.php` + `Plugins/Install_Plugin.php`.
+- `includes/Abilities/Themes/Update_Theme.php` + `Themes/Install_Theme.php`.
 - `specs/042-core-category-and-wp-core-update/plan.md` §"WP core update flow (mirrors wp-admin/update-core.php)".
 
 **Tags**: wp-core, upgrader, canonical, plugin-update, theme-update, wp-core-update, wp-core-rollback, ability-pattern, feature-042, feature-043
@@ -1485,7 +1485,7 @@ Manipulating `site_transient_update_core` + hooking `pre_http_request` on the WP
 - Reconsider IF: WP.org changes its API contract (endpoint bump beyond 1.7, offer schema change, or removes the `offers[]` array). Cache-poisoning: `set_site_transient` is per-locale, so a hostile locale value can only affect its own cache row (`sanitize_key` on the transient suffix).
 
 **Where to look**
-- `includes/Abilities/Core/Wp_Core_Rollback.php::fetch_offer()` + `fetch_all_offers()`.
+- `includes/Abilities/Core/Rollback_Wp_Core.php::fetch_offer()` + `fetch_all_offers()`.
 - `wp-content/plugins/core-rollback/src/Core.php` (external MIT-licensed reference).
 - `specs/043-wp-core-rollback-via-wporg-api/spec.md`.
 - `specs/043-wp-core-rollback-via-wporg-api/security-constraints.md` (13-constraint list).

@@ -49,7 +49,7 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	 */
 	public function tearDown(): void {
 		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai-abilities-manager/test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai/test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		parent::tearDown();
 	}
 
@@ -68,7 +68,7 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 		++$counter;
 
 		$defaults = array(
-			'ability_slug'  => 'acrossai-abilities-manager/test-' . $counter,
+			'ability_slug'  => 'acrossai/test-' . $counter,
 			'label'         => 'Test Ability ' . $counter,
 			'category'      => 'general',
 			'status'        => 'draft',
@@ -122,8 +122,8 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_get_by_slug_returns_correct_row() {
-		$id  = $this->insert_row( array( 'ability_slug' => 'acrossai-abilities-manager/test-slug-lookup' ) );
-		$row = $this->query->get_ability_by_slug( 'acrossai-abilities-manager/test-slug-lookup' );
+		$id  = $this->insert_row( array( 'ability_slug' => 'acrossai/test-slug-lookup' ) );
+		$row = $this->query->get_ability_by_slug( 'acrossai/test-slug-lookup' );
 
 		$this->assertNotNull( $row );
 		$this->assertSame( $id, (int) $row->id );
@@ -135,8 +135,8 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_slug_exists_returns_true_for_existing() {
-		$this->insert_row( array( 'ability_slug' => 'acrossai-abilities-manager/test-exists' ) );
-		$this->assertTrue( $this->query->slug_exists( 'acrossai-abilities-manager/test-exists' ) );
+		$this->insert_row( array( 'ability_slug' => 'acrossai/test-exists' ) );
+		$this->assertTrue( $this->query->slug_exists( 'acrossai/test-exists' ) );
 	}
 
 	/**
@@ -145,7 +145,7 @@ class AbilitiesQueryTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_slug_exists_returns_false_for_missing() {
-		$this->assertFalse( $this->query->slug_exists( 'acrossai-abilities-manager/no-such-slug' ) );
+		$this->assertFalse( $this->query->slug_exists( 'acrossai/no-such-slug' ) );
 	}
 
 	/**

@@ -134,7 +134,7 @@ jest.mock(
 globalThis.acrossaiAbilitiesManager = {
 	nonce: 'nonce-test-018',
 	rest_url: 'https://example.com/wp-json',
-	rest_namespace: 'acrossai-abilities-manager/v1',
+	rest_namespace: 'acrossai/v1',
 	current_user_id: 1,
 	access_control_available: true,
 };

@@ -26,7 +26,7 @@ class Create_Menu_Item extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/create-menu-item',
+			'name' => 'acrossai/create-menu-item',
 			'args' => array(
 				'label'               => __( 'Create Menu Item', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a menu item via POST /wp/v2/menu-items. title and (object/object_id or url) are required.', 'acrossai-abilities-manager' ),

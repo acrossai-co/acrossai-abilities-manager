@@ -2,7 +2,7 @@
 /**
  * Permission-gate spot-check on absorbed high-risk abilities (T041 / TASK-SEC-046-05).
  *
- * Samples FileManager\File_Delete, Database\Db_Delete, and Plugins\Plugin_Deactivate
+ * Samples FileManager\Delete_File, Database\Delete_Db_Rows, and Plugins\Deactivate_Plugin
  * — three of the most-destructive absorbed abilities — and asserts each still
  * carries a `manage_options` capability gate in its `permission_callback`.
  *
@@ -40,13 +40,13 @@ class Test_Feature_046_Permission_Gates extends WP_UnitTestCase {
 		$plugin_root   = dirname( __DIR__, 4 );
 		$this->sources = array(
 			'file_delete'       => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/FileManager/File_Delete.php'
+				$plugin_root . '/includes/Abilities/FileManager/Delete_File.php'
 			),
 			'db_delete'         => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Database/Db_Delete.php'
+				$plugin_root . '/includes/Abilities/Database/Delete_Db_Rows.php'
 			),
 			'plugin_deactivate' => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Plugins/Plugin_Deactivate.php'
+				$plugin_root . '/includes/Abilities/Plugins/Deactivate_Plugin.php'
 			),
 		);
 	}

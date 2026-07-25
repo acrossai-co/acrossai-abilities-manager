@@ -61,28 +61,28 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 
 		$this->sources = array(
 			'zip_create'    => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/FileManager/Zip_Create.php'
+				$plugin_root . '/includes/Abilities/FileManager/Create_Zip_Backup.php'
 			),
 			'zip_upload'    => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/FileManager/Zip_Upload.php'
+				$plugin_root . '/includes/Abilities/FileManager/Upload_Zip_Backup.php'
 			),
 			'zip_extract'   => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/FileManager/Zip_Extract.php'
+				$plugin_root . '/includes/Abilities/FileManager/Extract_Zip_Backup.php'
 			),
 			'zip_download'  => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/FileManager/Zip_Download.php'
+				$plugin_root . '/includes/Abilities/FileManager/Download_Zip_Backup.php'
 			),
 			'zip_list'      => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/FileManager/Zip_List.php'
+				$plugin_root . '/includes/Abilities/FileManager/List_Zip_Backups.php'
 			),
 			'zip_delete'    => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/FileManager/Zip_Delete.php'
+				$plugin_root . '/includes/Abilities/FileManager/Delete_Zip_Backup.php'
 			),
 			'plugin_update' => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Plugins/Plugin_Update.php'
+				$plugin_root . '/includes/Abilities/Plugins/Update_Plugin.php'
 			),
 			'theme_update'  => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Themes/Theme_Update.php'
+				$plugin_root . '/includes/Abilities/Themes/Update_Theme.php'
 			),
 		);
 
@@ -150,7 +150,7 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 	// =========================================================================
 
 	/**
-	 * Every ability name uses the acrossai-abilities-manager/ prefix, and the
+	 * Every ability name uses the acrossai/ prefix, and the
 	 * category matches the FileManager / Plugins / Themes rebranded slugs.
 	 *
 	 * @return void
@@ -158,35 +158,35 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 	public function test_all_abilities_use_rebranded_slugs(): void {
 		$expected = array(
 			'zip_create'    => array(
-				'name'     => 'acrossai-abilities-manager/create-zip-backup',
+				'name'     => 'acrossai/create-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_upload'    => array(
-				'name'     => 'acrossai-abilities-manager/upload-zip-backup',
+				'name'     => 'acrossai/upload-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_extract'   => array(
-				'name'     => 'acrossai-abilities-manager/extract-zip-backup',
+				'name'     => 'acrossai/extract-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_download'  => array(
-				'name'     => 'acrossai-abilities-manager/download-zip-backup',
+				'name'     => 'acrossai/download-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_list'      => array(
-				'name'     => 'acrossai-abilities-manager/list-zip-backups',
+				'name'     => 'acrossai/list-zip-backups',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_delete'    => array(
-				'name'     => 'acrossai-abilities-manager/delete-zip-backup',
+				'name'     => 'acrossai/delete-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'plugin_update' => array(
-				'name'     => 'acrossai-abilities-manager/update-plugin',
+				'name'     => 'acrossai/update-plugin',
 				'category' => 'acrossai-abilities-manager-plugins',
 			),
 			'theme_update'  => array(
-				'name'     => 'acrossai-abilities-manager/update-theme',
+				'name'     => 'acrossai/update-theme',
 				'category' => 'acrossai-abilities-manager-themes',
 			),
 		);
@@ -225,7 +225,7 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 
 	/**
 	 * Every ability's permission_callback gates via at least `manage_options`.
-	 * Plugin/Theme_Update additionally require the WP update capability.
+	 * Plugin/Update_Theme additionally require the WP update capability.
 	 *
 	 * @return void
 	 */
@@ -251,8 +251,8 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 
 	/**
 	 * Destructive/mutating abilities must honour the DISALLOW_FILE_MODS guard
-	 * via File_Mods_Guard::blocked_response(). Read-only Zip_Download and
-	 * Zip_List are exempt.
+	 * via File_Mods_Guard::blocked_response(). Read-only Download_Zip_Backup and
+	 * List_Zip_Backups are exempt.
 	 *
 	 * @return void
 	 */
@@ -274,7 +274,7 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Zip_Extract must audit archive entries for zip-slip / traversal before
+	 * Extract_Zip_Backup must audit archive entries for zip-slip / traversal before
 	 * extraction. The audit rejects `..` segments and absolute paths.
 	 *
 	 * @return void
@@ -284,17 +284,17 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			"'..'",
 			$src,
-			'Zip_Extract must reject entries containing ".." segments.'
+			'Extract_Zip_Backup must reject entries containing ".." segments.'
 		);
 		$this->assertMatchesRegularExpression(
 			"/substr\(\s*\\\$name,\s*0,\s*1\s*\)/",
 			$src,
-			'Zip_Extract must reject entries with an absolute path (leading "/").'
+			'Extract_Zip_Backup must reject entries with an absolute path (leading "/").'
 		);
 	}
 
 	/**
-	 * Zip_Upload must validate the finalized bytes carry a valid zip magic
+	 * Upload_Zip_Backup must validate the finalized bytes carry a valid zip magic
 	 * signature (PK\\x03\\x04 / PK\\x05\\x06 / PK\\x07\\x08) before moving
 	 * the archive into acrossai-backups/.
 	 *
@@ -304,12 +304,12 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			'"PK\\x03\\x04"',
 			$this->sources['zip_upload'],
-			'Zip_Upload must include the standard local-file-header magic check.'
+			'Upload_Zip_Backup must include the standard local-file-header magic check.'
 		);
 	}
 
 	/**
-	 * Zip_Create's include_hidden=false path must check EVERY segment of the
+	 * Create_Zip_Backup's include_hidden=false path must check EVERY segment of the
 	 * relative path, not just the current entry basename. Otherwise
 	 * SELF_FIRST would still descend into files INSIDE a hidden directory
 	 * (e.g. .git/objects/xxx) after `continue`-ing on the top-level .git/
@@ -322,7 +322,7 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			'has_hidden_segment',
 			$src,
-			'Zip_Create must consult a per-segment hidden-path check.'
+			'Create_Zip_Backup must consult a per-segment hidden-path check.'
 		);
 		$this->assertMatchesRegularExpression(
 			"/explode\(\s*'\\/',\s*\\\$relative\s*\)/",
@@ -343,14 +343,14 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 	 */
 	public function test_bootstrap_instantiates_every_new_ability(): void {
 		$expected = array(
-			'new FileManager\\Zip_Create()',
-			'new FileManager\\Zip_Upload()',
-			'new FileManager\\Zip_Extract()',
-			'new FileManager\\Zip_Download()',
-			'new FileManager\\Zip_List()',
-			'new FileManager\\Zip_Delete()',
-			'new Plugins\\Plugin_Update()',
-			'new Themes\\Theme_Update()',
+			'new FileManager\\Create_Zip_Backup()',
+			'new FileManager\\Upload_Zip_Backup()',
+			'new FileManager\\Extract_Zip_Backup()',
+			'new FileManager\\Download_Zip_Backup()',
+			'new FileManager\\List_Zip_Backups()',
+			'new FileManager\\Delete_Zip_Backup()',
+			'new Plugins\\Update_Plugin()',
+			'new Themes\\Update_Theme()',
 		);
 		foreach ( $expected as $needle ) {
 			$this->assertStringContainsString(
@@ -362,22 +362,22 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Bootstrap registers the Zip_Upload chunk-sweeper cron the same way it
+	 * Bootstrap registers the Upload_Zip_Backup chunk-sweeper cron the same way it
 	 * registers the Upload_Media sweeper.
 	 *
 	 * @return void
 	 */
 	public function test_bootstrap_registers_zip_upload_sweeper(): void {
 		$this->assertStringContainsString(
-			'FileManager\\Zip_Upload::CHUNK_SWEEP_HOOK',
+			'FileManager\\Upload_Zip_Backup::CHUNK_SWEEP_HOOK',
 			$this->bootstrap_source
 		);
 		$this->assertStringContainsString(
-			"FileManager\\Zip_Upload::class, 'sweep_chunk_sessions'",
+			"FileManager\\Upload_Zip_Backup::class, 'sweep_chunk_sessions'",
 			$this->bootstrap_source
 		);
 		$this->assertStringContainsString(
-			'FileManager\\Zip_Upload::register_sweep_cron();',
+			'FileManager\\Upload_Zip_Backup::register_sweep_cron();',
 			$this->bootstrap_source
 		);
 	}
@@ -416,7 +416,7 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 
 	/**
 	 * Backups_Storage writes hardening files (.htaccess + index.php) on first
-	 * use but MUST allow direct downloads of .zip files (otherwise Zip_Create's
+	 * use but MUST allow direct downloads of .zip files (otherwise Create_Zip_Backup's
 	 * returned file_url is unreachable).
 	 *
 	 * @return void
@@ -471,7 +471,7 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 
 	/**
 	 * The `path` branch of Zip_Target_Resolver applies the same
-	 * realpath()-inside-ABSPATH boundary check that File_Read uses.
+	 * realpath()-inside-ABSPATH boundary check that Read_File uses.
 	 *
 	 * @return void
 	 */

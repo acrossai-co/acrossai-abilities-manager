@@ -28,7 +28,7 @@ class Create_Cpt_Item extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/create-cpt-item',
+			'name' => 'acrossai/create-cpt-item',
 			'args' => array(
 				'label'               => __( 'Create CPT Item', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a custom post type record. post_type is required and must be registered.', 'acrossai-abilities-manager' ),

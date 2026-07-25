@@ -108,8 +108,8 @@ Wires up the processor that auto-registers `source=db` abilities at `wp_abilitie
 
 ### Slug convention
 
-- Fixed prefix: `acrossai-abilities-manager/` — Write controller prepends it; user sends suffix only
-- All `source=db` rows must have the `acrossai-abilities-manager/` prefix
+- Fixed prefix: `acrossai/` — Write controller prepends it; user sends suffix only
+- All `source=db` rows must have the `acrossai/` prefix
 
 ### REST endpoints
 
@@ -148,5 +148,5 @@ Admin submenu page + React app for creating, editing, and managing custom abilit
 ### Key technical decisions
 
 - **Asset data**: `window.acrossaiAbilities = { restNamespace, nonce, currentUserId }` via `wp_add_inline_script()` (not `wp_localize_script`)
-- **Slug display**: prefix `acrossai-abilities-manager/` shown read-only; user edits suffix only
+- **Slug display**: prefix `acrossai/` shown read-only; user edits suffix only
 - **Separate webpack entry**: `build/js/abilities.js` + `build/js/abilities.asset.php` — does not share bundle with main manager assets

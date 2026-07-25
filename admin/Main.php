@@ -226,7 +226,7 @@ class Main {
 			$data = array(
 				'nonce'                    => wp_create_nonce( 'wp_rest' ),
 				'rest_url'                 => untrailingslashit( rest_url() ),
-				'rest_namespace'           => 'acrossai-abilities-manager/v1',
+				'rest_namespace'           => 'acrossai/v1',
 				'current_user_id'          => get_current_user_id(),
 				'perPage'                  => (int) get_option( 'acrossai_abilities_per_page', 20 ),
 				// Client rendering gate only — server authorization enforced by wpb-ac/v1 REST endpoints (SEC-018-02).

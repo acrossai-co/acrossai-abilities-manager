@@ -122,7 +122,7 @@ class AcrossAI_Abilities_Validator {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Validate a full ability slug (must include `acrossai-abilities-manager/` prefix for db rows).
+	 * Validate a full ability slug (must include `acrossai/` prefix for db rows).
 	 *
 	 * @since  0.1.0
 	 * @param  string $slug Slug to validate.
@@ -163,7 +163,7 @@ class AcrossAI_Abilities_Validator {
 			return new \WP_Error( 'invalid_slug', __( 'Ability slug suffix contains invalid characters.', 'acrossai-abilities-manager' ), array( 'status' => 400 ) );
 		}
 		// Total slug with prefix must not exceed 255 chars.
-		$full = 'acrossai-abilities-manager/' . $suffix;
+		$full = 'acrossai/' . $suffix;
 		if ( mb_strlen( $full ) > self::SLUG_MAX_LENGTH ) {
 			return new \WP_Error( 'invalid_slug', __( 'Ability slug suffix produces a slug that exceeds the maximum length.', 'acrossai-abilities-manager' ), array( 'status' => 400 ) );
 		}

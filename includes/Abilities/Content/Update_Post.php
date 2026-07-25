@@ -27,7 +27,7 @@ class Update_Post extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/update-post',
+			'name' => 'acrossai/update-post',
 			'args' => array(
 				'label'               => __( 'Update Post', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update an existing post (any post type) via wp_update_post(). Only the supplied fields are changed.', 'acrossai-abilities-manager' ),

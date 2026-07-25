@@ -74,7 +74,8 @@ class AbilitiesValidationTest extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_validate_slug_suffix_rejects_overlong() {
-		$result = AcrossAI_Abilities_Validator::validate_slug_suffix( str_repeat( 'a', 237 ) );
+		// 247 chars of 'a' + 'acrossai/' (9) = 256 chars > SLUG_MAX_LENGTH (255).
+		$result = AcrossAI_Abilities_Validator::validate_slug_suffix( str_repeat( 'a', 247 ) );
 		$this->assertWPError( $result );
 	}
 
@@ -345,7 +346,7 @@ class AbilitiesValidationTest extends WP_UnitTestCase {
 			'input_schema'    => array( 'type' => 'object' ),
 			'output_schema'   => array( 'type' => 'object' ),
 			'status'          => 'publish',
-			'ability_slug'    => 'acrossai-abilities-manager/override',
+			'ability_slug'    => 'acrossai/override',
 			'slug_suffix'     => 'override',
 			'source'          => 'plugin',
 			'show_in_mcp'     => true,   // editable — must survive.

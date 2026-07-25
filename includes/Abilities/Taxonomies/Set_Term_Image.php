@@ -30,7 +30,7 @@ class Set_Term_Image extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/set-term-image',
+			'name' => 'acrossai/set-term-image',
 			'args' => array(
 				'label'               => __( 'Set Term Image', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Attach (or clear) an attachment as the "image" of a term by writing the term-meta key _thumbnail_id. Matches the convention used by WooCommerce and most theme frameworks. Pass attachment_id=0 to clear.', 'acrossai-abilities-manager' ),

@@ -77,7 +77,7 @@ class AbilitiesExposureControllerTest extends WP_UnitTestCase {
 	 */
 	public function tearDown(): void {
 		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai-abilities-manager/exp-test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai/exp-test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		wp_set_current_user( 0 );
 		parent::tearDown();
 	}
@@ -113,7 +113,7 @@ class AbilitiesExposureControllerTest extends WP_UnitTestCase {
 		++$counter;
 
 		return AcrossAI_Abilities_Query::instance()->insert_ability( [
-			'ability_slug'  => 'acrossai-abilities-manager/exp-test-' . $counter,
+			'ability_slug'  => 'acrossai/exp-test-' . $counter,
 			'label'         => 'Exposure Test ' . $counter,
 			'category'      => 'general',
 			'status'        => 'publish',

@@ -33,13 +33,13 @@ const reducer = storeConfig.store.reducer;
 const INITIAL_ABILITIES = [
 	{
 		id: 1,
-		ability_slug: 'acrossai-abilities-manager/foo',
+		ability_slug: 'acrossai/foo',
 		label: 'Foo',
 		source: 'db',
 	},
 	{
 		id: 2,
-		ability_slug: 'acrossai-abilities-manager/bar',
+		ability_slug: 'acrossai/bar',
 		label: 'Bar',
 		source: 'plugin',
 	},
@@ -61,16 +61,16 @@ describe('REMOVE_ABILITY reducer', () => {
 	test('removes the ability matching action.slug', () => {
 		const state = reducer(baseState(), {
 			type: 'REMOVE_ABILITY',
-			slug: 'acrossai-abilities-manager/foo',
+			slug: 'acrossai/foo',
 		});
 		expect(state.abilities).toHaveLength(1);
-		expect(state.abilities[0].ability_slug).toBe('acrossai-abilities-manager/bar');
+		expect(state.abilities[0].ability_slug).toBe('acrossai/bar');
 	});
 
 	test('decrements total', () => {
 		const state = reducer(baseState(), {
 			type: 'REMOVE_ABILITY',
-			slug: 'acrossai-abilities-manager/foo',
+			slug: 'acrossai/foo',
 		});
 		expect(state.total).toBe(1);
 	});
@@ -78,7 +78,7 @@ describe('REMOVE_ABILITY reducer', () => {
 	test('does not remove anything when slug does not match', () => {
 		const state = reducer(baseState(), {
 			type: 'REMOVE_ABILITY',
-			slug: 'acrossai-abilities-manager/nonexistent',
+			slug: 'acrossai/nonexistent',
 		});
 		expect(state.abilities).toHaveLength(2);
 		expect(state.total).toBe(1); // total is still decremented by Math.max(0)
@@ -89,7 +89,7 @@ describe('REMOVE_ABILITY reducer', () => {
 		const state = reducer(baseState(), {
 			type: 'REMOVE_ABILITY',
 			id: 1, // old field — should be ignored
-			slug: 'acrossai-abilities-manager/nonexistent',
+			slug: 'acrossai/nonexistent',
 		});
 		// Neither ability should be removed (slug doesn't match).
 		expect(state.abilities).toHaveLength(2);
@@ -100,11 +100,11 @@ describe('PATCH_ABILITY reducer', () => {
 	test('patches the ability matching action.slug', () => {
 		const state = reducer(baseState(), {
 			type: 'PATCH_ABILITY',
-			slug: 'acrossai-abilities-manager/foo',
+			slug: 'acrossai/foo',
 			patch: { label: 'Updated Foo' },
 		});
 		const patched = state.abilities.find(
-			(a) => a.ability_slug === 'acrossai-abilities-manager/foo'
+			(a) => a.ability_slug === 'acrossai/foo'
 		);
 		expect(patched.label).toBe('Updated Foo');
 	});
@@ -112,11 +112,11 @@ describe('PATCH_ABILITY reducer', () => {
 	test('does not patch other abilities', () => {
 		const state = reducer(baseState(), {
 			type: 'PATCH_ABILITY',
-			slug: 'acrossai-abilities-manager/foo',
+			slug: 'acrossai/foo',
 			patch: { label: 'Updated Foo' },
 		});
 		const other = state.abilities.find(
-			(a) => a.ability_slug === 'acrossai-abilities-manager/bar'
+			(a) => a.ability_slug === 'acrossai/bar'
 		);
 		expect(other.label).toBe('Bar');
 	});
@@ -126,7 +126,7 @@ describe('PATCH_ABILITY reducer', () => {
 		const state = reducer(baseState(), {
 			type: 'PATCH_ABILITY',
 			id: 1, // old field — should be ignored
-			slug: 'acrossai-abilities-manager/nonexistent',
+			slug: 'acrossai/nonexistent',
 			patch: { label: 'Should Not Apply' },
 		});
 		// No ability has slug 'nonexistent', so neither should be patched.

@@ -26,7 +26,7 @@ class Get_Comment extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-comment',
+			'name' => 'acrossai/get-comment',
 			'args' => array(
 				'label'               => __( 'Get Comment', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a comment via GET /wp/v2/comments/{id}.', 'acrossai-abilities-manager' ),

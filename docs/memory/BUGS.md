@@ -152,7 +152,7 @@ class for `json_decode` to confirm whether the field is already decoded.
 `POST /abilities` returns 422 with *"Slug suffix is required when creating an ability."* even though the form has a slug value. No visible error in the form state.
 
 **Root Cause**
-The React form stores the full slug (e.g. `acrossai-abilities-manager/my-ability`) in the `ability_slug` field for display purposes. The REST write controller expects only the user-typed suffix (`my-ability`) in a field called `slug_suffix` — it prepends `acrossai-abilities-manager/` server-side. Sending `ability_slug` causes the validator to find `slug_suffix` empty and reject the request.
+The React form stores the full slug (e.g. `acrossai/my-ability`) in the `ability_slug` field for display purposes. The REST write controller expects only the user-typed suffix (`my-ability`) in a field called `slug_suffix` — it prepends `acrossai/` server-side. Sending `ability_slug` causes the validator to find `slug_suffix` empty and reject the request.
 
 **Future mistake prevented**
 Any form that has a read-only prefix display + editable suffix input MUST extract the suffix before submit, send it as `slug_suffix`, and omit `ability_slug` from the create payload.
@@ -1687,7 +1687,7 @@ Cross-reference: `BUG-EXTERNAL-PACKAGE-CTOR-SILENT` covers a different silent-fa
 **Bug pattern**
 `RecursiveIteratorIterator::SELF_FIRST` visits directories BEFORE their contents. Running `continue` in the outer `foreach` on a hidden / excluded directory entry does NOT stop descent — the iterator still visits every file inside that directory on the next iteration. If the exclusion check is basename-only (`$name[0] === '.'`), files inside the "skipped" directory get processed anyway because their basenames don't start with `.`.
 
-Real-world hit: `Zip_Create` 0.0.9 with `include_hidden=false` skipped the top-level `.git/` entry itself but still added `.git/objects/xxx` and every other file beneath it to the archive. Silent information leak — an operator asking for "no hidden files" got the full contents of every hidden directory in the archive. Fixed in 0.0.10 (PR [#73](https://github.com/acrossai-co/acrossai-abilities-manager/pull/73)).
+Real-world hit: `Create_Zip_Backup` 0.0.9 with `include_hidden=false` skipped the top-level `.git/` entry itself but still added `.git/objects/xxx` and every other file beneath it to the archive. Silent information leak — an operator asking for "no hidden files" got the full contents of every hidden directory in the archive. Fixed in 0.0.10 (PR [#73](https://github.com/acrossai-co/acrossai-abilities-manager/pull/73)).
 
 **Prevention**
 Check EVERY segment of the entry's forward-slashed relative path, not just the current basename. Use a helper like `has_hidden_segment($relative)` that iterates `explode('/', $relative)` and returns true if any segment starts with the exclusion character. Apply the check to both the assembly loop AND any pre-scan estimator (e.g. `estimate_tree_size()`) — otherwise size-cap checks disagree with what actually gets written.
@@ -1700,7 +1700,7 @@ Any code using `RecursiveIteratorIterator + SELF_FIRST` with a per-basename excl
 Cross-reference: the reference `download-plugin/app/Plugins/Base.php` (per-segment path check, line 282) implements the correct pattern.
 
 **Where to look**
-- `includes/Abilities/FileManager/Zip_Create.php::has_hidden_segment()` + `normalize_relative()` (the fix, applied to both `append_dir_to_zip()` and `estimate_tree_size()`).
+- `includes/Abilities/FileManager/Create_Zip_Backup.php::has_hidden_segment()` + `normalize_relative()` (the fix, applied to both `append_dir_to_zip()` and `estimate_tree_size()`).
 - `tests/phpunit/abilities/Test_Feature_041_Backup_Abilities.php::test_zip_create_skips_hidden_at_every_segment` (regression guard).
 - `specs/041-backup-restore-abilities-and-updates/spec.md` §Fixes (0.0.10 documentation).
 
@@ -1713,7 +1713,7 @@ Cross-reference: the reference `download-plugin/app/Plugins/Base.php` (per-segme
 **Status**: Active
 
 **Symptoms**
-Rows in `{prefix}abilities_access_control` stored with the ability slug's `/` character stripped: `acrossai-abilities-managerblock-pattern-delete` instead of `acrossai-abilities-manager/delete-block-pattern`. The resulting key cannot be found by subsequent GET / DELETE calls; the rule is orphaned in the DB.
+Rows in `{prefix}abilities_access_control` stored with the ability slug's `/` character stripped: `acrossai-abilities-managerblock-pattern-delete` instead of `acrossai/delete-block-pattern`. The resulting key cannot be found by subsequent GET / DELETE calls; the rule is orphaned in the DB.
 
 **Root Cause**
 Client-side JS passed the ability slug through `encodeURIComponent()` before interpolating into the composer's `PUT /wpb-ac/v1/{slug}/rules/{namespace}/{key}` URL. WordPress's REST layer + the composer's key sanitizer strip the resulting `%2F` rather than decoding it back to `/`, producing a truncated key.

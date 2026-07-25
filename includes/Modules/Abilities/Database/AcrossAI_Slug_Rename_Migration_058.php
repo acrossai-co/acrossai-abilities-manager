@@ -14,8 +14,10 @@ namespace AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Renames every ability slug from the pre-0.0.16 mixed subject-first / verb-first
- * form to the standardized verb-first form (Feature 058). Idempotent: the option
+ * Renames every ability slug from the pre-0.0.16 form
+ * `acrossai-abilities-manager/<subject-first>` to the standardized
+ * `acrossai/<verb-first>` form (Feature 058). Both the namespace prefix
+ * shortens AND the word order flips in one migration. Idempotent: the option
  * flag `acrossai_abilities_slug_rename_058_done` marks completion so repeated
  * activation or admin_init runs no-op.
  *
@@ -36,9 +38,14 @@ class AcrossAI_Slug_Rename_Migration_058 {
 	private const DONE_OPTION = 'acrossai_abilities_slug_rename_058_done';
 
 	/**
-	 * Namespace prefix all slugs carry, both before and after the rename.
+	 * Namespace prefix rows carry BEFORE the migration (pre-0.0.16 form).
 	 */
-	private const PREFIX = 'acrossai-abilities-manager/';
+	private const OLD_PREFIX = 'acrossai-abilities-manager/';
+
+	/**
+	 * Namespace prefix rows carry AFTER the migration (0.0.16 form).
+	 */
+	private const NEW_PREFIX = 'acrossai/';
 
 	/**
 	 * ACL rows are scoped to this namespace value.
@@ -76,8 +83,8 @@ class AcrossAI_Slug_Rename_Migration_058 {
 		$wpdb->query( 'START TRANSACTION' );
 
 		foreach ( $map as $old => $new ) {
-			$old_full = self::PREFIX . $old;
-			$new_full = self::PREFIX . $new;
+			$old_full = self::OLD_PREFIX . $old;
+			$new_full = self::NEW_PREFIX . $new;
 
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$wpdb->query(
@@ -108,6 +115,42 @@ class AcrossAI_Slug_Rename_Migration_058 {
 			}
 			// phpcs:enable
 		}
+
+		// Second pass — bulk namespace shortening for the 56 unchanged-suffix
+		// slugs (and defensively any renamed row that somehow escaped step 1).
+		// Uses MySQL REPLACE() so a single UPDATE per table handles every
+		// remaining OLD_PREFIX row.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$abilities_table} SET ability_slug = REPLACE( ability_slug, %s, %s ) WHERE ability_slug LIKE %s",
+				self::OLD_PREFIX,
+				self::NEW_PREFIX,
+				self::OLD_PREFIX . '%'
+			)
+		);
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$acl_table} SET `key` = REPLACE( `key`, %s, %s ) WHERE `key` LIKE %s AND `namespace` = %s",
+				self::OLD_PREFIX,
+				self::NEW_PREFIX,
+				self::OLD_PREFIX . '%',
+				self::ACL_NAMESPACE
+			)
+		);
+
+		if ( $mcp_exists ) {
+			$wpdb->query(
+				$wpdb->prepare(
+					"UPDATE {$mcp_table} SET ability_slug = REPLACE( ability_slug, %s, %s ) WHERE ability_slug LIKE %s",
+					self::OLD_PREFIX,
+					self::NEW_PREFIX,
+					self::OLD_PREFIX . '%'
+				)
+			);
+		}
+		// phpcs:enable
 
 		$wpdb->query( 'COMMIT' );
 

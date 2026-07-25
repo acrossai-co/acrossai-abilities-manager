@@ -26,7 +26,7 @@ class Approve_Comment extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/approve-comment',
+			'name' => 'acrossai/approve-comment',
 			'args' => array(
 				'label'               => __( 'Approve Comment', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Approve a comment via POST /wp/v2/comments/{id} with status=approved.', 'acrossai-abilities-manager' ),
