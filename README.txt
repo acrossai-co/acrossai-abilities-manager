@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.16
+Stable tag: 0.0.17
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -99,6 +99,12 @@ This plugin does not collect, store, or transmit any user data.
 No data is sent to any external server without explicit user action.
 
 == Changelog ==
+
+= 0.0.17 =
+* **New — 7 Recovery Mode abilities under a new `Recovery` category.** Adds `acrossai/get-recovery-mode-status`, `acrossai/list-paused-plugins`, `acrossai/list-paused-themes`, `acrossai/get-recovery-exit-url`, `acrossai/unpause-plugin`, `acrossai/unpause-theme`, and `acrossai/list-recent-fatal-errors`. Together they let an AI agent driving the site over REST/MCP detect if WordPress has entered Recovery Mode after a fatal error, enumerate paused (fatally-erroring) plugins and themes with their captured error details, clear a paused entry so WP retries loading the extension on the next request, retrieve the admin-clickable exit URL, and pull grouped fatal-error signatures from `debug.log`. Every write action gates on `manage_options` + `File_Mods_Guard::blocked_response()`; fuzzy plugin/theme identifiers flow through the existing `Plugin_Helpers::resolve_plugin()` / `Theme_Helpers::resolve_theme()` resolvers.
+* **Intentional non-goals: no programmatic recovery-mode trigger, no programmatic exit.** WP core has no public API to enter recovery mode from a REST call (the handler only fires on a real fatal at a protected endpoint), and exit is guarded by both a session cookie and a nonce that a normal admin REST session can't satisfy. The `get-recovery-exit-url` ability returns the URL for an admin (or a browser-driving agent) to follow instead.
+* **Docs — recovery-mode compatibility noted on 3 existing abilities.** `activate-plugin`, `deactivate-plugin`, and `activate-theme` now mention in their `description` that they work in recovery mode (they only update the `active_plugins` / active-theme option and don't load the extension file).
+* **Ships without JS, DB, or REST-controller changes.** Purely new PHP source under `includes/Abilities/Recovery/` plus 7-line bootstrap wiring. 21 new PHPUnit tests under the new `feature-059-unit` testsuite.
 
 = 0.0.16 =
 * **BREAKING — every ability slug has been renamed.** Two changes at once: (a) namespace shortens from `acrossai-abilities-manager/` (27 chars) to `acrossai/` (9 chars), and (b) suffixes flip to verb-first form. Every ability is now `acrossai/<verb>-<subject>` — e.g. `acrossai/get-site-title`, `acrossai/activate-theme`, `acrossai/list-plugins` — instead of the pre-0.0.16 `acrossai-abilities-manager/<subject>-<verb>` form. 163 suffixes changed; 56 already-verb-first suffixes only had their namespace shortened. Every ability's `label` was already verb-first ("Get Site Title", "Activate Theme"), so the slug now reads the same word order as the label. Motivation: alignment with the WordPress core MCP adapter convention (`mcp-adapter/discover-abilities`, `mcp-adapter/execute-ability`) and with the broader function-calling / MCP naming used by every major LLM tool-use spec.

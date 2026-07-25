@@ -50,6 +50,9 @@
 		<testsuite name="feature-057-unit">
 			<file>tests/phpunit/abilities/Test_Feature_057_Core_Reinstall.php</file>
 		</testsuite>
+		<testsuite name="feature-059-unit">
+			<file>tests/phpunit/abilities/Test_Feature_059_Recovery_Mode.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>
