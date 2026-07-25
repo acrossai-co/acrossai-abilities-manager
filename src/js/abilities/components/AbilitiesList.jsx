@@ -17,7 +17,7 @@ import SourceBadge from './cells/SourceBadge';
 import UserAccessBulkModal from './UserAccessBulkModal';
 import BulkBusyOverlay from './BulkBusyOverlay';
 
-const SLUG_PREFIX = 'acrossai-abilities/';
+const SLUG_PREFIX = 'acrossai/';
 
 // ---------------------------------------------------------------------------
 // Cell renderers

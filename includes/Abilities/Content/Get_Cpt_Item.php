@@ -26,7 +26,7 @@ class Get_Cpt_Item extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-cpt-item',
+			'name' => 'acrossai/get-cpt-item',
 			'args' => array(
 				'label'               => __( 'Get CPT Item', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a custom post type record by ID. post_type is required and must match the post.', 'acrossai-abilities-manager' ),

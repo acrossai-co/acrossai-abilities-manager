@@ -63,7 +63,7 @@ class Theme_Helpers {
 			$actions[] = array(
 				'label'        => $theme['name'],
 				'button_label' => __( 'Activate', 'acrossai-abilities-manager' ),
-				'action'       => 'acrossai-abilities-manager/theme-activate',
+				'action'       => 'acrossai/activate-theme',
 				'args'         => array( 'theme' => $theme['slug'] ),
 			);
 		}
@@ -267,7 +267,7 @@ class Theme_Helpers {
 			return self::build_candidate_response(
 				$resolved,
 				$theme_identifier,
-				'acrossai-abilities-manager/theme-activate',
+				'acrossai/activate-theme',
 				__( 'Activate', 'acrossai-abilities-manager' )
 			);
 		}
@@ -345,7 +345,7 @@ class Theme_Helpers {
 			return self::build_candidate_response(
 				$resolved,
 				$theme_identifier,
-				'acrossai-abilities-manager/theme-delete',
+				'acrossai/delete-theme',
 				__( 'Delete', 'acrossai-abilities-manager' )
 			);
 		}
@@ -406,7 +406,7 @@ class Theme_Helpers {
 	 *
 	 * @param array  $resolved       Result from resolve_theme().
 	 * @param string $original_input The user's original input string.
-	 * @param string $action_id      Ability action ID (e.g. "acrossai-abilities-manager/theme-activate").
+	 * @param string $action_id      Ability action ID (e.g. "acrossai/activate-theme").
 	 * @param string $button_label   Button label (e.g. "Activate").
 	 * @return array
 	 */

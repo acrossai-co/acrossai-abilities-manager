@@ -26,7 +26,7 @@ class Create_Page extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/create-page',
+			'name' => 'acrossai/create-page',
 			'args' => array(
 				'label'               => __( 'Create Page', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a page via wp_insert_post() (post_type=page). Supports parent and menu_order for hierarchical layouts.', 'acrossai-abilities-manager' ),

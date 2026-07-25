@@ -212,7 +212,7 @@ class AcrossAI_Abilities_Write_Controller {
 		// Build full ability_slug from suffix + prefix injection.
 		$suffix = (string) ( $fields['slug_suffix'] ?? '' );
 		unset( $fields['slug_suffix'] );
-		$fields['ability_slug'] = 'acrossai-abilities/' . $suffix;
+		$fields['ability_slug'] = 'acrossai/' . $suffix;
 
 		// Duplicate slug guard.
 		if ( $this->db_query->slug_exists( $fields['ability_slug'] ) ) {

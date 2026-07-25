@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 057 Wp_Core_Reinstall ability.
+ * Structural tests for the Feature 057 Reinstall_Wp_Core ability.
  *
  * Covers:
  *   - Class scaffolding, name, category, guards, and permission gate.
@@ -42,7 +42,7 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 
 		$this->sources = array(
 			'wp_core_reinstall' => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Core/Wp_Core_Reinstall.php'
+				$plugin_root . '/includes/Abilities/Core/Reinstall_Wp_Core.php'
 			),
 			'bootstrap'         => (string) file_get_contents(
 				$plugin_root . '/includes/Abilities/AcrossAI_Core_Abilities_Bootstrap.php'
@@ -51,7 +51,7 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 	}
 
 	// =========================================================================
-	// Wp_Core_Reinstall — scaffolding + guards
+	// Reinstall_Wp_Core — scaffolding + guards
 	// =========================================================================
 
 	/**
@@ -64,9 +64,9 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 		$src = $this->sources['wp_core_reinstall'];
 		$this->assertStringContainsString( 'extends Ability_Definition', $src );
 		$this->assertStringContainsString(
-			"'acrossai-abilities-manager/wp-core-reinstall'",
+			"'acrossai/reinstall-wp-core'",
 			$src,
-			'Ability name must be acrossai-abilities-manager/wp-core-reinstall.'
+			'Ability name must be acrossai/reinstall-wp-core.'
 		);
 		$this->assertStringContainsString(
 			"'acrossai-abilities-manager-core'",
@@ -76,7 +76,7 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			'File_Mods_Guard::blocked_response',
 			$src,
-			'Wp_Core_Reinstall must invoke File_Mods_Guard::blocked_response(install).'
+			'Reinstall_Wp_Core must invoke File_Mods_Guard::blocked_response(install).'
 		);
 		$this->assertMatchesRegularExpression(
 			"/File_Mods_Guard::blocked_response\(\s*'install'\s*\)/",
@@ -85,22 +85,22 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			'Core_Upgrader',
 			$src,
-			'Wp_Core_Reinstall must wrap WP core Core_Upgrader.'
+			'Reinstall_Wp_Core must wrap WP core Core_Upgrader.'
 		);
 		$this->assertStringContainsString(
 			'->upgrade(',
 			$src,
-			'Wp_Core_Reinstall must call ->upgrade( $update, ... ).'
+			'Reinstall_Wp_Core must call ->upgrade( $update, ... ).'
 		);
 		$this->assertStringContainsString(
 			'WP_Ajax_Upgrader_Skin',
 			$src,
-			'Wp_Core_Reinstall must use WP_Ajax_Upgrader_Skin (same as Wp_Core_Update).'
+			'Reinstall_Wp_Core must use WP_Ajax_Upgrader_Skin (same as Update_Wp_Core).'
 		);
 		$this->assertStringContainsString(
 			'is_multisite()',
 			$src,
-			'Wp_Core_Reinstall must contain a multisite guard.'
+			'Reinstall_Wp_Core must contain a multisite guard.'
 		);
 	}
 
@@ -115,14 +115,14 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression(
 			"/current_user_can\(\s*'manage_options'\s*\).*current_user_can\(\s*'update_core'\s*\)/s",
 			$src,
-			'Wp_Core_Reinstall permission_callback must AND manage_options with update_core.'
+			'Reinstall_Wp_Core permission_callback must AND manage_options with update_core.'
 		);
 	}
 
 	/**
 	 * The reinstall ability forces `$update->response = 'reinstall'` before
 	 * calling Core_Upgrader::upgrade() — the semantic difference from
-	 * Wp_Core_Update.
+	 * Update_Wp_Core.
 	 *
 	 * @return void
 	 */
@@ -131,7 +131,7 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression(
 			"/\\\$update->response\s*=\s*'reinstall'\s*;/",
 			$src,
-			'Wp_Core_Reinstall must set $update->response = \'reinstall\' before calling the upgrader.'
+			'Reinstall_Wp_Core must set $update->response = \'reinstall\' before calling the upgrader.'
 		);
 	}
 
@@ -146,7 +146,7 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			"'allow_relaxed_file_ownership' => false",
 			$src,
-			'Wp_Core_Reinstall must pass allow_relaxed_file_ownership=false to the upgrader.'
+			'Reinstall_Wp_Core must pass allow_relaxed_file_ownership=false to the upgrader.'
 		);
 	}
 
@@ -170,7 +170,7 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 
 	/**
 	 * The reinstall ability declares destructive=true — the annotation
-	 * difference from Wp_Core_Update (which is destructive=false).
+	 * difference from Update_Wp_Core (which is destructive=false).
 	 *
 	 * @return void
 	 */
@@ -193,16 +193,16 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 	// =========================================================================
 
 	/**
-	 * The core bootstrap instantiates the new Wp_Core_Reinstall ability.
+	 * The core bootstrap instantiates the new Reinstall_Wp_Core ability.
 	 *
 	 * @return void
 	 */
 	public function test_bootstrap_wires_wp_core_reinstall(): void {
 		$src = $this->sources['bootstrap'];
 		$this->assertStringContainsString(
-			'new Core\\Wp_Core_Reinstall()',
+			'new Core\\Reinstall_Wp_Core()',
 			$src,
-			'Bootstrap must instantiate Wp_Core_Reinstall.'
+			'Bootstrap must instantiate Reinstall_Wp_Core.'
 		);
 	}
 }

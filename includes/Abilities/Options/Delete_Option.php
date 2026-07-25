@@ -26,7 +26,7 @@ class Delete_Option extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/delete-option',
+			'name' => 'acrossai/delete-option',
 			'args' => array(
 				'label'               => __( 'Delete Option', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete a wp_options row via delete_option(). Idempotent — succeeds even if the option does not exist.', 'acrossai-abilities-manager' ),

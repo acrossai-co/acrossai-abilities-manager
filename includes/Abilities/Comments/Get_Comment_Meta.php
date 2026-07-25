@@ -26,7 +26,7 @@ class Get_Comment_Meta extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-comment-meta',
+			'name' => 'acrossai/get-comment-meta',
 			'args' => array(
 				'label'               => __( 'Get Comment Meta', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch the REST-exposed meta map for a comment via GET /wp/v2/comments/{id} (only keys registered with register_meta show_in_rest=true).', 'acrossai-abilities-manager' ),

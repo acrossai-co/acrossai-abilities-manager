@@ -26,7 +26,7 @@ class Get_Post extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-post',
+			'name' => 'acrossai/get-post',
 			'args' => array(
 				'label'               => __( 'Get Post', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a post (any post type) by ID via get_post().', 'acrossai-abilities-manager' ),

@@ -52,7 +52,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 	 */
 	public function tearDown(): void {
 		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai-abilities/proc-test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai/proc-test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		wp_set_current_user( 0 );
 		parent::tearDown();
 	}
@@ -72,7 +72,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		++$counter;
 
 		$defaults = array(
-			'ability_slug'  => 'acrossai-abilities/proc-test-' . $counter,
+			'ability_slug'  => 'acrossai/proc-test-' . $counter,
 			'label'         => 'Processor Test ' . $counter,
 			'category'      => 'general',
 			'status'        => 'publish',
@@ -224,7 +224,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prefix . 'acrossai_abilities',
 			array(
-				'ability_slug'  => 'acrossai-abilities/proc-test-no-desc',
+				'ability_slug'  => 'acrossai/proc-test-no-desc',
 				'label'         => 'No Description',
 				'description'   => '',
 				'category'      => 'general',
@@ -241,7 +241,7 @@ class AbilitiesProcessorTest extends WP_UnitTestCase {
 
 		$wpdb->delete(
 			$wpdb->prefix . 'acrossai_abilities',
-			array( 'ability_slug' => 'acrossai-abilities/proc-test-no-desc' )
+			array( 'ability_slug' => 'acrossai/proc-test-no-desc' )
 		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 

@@ -199,7 +199,7 @@ class AcrossAI_Abilities_Query extends Query {
 	 * Retrieve a single ability row by slug.
 	 *
 	 * @since  0.1.0
-	 * @param  string $slug Full ability slug (e.g. 'acrossai-abilities/my-ability').
+	 * @param  string $slug Full ability slug (e.g. 'acrossai/my-ability').
 	 * @return AcrossAI_Abilities_Row|null
 	 */
 	public function get_ability_by_slug( string $slug ): ?AcrossAI_Abilities_Row {

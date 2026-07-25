@@ -26,7 +26,7 @@ class Update_Media_Meta extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/update-media-meta',
+			'name' => 'acrossai/update-media-meta',
 			'args' => array(
 				'label'               => __( 'Update Media Meta', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Write meta values on a media item via POST /wp/v2/media/{id} with a meta object. Only keys registered with register_meta show_in_rest=true accept writes.', 'acrossai-abilities-manager' ),

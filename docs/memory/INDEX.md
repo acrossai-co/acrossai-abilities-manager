@@ -41,6 +41,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | DEC-PASS-AS-TOOL-REMOVED | Removes per-ability MCP tool pass-through entirely; supersedes DEC-MCP-TOOLS-PASSTHROUGH-COLUMN; responsibility deferred to future acrossai-mcp-manager plugin; manual deactivate-drop-reactivate migration | Abilities/DB | mcp, tools, removal, reflection-removal, supersession | Active | DECISIONS.md |
 | DEC-META-ACROSSAI-NAMESPACE | Consolidate plugin-specific ability fields under $args['meta']['acrossai']; Feature 041 retires the Features 033/037 top-level shape; hard cut, no BC layer; namespace reserved for acrossai-abilities-manager only | Abilities/Plugin-wide | meta, namespace, hard-cut, feature-041, extension-fields | Active | DECISIONS.md |
 | DEC-ABSORBED-CODE-INCLUDES-TIER | Absorbed heterogeneous capability domains live at includes/-tier not under Modules/; Bootstrap orchestrator wired via Loader; Constitution PATCH pending (spec 047) | Plugin-wide | absorption, directory-layout, tier, constitution-deviation, feature-046 | Active | DECISIONS.md |
+| DEC-SLUG-CONVENTION-VERB-FIRST | Ability slugs adopt `acrossai/<verb>-<subject>` form with a controlled verb vocabulary; namespace = short plugin-owned word matching WP core MCP adapter convention; class file names and PHP class names also flip to verb-first to match | Abilities/Plugin-wide | slug, verb-first, mcp-adapter, namespace, class-rename, feature-058 | Active | DECISIONS.md |
 
 ## Architecture Constraints
 | ID | Constraint | Scope | Tags | Source |
@@ -88,6 +89,8 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | BUG-PHPCBF-TABS | phpcbf converts spaces→tabs; Python str_replace on PHP files must use \t not spaces | PHP/PHPCS | phpcbf, tabs, spaces, str_replace | BUGS.md |
 | BUG-STATIC-METHOD-SINGLETON-BYPASS | public static on singleton class (other than instance()) bypasses ::instance() contract | Logger/Query | singleton, static, arch-review | BUGS.md |
 | BUG-PHPDOC-STATIC-STALE | @static docblock not removed when static keyword is removed from method | Logger/Query | phpdoc, static, arch-review | BUGS.md |
+| BUG-PERL-LOOKBEHIND-PLUGIN-BASENAME | Bulk perl namespace-sweep with `(?<!/)` look-behind wrongly rewrites `plugin_basename` string literals like `'plugin-dir/plugin-file.php'` because the opening quote satisfies "not preceded by /"; enumerate + guard filesystem identifiers before sweeping | Build/Tooling | perl, look-behind, plugin_basename, mechanical-rewrite, feature-058 | BUGS.md |
+| BUG-JS-SLUG-PREFIX-FALLTHROUGH | UI code that programmatically strips a display prefix silently falls through to un-stripped value when the hardcoded prefix constant doesn't match the actual slug; use a sentinel behavior + unit test with a real slug, not silent fallthrough | React/UI | slug, prefix, silent-fallthrough, ability-form, feature-058 | BUGS.md |
 
 ## Security Constraints
 | ID | Constraint | Scope | Tags | Source |
@@ -113,6 +116,7 @@ This is a compact routing map for durable memory. Keep it short. It points to so
 | 2026-05-25 | Feature 012: Sitewide module decommissioned; Abilities module is sole override owner (T001-T030 complete) | Abilities | feature-012, decommission, berlinddb, phpcs | WORKLOG.md |
 | 2026-05-25 | Feature 013: Four-field required validation complete (slug/label/description/category) | Abilities | feature-013, validation, sec-04, react | WORKLOG.md |
 | 2026-05-29 | Feature 019: Settings page (WP Settings API, uninstall gate, Logger option guard); DEC-SETTINGS-API-DEVIATION added | Admin/Settings/Logger | feature-019, settings-api, uninstall-gate, logger, deviation | WORKLOG.md |
+| 2026-07-25 | Feature 058: Ability-slug convention standardised — namespace `acrossai-abilities-manager/` → `acrossai/`, all suffixes verb-first, 162 class files renamed, no data migration; DEC-SLUG-CONVENTION-VERB-FIRST added; BUG-PERL-LOOKBEHIND-PLUGIN-BASENAME + BUG-JS-SLUG-PREFIX-FALLTHROUGH captured | Abilities/Plugin-wide | feature-058, slug-convention, verb-first, mcp-adapter-alignment, namespace-shortening, class-file-rename, breaking-change | WORKLOG.md |
 
 | DEC-STABLE-UPGRADE-WINDOW | Prioritize first stable releases (v1.0.0, v1.0.1) when upgrading from dev branches | Dependencies | stable-release, upgrade, risk-mitigation | DECISIONS.md |
 | DEC-AC-RENDERING-GATE | access_control_available is a rendering gate only; server auth enforced by wpb-ac/v1 REST endpoints | Abilities/Admin | access-control, rendering-gate, client-side, auth | DECISIONS.md |

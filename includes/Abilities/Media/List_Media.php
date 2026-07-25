@@ -26,7 +26,7 @@ class List_Media extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/list-media',
+			'name' => 'acrossai/list-media',
 			'args' => array(
 				'label'               => __( 'List Media', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List media items via GET /wp/v2/media. Supports search, pagination, and a mime_type filter.', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Delete_Media extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/delete-media',
+			'name' => 'acrossai/delete-media',
 			'args' => array(
 				'label'               => __( 'Delete Media', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Permanently delete a media attachment via DELETE /wp/v2/media/{id}. Attachments do not support trash.', 'acrossai-abilities-manager' ),

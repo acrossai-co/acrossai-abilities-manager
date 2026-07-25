@@ -26,7 +26,7 @@ class Delete_Menu extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/delete-menu',
+			'name' => 'acrossai/delete-menu',
 			'args' => array(
 				'label'               => __( 'Delete Menu', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete a nav menu via DELETE /wp/v2/menus/{id}. Menus do not support trash — force=true is sent implicitly.', 'acrossai-abilities-manager' ),

@@ -5,7 +5,7 @@
  * Covers:
  *   - Backups_Storage filename scheme change ({slug}-{unix}-{ms}.zip).
  *   - Core/Category_Registrar shape parity with other Category_Registrars.
- *   - Wp_Core_Update_Check + Wp_Core_Update ability scaffolding + guards.
+ *   - Check_Wp_Core_Update + Update_Wp_Core ability scaffolding + guards.
  *   - Bootstrap wiring for the Core category and its two abilities.
  *
  * Source-inspection only, mirroring the Test_Feature_041_Backup_Abilities
@@ -46,10 +46,10 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 				$plugin_root . '/includes/Abilities/Core/Category_Registrar.php'
 			),
 			'wp_core_update_check' => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Core/Wp_Core_Update_Check.php'
+				$plugin_root . '/includes/Abilities/Core/Check_Wp_Core_Update.php'
 			),
 			'wp_core_update'       => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Core/Wp_Core_Update.php'
+				$plugin_root . '/includes/Abilities/Core/Update_Wp_Core.php'
 			),
 			'backups_storage'      => (string) file_get_contents(
 				$plugin_root . '/includes/Abilities/Utilities/Backups_Storage.php'
@@ -157,7 +157,7 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 	}
 
 	// =========================================================================
-	// Wp_Core_Update_Check
+	// Check_Wp_Core_Update
 	// =========================================================================
 
 	/**
@@ -170,9 +170,9 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 		$src = $this->sources['wp_core_update_check'];
 		$this->assertStringContainsString( 'extends Ability_Definition', $src );
 		$this->assertStringContainsString(
-			"'acrossai-abilities-manager/wp-core-update-check'",
+			"'acrossai/check-wp-core-update'",
 			$src,
-			'Ability name must be acrossai-abilities-manager/wp-core-update-check.'
+			'Ability name must be acrossai/check-wp-core-update.'
 		);
 		$this->assertStringContainsString(
 			"'acrossai-abilities-manager-core'",
@@ -197,7 +197,7 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 	}
 
 	// =========================================================================
-	// Wp_Core_Update
+	// Update_Wp_Core
 	// =========================================================================
 
 	/**
@@ -209,7 +209,7 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 		$src = $this->sources['wp_core_update'];
 		$this->assertStringContainsString( 'extends Ability_Definition', $src );
 		$this->assertStringContainsString(
-			"'acrossai-abilities-manager/wp-core-update'",
+			"'acrossai/update-wp-core'",
 			$src
 		);
 		$this->assertStringContainsString(
@@ -219,7 +219,7 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			'File_Mods_Guard::blocked_response',
 			$src,
-			'Wp_Core_Update must invoke File_Mods_Guard::blocked_response(install).'
+			'Update_Wp_Core must invoke File_Mods_Guard::blocked_response(install).'
 		);
 		$this->assertMatchesRegularExpression(
 			"/File_Mods_Guard::blocked_response\(\s*'install'\s*\)/",
@@ -228,22 +228,22 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			'Core_Upgrader',
 			$src,
-			'Wp_Core_Update must wrap WP core Core_Upgrader.'
+			'Update_Wp_Core must wrap WP core Core_Upgrader.'
 		);
 		$this->assertStringContainsString(
 			'->upgrade(',
 			$src,
-			'Wp_Core_Update must call ->upgrade( $update ).'
+			'Update_Wp_Core must call ->upgrade( $update ).'
 		);
 		$this->assertStringContainsString(
 			'WP_Ajax_Upgrader_Skin',
 			$src,
-			'Wp_Core_Update must use the WP_Ajax_Upgrader_Skin (same as Plugin_Update / Theme_Update).'
+			'Update_Wp_Core must use the WP_Ajax_Upgrader_Skin (same as Update_Plugin / Update_Theme).'
 		);
 		$this->assertStringContainsString(
 			'is_multisite()',
 			$src,
-			'Wp_Core_Update must contain a multisite guard.'
+			'Update_Wp_Core must contain a multisite guard.'
 		);
 	}
 
@@ -258,7 +258,7 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression(
 			"/current_user_can\(\s*'manage_options'\s*\).*current_user_can\(\s*'update_core'\s*\)/s",
 			$src,
-			'Wp_Core_Update permission_callback must AND manage_options with update_core.'
+			'Update_Wp_Core permission_callback must AND manage_options with update_core.'
 		);
 	}
 
@@ -298,14 +298,14 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 			'Bootstrap must register the Core Category_Registrar callback.'
 		);
 		$this->assertStringContainsString(
-			'new Core\\Wp_Core_Update_Check()',
+			'new Core\\Check_Wp_Core_Update()',
 			$src,
-			'Bootstrap must instantiate Wp_Core_Update_Check.'
+			'Bootstrap must instantiate Check_Wp_Core_Update.'
 		);
 		$this->assertStringContainsString(
-			'new Core\\Wp_Core_Update()',
+			'new Core\\Update_Wp_Core()',
 			$src,
-			'Bootstrap must instantiate Wp_Core_Update.'
+			'Bootstrap must instantiate Update_Wp_Core.'
 		);
 	}
 }

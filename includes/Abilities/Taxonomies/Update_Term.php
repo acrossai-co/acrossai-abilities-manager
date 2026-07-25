@@ -26,7 +26,7 @@ class Update_Term extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/update-term',
+			'name' => 'acrossai/update-term',
 			'args' => array(
 				'label'               => __( 'Update Term', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update a term in a taxonomy via POST /wp/v2/{rest_base}/{id}.', 'acrossai-abilities-manager' ),

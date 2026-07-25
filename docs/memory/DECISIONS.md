@@ -2,6 +2,33 @@
 
 ---
 
+### 2026-07-25 — Ability slug convention: `acrossai/<verb>-<subject>` (DEC-SLUG-CONVENTION-VERB-FIRST)
+
+**Context**
+Pre-0.0.16 ability slugs were inconsistent: ~140 subject-first (`site-title-get`), ~80 verb-first (`create-post`), with internal outliers in most categories. The 27-character namespace `acrossai-abilities-manager/` carried heavy token overhead on every LLM tool manifest (219 abilities × ~18 wasted chars per slug ≈ 4 KB per discovery response). The user's own inspection of the Custom Abilities admin page prompted the standardisation: labels read verb-first ("Get Site Title") but slugs read subject-first (`site-title-get`), and the JS `SLUG_PREFIX` constant hardcoded the wrong prefix (`acrossai-abilities/`) causing the input field to display the entire slug instead of just the suffix.
+
+**Decision**
+Every ability slug in this plugin adopts the form `acrossai/<verb>-<subject>[-<qualifier>]` where:
+- `acrossai` is the plugin's owned namespace (9 chars). Sibling AcrossAI-org plugins use their own distinct prefixes (`acrossai-buddyboss-abilities/*`, `acrossai-mcp-manager/*`, etc.) — no collision risk.
+- `<verb>` comes from a controlled vocabulary: `get` / `list` / `create` / `update` / `set` / `delete` / `search` / `find` / `activate` / `deactivate` / `install` / `flush` / `reset` / `approve` / `unapprove` / `mark` / `upload` / `download` / `run` / `explain` / `refresh` / `check` / `read` / `edit` / `rollback` / `reinstall` / `optimize` / `extract` / `audit` / `inspect` / `bulk` / `assign` / `link` / `apply` / `review` / `rename` / `manage` / `copy`.
+- `<subject>` is a kebab-case noun phrase describing the resource acted on.
+- `<qualifier>` (optional) disambiguates when subject is ambiguous (e.g. `list-cpt-item-revisions`).
+
+Rationale: matches the WordPress core MCP adapter's built-ins (`mcp-adapter/discover-abilities`, `mcp-adapter/get-ability-info`, `mcp-adapter/execute-ability`) and the broader function-calling / MCP tool-use ecosystem where every major spec (OpenAI, Anthropic, MCP) uses verb-first names. Slug now reads the same word order as the ability's `label`, so agents that hash the description into slug guesses succeed instead of missing.
+
+**Scope**
+All abilities registered by `acrossai-abilities-manager` (both plugin-shipped and user-created via the admin UI). Class file names AND PHP class names also flip to verb-first to match slugs (e.g. `Site_Title_Get.php` → `Get_Site_Title.php`, `class Site_Title_Get` → `class Get_Site_Title`). Sibling AcrossAI plugins are NOT retroactively renamed — each owns its own convention.
+
+**Reconsider if**
+A future sibling AcrossAI plugin needs to register abilities under `acrossai/*` — at that point either this plugin's prefix moves to something more specific, or the sibling adopts its own dedicated prefix (preferred, follows existing convention).
+
+**Evidence**
+- `specs/058-slug-rename-verb-first/` (spec, plan, tasks, memory-synthesis).
+- PR [#88](https://github.com/acrossai-co/acrossai-abilities-manager/pull/88) commits f401e09 → bc23e6e → 88dd7c0.
+- WP core reference: `mcp-adapter/discover-abilities`, `mcp-adapter/get-ability-info`, `mcp-adapter/execute-ability` — same structural convention (namespace = plugin slug, suffix = verb-noun).
+
+---
+
 ### 2026-06-30 — Entry-file `plugins_loaded P0` bootstrap allowed for shared top-level menu packages (DEC-EXTERNAL-PACKAGE-HOOK-CTOR scope extension)
 
 **Context**
@@ -1387,7 +1414,7 @@ Each plugin module must own exactly one REST namespace. Sharing namespaces acros
 
 **Decision**
 The AbilityAPI module's REST orchestrator (`AcrossAI_Ability_API_Rest_Controller`) uses `acrossai-abilities-api/v1` as its `REST_NAMESPACE` constant. This namespace is distinct from:
-- `acrossai-abilities-manager/v1` — Abilities CRUD (Read, Write, Category, Exposure sub-controllers)
+- `acrossai/v1` — Abilities CRUD (Read, Write, Category, Exposure sub-controllers)
 - `acrossai-abilities-log/v1` — Logger logs (migrated Feature 027)
 
 No future module or sub-feature may register routes under these namespaces unless it is a sub-controller of that module's orchestrator.
@@ -1398,7 +1425,7 @@ No future module or sub-feature may register routes under these namespaces unles
 - Reconsider: if WP REST API namespace-per-module ever becomes too many namespace registrations to manage; at that point consider a plugin-wide namespace with resource-scoped sub-paths.
 
 **Evidence**
-Feature 027 plan.md D1; revised to dedicated namespace to avoid reusing `acrossai-abilities-manager/v1` and prevent wildcard shadowing with existing `GET /abilities/(?P<slug>[^/]+)` route.
+Feature 027 plan.md D1; revised to dedicated namespace to avoid reusing `acrossai/v1` and prevent wildcard shadowing with existing `GET /abilities/(?P<slug>[^/]+)` route.
 
 ---
 

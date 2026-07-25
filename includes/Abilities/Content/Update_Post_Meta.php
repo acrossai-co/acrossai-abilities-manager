@@ -26,7 +26,7 @@ class Update_Post_Meta extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/update-post-meta',
+			'name' => 'acrossai/update-post-meta',
 			'args' => array(
 				'label'               => __( 'Update Post Meta', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Set a post meta value via update_post_meta(). If the meta is registered via register_meta() and protected, the request will be rejected.', 'acrossai-abilities-manager' ),

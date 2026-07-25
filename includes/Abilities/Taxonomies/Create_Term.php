@@ -26,7 +26,7 @@ class Create_Term extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/create-term',
+			'name' => 'acrossai/create-term',
 			'args' => array(
 				'label'               => __( 'Create Term', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a term in a taxonomy via POST /wp/v2/{rest_base}.', 'acrossai-abilities-manager' ),

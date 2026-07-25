@@ -35,7 +35,7 @@ class AcrossAI_Abilities_Rest_Controller {
 	 *
 	 * @var string
 	 */
-	const REST_NAMESPACE = 'acrossai-abilities-manager/v1';
+	const REST_NAMESPACE = 'acrossai/v1';
 
 	/**
 	 * Singleton instance.

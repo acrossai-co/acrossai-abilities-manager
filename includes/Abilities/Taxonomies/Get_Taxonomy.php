@@ -26,7 +26,7 @@ class Get_Taxonomy extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-taxonomy',
+			'name' => 'acrossai/get-taxonomy',
 			'args' => array(
 				'label'               => __( 'Get Taxonomy', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a single taxonomy via GET /wp/v2/taxonomies/{taxonomy}.', 'acrossai-abilities-manager' ),

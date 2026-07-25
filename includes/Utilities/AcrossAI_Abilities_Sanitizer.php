@@ -32,7 +32,7 @@ class AcrossAI_Abilities_Sanitizer {
 	public static function sanitize_slug_suffix( string $suffix ): string {
 		$suffix = sanitize_text_field( $suffix );
 		$suffix = preg_replace( '/[^a-zA-Z0-9\-_]/', '', $suffix );
-		return substr( $suffix, 0, 236 ); // 255 - len('acrossai-abilities/') = 236.
+		return substr( $suffix, 0, 246 ); // 255 - len('acrossai/') = 246.
 	}
 
 	/**

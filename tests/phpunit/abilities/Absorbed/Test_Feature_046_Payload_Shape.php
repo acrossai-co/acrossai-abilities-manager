@@ -38,13 +38,13 @@ class Test_Feature_046_Payload_Shape extends WP_UnitTestCase {
 		$plugin_root           = dirname( __DIR__, 4 );
 		$this->sources         = array(
 			'plugin_list' => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Plugins/Plugin_List.php'
+				$plugin_root . '/includes/Abilities/Plugins/List_Plugins.php'
 			),
 			'get_post'    => (string) file_get_contents(
 				$plugin_root . '/includes/Abilities/Content/Get_Post.php'
 			),
 			'user_get'    => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Users/User_Get.php'
+				$plugin_root . '/includes/Abilities/Users/Get_User.php'
 			),
 		);
 	}
@@ -96,15 +96,15 @@ class Test_Feature_046_Payload_Shape extends WP_UnitTestCase {
 	public function test_all_samples_use_rebranded_slugs(): void {
 		$expected = array(
 			'plugin_list' => array(
-				'name'     => 'acrossai-abilities-manager/plugin-list',
+				'name'     => 'acrossai/list-plugins',
 				'category' => 'acrossai-abilities-manager-plugins',
 			),
 			'get_post'    => array(
-				'name'     => 'acrossai-abilities-manager/get-post',
+				'name'     => 'acrossai/get-post',
 				'category' => 'acrossai-abilities-manager-content',
 			),
 			'user_get'    => array(
-				'name'     => 'acrossai-abilities-manager/user-get',
+				'name'     => 'acrossai/get-user',
 				'category' => 'acrossai-abilities-manager-users',
 			),
 		);

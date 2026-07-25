@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 
 // REST namespace used for PATH A (Manager request) detection.
 // Override via wp-config.php constant or the 'acrossai_manager_rest_namespace' filter.
-defined( 'ACROSSAI_MANAGER_REST_NAMESPACE' ) || define( 'ACROSSAI_MANAGER_REST_NAMESPACE', 'acrossai-abilities-manager/v1' );
+defined( 'ACROSSAI_MANAGER_REST_NAMESPACE' ) || define( 'ACROSSAI_MANAGER_REST_NAMESPACE', 'acrossai/v1' );
 
 /**
  * Bridges DB-stored ability overrides into live WordPress ability registrations.

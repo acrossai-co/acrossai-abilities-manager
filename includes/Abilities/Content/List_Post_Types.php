@@ -28,7 +28,7 @@ class List_Post_Types extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/list-post-types',
+			'name' => 'acrossai/list-post-types',
 			'args' => array(
 				'label'               => __( 'List Post Types', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List registered post types via get_post_types( objects ). Filterable by public/show_in_rest/hierarchical flags.', 'acrossai-abilities-manager' ),

@@ -38,7 +38,7 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 
 		$this->sources = array(
 			'wp_core_rollback' => (string) file_get_contents(
-				$plugin_root . '/includes/Abilities/Core/Wp_Core_Rollback.php'
+				$plugin_root . '/includes/Abilities/Core/Rollback_Wp_Core.php'
 			),
 			'bootstrap'        => (string) file_get_contents(
 				$plugin_root . '/includes/Abilities/AcrossAI_Core_Abilities_Bootstrap.php'
@@ -60,9 +60,9 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 		$src = $this->sources['wp_core_rollback'];
 		$this->assertStringContainsString( 'extends Ability_Definition', $src );
 		$this->assertStringContainsString(
-			"'acrossai-abilities-manager/wp-core-rollback'",
+			"'acrossai/rollback-wp-core'",
 			$src,
-			'Ability name must be acrossai-abilities-manager/wp-core-rollback.'
+			'Ability name must be acrossai/rollback-wp-core.'
 		);
 		$this->assertStringContainsString(
 			"'acrossai-abilities-manager-core'",
@@ -92,7 +92,7 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 
 	/**
 	 * Permission callback ANDs manage_options with update_core, matching
-	 * Wp_Core_Update.
+	 * Update_Wp_Core.
 	 *
 	 * @return void
 	 */
@@ -116,12 +116,12 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression(
 			"/File_Mods_Guard::blocked_response\(\s*'install'\s*\)/",
 			$src,
-			'Wp_Core_Rollback must call File_Mods_Guard::blocked_response(install).'
+			'Rollback_Wp_Core must call File_Mods_Guard::blocked_response(install).'
 		);
 		$this->assertStringContainsString(
 			'is_multisite()',
 			$src,
-			'Wp_Core_Rollback must contain a multisite guard.'
+			'Rollback_Wp_Core must contain a multisite guard.'
 		);
 	}
 
@@ -140,7 +140,7 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression(
 			"/version_compare\(\s*\\\$version,\s*\\\$from_version,\s*'>='\s*\)/",
 			$src,
-			'Wp_Core_Rollback must refuse when target version is not strictly older than current.'
+			'Rollback_Wp_Core must refuse when target version is not strictly older than current.'
 		);
 	}
 
@@ -170,7 +170,7 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression(
 			"/\\\$offer->response\s*=\s*'upgrade'/",
 			$src,
-			'Wp_Core_Rollback must force the offer->response to "upgrade" before handing it to Core_Upgrader.'
+			'Rollback_Wp_Core must force the offer->response to "upgrade" before handing it to Core_Upgrader.'
 		);
 	}
 
@@ -190,12 +190,12 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			'https://api.wordpress.org/core/version-check/1.7/',
 			$src,
-			'Wp_Core_Rollback must fetch offers from the WP.org Core API 1.7 endpoint.'
+			'Rollback_Wp_Core must fetch offers from the WP.org Core API 1.7 endpoint.'
 		);
 		$this->assertStringContainsString(
 			'wp_remote_get(',
 			$src,
-			'Wp_Core_Rollback must use wp_remote_get() for the API fetch.'
+			'Rollback_Wp_Core must use wp_remote_get() for the API fetch.'
 		);
 	}
 
@@ -210,17 +210,17 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			'get_site_transient(',
 			$src,
-			'Wp_Core_Rollback must read cached offers from a site transient.'
+			'Rollback_Wp_Core must read cached offers from a site transient.'
 		);
 		$this->assertStringContainsString(
 			'set_site_transient(',
 			$src,
-			'Wp_Core_Rollback must persist the offer list to a site transient.'
+			'Rollback_Wp_Core must persist the offer list to a site transient.'
 		);
 		$this->assertStringContainsString(
 			'DAY_IN_SECONDS',
 			$src,
-			'Wp_Core_Rollback must cache offers with a day-long TTL.'
+			'Rollback_Wp_Core must cache offers with a day-long TTL.'
 		);
 	}
 
@@ -234,7 +234,7 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 		$this->assertStringContainsString(
 			"'destructive' => true",
 			$src,
-			'Wp_Core_Rollback annotations must declare destructive=true.'
+			'Rollback_Wp_Core annotations must declare destructive=true.'
 		);
 	}
 
@@ -243,7 +243,7 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 	// =========================================================================
 
 	/**
-	 * The core bootstrap instantiates Wp_Core_Rollback alongside the two
+	 * The core bootstrap instantiates Rollback_Wp_Core alongside the two
 	 * Feature 042 abilities.
 	 *
 	 * @return void
@@ -251,9 +251,9 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 	public function test_bootstrap_wires_wp_core_rollback(): void {
 		$src = $this->sources['bootstrap'];
 		$this->assertStringContainsString(
-			'new Core\\Wp_Core_Rollback()',
+			'new Core\\Rollback_Wp_Core()',
 			$src,
-			'Bootstrap must instantiate Wp_Core_Rollback.'
+			'Bootstrap must instantiate Rollback_Wp_Core.'
 		);
 	}
 }

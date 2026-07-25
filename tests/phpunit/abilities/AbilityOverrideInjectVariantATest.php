@@ -234,7 +234,7 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 	 */
 	public function test_merger_source_null_is_preserved_in_registry(): void {
 		$registry = array(
-			'slug'         => 'acrossai-abilities/my-ability',
+			'slug'         => 'acrossai/my-ability',
 			'label'        => 'My Ability',
 			'description'  => 'Test',
 			'category'     => 'general',
@@ -264,7 +264,7 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 	 */
 	public function test_merger_source_plugin_is_preserved_when_set(): void {
 		$registry = array(
-			'slug'         => 'acrossai-abilities/my-ability',
+			'slug'         => 'acrossai/my-ability',
 			'label'        => 'My Ability',
 			'description'  => 'Test',
 			'category'     => 'general',
@@ -299,7 +299,7 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 	 */
 	public function test_merger_site_allowed_false_override_is_applied(): void {
 		$registry = array(
-			'slug'         => 'acrossai-abilities/my-ability',
+			'slug'         => 'acrossai/my-ability',
 			'label'        => 'My Ability',
 			'description'  => 'Test',
 			'category'     => 'general',
@@ -316,7 +316,7 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 
 		$override = (object) array(
 			'id'           => 1,
-			'ability_slug' => 'acrossai-abilities/my-ability',
+			'ability_slug' => 'acrossai/my-ability',
 			'label'        => null,
 			'description'  => null,
 			'category'     => null,
@@ -352,7 +352,7 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 	 */
 	public function test_merger_boolean_false_overrides_survive_for_all_tri_state_fields(): void {
 		$registry = array(
-			'slug'         => 'acrossai-abilities/my-ability',
+			'slug'         => 'acrossai/my-ability',
 			'label'        => 'My Ability',
 			'description'  => 'Test',
 			'category'     => 'general',
@@ -369,7 +369,7 @@ class AbilityOverrideInjectVariantATest extends WP_UnitTestCase {
 
 		$override = (object) array(
 			'id'           => 2,
-			'ability_slug' => 'acrossai-abilities/my-ability',
+			'ability_slug' => 'acrossai/my-ability',
 			'label'        => null,
 			'description'  => null,
 			'category'     => null,

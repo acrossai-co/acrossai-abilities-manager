@@ -21,7 +21,7 @@ const baseEditUrl =
 
 addFilter(
 	'acrossaiMcpManager.abilities.fields',
-	'acrossai-abilities-manager/action-edit',
+	'acrossai/action-edit',
 	(fields) => [
 		...fields,
 		{

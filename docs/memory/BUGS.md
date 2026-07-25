@@ -5,6 +5,49 @@
 
 ## Active Bug Patterns
 
+### 2026-07-25 — Perl look-behind namespace-sweep hits filesystem-identifier string literals (BUG-PERL-LOOKBEHIND-PLUGIN-BASENAME)
+
+**Status**: Active
+
+**Symptoms**
+`admin/Main.php::plugin_action_links()` stopped rendering the "Settings" action link on the Plugins admin screen after a bulk namespace rename swept `acrossai-abilities-manager/` → `acrossai/` across the codebase. Diagnosed by inspecting the diff — line 415 comparison changed from `'acrossai-abilities-manager/acrossai-abilities-manager.php'` to `'acrossai/acrossai-abilities-manager.php'`. The plugin's real basename (`plugin_basename()` output) is still the ORIGINAL form because the physical plugin directory is still `acrossai-abilities-manager/`, so the equality check silently returns false and the link never gets added.
+
+**Root Cause**
+The perl regex `s{(?<!/)acrossai-abilities-manager/}{acrossai/}g` uses a negative look-behind for `/` to preserve filesystem paths in comments (`/wp-content/plugins/acrossai-abilities-manager/...`). But look-behind only inspects the ONE character immediately before the match. In the string `'acrossai-abilities-manager/acrossai-abilities-manager.php'`, the FIRST occurrence of the pattern is preceded by `'` (an opening quote) — not `/` — so look-behind succeeds and the substitution IS applied. The regex has no way to tell that this string is a filesystem identifier vs a slug prefix. Same problem would hit any codebase literal representing a filesystem path where the plugin's own directory appears at the start.
+
+**Future mistake prevented**
+When running a bulk namespace-sweep across the codebase:
+1. Enumerate `plugin_basename()`-style filesystem identifiers BEFORE the sweep: `grep -rn "'<plugin-slug>/<plugin-slug>\.php'\|'<plugin-slug>/'" .` — record them, exclude from sweep OR revert individually.
+2. After the sweep, grep for any newly-introduced `<new-namespace>/<original-plugin-file>.php` or `<new-namespace>/<original-plugin-slug>` — these are false positives.
+3. Consider using a more restrictive pattern that ALSO requires the terminator NOT to be another `<original-slug>` fragment: `s{(?<!/)acrossai-abilities-manager/(?!acrossai-abilities-manager)}{acrossai/}g` — catches the `plugin_basename` case at the cost of missing a legitimate `acrossai-abilities-manager/acrossai-abilities-manager-something-else` slug (unlikely in practice).
+4. Failing all of the above, always test the plugin's action-link + admin-menu wiring manually after any prefix rename touching `admin/Main.php`.
+
+**Evidence**
+Feature 058, commit bc23e6e; false-positive fix landed as an explicit `Edit` mid-commit. See `specs/058-slug-rename-verb-first/plan.md` §Complexity Tracking.
+
+---
+
+### 2026-07-25 — Silent-fallthrough on JS prefix-strip when SLUG_PREFIX doesn't match the actual slug (BUG-JS-SLUG-PREFIX-FALLTHROUGH)
+
+**Status**: Fixed in Feature 058 (2026-07-25). Documented so future feature code that programmatically strips a display prefix uses a sentinel test instead of a silent fallthrough.
+
+**Symptoms**
+The Slug input on the Custom Abilities edit drawer showed the ENTIRE full slug (e.g. `acrossai-abilities-manager/get-admin-menu-context`) inside the editable input field, alongside a static prefix addon showing `acrossai-abilities/` (a shorter, wrong namespace) to its left. Administrators editing an ability were unable to tell which characters they were meant to change without reading the code.
+
+**Root Cause**
+`src/js/abilities/components/AbilityForm.jsx:39` hardcoded `const SLUG_PREFIX = 'acrossai-abilities/'`. Every ability actually registered under `acrossai-abilities-manager/*`. The display logic did `slug.startsWith(SLUG_PREFIX) ? slug.slice(SLUG_PREFIX.length) : slug` — when the prefix didn't match (which was ALWAYS for plugin-registered abilities), it silently fell through to the second branch and rendered the entire slug in the input field. The prefix addon separately rendered `{SLUG_PREFIX}` as a static string, showing the wrong prefix. Both bugs coexisted for many releases without complaint because it "looked reasonable" — a prefix followed by something that looked like a slug — and no one noticed the split was wrong until the user asked "why is the slug and the name diff".
+
+**Future mistake prevented**
+When a UI component programmatically strips a prefix from a displayed string:
+1. Prefer a sentinel behavior (throw / warn / show an error state) when the expected prefix doesn't match, NOT a silent fallthrough to the un-stripped value.
+2. If a fallthrough is intentional (e.g. legacy data), gate it behind an explicit flag and log the case.
+3. Include a unit test that asserts the strip-and-display works for a KNOWN slug from the actual registration surface, not just from test fixtures — because test fixtures can match the wrong prefix without any harm.
+
+**Evidence**
+Feature 058 commit bc23e6e — `SLUG_PREFIX` unified to `'acrossai/'` in both `AbilityForm.jsx` and `AbilitiesList.jsx`; server-side prefix injection in `AcrossAI_Abilities_Write_Controller` line 215 updated in lockstep so newly-created custom abilities use the same namespace. See `specs/058-slug-rename-verb-first/spec.md` US3.
+
+---
+
 ### 2026-05-16 — BerlinDB unlimited query: `number => -1` silently becomes 1
 
 **Status**: Active
@@ -152,7 +195,7 @@ class for `json_decode` to confirm whether the field is already decoded.
 `POST /abilities` returns 422 with *"Slug suffix is required when creating an ability."* even though the form has a slug value. No visible error in the form state.
 
 **Root Cause**
-The React form stores the full slug (e.g. `acrossai-abilities/my-ability`) in the `ability_slug` field for display purposes. The REST write controller expects only the user-typed suffix (`my-ability`) in a field called `slug_suffix` — it prepends `acrossai-abilities/` server-side. Sending `ability_slug` causes the validator to find `slug_suffix` empty and reject the request.
+The React form stores the full slug (e.g. `acrossai/my-ability`) in the `ability_slug` field for display purposes. The REST write controller expects only the user-typed suffix (`my-ability`) in a field called `slug_suffix` — it prepends `acrossai/` server-side. Sending `ability_slug` causes the validator to find `slug_suffix` empty and reject the request.
 
 **Future mistake prevented**
 Any form that has a read-only prefix display + editable suffix input MUST extract the suffix before submit, send it as `slug_suffix`, and omit `ability_slug` from the create payload.
@@ -1687,7 +1730,7 @@ Cross-reference: `BUG-EXTERNAL-PACKAGE-CTOR-SILENT` covers a different silent-fa
 **Bug pattern**
 `RecursiveIteratorIterator::SELF_FIRST` visits directories BEFORE their contents. Running `continue` in the outer `foreach` on a hidden / excluded directory entry does NOT stop descent — the iterator still visits every file inside that directory on the next iteration. If the exclusion check is basename-only (`$name[0] === '.'`), files inside the "skipped" directory get processed anyway because their basenames don't start with `.`.
 
-Real-world hit: `Zip_Create` 0.0.9 with `include_hidden=false` skipped the top-level `.git/` entry itself but still added `.git/objects/xxx` and every other file beneath it to the archive. Silent information leak — an operator asking for "no hidden files" got the full contents of every hidden directory in the archive. Fixed in 0.0.10 (PR [#73](https://github.com/acrossai-co/acrossai-abilities-manager/pull/73)).
+Real-world hit: `Create_Zip_Backup` 0.0.9 with `include_hidden=false` skipped the top-level `.git/` entry itself but still added `.git/objects/xxx` and every other file beneath it to the archive. Silent information leak — an operator asking for "no hidden files" got the full contents of every hidden directory in the archive. Fixed in 0.0.10 (PR [#73](https://github.com/acrossai-co/acrossai-abilities-manager/pull/73)).
 
 **Prevention**
 Check EVERY segment of the entry's forward-slashed relative path, not just the current basename. Use a helper like `has_hidden_segment($relative)` that iterates `explode('/', $relative)` and returns true if any segment starts with the exclusion character. Apply the check to both the assembly loop AND any pre-scan estimator (e.g. `estimate_tree_size()`) — otherwise size-cap checks disagree with what actually gets written.
@@ -1700,7 +1743,7 @@ Any code using `RecursiveIteratorIterator + SELF_FIRST` with a per-basename excl
 Cross-reference: the reference `download-plugin/app/Plugins/Base.php` (per-segment path check, line 282) implements the correct pattern.
 
 **Where to look**
-- `includes/Abilities/FileManager/Zip_Create.php::has_hidden_segment()` + `normalize_relative()` (the fix, applied to both `append_dir_to_zip()` and `estimate_tree_size()`).
+- `includes/Abilities/FileManager/Create_Zip_Backup.php::has_hidden_segment()` + `normalize_relative()` (the fix, applied to both `append_dir_to_zip()` and `estimate_tree_size()`).
 - `tests/phpunit/abilities/Test_Feature_041_Backup_Abilities.php::test_zip_create_skips_hidden_at_every_segment` (regression guard).
 - `specs/041-backup-restore-abilities-and-updates/spec.md` §Fixes (0.0.10 documentation).
 
@@ -1713,7 +1756,7 @@ Cross-reference: the reference `download-plugin/app/Plugins/Base.php` (per-segme
 **Status**: Active
 
 **Symptoms**
-Rows in `{prefix}abilities_access_control` stored with the ability slug's `/` character stripped: `acrossai-abilities-managerblock-pattern-delete` instead of `acrossai-abilities-manager/block-pattern-delete`. The resulting key cannot be found by subsequent GET / DELETE calls; the rule is orphaned in the DB.
+Rows in `{prefix}abilities_access_control` stored with the ability slug's `/` character stripped: `acrossai-abilities-managerblock-pattern-delete` instead of `acrossai/delete-block-pattern`. The resulting key cannot be found by subsequent GET / DELETE calls; the rule is orphaned in the DB.
 
 **Root Cause**
 Client-side JS passed the ability slug through `encodeURIComponent()` before interpolating into the composer's `PUT /wpb-ac/v1/{slug}/rules/{namespace}/{key}` URL. WordPress's REST layer + the composer's key sanitizer strip the resulting `%2F` rather than decoding it back to `/`, producing a truncated key.

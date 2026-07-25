@@ -26,7 +26,7 @@ class Get_Term extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-term',
+			'name' => 'acrossai/get-term',
 			'args' => array(
 				'label'               => __( 'Get Term', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a single term in a taxonomy via GET /wp/v2/{rest_base}/{id}.', 'acrossai-abilities-manager' ),
