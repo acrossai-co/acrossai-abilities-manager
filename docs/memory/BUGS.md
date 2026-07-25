@@ -5,6 +5,49 @@
 
 ## Active Bug Patterns
 
+### 2026-07-25 — Perl look-behind namespace-sweep hits filesystem-identifier string literals (BUG-PERL-LOOKBEHIND-PLUGIN-BASENAME)
+
+**Status**: Active
+
+**Symptoms**
+`admin/Main.php::plugin_action_links()` stopped rendering the "Settings" action link on the Plugins admin screen after a bulk namespace rename swept `acrossai-abilities-manager/` → `acrossai/` across the codebase. Diagnosed by inspecting the diff — line 415 comparison changed from `'acrossai-abilities-manager/acrossai-abilities-manager.php'` to `'acrossai/acrossai-abilities-manager.php'`. The plugin's real basename (`plugin_basename()` output) is still the ORIGINAL form because the physical plugin directory is still `acrossai-abilities-manager/`, so the equality check silently returns false and the link never gets added.
+
+**Root Cause**
+The perl regex `s{(?<!/)acrossai-abilities-manager/}{acrossai/}g` uses a negative look-behind for `/` to preserve filesystem paths in comments (`/wp-content/plugins/acrossai-abilities-manager/...`). But look-behind only inspects the ONE character immediately before the match. In the string `'acrossai-abilities-manager/acrossai-abilities-manager.php'`, the FIRST occurrence of the pattern is preceded by `'` (an opening quote) — not `/` — so look-behind succeeds and the substitution IS applied. The regex has no way to tell that this string is a filesystem identifier vs a slug prefix. Same problem would hit any codebase literal representing a filesystem path where the plugin's own directory appears at the start.
+
+**Future mistake prevented**
+When running a bulk namespace-sweep across the codebase:
+1. Enumerate `plugin_basename()`-style filesystem identifiers BEFORE the sweep: `grep -rn "'<plugin-slug>/<plugin-slug>\.php'\|'<plugin-slug>/'" .` — record them, exclude from sweep OR revert individually.
+2. After the sweep, grep for any newly-introduced `<new-namespace>/<original-plugin-file>.php` or `<new-namespace>/<original-plugin-slug>` — these are false positives.
+3. Consider using a more restrictive pattern that ALSO requires the terminator NOT to be another `<original-slug>` fragment: `s{(?<!/)acrossai-abilities-manager/(?!acrossai-abilities-manager)}{acrossai/}g` — catches the `plugin_basename` case at the cost of missing a legitimate `acrossai-abilities-manager/acrossai-abilities-manager-something-else` slug (unlikely in practice).
+4. Failing all of the above, always test the plugin's action-link + admin-menu wiring manually after any prefix rename touching `admin/Main.php`.
+
+**Evidence**
+Feature 058, commit bc23e6e; false-positive fix landed as an explicit `Edit` mid-commit. See `specs/058-slug-rename-verb-first/plan.md` §Complexity Tracking.
+
+---
+
+### 2026-07-25 — Silent-fallthrough on JS prefix-strip when SLUG_PREFIX doesn't match the actual slug (BUG-JS-SLUG-PREFIX-FALLTHROUGH)
+
+**Status**: Fixed in Feature 058 (2026-07-25). Documented so future feature code that programmatically strips a display prefix uses a sentinel test instead of a silent fallthrough.
+
+**Symptoms**
+The Slug input on the Custom Abilities edit drawer showed the ENTIRE full slug (e.g. `acrossai-abilities-manager/get-admin-menu-context`) inside the editable input field, alongside a static prefix addon showing `acrossai-abilities/` (a shorter, wrong namespace) to its left. Administrators editing an ability were unable to tell which characters they were meant to change without reading the code.
+
+**Root Cause**
+`src/js/abilities/components/AbilityForm.jsx:39` hardcoded `const SLUG_PREFIX = 'acrossai-abilities/'`. Every ability actually registered under `acrossai-abilities-manager/*`. The display logic did `slug.startsWith(SLUG_PREFIX) ? slug.slice(SLUG_PREFIX.length) : slug` — when the prefix didn't match (which was ALWAYS for plugin-registered abilities), it silently fell through to the second branch and rendered the entire slug in the input field. The prefix addon separately rendered `{SLUG_PREFIX}` as a static string, showing the wrong prefix. Both bugs coexisted for many releases without complaint because it "looked reasonable" — a prefix followed by something that looked like a slug — and no one noticed the split was wrong until the user asked "why is the slug and the name diff".
+
+**Future mistake prevented**
+When a UI component programmatically strips a prefix from a displayed string:
+1. Prefer a sentinel behavior (throw / warn / show an error state) when the expected prefix doesn't match, NOT a silent fallthrough to the un-stripped value.
+2. If a fallthrough is intentional (e.g. legacy data), gate it behind an explicit flag and log the case.
+3. Include a unit test that asserts the strip-and-display works for a KNOWN slug from the actual registration surface, not just from test fixtures — because test fixtures can match the wrong prefix without any harm.
+
+**Evidence**
+Feature 058 commit bc23e6e — `SLUG_PREFIX` unified to `'acrossai/'` in both `AbilityForm.jsx` and `AbilitiesList.jsx`; server-side prefix injection in `AcrossAI_Abilities_Write_Controller` line 215 updated in lockstep so newly-created custom abilities use the same namespace. See `specs/058-slug-rename-verb-first/spec.md` US3.
+
+---
+
 ### 2026-05-16 — BerlinDB unlimited query: `number => -1` silently becomes 1
 
 **Status**: Active
