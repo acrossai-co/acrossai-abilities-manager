@@ -71,7 +71,4 @@ if ( $acrossai_delete_data ) {
 	// Sits inside the existing $acrossai_delete_data gate per
 	// PATTERN-UNINSTALL-DATA-GATE / BUG-UNINSTALL-OPTIONS-OUTSIDE-GATE.
 	\delete_option( 'acrossai_abilities_manager_extra_mimes' );
-
-	// Feature 058 — one-shot slug-rename migration marker.
-	\delete_option( 'acrossai_abilities_slug_rename_058_done' );
 }
