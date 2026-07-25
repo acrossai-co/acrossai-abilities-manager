@@ -83,6 +83,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		// Feature 055 — two new categories.
 		$loader->add_action( 'wp_abilities_api_categories_init', AdminMenu\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', ContentSearch\Category_Registrar::instance(), 'register' );
+		// Feature 059 — Recovery Mode / fatal-error abilities.
+		$loader->add_action( 'wp_abilities_api_categories_init', Recovery\Category_Registrar::instance(), 'register' );
 	}
 
 	/**
@@ -327,6 +329,15 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new ContentSearch\Review_Internal_Link_Suggestion();
 		new ContentSearch\Apply_Internal_Link_Suggestion();
 		new ContentSearch\Audit_Internal_Links();
+
+		// Feature 059 — Recovery Mode / fatal-error abilities.
+		new Recovery\Get_Recovery_Mode_Status();
+		new Recovery\List_Paused_Plugins();
+		new Recovery\List_Paused_Themes();
+		new Recovery\Get_Recovery_Exit_Url();
+		new Recovery\Unpause_Plugin();
+		new Recovery\Unpause_Theme();
+		new Recovery\List_Recent_Fatal_Errors();
 
 		// Feature 055 — register the option-backed lifecycle event log.
 		Utilities\Lifecycle_Event_Log::register_hooks();

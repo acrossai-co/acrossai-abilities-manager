@@ -30,7 +30,7 @@ class Activate_Plugin extends Ability_Definition {
 			'name' => 'acrossai/activate-plugin',
 			'args' => array(
 				'label'               => __( 'Activate Plugin', 'acrossai-abilities-manager' ),
-				'description'         => __( 'Activate an installed WordPress plugin by name, slug, or partial match.', 'acrossai-abilities-manager' ),
+				'description'         => __( 'Activate an installed WordPress plugin by name, slug, or partial match. Works in recovery mode; only updates the active-plugins option and does not load the plugin file.', 'acrossai-abilities-manager' ),
 				'category'            => 'acrossai-abilities-manager-plugins',
 				'execute_callback'    => array( $this, 'execute' ),
 				'permission_callback' => static function (): bool {
