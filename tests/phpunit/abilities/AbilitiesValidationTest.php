@@ -345,7 +345,7 @@ class AbilitiesValidationTest extends WP_UnitTestCase {
 			'input_schema'    => array( 'type' => 'object' ),
 			'output_schema'   => array( 'type' => 'object' ),
 			'status'          => 'publish',
-			'ability_slug'    => 'acrossai-abilities/override',
+			'ability_slug'    => 'acrossai-abilities-manager/override',
 			'slug_suffix'     => 'override',
 			'source'          => 'plugin',
 			'show_in_mcp'     => true,   // editable — must survive.

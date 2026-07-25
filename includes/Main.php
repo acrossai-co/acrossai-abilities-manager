@@ -191,7 +191,7 @@ final class Main {
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL', plugin_dir_url( \ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE ) );
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_NAME_SLUG', $this->plugin_name );
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_NAME', 'AcrossAI Abilities Manager' );
-		$this->define( 'ACROSSAI_ABILITIES_MANAGER_VERSION', '0.0.15' );
+		$this->define( 'ACROSSAI_ABILITIES_MANAGER_VERSION', '0.0.16' );
 	}
 
 	/**
@@ -348,6 +348,12 @@ final class Main {
 		// Abilities DB table setup — BerlinDB hooks maybe_upgrade() to admin_init.
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern (AC-HOOKS-MAIN).
 		$abilities_table = \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Table::instance();
+
+		// Feature 058 slug-rename data migration. Runs once on admin_init; the
+		// option-flag guard makes repeated fires no-op. Wired here (not only in
+		// the activator) so plugin upgrades that don't retrigger activate() still
+		// apply the rename.
+		add_action( 'admin_init', array( \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Slug_Rename_Migration_058::class, 'maybe_run' ) );
 
 		// Register Access Control REST routes and admin notice for absent library (SAC-01).
 		$abilities_ac = \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control::instance();

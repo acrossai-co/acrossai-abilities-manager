@@ -27,7 +27,7 @@ class Plugin_List extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/plugin-list',
+			'name' => 'acrossai-abilities-manager/list-plugins',
 			'args' => array(
 				'label'               => __( 'List Plugins', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List all installed WordPress plugins, optionally filtered by status.', 'acrossai-abilities-manager' ),

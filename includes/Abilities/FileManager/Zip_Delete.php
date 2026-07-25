@@ -29,7 +29,7 @@ class Zip_Delete extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/zip-delete',
+			'name' => 'acrossai-abilities-manager/delete-zip-backup',
 			'args' => array(
 				'label'               => __( 'Delete Zip Backup', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete a zip stored under acrossai-backups/ or acrossai-staging/. Path outside those two directories is rejected; deleting a missing file returns success with a note.', 'acrossai-abilities-manager' ),

@@ -492,7 +492,7 @@ class Upload_Media extends Ability_Definition {
 
 		$hint_ability = sprintf(
 			/* translators: 1: extension, 2: guessed MIME */
-			__( 'To fix: call acrossai-abilities-manager/media-mimes-update with {"add":{"%1$s":"%2$s"}} and then retry this upload.', 'acrossai-abilities-manager' ),
+			__( 'To fix: call acrossai-abilities-manager/update-upload-mime-types with {"add":{"%1$s":"%2$s"}} and then retry this upload.', 'acrossai-abilities-manager' ),
 			$ext,
 			$this->guess_mime_for_ext( $ext )
 		);

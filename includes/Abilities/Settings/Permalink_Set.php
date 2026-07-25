@@ -32,7 +32,7 @@ class Permalink_Set extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/permalink-set',
+			'name' => 'acrossai-abilities-manager/set-permalink-structure',
 			'args' => array(
 				'label'               => __( 'Set Permalink Structure', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Sets permalink_structure. "structure" accepts a preset name (plain, day-and-name, month-and-name, numeric, post-name) or a custom structure string like "/%year%/%postname%/". Rewrite rules are flushed automatically. category_base and tag_base are optional.', 'acrossai-abilities-manager' ),

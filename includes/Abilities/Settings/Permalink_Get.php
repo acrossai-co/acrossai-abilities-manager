@@ -27,7 +27,7 @@ class Permalink_Get extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/permalink-get',
+			'name' => 'acrossai-abilities-manager/get-permalink-structure',
 			'args' => array(
 				'label'               => __( 'Get Permalink Structure', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns the current permalink_structure, the matching preset name (plain, day-and-name, month-and-name, numeric, post-name, or custom), plus category_base and tag_base.', 'acrossai-abilities-manager' ),

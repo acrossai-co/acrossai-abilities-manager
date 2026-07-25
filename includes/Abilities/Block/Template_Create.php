@@ -37,7 +37,7 @@ class Template_Create extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/template-create',
+			'name' => 'acrossai-abilities-manager/create-block-template',
 			'args' => array(
 				'label'               => __( 'Create Block Template', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Creates a block template. Defaults to the database (wp_template). Pass source=child_theme to write to the child theme\'s /templates dir, source=theme (with theme_slug) to write to a specific theme folder, or source=plugin (with plugin_slug) to write to a plugin\'s /templates dir.', 'acrossai-abilities-manager' ),

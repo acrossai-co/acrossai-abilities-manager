@@ -33,7 +33,7 @@ class Site_Logo_Update extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/site-logo-update',
+			'name' => 'acrossai-abilities-manager/update-site-logo',
 			'args' => array(
 				'label'               => __( 'Update Site Logo', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Sets the site (custom) logo to a media library attachment_id. Pass 0 to remove. Stored as the `custom_logo` theme_mod; the active theme must support custom-logo for it to render.', 'acrossai-abilities-manager' ),

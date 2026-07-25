@@ -27,7 +27,7 @@ class Navigation_List_Locations extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/navigation-list-locations',
+			'name' => 'acrossai-abilities-manager/list-navigation-locations',
 			'args' => array(
 				'label'               => __( 'List Navigation Locations', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List every theme-registered nav-menu location (slug + label) and the currently-assigned menu id / name (if any).', 'acrossai-abilities-manager' ),

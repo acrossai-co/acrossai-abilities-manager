@@ -26,7 +26,7 @@ class File_Read extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/file-read',
+			'name' => 'acrossai-abilities-manager/read-file',
 			'args' => array(
 				'label'               => __( 'Read File', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reads the contents of a file within the WordPress installation. Path must be relative to ABSPATH.', 'acrossai-abilities-manager' ),

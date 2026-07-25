@@ -32,7 +32,7 @@ class Admin_Menu_Get_Navigation_Target extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/admin-menu-get-navigation-target',
+			'name' => 'acrossai-abilities-manager/get-admin-menu-navigation-target',
 			'args' => array(
 				'label'               => __( 'Get Admin Menu Navigation Target', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Resolve a natural-language hint (e.g. "settings > reading", "media library") to the closest matching admin URL by scoring token-overlap against the current admin-menu tree. Returns the top hit with a confidence in [0, 1] plus the top three alternates.', 'acrossai-abilities-manager' ),

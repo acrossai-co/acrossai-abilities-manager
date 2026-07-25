@@ -27,7 +27,7 @@ class Internal_Link_Policy extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/content-internal-link-policy',
+			'name' => 'acrossai-abilities-manager/get-internal-link-policy',
 			'args' => array(
 				'label'               => __( 'Get Internal Link Policy', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the policy that governs internal-link suggestion creation and application. v1 policy is a static ruleset — future specs may make the ruleset editable via an options page.', 'acrossai-abilities-manager' ),

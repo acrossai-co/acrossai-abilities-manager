@@ -29,7 +29,7 @@ class Theme_Lifecycle_Get_Theme extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/theme-lifecycle-get-theme',
+			'name' => 'acrossai-abilities-manager/get-theme-lifecycle-context',
 			'args' => array(
 				'label'               => __( 'Get Theme Lifecycle Context', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the lifecycle-context envelope for a single theme (by stylesheet slug): header (name, version, author), active state, parent (if child theme), autoupdate enrolment, update availability, and last activated / deactivated / updated timestamps.', 'acrossai-abilities-manager' ),

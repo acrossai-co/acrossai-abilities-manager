@@ -26,7 +26,7 @@ class Db_Select extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/db-select',
+			'name' => 'acrossai-abilities-manager/run-db-select-query',
 			'args' => array(
 				'label'               => __( 'Run SELECT Query', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Executes a read-only SQL query (SELECT, SHOW, DESCRIBE, EXPLAIN). Pass the query in "sql" (or the alias "query"). Write statements are rejected. Results are capped by the limit parameter.', 'acrossai-abilities-manager' ),

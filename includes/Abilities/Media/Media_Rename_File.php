@@ -35,7 +35,7 @@ class Media_Rename_File extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/media-rename-file',
+			'name' => 'acrossai-abilities-manager/rename-media-file',
 			'args' => array(
 				'label'               => __( 'Rename Media File', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Rename an attachment\'s on-disk file and update the "_wp_attached_file" post-meta + attachment guid + regenerate intermediate size metadata. new_filename may not contain a directory separator, null byte, or a leading dot; the resolved new path must stay inside the original upload sub-directory; refuses if the target filename already exists (no clobber).', 'acrossai-abilities-manager' ),

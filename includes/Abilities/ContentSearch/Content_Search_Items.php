@@ -28,7 +28,7 @@ class Content_Search_Items extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/content-search-items',
+			'name' => 'acrossai-abilities-manager/search-content-items',
 			'args' => array(
 				'label'               => __( 'Search Content Items', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Search post-type items by keyword. Backed by WP_Query `s=` (LIKE-based title + content search). Score is a simple 0/1 relevance stub — WP core\'s search does not produce ranked scores natively.', 'acrossai-abilities-manager' ),

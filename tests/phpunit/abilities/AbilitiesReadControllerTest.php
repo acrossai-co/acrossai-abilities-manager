@@ -76,7 +76,7 @@ class AbilitiesReadControllerTest extends WP_UnitTestCase {
 	 */
 	public function tearDown(): void {
 		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai-abilities/test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai-abilities-manager/test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		wp_set_current_user( 0 );
 		parent::tearDown();
 	}
@@ -112,7 +112,7 @@ class AbilitiesReadControllerTest extends WP_UnitTestCase {
 		++$counter;
 
 		$defaults = [
-			'ability_slug'  => 'acrossai-abilities/test-read-' . $counter,
+			'ability_slug'  => 'acrossai-abilities-manager/test-read-' . $counter,
 			'label'         => 'Read Test ' . $counter,
 			'category'      => 'general',
 			'status'        => 'draft',

@@ -42,7 +42,7 @@ class Global_Styles_Update extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/global-styles-update',
+			'name' => 'acrossai-abilities-manager/update-global-style',
 			'args' => array(
 				'label'               => __( 'Update Global Style', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Updates Global Styles. By default deep-merges new data into the existing record; pass merge=false to replace. Use "section" + "data" to update one section only. Supports cross-source migration via migrate_to.', 'acrossai-abilities-manager' ),

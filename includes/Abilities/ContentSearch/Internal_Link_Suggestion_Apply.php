@@ -28,7 +28,7 @@ class Internal_Link_Suggestion_Apply extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/content-internal-link-suggestion-apply',
+			'name' => 'acrossai-abilities-manager/apply-internal-link-suggestion',
 			'args' => array(
 				'label'               => __( 'Apply Internal Link Suggestion', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Apply an approved suggestion by wrapping the first case-insensitive occurrence of the suggestion\'s anchor text in the target post\'s content with an <a href> tag. Marks the suggestion `applied` on success. Requires manage_options + edit_others_posts.', 'acrossai-abilities-manager' ),

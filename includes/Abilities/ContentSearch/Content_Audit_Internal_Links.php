@@ -31,7 +31,7 @@ class Content_Audit_Internal_Links extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/content-audit-internal-links',
+			'name' => 'acrossai-abilities-manager/audit-internal-links',
 			'args' => array(
 				'label'               => __( 'Audit Internal Links', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Scan up to N published posts for internal <a href> URLs and report broken ones. Broken = same-site URL that resolves to no post_id, or resolves to a post that is not in `publish` status. Makes no outbound HTTP requests; external-link health is out of scope.', 'acrossai-abilities-manager' ),

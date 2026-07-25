@@ -28,7 +28,7 @@ class Cron_Status extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/cron-status',
+			'name' => 'acrossai-abilities-manager/get-cron-status',
 			'args' => array(
 				'label'               => __( 'Get Cron Status', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Report whether WP-Cron is disabled (DISABLE_WP_CRON) or running in alternate mode (ALTERNATE_WP_CRON), the wp-cron.php URL, and the current server timestamp.', 'acrossai-abilities-manager' ),

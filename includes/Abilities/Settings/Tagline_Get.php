@@ -26,7 +26,7 @@ class Tagline_Get extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/tagline-get',
+			'name' => 'acrossai-abilities-manager/get-tagline',
 			'args' => array(
 				'label'               => __( 'Get Tagline', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns the current site tagline (the "blogdescription" option — a short description shown beside the site title in many themes).', 'acrossai-abilities-manager' ),

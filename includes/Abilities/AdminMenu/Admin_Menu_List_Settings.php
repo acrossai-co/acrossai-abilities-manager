@@ -28,7 +28,7 @@ class Admin_Menu_List_Settings extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/admin-menu-list-settings',
+			'name' => 'acrossai-abilities-manager/list-admin-settings',
 			'args' => array(
 				'label'               => __( 'List Admin Settings', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List every Settings API section + field per settings page. Reads the WP core $wp_settings_sections / $wp_settings_fields globals. Filter with the optional `page` input.', 'acrossai-abilities-manager' ),

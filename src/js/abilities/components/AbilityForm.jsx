@@ -36,7 +36,7 @@ import SourceBadge from './cells/SourceBadge';
 import CallbackConfigField from './CallbackConfigField';
 import { AccessControl } from '@wpb/access-control';
 
-const SLUG_PREFIX = 'acrossai-abilities/';
+const SLUG_PREFIX = 'acrossai-abilities-manager/';
 const SLUG_PATTERN = /^[a-z0-9-]+$/;
 const abilitiesConfig = window.acrossaiAbilitiesManager || {};
 

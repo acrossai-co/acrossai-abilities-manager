@@ -26,7 +26,7 @@ class Db_Explain extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/db-explain',
+			'name' => 'acrossai-abilities-manager/explain-db-query',
 			'args' => array(
 				'label'               => __( 'Explain Query', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Runs EXPLAIN on a SELECT query and returns the MySQL query execution plan. Useful for diagnosing slow queries.', 'acrossai-abilities-manager' ),

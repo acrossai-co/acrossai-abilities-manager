@@ -27,7 +27,7 @@ class Admin_Menu_Get_Context extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/admin-menu-get-context',
+			'name' => 'acrossai-abilities-manager/get-admin-menu-context',
 			'args' => array(
 				'label'               => __( 'Get Admin Menu Context', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the current WP-admin screen context: base, id, post_type, top-level menu slug (if resolvable via $_GET[page]), current caller\'s roles, and admin URL. Reads get_current_screen() when available; falls back to sanitized $_GET data otherwise.', 'acrossai-abilities-manager' ),

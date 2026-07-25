@@ -26,7 +26,7 @@ class Db_Stats extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/db-stats',
+			'name' => 'acrossai-abilities-manager/get-db-stats',
 			'args' => array(
 				'label'               => __( 'Database Stats', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns a summary of the WordPress database: version, name, table count, total size, charset, and collation.', 'acrossai-abilities-manager' ),

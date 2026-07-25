@@ -28,7 +28,7 @@ class User_Get extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/user-get',
+			'name' => 'acrossai-abilities-manager/get-user',
 			'args' => array(
 				'label'               => __( 'Get User', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Retrieve a single WordPress user by ID, login, email, or slug. Optionally attach user_meta via include_meta (all keys) or meta_keys (specific keys). Pass include_sessions to attach the user\'s active login sessions (login time, expiration, IP, UA).', 'acrossai-abilities-manager' ),

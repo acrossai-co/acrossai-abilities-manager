@@ -158,35 +158,35 @@ class Test_Feature_041_Backup_Abilities extends WP_UnitTestCase {
 	public function test_all_abilities_use_rebranded_slugs(): void {
 		$expected = array(
 			'zip_create'    => array(
-				'name'     => 'acrossai-abilities-manager/zip-create',
+				'name'     => 'acrossai-abilities-manager/create-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_upload'    => array(
-				'name'     => 'acrossai-abilities-manager/zip-upload',
+				'name'     => 'acrossai-abilities-manager/upload-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_extract'   => array(
-				'name'     => 'acrossai-abilities-manager/zip-extract',
+				'name'     => 'acrossai-abilities-manager/extract-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_download'  => array(
-				'name'     => 'acrossai-abilities-manager/zip-download',
+				'name'     => 'acrossai-abilities-manager/download-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_list'      => array(
-				'name'     => 'acrossai-abilities-manager/zip-list',
+				'name'     => 'acrossai-abilities-manager/list-zip-backups',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'zip_delete'    => array(
-				'name'     => 'acrossai-abilities-manager/zip-delete',
+				'name'     => 'acrossai-abilities-manager/delete-zip-backup',
 				'category' => 'acrossai-abilities-manager-file-manager',
 			),
 			'plugin_update' => array(
-				'name'     => 'acrossai-abilities-manager/plugin-update',
+				'name'     => 'acrossai-abilities-manager/update-plugin',
 				'category' => 'acrossai-abilities-manager-plugins',
 			),
 			'theme_update'  => array(
-				'name'     => 'acrossai-abilities-manager/theme-update',
+				'name'     => 'acrossai-abilities-manager/update-theme',
 				'category' => 'acrossai-abilities-manager-themes',
 			),
 		);

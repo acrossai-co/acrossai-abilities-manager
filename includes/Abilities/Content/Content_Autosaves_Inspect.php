@@ -30,7 +30,7 @@ class Content_Autosaves_Inspect extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/content-autosaves-inspect',
+			'name' => 'acrossai-abilities-manager/inspect-post-autosaves',
 			'args' => array(
 				'label'               => __( 'Inspect Autosaves', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the autosaves attached to a post (distinct from revisions). Only one autosave per post per author exists at a time; this ability flattens them into a list.', 'acrossai-abilities-manager' ),

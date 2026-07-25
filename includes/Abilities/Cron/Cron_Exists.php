@@ -26,7 +26,7 @@ class Cron_Exists extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/cron-exists',
+			'name' => 'acrossai-abilities-manager/check-cron-job-exists',
 			'args' => array(
 				'label'               => __( 'Check If Cron Job Exists', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return whether a scheduled event exists for a hook (and optional args). Backed by wp_next_scheduled() — true if a future run is registered.', 'acrossai-abilities-manager' ),

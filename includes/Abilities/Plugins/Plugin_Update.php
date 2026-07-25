@@ -32,7 +32,7 @@ class Plugin_Update extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/plugin-update',
+			'name' => 'acrossai-abilities-manager/update-plugin',
 			'args' => array(
 				'label'               => __( 'Update Plugin', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Apply the pending update for one or more installed plugins. Accepts plugin files (e.g. "hello-dolly/hello.php") or bare slugs (resolved via Plugin_Helpers). Re-running when no update is available is a no-op.', 'acrossai-abilities-manager' ),

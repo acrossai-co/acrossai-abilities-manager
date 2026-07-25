@@ -28,7 +28,7 @@ class Theme_Delete extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/theme-delete',
+			'name' => 'acrossai-abilities-manager/delete-theme',
 			'args' => array(
 				'label'               => __( 'Delete Theme', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete an installed WordPress theme by name, stylesheet, or partial match. The active theme cannot be deleted.', 'acrossai-abilities-manager' ),

@@ -27,7 +27,7 @@ class File_Delete extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/file-delete',
+			'name' => 'acrossai-abilities-manager/delete-file',
 			'args' => array(
 				'label'               => __( 'Delete File', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Deletes a file within the WordPress installation. Path must be relative to ABSPATH.', 'acrossai-abilities-manager' ),

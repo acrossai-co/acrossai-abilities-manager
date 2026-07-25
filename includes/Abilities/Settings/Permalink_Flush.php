@@ -30,7 +30,7 @@ class Permalink_Flush extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/permalink-flush',
+			'name' => 'acrossai-abilities-manager/flush-permalink-structure',
 			'args' => array(
 				'label'               => __( 'Reset / Flush Permalinks', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Rebuilds WordPress rewrite rules — useful after registering custom post types, taxonomies, or rewrite endpoints. Pass hard=true to also regenerate .htaccess (Apache) where supported.', 'acrossai-abilities-manager' ),

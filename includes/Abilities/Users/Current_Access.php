@@ -29,7 +29,7 @@ class Current_Access extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/users-current-access',
+			'name' => 'acrossai-abilities-manager/get-current-user-access',
 			'args' => array(
 				'label'               => __( 'Current User Access', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the current caller\'s user id, roles, capability map, and network-admin status. Read-only; useful for MCP clients that need to reason about what actions the current session is authorised to perform.', 'acrossai-abilities-manager' ),

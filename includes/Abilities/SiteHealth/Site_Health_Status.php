@@ -29,7 +29,7 @@ class Site_Health_Status extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/site-health-status',
+			'name' => 'acrossai-abilities-manager/get-site-health-status',
 			'args' => array(
 				'label'               => __( 'Get Site Health Status', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Run the WordPress Site Health direct tests and return the per-test results together with the good / recommended / critical counts shown on Tools → Site Health → Status. Optionally also runs async tests via their direct fallbacks.', 'acrossai-abilities-manager' ),

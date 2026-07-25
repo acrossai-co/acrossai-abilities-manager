@@ -38,7 +38,7 @@ class Global_Styles_Delete extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/global-styles-delete',
+			'name' => 'acrossai-abilities-manager/delete-global-style',
 			'args' => array(
 				'label'               => __( 'Delete Global Style', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Deletes Global Styles. By default deletes the entire record at the selected location (requires confirm=true). Pass "section" to delete only one section (colors, typography, spacing, layout, blockStyles, customCss). Refuses to delete parent-theme theme.json.', 'acrossai-abilities-manager' ),

@@ -75,7 +75,7 @@ class AbilitiesWriteControllerTest extends WP_UnitTestCase {
 	 */
 	public function tearDown(): void {
 		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai-abilities/test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}acrossai_abilities WHERE ability_slug LIKE 'acrossai-abilities-manager/test-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		wp_set_current_user( 0 );
 		parent::tearDown();
 	}
@@ -190,7 +190,7 @@ class AbilitiesWriteControllerTest extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'ability_slug', $data );
-		$this->assertSame( 'acrossai-abilities/test-create', $data['ability_slug'] );
+		$this->assertSame( 'acrossai-abilities-manager/test-create', $data['ability_slug'] );
 	}
 
 	/**
@@ -342,7 +342,7 @@ class AbilitiesWriteControllerTest extends WP_UnitTestCase {
 		$query = AcrossAI_Abilities_Query::instance();
 		$id    = $query->insert_ability(
 			array(
-				'ability_slug'  => 'acrossai-abilities/test-plugin-row',
+				'ability_slug'  => 'acrossai-abilities-manager/test-plugin-row',
 				'label'         => 'Plugin Ability',
 				'category'      => 'plugin-cat',
 				'source'        => 'plugin',
@@ -352,7 +352,7 @@ class AbilitiesWriteControllerTest extends WP_UnitTestCase {
 		);
 
 		// Try to override label (protected) and show_in_mcp (allowed).
-		$slug     = rawurlencode( 'acrossai-abilities/test-plugin-row' );
+		$slug     = rawurlencode( 'acrossai-abilities-manager/test-plugin-row' );
 		$request  = $this->make_request(
 			'POST',
 			"/acrossai-abilities-manager/v1/abilities/{$slug}",
@@ -398,14 +398,14 @@ class AbilitiesWriteControllerTest extends WP_UnitTestCase {
 		$query = AcrossAI_Abilities_Query::instance();
 		$id    = $query->insert_ability(
 			array(
-				'ability_slug'  => 'acrossai-abilities/test-plugin-nodelete',
+				'ability_slug'  => 'acrossai-abilities-manager/test-plugin-nodelete',
 				'source'        => 'plugin',
 				'status'        => 'publish',
 				'callback_type' => 'noop',
 			)
 		);
 
-		$slug     = rawurlencode( 'acrossai-abilities/test-plugin-nodelete' );
+		$slug     = rawurlencode( 'acrossai-abilities-manager/test-plugin-nodelete' );
 		$request  = $this->make_request( 'DELETE', "/acrossai-abilities-manager/v1/abilities/{$slug}" );
 		$response = $this->server->dispatch( $request );
 
@@ -466,7 +466,7 @@ class AbilitiesWriteControllerTest extends WP_UnitTestCase {
 	 */
 	public function test_delete_override_db_ability_returns_400() {
 		$this->create_ability( 'test-override-db-source' );
-		$slug     = rawurlencode( 'acrossai-abilities/test-override-db-source' );
+		$slug     = rawurlencode( 'acrossai-abilities-manager/test-override-db-source' );
 		$request  = $this->make_request( 'DELETE', "/acrossai-abilities-manager/v1/abilities/{$slug}/override" );
 		$response = $this->server->dispatch( $request );
 
@@ -484,7 +484,7 @@ class AbilitiesWriteControllerTest extends WP_UnitTestCase {
 		$query = AcrossAI_Abilities_Query::instance();
 		$query->insert_ability(
 			array(
-				'ability_slug'  => 'acrossai-abilities/test-plugin-has-override',
+				'ability_slug'  => 'acrossai-abilities-manager/test-plugin-has-override',
 				'source'        => 'plugin',
 				'status'        => 'publish',
 				'callback_type' => 'noop',
@@ -492,7 +492,7 @@ class AbilitiesWriteControllerTest extends WP_UnitTestCase {
 			)
 		);
 
-		$slug     = rawurlencode( 'acrossai-abilities/test-plugin-has-override' );
+		$slug     = rawurlencode( 'acrossai-abilities-manager/test-plugin-has-override' );
 		$request  = $this->make_request( 'DELETE', "/acrossai-abilities-manager/v1/abilities/{$slug}/override" );
 		$response = $this->server->dispatch( $request );
 

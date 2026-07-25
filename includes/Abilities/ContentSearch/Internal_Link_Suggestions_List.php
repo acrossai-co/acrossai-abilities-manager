@@ -27,7 +27,7 @@ class Internal_Link_Suggestions_List extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/content-internal-link-suggestions-list',
+			'name' => 'acrossai-abilities-manager/list-internal-link-suggestions',
 			'args' => array(
 				'label'               => __( 'List Internal Link Suggestions', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List all suggestions in the option-backed store, optionally filtered by post_id and/or status (pending / approved / rejected / applied).', 'acrossai-abilities-manager' ),

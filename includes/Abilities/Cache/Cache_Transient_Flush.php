@@ -26,7 +26,7 @@ class Cache_Transient_Flush extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/transient-flush',
+			'name' => 'acrossai-abilities-manager/flush-transients',
 			'args' => array(
 				'label'               => __( 'Flush Transients', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Deletes WordPress transients. Use scope "expired" (default) to remove only expired transients, or "all" to remove every transient regardless of expiry.', 'acrossai-abilities-manager' ),

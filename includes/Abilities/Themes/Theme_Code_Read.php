@@ -26,7 +26,7 @@ class Theme_Code_Read extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/theme-code-read',
+			'name' => 'acrossai-abilities-manager/read-theme-code',
 			'args' => array(
 				'label'               => __( 'Read Theme Code', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reads the contents of a file inside a theme directory. Defaults to the active theme.', 'acrossai-abilities-manager' ),

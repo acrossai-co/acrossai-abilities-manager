@@ -46,7 +46,7 @@ class Wp_Config_Edit extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/wp-config-edit',
+			'name' => 'acrossai-abilities-manager/edit-wp-config',
 			'args' => array(
 				'label'               => __( 'Edit wp-config.php', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Updates the value of an existing non-sensitive constant in wp-config.php. Protected credential and secret constants cannot be modified.', 'acrossai-abilities-manager' ),

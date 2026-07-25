@@ -33,7 +33,7 @@ class Block_Style_Variations_Read extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/block-style-variations-read',
+			'name' => 'acrossai-abilities-manager/read-block-style-variation',
 			'args' => array(
 				'label'               => __( 'Read Block Style Variation', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reads a Block Style Variation by slug. Defaults to the database; falls back to /styles file defaults. Pass "section" to return only colors / typography / spacing / layout / blockStyles.', 'acrossai-abilities-manager' ),

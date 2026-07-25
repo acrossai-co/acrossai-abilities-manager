@@ -27,7 +27,7 @@ class Get_Post_Translations extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-post-translations',
+			'name' => 'acrossai-abilities-manager/list-post-translations',
 			'args' => array(
 				'label'               => __( 'Get Post Translations', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the translations of a post (language code → post ID). Detects Polylang first, then WPML; errors if neither is active.', 'acrossai-abilities-manager' ),

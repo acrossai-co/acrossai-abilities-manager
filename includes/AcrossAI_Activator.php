@@ -10,6 +10,7 @@
 namespace AcrossAI_Abilities_Manager\Includes;
 
 use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Table;
+use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Slug_Rename_Migration_058;
 use AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control;
 use WPBoilerplate\AccessControl\Database\Rule\RuleTable;
 
@@ -43,6 +44,7 @@ class AcrossAI_Activator {
 		( new AcrossAI_Abilities_Table() )->maybe_upgrade();
 		( new RuleTable( AcrossAI_Abilities_Access_Control::TABLE_SLUG ) )->maybe_upgrade();
 		self::migrate_absorbed_options();
+		AcrossAI_Slug_Rename_Migration_058::maybe_run();
 	}
 
 	/**

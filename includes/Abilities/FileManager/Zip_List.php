@@ -28,7 +28,7 @@ class Zip_List extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/zip-list',
+			'name' => 'acrossai-abilities-manager/list-zip-backups',
 			'args' => array(
 				'label'               => __( 'List Zip Backups', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List zips inside acrossai-backups/ (default) or acrossai-staging/, newest first, with size, sha256, created_at.', 'acrossai-abilities-manager' ),

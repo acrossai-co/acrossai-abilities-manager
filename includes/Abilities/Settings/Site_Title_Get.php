@@ -26,7 +26,7 @@ class Site_Title_Get extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/site-title-get',
+			'name' => 'acrossai-abilities-manager/get-site-title',
 			'args' => array(
 				'label'               => __( 'Get Site Title', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns the current site title (the "blogname" option, displayed in the browser tab and across the site).', 'acrossai-abilities-manager' ),

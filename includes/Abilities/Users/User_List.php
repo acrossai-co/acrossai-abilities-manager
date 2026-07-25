@@ -83,7 +83,7 @@ class User_List extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/user-list',
+			'name' => 'acrossai-abilities-manager/list-users',
 			'args' => array(
 				'label'               => __( 'List Users', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Run a WP_User_Query with full parameter support: role filters, include/exclude IDs, multisite blog scope, search, pagination (number/paged/offset), ordering, date_query, meta_query, has_published_posts, and field selection. Returns paginated results with total counts. Defaults to 50 users per page, ordered by ID ascending.', 'acrossai-abilities-manager' ),

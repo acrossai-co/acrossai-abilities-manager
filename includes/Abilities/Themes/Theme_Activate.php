@@ -27,7 +27,7 @@ class Theme_Activate extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/theme-activate',
+			'name' => 'acrossai-abilities-manager/activate-theme',
 			'args' => array(
 				'label'               => __( 'Activate Theme', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Activate an installed WordPress theme by name, stylesheet, or partial match.', 'acrossai-abilities-manager' ),

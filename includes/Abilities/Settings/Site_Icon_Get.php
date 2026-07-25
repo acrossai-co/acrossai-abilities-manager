@@ -26,7 +26,7 @@ class Site_Icon_Get extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/site-icon-get',
+			'name' => 'acrossai-abilities-manager/get-site-icon',
 			'args' => array(
 				'label'               => __( 'Get Site Icon', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns the current site icon (favicon) — attachment ID plus URLs at the standard sizes (32, 192, 270, 512).', 'acrossai-abilities-manager' ),

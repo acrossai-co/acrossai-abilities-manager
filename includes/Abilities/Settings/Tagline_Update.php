@@ -26,7 +26,7 @@ class Tagline_Update extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/tagline-update',
+			'name' => 'acrossai-abilities-manager/update-tagline',
 			'args' => array(
 				'label'               => __( 'Update Tagline', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Updates the site tagline (the "blogdescription" option). Empty values are accepted to clear the tagline.', 'acrossai-abilities-manager' ),

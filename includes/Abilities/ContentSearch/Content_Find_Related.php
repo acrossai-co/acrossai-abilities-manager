@@ -27,7 +27,7 @@ class Content_Find_Related extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/content-find-related',
+			'name' => 'acrossai-abilities-manager/find-related-content',
 			'args' => array(
 				'label'               => __( 'Find Related Content', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return posts related to a given post via shared taxonomy terms (categories + tags by default). Fallback implementation — no learned relevance model.', 'acrossai-abilities-manager' ),

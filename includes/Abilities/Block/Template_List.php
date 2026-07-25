@@ -38,7 +38,7 @@ class Template_List extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/template-list',
+			'name' => 'acrossai-abilities-manager/list-block-templates',
 			'args' => array(
 				'label'               => __( 'List Block Templates', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Lists block templates across the database (wp_template), the active theme\'s /templates/*.html, the parent theme, and installed plugin /templates dirs. Filter by source, theme_type, plugin_slug, or exact slug.', 'acrossai-abilities-manager' ),

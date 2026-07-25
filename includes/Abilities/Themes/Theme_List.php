@@ -27,7 +27,7 @@ class Theme_List extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/theme-list',
+			'name' => 'acrossai-abilities-manager/list-themes',
 			'args' => array(
 				'label'               => __( 'List Themes', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List all installed WordPress themes, optionally filtered by status.', 'acrossai-abilities-manager' ),

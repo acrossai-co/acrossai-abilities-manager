@@ -26,7 +26,7 @@ class Plugin_Code_Read extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/plugin-code-read',
+			'name' => 'acrossai-abilities-manager/read-plugin-code',
 			'args' => array(
 				'label'               => __( 'Read Plugin Code', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reads the contents of a file inside a plugin directory.', 'acrossai-abilities-manager' ),

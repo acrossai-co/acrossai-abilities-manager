@@ -27,7 +27,7 @@ class Get_Pages extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-pages',
+			'name' => 'acrossai-abilities-manager/list-pages',
 			'args' => array(
 				'label'               => __( 'Get Pages', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List pages via get_pages(). Supports parent / child_of filters and sort_column / sort_order.', 'acrossai-abilities-manager' ),

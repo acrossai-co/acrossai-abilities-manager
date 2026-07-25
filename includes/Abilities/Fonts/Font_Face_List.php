@@ -30,7 +30,7 @@ class Font_Face_List extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/font-face-list',
+			'name' => 'acrossai-abilities-manager/list-font-faces',
 			'args' => array(
 				'label'               => __( 'List Font Faces', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List Font Library font faces (wp_font_face CPT) registered under a specific font family.', 'acrossai-abilities-manager' ),

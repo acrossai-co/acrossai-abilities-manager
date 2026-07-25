@@ -27,7 +27,7 @@ class Je_List_Options_Pages extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/je-list-options-pages',
+			'name' => 'acrossai-abilities-manager/list-jet-engine-options-pages',
 			'args' => array(
 				'label'               => __( 'List Options Pages', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List Jet Engine options pages (slug, name, option key, fields). Requires Jet Engine to be active.', 'acrossai-abilities-manager' ),

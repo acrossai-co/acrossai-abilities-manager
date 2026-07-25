@@ -32,7 +32,7 @@ class Zip_Create extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/zip-create',
+			'name' => 'acrossai-abilities-manager/create-zip-backup',
 			'args' => array(
 				'label'               => __( 'Create Zip Backup', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Zip a plugin, theme, uploads folder, mu-plugins folder, or an arbitrary path under ABSPATH. The archive is stored under wp-content/uploads/acrossai-backups/ with a random filename; the response returns the download URL, ABSPATH-relative path, size, and SHA-256.', 'acrossai-abilities-manager' ),

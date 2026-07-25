@@ -27,7 +27,7 @@ class File_Edit extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/file-edit',
+			'name' => 'acrossai-abilities-manager/edit-file',
 			'args' => array(
 				'label'               => __( 'Create or Overwrite File', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Creates a new file or overwrites an existing one within the WordPress installation. Parent directory must already exist. Path must be relative to ABSPATH.', 'acrossai-abilities-manager' ),

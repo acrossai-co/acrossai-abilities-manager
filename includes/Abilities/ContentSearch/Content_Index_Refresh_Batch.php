@@ -30,7 +30,7 @@ class Content_Index_Refresh_Batch extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/content-index-refresh-batch',
+			'name' => 'acrossai-abilities-manager/refresh-content-index-batch',
 			'args' => array(
 				'label'               => __( 'Refresh Content Index Batch', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Refresh WP core search-state for a batch of posts by calling clean_post_cache() on each. No new index table — this ability relies on WP\'s built-in `s=` search handler as the fallback index. Cap: 100 post_ids per call.', 'acrossai-abilities-manager' ),

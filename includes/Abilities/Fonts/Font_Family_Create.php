@@ -34,7 +34,7 @@ class Font_Family_Create extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/font-family-create',
+			'name' => 'acrossai-abilities-manager/create-font-family',
 			'args' => array(
 				'label'               => __( 'Create Font Family', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a Font Library font family (wp_font_family CPT). Requires name, slug, and fontFamily — matches the theme.json font family preset shape.', 'acrossai-abilities-manager' ),

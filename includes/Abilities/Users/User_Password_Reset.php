@@ -27,7 +27,7 @@ class User_Password_Reset extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/user-password-reset',
+			'name' => 'acrossai-abilities-manager/reset-user-password',
 			'args' => array(
 				'label'               => __( 'Reset User Password', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Send a password reset email to a user, or set a new password directly. Email notification is configurable.', 'acrossai-abilities-manager' ),

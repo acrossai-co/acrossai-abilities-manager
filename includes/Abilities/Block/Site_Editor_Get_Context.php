@@ -27,7 +27,7 @@ class Site_Editor_Get_Context extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/site-editor-get-context',
+			'name' => 'acrossai-abilities-manager/get-site-editor-context',
 			'args' => array(
 				'label'               => __( 'Get Site Editor Context', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the active theme\'s Site Editor context: whether the theme is a block theme, the active style variation, counts of registered templates and template parts, and the Site Editor URL.', 'acrossai-abilities-manager' ),

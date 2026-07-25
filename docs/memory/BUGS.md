@@ -152,7 +152,7 @@ class for `json_decode` to confirm whether the field is already decoded.
 `POST /abilities` returns 422 with *"Slug suffix is required when creating an ability."* even though the form has a slug value. No visible error in the form state.
 
 **Root Cause**
-The React form stores the full slug (e.g. `acrossai-abilities/my-ability`) in the `ability_slug` field for display purposes. The REST write controller expects only the user-typed suffix (`my-ability`) in a field called `slug_suffix` — it prepends `acrossai-abilities/` server-side. Sending `ability_slug` causes the validator to find `slug_suffix` empty and reject the request.
+The React form stores the full slug (e.g. `acrossai-abilities-manager/my-ability`) in the `ability_slug` field for display purposes. The REST write controller expects only the user-typed suffix (`my-ability`) in a field called `slug_suffix` — it prepends `acrossai-abilities-manager/` server-side. Sending `ability_slug` causes the validator to find `slug_suffix` empty and reject the request.
 
 **Future mistake prevented**
 Any form that has a read-only prefix display + editable suffix input MUST extract the suffix before submit, send it as `slug_suffix`, and omit `ability_slug` from the create payload.
@@ -1713,7 +1713,7 @@ Cross-reference: the reference `download-plugin/app/Plugins/Base.php` (per-segme
 **Status**: Active
 
 **Symptoms**
-Rows in `{prefix}abilities_access_control` stored with the ability slug's `/` character stripped: `acrossai-abilities-managerblock-pattern-delete` instead of `acrossai-abilities-manager/block-pattern-delete`. The resulting key cannot be found by subsequent GET / DELETE calls; the rule is orphaned in the DB.
+Rows in `{prefix}abilities_access_control` stored with the ability slug's `/` character stripped: `acrossai-abilities-managerblock-pattern-delete` instead of `acrossai-abilities-manager/delete-block-pattern`. The resulting key cannot be found by subsequent GET / DELETE calls; the rule is orphaned in the DB.
 
 **Root Cause**
 Client-side JS passed the ability slug through `encodeURIComponent()` before interpolating into the composer's `PUT /wpb-ac/v1/{slug}/rules/{namespace}/{key}` URL. WordPress's REST layer + the composer's key sanitizer strip the resulting `%2F` rather than decoding it back to `/`, producing a truncated key.

@@ -96,7 +96,7 @@ class Test_Feature_046_Payload_Shape extends WP_UnitTestCase {
 	public function test_all_samples_use_rebranded_slugs(): void {
 		$expected = array(
 			'plugin_list' => array(
-				'name'     => 'acrossai-abilities-manager/plugin-list',
+				'name'     => 'acrossai-abilities-manager/list-plugins',
 				'category' => 'acrossai-abilities-manager-plugins',
 			),
 			'get_post'    => array(
@@ -104,7 +104,7 @@ class Test_Feature_046_Payload_Shape extends WP_UnitTestCase {
 				'category' => 'acrossai-abilities-manager-content',
 			),
 			'user_get'    => array(
-				'name'     => 'acrossai-abilities-manager/user-get',
+				'name'     => 'acrossai-abilities-manager/get-user',
 				'category' => 'acrossai-abilities-manager-users',
 			),
 		);

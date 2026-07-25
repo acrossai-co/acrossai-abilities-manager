@@ -26,7 +26,7 @@ class Tables_List extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/tables-list',
+			'name' => 'acrossai-abilities-manager/list-db-tables',
 			'args' => array(
 				'label'               => __( 'List Database Tables', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Lists all tables in the database with engine, approximate row count, and storage size.', 'acrossai-abilities-manager' ),

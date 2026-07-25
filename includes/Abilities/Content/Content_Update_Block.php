@@ -32,7 +32,7 @@ class Content_Update_Block extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/content-update-block',
+			'name' => 'acrossai-abilities-manager/update-post-block',
 			'args' => array(
 				'label'               => __( 'Update Block', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Parse a post\'s block tree, find one top-level block by 0-based index (block_index) or by (block_name, occurrence), merge the supplied attributes, replace innerHTML, and save the post. Only top-level blocks are matched; nested-block editing is not supported by this ability.', 'acrossai-abilities-manager' ),

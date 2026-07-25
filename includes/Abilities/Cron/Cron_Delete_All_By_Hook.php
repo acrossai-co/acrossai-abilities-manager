@@ -26,7 +26,7 @@ class Cron_Delete_All_By_Hook extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/cron-delete-all',
+			'name' => 'acrossai-abilities-manager/delete-cron-jobs-by-hook',
 			'args' => array(
 				'label'               => __( 'Delete All Cron Jobs By Hook', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Unschedule every event for the given hook (across all args sets) via wp_unschedule_hook(). Returns the number of events removed.', 'acrossai-abilities-manager' ),

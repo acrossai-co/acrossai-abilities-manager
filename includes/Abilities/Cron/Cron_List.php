@@ -27,7 +27,7 @@ class Cron_List extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/cron-list',
+			'name' => 'acrossai-abilities-manager/list-cron-jobs',
 			'args' => array(
 				'label'               => __( 'List Cron Jobs', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List every scheduled WP-Cron event via _get_cron_array(), flattened to one row per event with timestamp, hook, schedule, interval, and args.', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Cache_Flush extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/cache-flush',
+			'name' => 'acrossai-abilities-manager/flush-object-cache',
 			'args' => array(
 				'label'               => __( 'Flush Object Cache', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Flushes the entire WordPress object cache via wp_cache_flush(). Useful after data changes when stale cached values may be served.', 'acrossai-abilities-manager' ),

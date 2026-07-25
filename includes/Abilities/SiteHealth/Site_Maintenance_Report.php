@@ -29,7 +29,7 @@ class Site_Maintenance_Report extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/site-maintenance-report',
+			'name' => 'acrossai-abilities-manager/get-site-maintenance-report',
 			'args' => array(
 				'label'               => __( 'Site Maintenance Report', 'acrossai-abilities-manager' ),
 				'description'         => __( 'One-shot maintenance snapshot: counts of pending core / plugin / theme updates, disk-free bytes on the WP install partition, PHP version, MySQL version, WP version, active theme, and site URL. Safe to poll (read-only).', 'acrossai-abilities-manager' ),

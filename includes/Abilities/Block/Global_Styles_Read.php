@@ -35,7 +35,7 @@ class Global_Styles_Read extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/global-styles-read',
+			'name' => 'acrossai-abilities-manager/read-global-style',
 			'args' => array(
 				'label'               => __( 'Read Global Style', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reads a Global Styles record (or one section of it) for a theme. Defaults to the database; falls back to theme.json defaults when no DB record exists. Pass "section" to return only colors / typography / spacing / layout / blockStyles / customCss.', 'acrossai-abilities-manager' ),

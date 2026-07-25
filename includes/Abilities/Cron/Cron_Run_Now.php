@@ -29,7 +29,7 @@ class Cron_Run_Now extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/cron-run-now',
+			'name' => 'acrossai-abilities-manager/run-cron-job-now',
 			'args' => array(
 				'label'               => __( 'Run Cron Job Now', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fire a scheduled cron hook synchronously via do_action(). The hook must be present in the cron array — this is not a generic do_action() runner.', 'acrossai-abilities-manager' ),

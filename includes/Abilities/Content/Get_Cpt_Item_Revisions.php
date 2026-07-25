@@ -26,7 +26,7 @@ class Get_Cpt_Item_Revisions extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/get-cpt-item-revisions',
+			'name' => 'acrossai-abilities-manager/list-cpt-item-revisions',
 			'args' => array(
 				'label'               => __( 'Get CPT Item Revisions', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List all stored revisions for a custom post type item by post_type + id. Autosaves are hidden by default; pass include_autosaves=true to surface them.', 'acrossai-abilities-manager' ),

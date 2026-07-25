@@ -32,7 +32,7 @@ class Admin_Menu_List_Pages extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/admin-menu-list-pages',
+			'name' => 'acrossai-abilities-manager/list-admin-menu-pages',
 			'args' => array(
 				'label'               => __( 'List Admin Menu Pages', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Enumerate every top-level admin menu entry plus its submenus. Reads the WP core $menu / $submenu globals populated after the admin_menu hook. Returns an empty result with a clear message when invoked outside the admin request lifecycle.', 'acrossai-abilities-manager' ),

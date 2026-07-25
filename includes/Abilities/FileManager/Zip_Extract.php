@@ -33,7 +33,7 @@ class Zip_Extract extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/zip-extract',
+			'name' => 'acrossai-abilities-manager/extract-zip-backup',
 			'args' => array(
 				'label'               => __( 'Extract Zip Backup', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Extract a zip archive (already on disk or fetched from a URL) into the resolved target directory. Every entry is checked for path traversal before extraction; DISALLOW_FILE_MODS short-circuits the ability.', 'acrossai-abilities-manager' ),

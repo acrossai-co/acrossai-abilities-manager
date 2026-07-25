@@ -39,7 +39,7 @@ class Block_Style_Variations_Update extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/block-style-variations-update',
+			'name' => 'acrossai-abilities-manager/update-block-style-variation',
 			'args' => array(
 				'label'               => __( 'Update Block Style Variation', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Updates a Block Style Variation. Auto-detects location; supports section-scoped updates, rename via new_slug, and cross-source migration via migrate_to.', 'acrossai-abilities-manager' ),

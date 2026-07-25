@@ -26,7 +26,7 @@ class Schema_Extract extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/schema-extract',
+			'name' => 'acrossai-abilities-manager/extract-db-schema',
 			'args' => array(
 				'label'               => __( 'Extract Database Schema', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns the full schema for every table in the database: columns, indexes, and CREATE TABLE SQL.', 'acrossai-abilities-manager' ),

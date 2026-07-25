@@ -26,7 +26,7 @@ class Db_Insert extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/db-insert',
+			'name' => 'acrossai-abilities-manager/insert-db-row',
 			'args' => array(
 				'label'               => __( 'Insert Row', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Inserts a single row into a database table using $wpdb->insert() (values are auto-escaped). Not idempotent — each call adds a new row.', 'acrossai-abilities-manager' ),

@@ -35,7 +35,7 @@ class Comments_Bulk_Update extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/comments-bulk-update',
+			'name' => 'acrossai-abilities-manager/bulk-update-comments',
 			'args' => array(
 				'label'               => __( 'Bulk Update Comments', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Apply the same status change (approve / hold / spam / trash) to up to 100 comments in one call. Enforces manage_options + moderate_comments. Returns per-comment success/failure entries.', 'acrossai-abilities-manager' ),

@@ -29,7 +29,7 @@ class Zip_Download extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/zip-download',
+			'name' => 'acrossai-abilities-manager/download-zip-backup',
 			'args' => array(
 				'label'               => __( 'Download Zip Backup', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Look up a zip already stored under acrossai-backups/ or acrossai-staging/ and return its download URL plus metadata (size, sha256, created_at).', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Site_Title_Update extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai-abilities-manager/site-title-update',
+			'name' => 'acrossai-abilities-manager/update-site-title',
 			'args' => array(
 				'label'               => __( 'Update Site Title', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Updates the site title (the "blogname" option). Whitespace is trimmed; the value cannot be empty.', 'acrossai-abilities-manager' ),
