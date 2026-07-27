@@ -430,12 +430,7 @@ final class Main {
 		// which itself runs at plugins_loaded @ P0 via the plugin entry file)
 		// so the constructor's plugins_loaded P20 add_action registers before
 		// P20 fires. Adding another integration is a one-line change here.
-		//
-		// Yoast_SEO uses the kill-switch variant (no single master filter — see
-		// its class docblock for the pattern rationale). Additional integrations
-		// go here as one-line `new <Vendor>();` calls.
 		new \AcrossAI_Abilities_Manager\Includes\Abilities\Integrations\ACF();
-		new \AcrossAI_Abilities_Manager\Includes\Abilities\Integrations\Yoast_SEO();
 	}
 
 	/**
