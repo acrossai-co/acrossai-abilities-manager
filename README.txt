@@ -38,7 +38,7 @@ All overrides are stored in a dedicated database table. The WordPress ability re
 
 * **MCP Adapter plugin** — if active, the plugin displays a list of registered MCP servers inside the ability edit panel. No data is sent to any external service. The MCP Adapter plugin communicates only with your own WordPress installation.
 
-This plugin makes no external HTTP requests. The Add-ons page lists free companion plugins hosted on WordPress.org; installing one uses the standard WordPress plugin installer, which contacts WordPress.org directly.
+This plugin's own code makes no external HTTP requests. Two admin-only surfaces do load external assets on your behalf: the AcrossAI → Consultations submenu page embeds the Calendly booking widget from `assets.calendly.com`, and the Add-ons page lists free companion plugins hosted on WordPress.org (installing one uses the standard WordPress plugin installer, which contacts WordPress.org directly). Full disclosure — including what data is transmitted and links to Calendly's terms + privacy policy — is in the **External Services** section below.
 
 == Installation ==
 
@@ -75,7 +75,12 @@ If the MCP Adapter plugin is active on your site, AcrossAI Abilities Manager wil
 
 = Does this plugin make external HTTP requests? =
 
-No. The plugin makes no external HTTP requests itself. The Add-ons page lists free companion plugins hosted on WordPress.org; installing one uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs.
+The plugin's own code makes no external HTTP requests. Two admin-only surfaces trigger external connections on behalf of an authenticated administrator:
+
+* **AcrossAI → Consultations** submenu — loads the Calendly inline booking widget (`assets.calendly.com/assets/external/widget.js` + an iframe at `calendly.com/acrossai/using-ai-in-wordpress`). Only loaded when an administrator opens that specific admin page.
+* **AcrossAI → Add-ons** — lists free companion plugins hosted on WordPress.org; installing one uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs.
+
+Full disclosure — including what data is transmitted, and links to each service's terms + privacy policy — is in the **External Services** section of this readme.
 
 == Screenshots ==
 
@@ -88,15 +93,39 @@ No. The plugin makes no external HTTP requests itself. The Add-ons page lists fr
 
 == External Services ==
 
-This plugin makes no external HTTP requests on its own.
+This plugin connects to the following external services on your behalf. Each connection is triggered by a specific admin-only action and is disclosed here per the WordPress.org plugin directory guidelines.
 
-The Add-ons page lists free companion plugins hosted on WordPress.org. Installing a listed add-on uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs — no external service is involved on the plugin's side.
+**1. Calendly (assets.calendly.com and calendly.com)**
+
+*What it is:* Calendly is a third-party scheduling service used to display an inline booking widget for AcrossAI consultations ("Using AI in WordPress").
+
+*When it is contacted:* Only when a logged-in administrator (`manage_options` capability) loads the "Consultations" submenu page at `/wp-admin/admin.php?page=acrossai-consultations`. The widget is bundled via the sibling `acrossai-co/main-menu` composer package (v0.0.24+) and is not loaded on any front-end page, on any other admin page, or by any REST endpoint.
+
+*What is loaded:* An iframe pointing at `https://calendly.com/acrossai/using-ai-in-wordpress?hide_event_type_details=1&hide_gdpr_banner=1`, plus an external JavaScript file `https://assets.calendly.com/assets/external/widget.js` that renders the iframe inline.
+
+*What data is transmitted:* Loading the widget sends the administrator's browser data (IP address, User-Agent, referrer) to Calendly's servers as part of the standard HTTP request. If the administrator actively schedules a consultation through the widget, any information they enter into Calendly's own form (name, email address, meeting preferences, etc.) is transmitted to Calendly and processed by Calendly. This plugin does not intercept, store, or forward that data.
+
+*Terms of service:* https://calendly.com/pages/terms
+*Privacy policy:* https://calendly.com/pages/privacy
+
+**2. WordPress.org (api.wordpress.org and downloads.wordpress.org)**
+
+The Add-ons page lists free companion plugins hosted on WordPress.org. Installing a listed add-on uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs. No external service is involved on the plugin's side.
+
+**3. WordPress.org core version-check API (`api.wordpress.org/core/version-check/1.7/`)**
+
+Called only when an administrator invokes the `acrossai/rollback-wp-core` ability (registered under the Core category) and the local core-version cache has expired. Rate-bounded to at most one request per day per locale per site via a site-transient cache. This is a WordPress-core-hosted API — no data beyond the standard WordPress core version-check request payload is transmitted.
 
 == Privacy Policy ==
 
-This plugin does not collect, store, or transmit any user data.
+This plugin does not itself collect, store, or transmit any user data to any third party.
 
-No data is sent to any external server without explicit user action.
+Two admin-only actions can cause external services to receive data — both are described in the External Services section above and are triggered only by an authenticated administrator:
+
+* Loading the AcrossAI → Consultations admin page loads Calendly's inline booking widget, which sends the administrator's browser metadata (IP, User-Agent, referrer) to Calendly's servers. If the administrator then books a consultation through the widget, information they enter into Calendly's form (name, email, meeting details) is transmitted to Calendly.
+* Invoking the `acrossai/rollback-wp-core` ability contacts the WordPress.org core version-check API (a WordPress-core-hosted service) via the standard WordPress update API.
+
+No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
 
