@@ -5,31 +5,53 @@
  * WPForms exposes WP Abilities API abilities in TWO tiers:
  *
  *   - **Reads** (auto-enabled) — always available when WPForms is active; no
- *     admin gate. Includes listing forms, listing entries, reading form
- *     schemas, etc. Our integration does NOT gate reads — they pass through
+ *     admin gate. Includes listing forms, reading form schemas, and similar
+ *     queries. Our integration does NOT gate reads — they pass through
  *     transparently regardless of this integration's toggle state.
  *
- *   - **Writes** (gated) — creating, updating, and deleting forms + entries.
- *     Gated by the WPForms-provided filter
- *     `wpforms_integrations_abilities_allow_write`. Defaults to false in
- *     WPForms itself (WPForms won't register the write abilities unless the
- *     filter returns true). This integration's toggle attaches
- *     `__return_true` to that filter when ON.
+ *   - **Writes** (gated) — Add Field, Create Form, Update Field, Update Form
+ *     Settings, and similar mutations. Gated by the WPForms-provided filter
+ *     `wpforms_integrations_abilities_allow_write` (default: false).
  *
- * ## Pattern: enable-filter (like ACF, unlike Yoast)
+ * ## What the write toggle actually does (subtle)
  *
- * WPForms has a SINGLE master filter for the write tier — same shape as ACF's
- * `acf/settings/enable_acf_ai`. So this integration uses the classic
- * enable-filter model:
+ * The `wpforms_integrations_abilities_allow_write` filter DOES NOT gate
+ * registration. WPForms registers ALL 8 abilities (reads + writes)
+ * unconditionally on every request — they appear in `wp_get_abilities()` and
+ * in the Custom Abilities admin table regardless of the filter value. See
+ * `wpforms-lite/src/Integrations/Abilities/Abilities.php::write_enabled()`
+ * (line 562) for the filter reference and lines 599 + 722 for the two things
+ * the filter actually gates:
+ *
+ *   1. **`mcp.public` flag** on each write ability's `meta.mcp` block. When
+ *      the filter returns false, `mcp.public=false` and the write abilities
+ *      are HIDDEN from MCP `discover-abilities` — external MCP clients don't
+ *      see them.
+ *   2. **Execution permission** via WPForms's `check_write_gate()` inside
+ *      each write ability's `permission_callback`. When the filter returns
+ *      false, calling a write ability returns `WP_Error 403
+ *      wpforms_writes_disabled`.
+ *
+ * So: our toggle controls **MCP visibility + execution permission**, NOT
+ * registration. The Custom Abilities admin table will keep showing all 8
+ * abilities regardless — that's WPForms's design, not a bug in this
+ * integration.
+ *
+ * ## Pattern: enable-filter (like ACF)
+ *
+ * Even though the semantics differ from ACF (which gates registration
+ * itself), the mechanical shape is identical: WPForms has a single master
+ * filter for the write tier, and our integration attaches `__return_true` to
+ * it when the toggle is ON. So:
  *
  *   - `enable_filter()` attaches `wpforms_integrations_abilities_allow_write`
  *     → `__return_true` when the integration toggle is ON.
- *   - `enable_filter()` does nothing when toggle is OFF, so WPForms's default
- *     (false) applies and the write abilities stay unregistered.
+ *   - `enable_filter()` does nothing when the toggle is OFF, so WPForms's
+ *     default (false via `wpforms_setting()` unless the site admin has
+ *     already enabled writes in WPForms's own settings) applies.
  *
- * No kill-switch is needed because the write abilities never register in the
- * first place unless our filter fires. Reads are outside the gate entirely
- * and are always available while WPForms is active.
+ * No kill-switch is needed. Reads are outside the gate entirely and remain
+ * available while WPForms is active.
  *
  * ## Category / tab_group slug
  *
@@ -156,7 +178,7 @@ class WPForms extends AcrossAI_Integration_Ability_Base {
 				'slug'        => 'wpforms/writes',
 				'label'       => __( 'Write abilities (gated by this toggle)', 'acrossai-abilities-manager' ),
 				'description' => __(
-					'Mutation abilities exposed by WPForms — creating, updating, and deleting forms and entries. Gated by the WPForms filter wpforms_integrations_abilities_allow_write (default: false). Flip the toggle above ON to attach __return_true to that filter so WPForms registers the write-tier abilities on subsequent requests.',
+					'Mutation abilities exposed by WPForms — Add Field, Create Form, Update Field, Update Form Settings, and similar. Gated by the WPForms filter wpforms_integrations_abilities_allow_write. Flip the toggle above ON to attach __return_true to that filter. Effect: WPForms flips the mcp.public flag on each write ability to true (so MCP clients see them via discover-abilities) AND allows write executions (calls return WP_Error 403 wpforms_writes_disabled when the filter is false). Note: WPForms always REGISTERS these 8 abilities so they will keep appearing in the Custom Abilities admin table regardless of this toggle — the toggle affects MCP visibility and execution permission, not registration.',
 					'acrossai-abilities-manager'
 				),
 			),
