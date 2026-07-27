@@ -85,6 +85,7 @@ class AcrossAI_Ability_Library_Registry {
 		'sub_group',
 		'sub_group_label',
 		'tab_group',
+		'card_variant',
 	);
 
 	/**
@@ -158,6 +159,37 @@ class AcrossAI_Ability_Library_Registry {
 	 */
 	public function get_definitions(): array {
 		return self::$definitions ?? array();
+	}
+
+	/**
+	 * Category slugs of every currently registered third-party integration.
+	 *
+	 * Reads the cached definitions and returns the unique category slugs of
+	 * rows whose card_variant is 'integration'. Empty when no integrations
+	 * are registered (or when their subclasses' is_plugin_active() returned
+	 * false for the current request). Callers use this to distinguish
+	 * integration categories — which invert the sparse-storage default per
+	 * FR-008 — from regular library categories.
+	 *
+	 * Note: these slugs are purely internal to the Library UI (Registry +
+	 * Config layers). They are intentionally NEVER registered as WP ability
+	 * categories — the base class's `push_definition()` docblock explains
+	 * why. Do not use this list to derive `wp_register_ability_category()`
+	 * calls without first replacing the synthetic rows' fail-closed callbacks.
+	 *
+	 * @see AcrossAI_Abilities_Manager\Includes\Modules\Library\Integrations\AcrossAI_Integration_Ability_Base::push_definition() Design contract note.
+	 *
+	 * @since  0.1.0
+	 * @return string[]
+	 */
+	public function get_integration_slugs(): array {
+		$slugs = array();
+		foreach ( self::$definitions ?? array() as $def ) {
+			if ( isset( $def['card_variant'], $def['category'] ) && 'integration' === $def['card_variant'] ) {
+				$slugs[ (string) $def['category'] ] = true;
+			}
+		}
+		return array_keys( $slugs );
 	}
 
 	/**
@@ -237,6 +269,18 @@ class AcrossAI_Ability_Library_Registry {
 				$clean_tab = AcrossAI_Ability_Library_Config::sanitize_key_field( (string) $item['tab_group'] );
 				if ( '' !== $clean_tab ) {
 					$entry['tab_group'] = $clean_tab;
+				}
+			}
+
+			// Feature 060 — optional card_variant pass-through.
+			// Display-only; never written to saved configuration. Sanitized at
+			// the Registry boundary via sanitize_key_field() so the JS
+			// receives a predictable key shape (e.g. 'integration'). Mirrors
+			// the tab_group treatment above.
+			if ( isset( $item['card_variant'] ) && '' !== $item['card_variant'] ) {
+				$clean_variant = AcrossAI_Ability_Library_Config::sanitize_key_field( (string) $item['card_variant'] );
+				if ( '' !== $clean_variant ) {
+					$entry['card_variant'] = $clean_variant;
 				}
 			}
 

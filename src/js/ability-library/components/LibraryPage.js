@@ -34,6 +34,7 @@ export function groupDefinitions(definitions) {
 			sub_group: subGroup,
 			sub_group_label: subGroupLabel,
 			tab_group: tabGroup,
+			card_variant: cardVariant,
 			args,
 		} = def;
 		const description =
@@ -51,12 +52,21 @@ export function groupDefinitions(definitions) {
 				// abilities declare mixed tab_groups will surface all of
 				// them so the header chip shows the full membership.
 				tabGroups: new Set(),
+				// Feature 060 — display-only card variant marker. Present
+				// when the definition rows declared card_variant (e.g.
+				// 'integration' for third-party integration cards). First
+				// non-empty value seen wins; regular categories leave this
+				// undefined so LibraryCard renders exactly as today.
+				cardVariant: undefined,
 				slugs: [],
 			});
 		}
 		const group = map.get(category);
 		if (tabGroup) {
 			group.tabGroups.add(tabGroup);
+		}
+		if (cardVariant && !group.cardVariant) {
+			group.cardVariant = cardVariant;
 		}
 		if (!group.slugs.some((s) => s.slug === slug)) {
 			group.slugs.push({

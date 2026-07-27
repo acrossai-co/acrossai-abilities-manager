@@ -53,14 +53,25 @@ export function groupBySubGroupPreservingOrder(slugs) {
  * @param {Function} props.onChange Called with (category, updatedEntry) on any change.
  */
 export default function LibraryCard({ item, config, onChange }) {
-	const { category, categoryLabel, slugs, tabGroups = [] } = item;
+	const {
+		category,
+		categoryLabel,
+		slugs,
+		tabGroups = [],
+		cardVariant,
+	} = item;
+	// Feature 060 — third-party integration cards invert the default: a missing
+	// config entry means OFF, and the All/Specific radio is suppressed. See
+	// FR-008 and spec/security-review-plan.md AZ-01.
+	const isIntegration = cardVariant === 'integration';
+	const defaultEnabled = !isIntegration;
 	const entry = config[category] ?? {
-		enabled: true,
+		enabled: defaultEnabled,
 		mode: 'all',
 		sub_keys: {},
 	};
 
-	const enabled = entry.enabled ?? true;
+	const enabled = entry.enabled ?? defaultEnabled;
 	const mode = entry.mode ?? 'all';
 	const slugsConfig = entry.sub_keys ?? {};
 
@@ -132,7 +143,7 @@ export default function LibraryCard({ item, config, onChange }) {
 					onChange={(value) => update({ enabled: value })}
 				/>
 
-				{enabled && (
+				{enabled && !isIntegration && (
 					<RadioControl
 						className="acrossai-library-card__mode"
 						selected={mode}

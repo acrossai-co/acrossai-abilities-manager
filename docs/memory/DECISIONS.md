@@ -1755,3 +1755,31 @@ Constitution §I locks the module list at five. Anyone adding new abilities will
 - `specs/042-core-category-and-wp-core-update/architecture-review.md` (module-enumeration table).
 
 **Tags**: category-folder, module-boundary, constitution, sub-partition, feature-042
+
+---
+
+### 2026-07-27 — Ability-definition abstract base classes MAY register hooks in their constructor (DEC-ABILITY-DEFINITION-CTOR-HOOKS)
+
+**Status**: Active (Accepted Deviation from Constitution §I Boot Flow Rule)
+**Scope**: Plugin-wide / Abstract base classes
+
+**Decision**
+Abstract base classes whose contract is "instantiate once → auto-register with WordPress" MAY register hooks in their own constructor via `add_action`/`add_filter` (not `$this->loader->…`). Formalises the pre-existing `Ability_Definition` pattern (~176 concrete subclasses shipping today) and covers the Feature 060 `AcrossAI_Integration_Ability_Base`. Sibling to `DEC-EXTERNAL-PACKAGE-HOOK-CTOR`.
+
+Applies ONLY to abstract classes whose subclasses are numerous and whose constructor is the natural registration point. Does NOT extend to feature-module singletons, REST controllers, or any class instantiated by Main.php — those continue to follow the strict Boot Flow Rule.
+
+**Why this is durable**
+Feature 060 introduced the second abstract base class in this plugin (after `Ability_Definition`) that registers hooks from its own constructor rather than via `Main.php`'s Loader. Without a formal accepted-deviation entry, every future code reviewer will re-raise the concern and potentially "fix" the pattern by routing hooks through the Loader — which would break the "instantiate once, auto-register" contract that 176 `Ability_Definition` subclasses and future integration subclasses rely on.
+
+**Tradeoffs / Prevention**
+- Gained: subclass authors only write `new My_Subclass()`; no per-subclass Loader wiring in Main.php.
+- Made harder: strict Boot Flow Rule audits must special-case abstract base classes.
+- Reconsider IF: WordPress core adds a first-class "collect definitions" mechanism that lets us aggregate subclass registrations without constructor-time filter adds.
+
+**Where to look**
+- `includes/Modules/Library/Ability_Definition.php` — original precedent (Feature 027).
+- `includes/Modules/Library/Integrations/AcrossAI_Integration_Ability_Base.php` — Feature 060 second usage.
+- `.specify/memory/CONSTITUTION.md` §I Boot Flow Rule — the rule being deviated from.
+- `docs/memory/DECISIONS.md#DEC-EXTERNAL-PACKAGE-HOOK-CTOR` — sibling deviation for external Composer packages.
+
+**Tags**: boot-flow-rule, constructor-hooks, ability-definition, integration, accepted-deviation, feature-060
