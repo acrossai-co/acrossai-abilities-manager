@@ -1830,3 +1830,30 @@ Feature 060 integration synthetic rows (Base class `push_definition()`) INTENTIO
 - `docs/planning/060-library-third-party-integration-toggles.md` (divergence #3, 2026-07-27 note).
 
 **Tags**: wp-abilities-api, wp_register_ability, wp_register_ability_category, silent-fail, category, feature-060
+
+---
+
+### 2026-07-27 — Sparse-storage strip rule silently drops values when keys have asymmetric defaults (BUG-SPARSE-STORAGE-UNIFORM-DEFAULT-ASSUMPTION)
+
+**Scope**: Options storage / Config normalization
+
+**Symptom**
+An options-store's sparse-storage optimization (strip entries at "default state" before persisting, on the assumption that missing entries read back as default) silently drops values that are at the OLD default but represent the NEW required state under a newly-introduced key type with a different default.
+
+Concrete Feature 060 case: `AcrossAI_Ability_Library_Config::save_config()` originally stripped every entry matching `{ enabled: true, mode: 'all', sub_keys: {} }` because regular library categories default to enabled=true. Feature 060 introduced integration categories whose default is enabled=FALSE (missing = OFF per FR-008). An integration toggled ON produced exactly the stripped shape → sparse-storage dropped it → reload read back missing → integration default OFF → toggle visibly turned itself off.
+
+**Cause**
+The strip predicate encoded a single global assumption (`enabled === true`) rather than a per-key-type default lookup. Adding a new key type with a different default broke the invariant silently — no error, no warning, no test failure. Detected only via user report of a round-trip regression.
+
+**Prevention**
+- Any time an existing options-store gains a new key type with a different default than the surrounding scheme, audit the sparse-storage / normalization logic FIRST.
+- Introduce a per-key-type default lookup (Feature 060 uses `AcrossAI_Ability_Library_Registry::get_integration_slugs()` as the discriminator). The strip predicate then computes: `$default_for_this_key = is_new_type($key) ? new_default : old_default; if ( $entry_matches( $default_for_this_key ) ) { strip; }`.
+- Add a round-trip regression test: seed the store with a "non-default under the new scheme" value, save via the public API, re-read, and assert the value is preserved. Feature 060's `test_save_config_preserves_integration_on_state` is the reference.
+- Consider the round-trip test MANDATORY whenever adding an asymmetric-default key. The bug is invisible without it.
+
+**Where to look**
+- `includes/Modules/Library/AcrossAI_Ability_Library_Config.php::save_config()` — the fixed instance (per-category-type default lookup).
+- `tests/phpunit/Modules/Library/Integrations/Test_Integration_Ability_Base.php` — the three regression tests (`test_save_config_preserves_integration_on_state`, `test_save_config_strips_integration_off_default`, `test_save_config_still_strips_regular_on_default`).
+- `docs/planning/060-library-third-party-integration-toggles.md` divergence #2 (2026-07-27) — the original bug report and fix rationale.
+
+**Tags**: sparse-storage, config, options, asymmetric-default, round-trip, silent-fail, feature-060

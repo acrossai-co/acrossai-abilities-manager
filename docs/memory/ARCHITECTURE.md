@@ -1599,3 +1599,36 @@ See `wp-content/mu-plugins/060-acf-tab-extension-demo.php` (Feature 060 quicksta
 `test_third_party_ability_definition_can_target_integration_tab` in `tests/phpunit/Modules/Library/Integrations/Test_Integration_Ability_Base.php` asserts that chaining an integration's `push_definition()` with a third-party `Ability_Definition`'s `push_definition()` produces two rows on the same tab.
 
 **Tags**: library, extension, tab_group, TAB_GROUP, ability-definition, third-party, feature-060
+
+---
+
+### 2026-07-27 — Filterable capability that can only raise, never lower (PATTERN-FILTERABLE-CAPABILITY-RAISE-ONLY)
+
+**Scope**: Extension points / Authorization
+
+**Pattern**
+When exposing a filter that lets a site override a required WordPress capability for a mutation endpoint (e.g. `apply_filters( 'my_plugin_x_capability', 'manage_options', $context )`), enforce the returned cap via a SINGLE `current_user_can( $filtered_cap )` check — NEVER as `current_user_can( $filtered_cap ) || current_user_can( $default_cap )`.
+
+The single-check shape is inherently one-way (raise-only) because:
+- If a site returns a STRICTER cap (e.g. `manage_network_options`), the user must hold that cap → access is tightened.
+- If a bad filter returns garbage or an empty string, `current_user_can( '' )` returns false → fail-closed.
+- The filter CANNOT lower the effective requirement below what WordPress's own cap model enforces — a returned "weaker" cap string still requires the user to actually hold it.
+
+Companion pieces:
+- Layer the pre-existing (unconditional) cap floor BEFORE the filter check as belt-and-suspenders. Feature 060 keeps the REST controller's `manage_options` floor from `check_permission` AND adds the filtered check on the mutation handler on top — both must pass.
+- Pass POST-SANITISATION context to the filter (Feature 060 SEC-005): sanitise the discriminator (e.g. the integration slug) BEFORE `apply_filters(...)` so hook implementers receive canonical values, not raw request data.
+- Fire an accompanying `_denied` action (e.g. `do_action( 'acrossai_integration_toggle_denied', $context, $required_cap, $user_id )`) so sites can wire audit logging without amending core code.
+
+**Anti-pattern to avoid**
+```php
+// WRONG — allows the filter to LOWER the effective cap by returning a weaker one.
+if ( current_user_can( $filtered_cap ) || current_user_can( $default_cap ) ) {
+    // proceed
+}
+```
+The OR breaks the raise-only property: a site returning `read` as the filter value would grant access to any logged-in user (because the second clause still holds for admins). Always use the single check.
+
+**Reference**
+Feature 060 `AcrossAI_Ability_Library_Config_Controller::save_config()` implements this for the `acrossai_integration_toggle_capability` filter (FR-016). Manual verification via quickstart Step 6 — a mu-plugin raises the required cap to `manage_network_options` and a `manage_options`-only user gets HTTP 403.
+
+**Tags**: capability, filter, extension-point, authorization, raise-only, current_user_can, feature-060
