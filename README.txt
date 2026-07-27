@@ -38,7 +38,7 @@ All overrides are stored in a dedicated database table. The WordPress ability re
 
 * **MCP Adapter plugin** — if active, the plugin displays a list of registered MCP servers inside the ability edit panel. No data is sent to any external service. The MCP Adapter plugin communicates only with your own WordPress installation.
 
-This plugin's own code makes no external HTTP requests. Two admin-only surfaces do load external assets on your behalf: the AcrossAI → Consultations submenu page embeds the Calendly booking widget from `assets.calendly.com`, and the Add-ons page lists free companion plugins hosted on WordPress.org (installing one uses the standard WordPress plugin installer, which contacts WordPress.org directly). Full disclosure — including what data is transmitted and links to Calendly's terms + privacy policy — is in the **External Services** section below.
+This plugin's own code makes no external HTTP requests. Two admin-only surfaces do load external assets on your behalf: the AcrossAI → Consultations submenu page embeds the Calendly booking widget from `assets.calendly.com`, and the AcrossAI → Add-ons page can install companion plugins from three supported sources — WordPress.org, GitHub, and Freemius — depending on the source declared on each listed add-on. Full disclosure — including what data is transmitted to each service and links to their terms + privacy policies — is in the **External Services** section below.
 
 == Installation ==
 
@@ -78,7 +78,7 @@ If the MCP Adapter plugin is active on your site, AcrossAI Abilities Manager wil
 The plugin's own code makes no external HTTP requests. Two admin-only surfaces trigger external connections on behalf of an authenticated administrator:
 
 * **AcrossAI → Consultations** submenu — loads the Calendly inline booking widget (`assets.calendly.com/assets/external/widget.js` + an iframe at `calendly.com/acrossai/using-ai-in-wordpress`). Only loaded when an administrator opens that specific admin page.
-* **AcrossAI → Add-ons** — lists free companion plugins hosted on WordPress.org; installing one uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs.
+* **AcrossAI → Add-ons** submenu — installs companion plugins from three supported sources: **WordPress.org** (via WordPress core's `plugins_api()`), **GitHub** (direct ZIP download from a public release-asset URL), or **Freemius** (via the Freemius SDK bundled inside the add-on being installed). Which source is contacted depends on the `source` field declared on each add-on registered through the `acrossai_addons` filter.
 
 Full disclosure — including what data is transmitted, and links to each service's terms + privacy policy — is in the **External Services** section of this readme.
 
@@ -108,21 +108,49 @@ This plugin connects to the following external services on your behalf. Each con
 *Terms of service:* https://calendly.com/pages/terms
 *Privacy policy:* https://calendly.com/pages/privacy
 
-**2. WordPress.org (api.wordpress.org and downloads.wordpress.org)**
+**2. AcrossAI Add-ons page — three supported plugin sources**
 
-The Add-ons page lists free companion plugins hosted on WordPress.org. Installing a listed add-on uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs. No external service is involved on the plugin's side.
+The AcrossAI → Add-ons submenu page (`/wp-admin/admin.php?page=acrossai-addons`) lists companion plugins from up to three sources. The list is extensible via the `acrossai_addons` PHP filter, so which sources are actually contacted depends on which add-ons are registered on your site. Each source has its own trigger, terms, and privacy policy — disclosed individually below.
+
+  **2a. WordPress.org plugin directory (`api.wordpress.org` and `downloads.wordpress.org`)**
+
+  *When contacted:* An authenticated administrator (`manage_options`) clicks Install on an add-on whose source is `wordpress.org`, or WordPress core performs a routine update check that includes any listed wp.org add-on. Contact happens through WordPress core's own `plugins_api()` and `Plugin_Upgrader` — this plugin does not issue direct HTTP requests.
+
+  *What data is transmitted:* The WordPress core plugin API request payload (site URL, WP version, PHP version, locale) as per WordPress core's standard update check protocol.
+
+  *Terms of service:* https://wordpress.org/about/terms/
+  *Privacy policy:* https://wordpress.org/about/privacy/
+
+  **2b. GitHub (`github.com` and `codeload.github.com`)**
+
+  *When contacted:* An authenticated administrator (`manage_options`) clicks Install on an add-on whose source is `github`. The Add-ons page's install action downloads the plugin ZIP from the `download_url` declared on the add-on entry (typically a public GitHub release-asset URL under `github.com/<org>/<repo>/releases/download/<tag>/…zip` or `codeload.github.com`).
+
+  *What data is transmitted:* Standard HTTP GET request metadata (site IP, User-Agent, referrer). No credentials, tokens, or site-specific payload are sent. GitHub does not require authentication for public-repo release asset downloads.
+
+  *Terms of service:* https://docs.github.com/en/site-policy/github-terms/github-terms-of-service
+  *Privacy policy:* https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
+
+  **2c. Freemius (`api.freemius.com`)**
+
+  *When contacted:* An authenticated administrator (`manage_options`) installs or activates an add-on whose source is `freemius`. Freemius is a plugin distribution and licensing service; installing a Freemius-distributed add-on delegates the download, activation, and (for paid plans) license-key exchange to Freemius's SDK, which is bundled inside the add-on itself. No Freemius contact happens on this plugin's side unless a Freemius-sourced add-on is actively installed.
+
+  *What data is transmitted:* Per Freemius SDK behaviour — site URL, WP/PHP version, license key (for paid plans), and any user opt-in analytics the add-on's Freemius setup collects. Users may be asked to opt in to a Freemius account before activation.
+
+  *Terms of service:* https://freemius.com/terms/
+  *Privacy policy:* https://freemius.com/privacy/
 
 **3. WordPress.org core version-check API (`api.wordpress.org/core/version-check/1.7/`)**
 
-Called only when an administrator invokes the `acrossai/rollback-wp-core` ability (registered under the Core category) and the local core-version cache has expired. Rate-bounded to at most one request per day per locale per site via a site-transient cache. This is a WordPress-core-hosted API — no data beyond the standard WordPress core version-check request payload is transmitted.
+Called only when an administrator invokes the `acrossai/rollback-wp-core` ability (registered under the Core category) and the local core-version cache has expired. Rate-bounded to at most one request per day per locale per site via a site-transient cache. This is a WordPress-core-hosted API — no data beyond the standard WordPress core version-check request payload is transmitted. Same wp.org terms + privacy policy as service 2a above.
 
 == Privacy Policy ==
 
 This plugin does not itself collect, store, or transmit any user data to any third party.
 
-Two admin-only actions can cause external services to receive data — both are described in the External Services section above and are triggered only by an authenticated administrator:
+Several admin-only actions can cause external services to receive data — all are described in the External Services section above and are triggered only by an authenticated administrator:
 
 * Loading the AcrossAI → Consultations admin page loads Calendly's inline booking widget, which sends the administrator's browser metadata (IP, User-Agent, referrer) to Calendly's servers. If the administrator then books a consultation through the widget, information they enter into Calendly's form (name, email, meeting details) is transmitted to Calendly.
+* Installing an add-on from the AcrossAI → Add-ons page contacts the source declared on that add-on: WordPress.org (via WordPress core APIs), GitHub (direct ZIP download from a public release-asset URL), or Freemius (via the Freemius SDK bundled inside the add-on being installed).
 * Invoking the `acrossai/rollback-wp-core` ability contacts the WordPress.org core version-check API (a WordPress-core-hosted service) via the standard WordPress update API.
 
 No data is sent to any external server without an explicit administrator action.
