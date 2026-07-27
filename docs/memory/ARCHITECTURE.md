@@ -1527,3 +1527,75 @@ Full-screen busy overlay for bulk client-side operations. Consistent with WP-adm
 Reference: Feature 056 (2026-07-21) — `src/js/abilities/components/{AbilitiesList,UserAccessBulkModal,BulkBusyOverlay}.jsx` + `.acrossai-abilities-bulk-busy-overlay*` rules in `src/scss/abilities/admin.scss`.
 
 **Tags**: bulk, overlay, spinner, wp-native, backdrop-filter, scroll-lock, a11y, feature-056
+
+---
+
+### 2026-07-27 — Library third-party integration base class pattern (PATTERN-LIBRARY-INTEGRATION-BASE)
+
+**Scope**: Library / Abilities / Extensibility
+
+**Pattern**
+To add a third-party plugin integration (toggle card + tab) to the Ability Library page:
+
+1. Create `includes/Abilities/Integrations/<Vendor>.php` extending `AcrossAI_Integration_Ability_Base`.
+2. Implement 5 abstract methods:
+   - `slug()` — used as BOTH category AND tab_group.
+   - `label()` — display label for the card/tab.
+   - `is_plugin_active()` — per-request predicate; use a compound check on stable public symbols of the target plugin (a single-symbol check is spoofable — see security-review-plan.md SEC-002).
+   - `enable_filter()` — attaches the target plugin's own AI-enable filter (e.g. ACF calls `add_filter('acf/settings/enable_acf_ai', '__return_true')`).
+   - `abilities()` — fixed readonly display list `[{slug, label, description?}, ...]` shown inside the card.
+3. Publish `public const TAB_GROUP = '<slug>'` on the subclass — Feature 060 FR-017. Third-party add-on plugins reference this constant instead of hardcoding the slug.
+4. Instantiate once in `Main::define_public_hooks()` alongside the Core Abilities Bootstrap (`new My_Integration();`). The base class constructor auto-registers both hooks per `DEC-ABILITY-DEFINITION-CTOR-HOOKS`.
+
+**Base class behaviour**
+- Hooks `plugins_loaded @ P20` → `maybe_enable()` — reads config via `AcrossAI_Ability_Library_Config::is_integration_enabled()` (inverted default: missing = OFF per FR-008), calls subclass `enable_filter()` inside a try/catch (Constitution §V Integration Resilience; caught throwable is logged behind `WP_DEBUG_LOG` guard).
+- Hooks `acrossai_abilities_api_init @ P10` → `push_definition()` — emits one synthetic display row per subclass-declared ability, all sharing the same `category`/`category_label`/`tab_group` and `card_variant='integration'`.
+- Both callbacks call `is_plugin_active()` FIRST and early-return on false. Result: deactivated target plugin never renders a card, tab, or filter attachment.
+
+**Storage**
+- Toggle state lives in the existing `acrossai_library_config` option (site-wide via `get_site_option`/`update_site_option` — network-wide on multisite; per-site `is_plugin_active()` gates visibility).
+- Sparse storage in `AcrossAI_Ability_Library_Config::save_config()` uses per-category defaults: regular categories strip `enabled=true`, integration categories strip `enabled=false` (matching their inverted default). Registry publishes the integration slug list via `get_integration_slugs()`.
+
+**JS render**
+- `card_variant='integration'` flows from the definition row through the Registry (sanitised at boundary via `sanitize_key_field`, mirrors Feature 037's `tab_group` pattern) into `LibraryCard`.
+- LibraryCard suppresses the All/Specific radio and defaults `enabled` to `false` when the entry is missing.
+
+**Synthetic-row lifecycle** (subtle but critical)
+- Synthetic rows carry the integration slug as their `category` (e.g. `'acf'`). That slug is intentionally NEVER registered as a WP ability category on `wp_abilities_api_categories_init`, so WP core silently rejects them at `wp_register_ability()` — see `BUG-WP-CORE-ABILITY-CATEGORY-PRE-REGISTRATION`. This is DESIRED — the rows exist solely to drive the Library UI card (Registry-driven).
+- Their `execute_callback` returns `WP_Error` and `permission_callback` returns `false` as defence-in-depth if that WP-core rule ever changes.
+- Do NOT "fix" the WP-core rejection by pre-registering the integration slug as a category — that would leak N fail-closed abilities per integration into `wp_get_abilities()`.
+
+**Reference implementation & tests**
+- `includes/Abilities/Integrations/ACF.php` (Feature 060 first concrete subclass).
+- `includes/Modules/Library/Integrations/AcrossAI_Integration_Ability_Base.php` (base class with full docblock).
+- `tests/phpunit/Modules/Library/Integrations/Test_Integration_Ability_Base.php` — 20 tests covering all 5 user stories.
+- `specs/060-library-third-party-integration-toggles/` — spec, plan, tasks, security-review-plan, memory-synthesis, quickstart.
+
+**Tags**: library, integration, tab_group, card_variant, is_plugin_active, feature-060
+
+---
+
+### 2026-07-27 — Third-party plugin extending an integration's tab (PATTERN-LIBRARY-INTEGRATION-TAB-EXTENSION)
+
+**Scope**: Library / Extensibility
+
+**Pattern**
+Any WordPress plugin (separate from `acrossai-abilities-manager`) can add REGULAR ability cards to an integration's tab (e.g. add three custom ACF-related cards next to the ACF integration toggle card). The pattern requires THREE things, all of them:
+
+1. **Register the ability CATEGORY** on `wp_abilities_api_categories_init` via `wp_register_ability_category( $slug, [ 'label' => ..., 'description' => ... ] )`. Skipping this = silent rejection by WP core — see `BUG-WP-CORE-ABILITY-CATEGORY-PRE-REGISTRATION`. The Library UI card still renders (Registry-driven), but the underlying ability never enters `wp_get_abilities()` — so it's absent from the Custom Abilities table and MCP `discover-abilities`.
+2. **Extend** `AcrossAI_Abilities_Manager\Includes\Modules\Library\Ability_Definition` and implement `ability()` returning a full ability spec.
+3. **Set** `meta.acrossai.tab_group` on `args.meta.acrossai` to the integration's published `TAB_GROUP` constant (e.g. `ACF::TAB_GROUP`), NOT a hardcoded string.
+
+**Category slug guidance**
+Use a DISTINCT category slug per add-on plugin (e.g. `'my-plugin-acf'`). Reusing the integration's own slug (`'acf'`) would (a) fail WP core's category check on the add-on side (integration slugs are never pre-registered — see synthetic-row lifecycle in `PATTERN-LIBRARY-INTEGRATION-BASE`) and (b) attempt to merge abilities into the integration's read-only card — neither is intended.
+
+**Rendering**
+Add-on cards render as REGULAR library cards: toggle + expand chevron + All/Specific radio + per-ability checkboxes. Styled identically to the "Core" cards on other tabs. The integration's own toggle card (`card_variant='integration'`) sits alongside them on the same tab.
+
+**Worked example**
+See `wp-content/mu-plugins/060-acf-tab-extension-demo.php` (Feature 060 quickstart Step 7) — registers two demo categories on `wp_abilities_api_categories_init` and instantiates three anonymous `Ability_Definition` subclasses targeting `ACF::TAB_GROUP`. Result: 3 extra cards on the ACF tab, 3 extra rows in the Custom Abilities table (12 total instead of 9).
+
+**Test coverage**
+`test_third_party_ability_definition_can_target_integration_tab` in `tests/phpunit/Modules/Library/Integrations/Test_Integration_Ability_Base.php` asserts that chaining an integration's `push_definition()` with a third-party `Ability_Definition`'s `push_definition()` produces two rows on the same tab.
+
+**Tags**: library, extension, tab_group, TAB_GROUP, ability-definition, third-party, feature-060

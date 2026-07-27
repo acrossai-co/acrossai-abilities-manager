@@ -413,6 +413,24 @@ final class Main {
 		$core_abilities_bootstrap = \AcrossAI_Abilities_Manager\Includes\Abilities\AcrossAI_Core_Abilities_Bootstrap::instance();
 		$core_abilities_bootstrap->register_category_callbacks( $this->loader );
 		$this->loader->add_action( 'plugins_loaded', $core_abilities_bootstrap, 'register_abilities', 20 );
+
+		// Feature 060 — Third-party integration bootstraps. Each concrete
+		// subclass of AcrossAI_Integration_Ability_Base registers its own
+		// hooks from the constructor (plugins_loaded P20 for the enable-filter
+		// side-effect + acrossai_abilities_api_init P10 for the synthetic
+		// definition row). Both hook callbacks gate on subclass
+		// is_plugin_active() so a missing target plugin renders no card, no
+		// tab, and attaches no filter. Boot Flow Rule deviation is documented
+		// under DEC-ABILITY-DEFINITION-CTOR-HOOKS (Feature 060), sibling to
+		// DEC-EXTERNAL-PACKAGE-HOOK-CTOR. See
+		// specs/060-library-third-party-integration-toggles/plan.md
+		// Complexity Tracking for the justification.
+		//
+		// Instantiation happens synchronously here (from define_public_hooks(),
+		// which itself runs at plugins_loaded @ P0 via the plugin entry file)
+		// so the constructor's plugins_loaded P20 add_action registers before
+		// P20 fires. Adding another integration is a one-line change here.
+		new \AcrossAI_Abilities_Manager\Includes\Abilities\Integrations\ACF();
 	}
 
 	/**

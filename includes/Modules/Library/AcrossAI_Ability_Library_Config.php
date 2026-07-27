@@ -56,10 +56,24 @@ class AcrossAI_Ability_Library_Config {
 		}
 
 		// Sparse storage (FR-017): strip entries that are at their default state.
-		// Absent key in get_config() already means enabled=true / mode='all', so storing
-		// that state explicitly adds noise without adding information.
+		// Regular categories default to enabled=true, so { enabled: true, mode: 'all',
+		// sub_keys: {} } is the implicit "on" state and can be dropped without
+		// information loss. Feature 060 integration categories INVERT this default
+		// (missing = OFF per FR-008), so a saved { enabled: true, ... } for an
+		// integration is NOT the default and MUST be kept — otherwise the toggle
+		// visibly turns itself off on reload. Look up integration slugs from the
+		// Registry so the sparse rule is applied per-category-type.
+		$integration_slugs = array();
+		if ( class_exists( AcrossAI_Ability_Library_Registry::class ) ) {
+			$integration_slugs = array_flip( AcrossAI_Ability_Library_Registry::instance()->get_integration_slugs() );
+		}
 		foreach ( $sanitized as $key => $entry ) {
-			if ( true === $entry['enabled'] && 'all' === $entry['mode'] && empty( $entry['sub_keys'] ) ) {
+			$default_enabled = ! isset( $integration_slugs[ $key ] );
+			if (
+				$default_enabled === (bool) $entry['enabled']
+				&& 'all' === $entry['mode']
+				&& empty( $entry['sub_keys'] )
+			) {
 				unset( $sanitized[ $key ] );
 			}
 		}
@@ -114,5 +128,29 @@ class AcrossAI_Ability_Library_Config {
 	public static function sanitize_key_field( string $key ): string {
 		$clean = sanitize_key( $key );
 		return substr( $clean, 0, self::MAX_KEY_LENGTH );
+	}
+
+	/**
+	 * Whether a third-party integration category is enabled.
+	 *
+	 * Unlike regular categories (which default to enabled=true via sparse
+	 * storage), integration categories default to enabled=false — a missing
+	 * config entry means OFF. Enabling an integration must always be an
+	 * explicit admin decision. See spec FR-008 (Feature 060).
+	 *
+	 * This is the ONLY code path in the PHP layer that reads integration
+	 * config state — all other consumers MUST go through this helper so the
+	 * inverted-default asymmetry stays contained.
+	 *
+	 * @since  0.1.0
+	 * @param  string $category Integration slug used as the category key.
+	 * @return bool
+	 */
+	public static function is_integration_enabled( string $category ): bool {
+		$config = self::get_config();
+		if ( ! isset( $config[ $category ] ) || ! is_array( $config[ $category ] ) ) {
+			return false;
+		}
+		return isset( $config[ $category ]['enabled'] ) && (bool) $config[ $category ]['enabled'];
 	}
 }

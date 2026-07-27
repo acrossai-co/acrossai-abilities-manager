@@ -1783,3 +1783,50 @@ Grep: `grep -rn "encodeURIComponent" src/js/*/api/client.js` — every hit on an
 - `docs/security-reviews/2026-07-21-056-staged.md` — SEC-006 remediation context
 
 **Tags**: slug, url-encoding, wpb-ac, composer, corruption, sanitize_ability_slug, feature-056
+
+---
+
+### 2026-07-27 — WP core silently rejects abilities whose category is not pre-registered (BUG-WP-CORE-ABILITY-CATEGORY-PRE-REGISTRATION)
+
+**Scope**: WP Abilities API / Ability registration
+
+**Symptom**
+`wp_register_ability()` silently returns `null` (via a `_doing_it_wrong()` notice — only visible under `WP_DEBUG`) when the ability's `category` slug is not pre-registered via `wp_register_ability_category()` on the `wp_abilities_api_categories_init` hook.
+
+Downstream effects of the silent failure:
+- Ability is ABSENT from `wp_get_abilities()`.
+- Ability is ABSENT from the Custom Abilities admin table (`/wp-admin/admin.php?page=acrossai-abilities-manager`).
+- Ability is ABSENT from MCP `discover-abilities` and from any WP-CLI ability listing.
+- BUT if the ability was pushed through `acrossai_abilities_api_init` (the Feature 027 add-on registration path), its LIBRARY CARD STILL RENDERS on the Ability Library page — because the Library UI reads from our Registry, not from `wp_get_abilities()`.
+
+That divergence between "UI shows the card" and "the ability doesn't actually exist in WP core" is the trap.
+
+**Cause**
+Enforced by WP core at `wp-includes/abilities-api/class-wp-abilities-registry.php` lines 132-146:
+```php
+if ( isset( $args['category'] ) ) {
+    if ( ! wp_has_ability_category( $args['category'] ) ) {
+        _doing_it_wrong( __METHOD__, /* … */, '6.9.0' );
+        return null;
+    }
+}
+```
+
+**Discovery**
+Surfaced during Feature 060 manual testing on 2026-07-27. Demo mu-plugin registered 3 abilities but not their categories → user reported the ACF tab showed 3 new cards but the Custom Abilities table still showed 9 items instead of the expected 12. Root cause required grepping WP core to locate.
+
+**Prevention**
+- Every ability author (core, integration synthetic rows, third-party plugin add-ons) MUST register its category on `wp_abilities_api_categories_init` via `wp_register_ability_category( $slug, [ 'label' => ..., 'description' => ... ] )` BEFORE any ability declares that category.
+- Feature 046 `AcrossAI_Core_Abilities_Bootstrap::register_category_callbacks()` registers 20+ category callbacks via the Loader — mirror that pattern for any new category group.
+- Third-party add-on plugins targeting an integration's tab: register your OWN category (distinct from the integration's slug). See `PATTERN-LIBRARY-INTEGRATION-TAB-EXTENSION`.
+
+**Intentional exception**
+Feature 060 integration synthetic rows (Base class `push_definition()`) INTENTIONALLY skip category registration so `wp_register_ability()` rejects them — the rows exist only to drive the Library UI card (Registry-driven) and their `execute_callback` is fail-closed. Do NOT "fix" that rejection by adding a `wp_register_ability_category()` call for integration slugs — see synthetic-row lifecycle note in `PATTERN-LIBRARY-INTEGRATION-BASE`.
+
+**Where to look**
+- `wp-includes/abilities-api/class-wp-abilities-registry.php:132-146` — the WP-core rejection.
+- `includes/Abilities/AcrossAI_Core_Abilities_Bootstrap.php::register_category_callbacks()` — canonical registration pattern.
+- `wp-content/mu-plugins/060-acf-tab-extension-demo.php` — worked example of third-party category registration.
+- `docs/planning/060-library-third-party-integration-toggles.md` (divergence #3, 2026-07-27 note).
+
+**Tags**: wp-abilities-api, wp_register_ability, wp_register_ability_category, silent-fail, category, feature-060
