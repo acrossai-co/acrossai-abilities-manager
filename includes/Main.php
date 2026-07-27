@@ -430,7 +430,16 @@ final class Main {
 		// which itself runs at plugins_loaded @ P0 via the plugin entry file)
 		// so the constructor's plugins_loaded P20 add_action registers before
 		// P20 fires. Adding another integration is a one-line change here.
+		//
+		// Both ACF and WPForms use the enable-filter model: their target plugins
+		// expose a single filter that gates their AI abilities, and this
+		// integration's enable_filter() attaches __return_true to it when the
+		// toggle is ON. WPForms is a two-tier case — reads are auto-enabled by
+		// WPForms itself and pass through regardless; only writes are gated by
+		// wpforms_integrations_abilities_allow_write, which is what our toggle
+		// controls. See each subclass's docblock for details.
 		new \AcrossAI_Abilities_Manager\Includes\Abilities\Integrations\ACF();
+		new \AcrossAI_Abilities_Manager\Includes\Abilities\Integrations\WPForms();
 	}
 
 	/**
