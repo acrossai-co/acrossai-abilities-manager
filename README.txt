@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.17
+Stable tag: 0.0.18
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,7 +23,7 @@ AcrossAI Abilities Manager gives site administrators full visibility and control
 * **Reset overrides** — restore any ability back to its registry defaults with one click.
 * **Bulk actions** — allow, disallow, or reset up to 50 abilities at once.
 * **Ability Library** — enable or disable add-on ability groups from a dedicated Library page, with All/Specific mode controls per group.
-* **Add-ons page** — browse, install, and manage free and premium add-ons directly from the WordPress admin. Powered by [wpb-addons-page](https://github.com/WPBoilerplate/wpb-addons-page).
+* **Add-ons page** — browse companion plugins from the WordPress admin. WordPress.org-hosted add-ons install / activate / deactivate in place; add-ons distributed elsewhere link out to the vendor's site so you can install them via Plugins → Add New → Upload Plugin.
 * **MCP server list** — view all registered MCP servers when the MCP Adapter plugin is active.
 
 All overrides are stored in a dedicated database table. The WordPress ability registry is never modified — only the fields that differ from registry defaults are persisted.
@@ -38,7 +38,7 @@ All overrides are stored in a dedicated database table. The WordPress ability re
 
 * **MCP Adapter plugin** — if active, the plugin displays a list of registered MCP servers inside the ability edit panel. No data is sent to any external service. The MCP Adapter plugin communicates only with your own WordPress installation.
 
-This plugin makes no external HTTP requests. The Add-ons page lists free companion plugins hosted on WordPress.org; installing one uses the standard WordPress plugin installer, which contacts WordPress.org directly.
+This plugin's own code makes no external HTTP requests. One admin-only surface can contact an external service on your behalf: the AcrossAI → Add-ons page installs WordPress.org-hosted companion plugins directly through WordPress core's own plugin installer (`api.wordpress.org` + `downloads.wordpress.org`). Add-ons registered with any other source (e.g. GitHub, Freemius) are shown as external "Get add-on ↗" links that open the vendor's site in a new browser tab — the plugin does not download or install them itself. The AcrossAI → Consultations submenu renders a static call-to-action button that opens `calendly.com` in a new browser tab only after the administrator clicks it — no third-party asset is loaded inside wp-admin. Full disclosure — including what data is transmitted to each service and links to their terms + privacy policies — is in the **External Services** section below.
 
 == Installation ==
 
@@ -75,7 +75,12 @@ If the MCP Adapter plugin is active on your site, AcrossAI Abilities Manager wil
 
 = Does this plugin make external HTTP requests? =
 
-No. The plugin makes no external HTTP requests itself. The Add-ons page lists free companion plugins hosted on WordPress.org; installing one uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs.
+The plugin's own code makes no external HTTP requests. Two admin-only surfaces trigger external connections on behalf of an authenticated administrator:
+
+* **AcrossAI → Consultations** submenu — renders a static call-to-action button that links to `https://calendly.com/acrossai/using-ai-in-wordpress` and opens in a new browser tab. The plugin does not load any Calendly script, iframe, or asset inside wp-admin. Calendly is only contacted if the administrator explicitly clicks the button — at which point their browser navigates directly to `calendly.com`, exactly as with any external hyperlink.
+* **AcrossAI → Add-ons** submenu — installs WordPress.org-hosted companion plugins in place through WordPress core's `plugins_api()` + `Plugin_Upgrader` (contacts `api.wordpress.org` + `downloads.wordpress.org`). Add-ons registered with any other source (e.g. GitHub, Freemius) render as external "Get add-on ↗" links that open the vendor's site in a new browser tab — the plugin does not download or install those add-ons itself. Users install off-directory add-ons via WP admin's standard **Plugins → Add New → Upload Plugin** flow (or via the vendor's own installer once the paid plugin is activated).
+
+Full disclosure — including what data is transmitted, and links to each service's terms + privacy policy — is in the **External Services** section of this readme.
 
 == Screenshots ==
 
@@ -88,17 +93,63 @@ No. The plugin makes no external HTTP requests itself. The Add-ons page lists fr
 
 == External Services ==
 
-This plugin makes no external HTTP requests on its own.
+This plugin connects to the following external services on your behalf. Each connection is triggered by a specific admin-only action and is disclosed here per the WordPress.org plugin directory guidelines.
 
-The Add-ons page lists free companion plugins hosted on WordPress.org. Installing a listed add-on uses the standard WordPress plugin installer, which contacts WordPress.org on your behalf using WordPress core APIs — no external service is involved on the plugin's side.
+**1. Calendly external link (`calendly.com`)**
+
+*What it is:* Calendly is a third-party scheduling service. The AcrossAI → Consultations submenu displays a static call-to-action button that links out to a Calendly booking page for AcrossAI consultations ("Using AI in WordPress").
+
+*When it is contacted:* Never on page render. The Consultations submenu at `/wp-admin/admin.php?page=acrossai-consultations` is a self-contained wp-admin page — it does not load any Calendly script, iframe, cookie, or asset. Calendly is only contacted if the administrator explicitly clicks the "Book a Consultation" button, at which point their browser navigates directly to `https://calendly.com/acrossai/using-ai-in-wordpress` in a new tab (`target="_blank" rel="noopener noreferrer"`). This is identical to clicking any external hyperlink from an admin page.
+
+*What is loaded on the Consultations page:* Nothing from Calendly. The page renders self-contained HTML + CSS. The only external asset referenced by the page is Google Fonts (Space Grotesk + IBM Plex Sans via `fonts.googleapis.com`) — permitted under the "third-party CDNs beyond fonts" carve-out in the WordPress plugin guidelines.
+
+*What data is transmitted to Calendly:* Nothing by this plugin. If the administrator clicks the CTA button, their browser navigates directly to Calendly and sends standard browser metadata (IP address, User-Agent, referrer) to Calendly as with any external link. If the administrator then chooses to book a consultation on Calendly's own site, any information they enter into Calendly's booking form (name, email address, meeting preferences, etc.) is transmitted to and processed by Calendly. This plugin does not intercept, store, or forward that data.
+
+*Terms of service:* https://calendly.com/pages/terms
+*Privacy policy:* https://calendly.com/pages/privacy
+
+**2. WordPress.org plugin directory (`api.wordpress.org` and `downloads.wordpress.org`)**
+
+*What it is:* The Add-ons page (`/wp-admin/admin.php?page=acrossai-addons`) uses the WordPress.org plugin directory to install free companion plugins directly from wp-admin.
+
+*When it is contacted:* Only when an authenticated administrator (`install_plugins` capability) clicks the "Install" button on a card whose `source` is `wordpress.org`. Contact happens through WordPress core's own `plugins_api()` and `Plugin_Upgrader` — this plugin does not issue direct HTTP requests. Add-ons registered with any other source (e.g. `github`, `freemius`) are rendered as external "Get add-on ↗" links that open the vendor's site in a new browser tab; the plugin does NOT download or install those add-ons itself, so no request is made to the vendor's servers from wp-admin.
+
+*What data is transmitted:* The WordPress core plugin API request payload (site URL, WP version, PHP version, locale) as per WordPress core's standard update check protocol.
+
+*Terms of service:* https://wordpress.org/about/terms/
+*Privacy policy:* https://wordpress.org/about/privacy/
+
+**3. WordPress.org core version-check API (`api.wordpress.org/core/version-check/1.7/`)**
+
+Called only when an administrator invokes the `acrossai/rollback-wp-core` ability (registered under the Core category) and the local core-version cache has expired. Rate-bounded to at most one request per day per locale per site via a site-transient cache. This is a WordPress-core-hosted API — no data beyond the standard WordPress core version-check request payload is transmitted. Same wp.org terms + privacy policy as service #2 above.
 
 == Privacy Policy ==
 
-This plugin does not collect, store, or transmit any user data.
+This plugin does not itself collect, store, or transmit any user data to any third party.
 
-No data is sent to any external server without explicit user action.
+Several admin-only actions can cause external services to receive data — all are described in the External Services section above and are triggered only by an authenticated administrator:
+
+* The AcrossAI → Consultations admin page displays a static call-to-action button. Merely loading the Consultations page sends no data to Calendly — no Calendly script, iframe, or asset is loaded inside wp-admin. If the administrator clicks the CTA button, their browser opens `calendly.com/acrossai/using-ai-in-wordpress` in a new tab, at which point standard browser metadata (IP, User-Agent, referrer) is sent to Calendly and Calendly's own privacy policy applies. If they then book a consultation on Calendly's site, information they enter into Calendly's form (name, email, meeting details) is transmitted to Calendly.
+* Installing a WordPress.org-hosted add-on from the AcrossAI → Add-ons page contacts the WordPress.org plugin directory via WordPress core's own `plugins_api()` and `Plugin_Upgrader` (`api.wordpress.org` + `downloads.wordpress.org`). Add-ons distributed elsewhere (e.g. GitHub, Freemius) are rendered as external "Get add-on ↗" links that open the vendor's site in a new browser tab — the plugin itself does not download or install those add-ons, so no request is sent to the vendor's servers from wp-admin. If the administrator clicks the external link, their browser navigates directly to the vendor and standard browser metadata (IP, User-Agent, referrer) is sent to the vendor as with any external hyperlink.
+* Invoking the `acrossai/rollback-wp-core` ability contacts the WordPress.org core version-check API (a WordPress-core-hosted service) via the standard WordPress update API.
+
+No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
+
+= 0.0.18 =
+* **New — Third-party integration framework (Feature 060) with Advanced Custom Fields as the first concrete integration.** Adds a new "Acf" tab to the Ability Library page (`/wp-admin/admin.php?page=acrossai-abilities-library&tab=acf`) with a single toggle labelled "Advanced Custom Fields (AI)". Flipping the toggle ON attaches `add_filter( 'acf/settings/enable_acf_ai', '__return_true' )` early enough in `plugins_loaded` (priority 20) that ACF picks it up on the same request and registers its FieldGroup / PostType / Taxonomy AI abilities. Flipping OFF leaves ACF's default (writes disabled) in place. Default is **OFF** for every integration — enabling AI-driven schema manipulation on a production site is always an explicit admin decision. The tab and card only appear when the target plugin (ACF) is installed AND active on the current site; deactivating ACF while the toggle is on preserves the saved state without leaking any error notice or fatal.
+* **New — extensibility surface for third-party AcrossAI plugins.** Any WordPress plugin can now register its own regular ability cards on an integration's tab (alongside the integration's own toggle card) using a documented 3-step contract: (1) register the ability category on `wp_abilities_api_categories_init` via `wp_register_ability_category()`, (2) extend `\AcrossAI_Abilities_Manager\Includes\Modules\Library\Ability_Definition`, and (3) set `meta.acrossai.tab_group` on the ability's args to the integration's published `TAB_GROUP` constant (e.g. `\AcrossAI_Abilities_Manager\Includes\Abilities\Integrations\ACF::TAB_GROUP`). Reads from the new `AcrossAI_Integration_Ability_Base` docblock + the quickstart worked example under `specs/060-library-third-party-integration-toggles/quickstart.md`. This is the mechanism that lets the sibling `acrossai-acf-abilities` plugin surface its own cards on the same "Acf" tab.
+* **New REST filter — `acrossai_integration_toggle_capability`.** Lets sites raise (never lower) the WordPress capability required to flip an integration toggle. Default is `manage_options` (matches the rest of the Ability Library page); a site can attach a filter returning e.g. `manage_network_options` and a `manage_options`-only user will then receive HTTP 403 on the REST write. Enforced server-side on the same write path that persists the toggle — cannot be bypassed by a crafted REST request even if the JS UI presented the toggle as interactive. Companion action `acrossai_integration_toggle_denied` fires immediately before the 403 so sites can wire audit logging without amending core code.
+* **Bugfix — sparse-storage in `acrossai_library_config` was silently stripping integration ON entries.** The pre-Feature-060 sparse-storage rule in `AcrossAI_Ability_Library_Config::save_config()` assumed every category defaults to `enabled=true`, so a `{ enabled: true, mode: 'all', sub_keys: {} }` payload was stripped as "default state". Feature 060 integration categories invert that default (missing = OFF per FR-008), so the ON state was being silently dropped and the toggle appeared to turn itself off on reload. Fixed by teaching sparse-storage which slugs are integrations (via the new public helper `AcrossAI_Ability_Library_Registry::get_integration_slugs()`) and computing the correct default per-category before deciding whether to strip.
+* **Composer dependency bump — `acrossai-co/main-menu` 0.0.23 → 0.0.27.** Two WordPress.org plugin directory guideline #8 fixes rolled into one bump:
+  * *0.0.26* — the Consultations submenu (introduced in 0.0.24) previously embedded the Calendly widget via `assets.calendly.com/assets/external/widget.js` and an iframe pointed at `calendly.com/acrossai/using-ai-in-wordpress`. It now renders a self-contained call-to-action page that opens `calendly.com` in a new browser tab only when the admin clicks the button — no Calendly script, iframe, or asset is loaded inside wp-admin. Fixes the "using iframes for admin pages" prohibition.
+  * *0.0.27* — the Add-ons page's install action is now WordPress.org-only. Cards whose `source` is `wordpress.org` continue to render an in-page Install / Activate / Deactivate button (routed through WordPress core's `plugins_api()` + `Plugin_Upgrader`). Cards with any other `source` (e.g. `github`, `freemius`, or any consumer-defined value) render an external "Get add-on ↗" link that opens the vendor's site in a new browser tab — users install those add-ons via WP admin's standard **Plugins → Add New → Upload Plugin** flow, or via the vendor's own installer. Fixes the "installing plugins/themes/add-ons from non-WordPress.org servers" prohibition. Same design pattern used by WooCommerce and GiveWP for their extension marketplaces. Also adds a new public helper `AddonsInstaller::is_installable_source( array $addon ): bool` and defense-in-depth rejection in the AJAX install handler.
+
+  Purely additive on the AcrossAI parent-menu surface — no changes to any of our own submenus (Ability Library at priority 2, Settings at priority 20). `SettingsPage`'s public constructor signature is unchanged. Consumers that only ship wp.org-sourced add-ons see no visible change; consumers pushing GitHub/Freemius entries via the `acrossai_addons` filter will see those cards flip from Install button to "Get add-on ↗" link — no code change required on their side.
+* **20 new PHPUnit tests + 12 new Jest tests** cover the base-class contract, the extension pattern end-to-end, resilience under target-plugin deactivation, the default-OFF safety property, and the sparse-storage bugfix regression. Full suite: 191 tests passing.
+* **6 new durable memory entries** in `docs/memory/` (DECISIONS.md, ARCHITECTURE.md, BUGS.md, INDEX.md) capture the reusable patterns: `DEC-ABILITY-DEFINITION-CTOR-HOOKS`, `PATTERN-LIBRARY-INTEGRATION-BASE`, `PATTERN-LIBRARY-INTEGRATION-TAB-EXTENSION`, `PATTERN-FILTERABLE-CAPABILITY-RAISE-ONLY`, `BUG-WP-CORE-ABILITY-CATEGORY-PRE-REGISTRATION`, `BUG-SPARSE-STORAGE-UNIFORM-DEFAULT-ASSUMPTION`. Documented so the next contributor doesn't rediscover the same traps (specifically: WP core silently rejects abilities whose category isn't pre-registered via `wp_register_ability_category`, and asymmetric-default keys break naive sparse-storage optimisations).
+* **No breaking changes.** No ability slug rename. No REST endpoint change. No option-shape change. No new required capability. Existing 218 abilities behave identically. Safe upgrade from 0.0.17.
 
 = 0.0.17 =
 * **New — 7 Recovery Mode abilities under a new `Recovery` category.** Adds `acrossai/get-recovery-mode-status`, `acrossai/list-paused-plugins`, `acrossai/list-paused-themes`, `acrossai/get-recovery-exit-url`, `acrossai/unpause-plugin`, `acrossai/unpause-theme`, and `acrossai/list-recent-fatal-errors`. Together they let an AI agent driving the site over REST/MCP detect if WordPress has entered Recovery Mode after a fatal error, enumerate paused (fatally-erroring) plugins and themes with their captured error details, clear a paused entry so WP retries loading the extension on the next request, retrieve the admin-clickable exit URL, and pull grouped fatal-error signatures from `debug.log`. Every write action gates on `manage_options` + `File_Mods_Guard::blocked_response()`; fuzzy plugin/theme identifiers flow through the existing `Plugin_Helpers::resolve_plugin()` / `Theme_Helpers::resolve_theme()` resolvers.
@@ -196,6 +247,9 @@ No data is sent to any external server without explicit user action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.18 =
+New third-party integration framework (Feature 060) with Advanced Custom Fields as the first concrete integration — flip one toggle on the new "Acf" tab of the Ability Library page to enable ACF's AI abilities without editing code. Also new: extensibility surface so other AcrossAI plugins can add their own cards to an integration's tab, filterable capability check for the toggle (via `acrossai_integration_toggle_capability`), and audit action (`acrossai_integration_toggle_denied`). Fixes a sparse-storage bug that could silently strip the integration ON state. Bumps the `acrossai-co/main-menu` composer dependency from 0.0.23 to 0.0.27 to land two WordPress.org plugin directory guideline #8 fixes: the Consultations submenu now uses an external-link CTA instead of an embedded Calendly iframe, and the Add-ons page install action is now WordPress.org-only (non-wp.org cards render as external "Get add-on ↗" links opening the vendor's site in a new tab). No breaking changes; existing abilities unaffected. Safe upgrade from 0.0.17.
 
 = 0.0.17 =
 BREAKING — every ability slug has been renamed. Namespace shortens from `acrossai-abilities-manager/` to `acrossai/`; suffixes flip to verb-first form (e.g. `site-title-get` → `get-site-title`, `theme-activate` → `activate-theme`). External callers (custom code, saved MCP client configs, ACL entries created outside the plugin's UI, scripts calling `/wp-json/wp-abilities/v1/abilities/acrossai-abilities-manager/<old>/run`) must update their slug references to `/wp-json/wp-abilities/v1/abilities/acrossai/<new>/run`. No backwards-compatibility aliases; no automatic data migration — clear pre-existing overrides + ACL rules keyed on old slugs from the admin UI and re-add them under the new names. Also new: 7 Recovery Mode abilities (detect recovery, list paused plugins/themes, unpause, exit URL, fatal-error log filter) and `acrossai/reinstall-wp-core`. 162 PHP class files renamed to match slugs (internal-only; PSR-4 autoload picks up automatically). PHP 8.1+ / WP 6.9+ floor unchanged.
