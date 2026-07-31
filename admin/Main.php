@@ -223,6 +223,10 @@ class Main {
 			);
 			wp_enqueue_script( 'acrossai-abilities-manager-abilities' );
 
+			if ( ! function_exists( 'is_plugin_active' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+
 			$data = array(
 				'nonce'                    => wp_create_nonce( 'wp_rest' ),
 				'rest_url'                 => untrailingslashit( rest_url() ),
@@ -236,6 +240,9 @@ class Main {
 				// Source of truth: AcrossAI_Abilities_Access_Control::TABLE_SLUG.
 				'access_control_slug'      => \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control::TABLE_SLUG,
 				'protected_slugs'          => \AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Protected_Abilities::get_protected_slugs(),
+				'mcp_manager_active'       => is_plugin_active( 'acrossai-mcp-manager/acrossai-mcp-manager.php' ),
+				'mcp_manager_addons_url'   => admin_url( 'admin.php?page=acrossai-addons' ),
+				'mcp_manager_info_url'     => 'https://acrossai.co/mcp-manager/',
 			);
 
 			/**
@@ -417,32 +424,5 @@ class Main {
 			array_unshift( $links, $settings_link );
 		}
 		return $links;
-	}
-
-	/**
-	 * Remove this plugin's own entry from the shared `acrossai_addons` list.
-	 *
-	 * The `acrossai-co/main-menu` package (0.0.21+) ships a baseline add-ons
-	 * list that includes `acrossai-abilities-manager`. Since this plugin is
-	 * obviously already active when the Add-ons page renders (its own
-	 * `admin/Main` is on the hook that produced the filter), listing itself
-	 * as an installable add-on is redundant and confusing. Filter it out.
-	 *
-	 * @since 0.1.0
-	 * @param array $addons Add-on entries keyed by 0..N, each with a `slug` key.
-	 * @return array
-	 */
-	public function filter_out_self_from_addons( $addons ) {
-		if ( ! is_array( $addons ) ) {
-			return $addons;
-		}
-		$filtered = array();
-		foreach ( $addons as $addon ) {
-			if ( is_array( $addon ) && isset( $addon['slug'] ) && 'acrossai-abilities-manager' === $addon['slug'] ) {
-				continue;
-			}
-			$filtered[] = $addon;
-		}
-		return $filtered;
 	}
 }

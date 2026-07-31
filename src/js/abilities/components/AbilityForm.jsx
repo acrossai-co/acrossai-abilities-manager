@@ -1198,6 +1198,55 @@ export default function AbilityForm({ mode, slug, initialAbility }) {
 										'acrossai-abilities-manager'
 									)}
 								</div>
+								{!abilitiesConfig.mcp_manager_active && (
+									<div
+										className="sect-note-promo"
+										role="note"
+									>
+										<span className="sect-note-promo__title">
+											{__(
+												'Want more control over your MCP Adapter?',
+												'acrossai-abilities-manager'
+											)}
+										</span>
+										<span className="sect-note-promo__body">
+											{__(
+												'Install the AcrossAI MCP Manager plugin to create and manage multiple MCP servers, fine-tune exposure per server, and unlock advanced adapter controls.',
+												'acrossai-abilities-manager'
+											)}
+										</span>
+										<span className="sect-note-promo__actions">
+											{abilitiesConfig.mcp_manager_addons_url && (
+												<a
+													className="sect-note-promo__btn sect-note-promo__btn--primary"
+													href={
+														abilitiesConfig.mcp_manager_addons_url
+													}
+												>
+													{__(
+														'Install from Add-ons',
+														'acrossai-abilities-manager'
+													)}
+												</a>
+											)}
+											{abilitiesConfig.mcp_manager_info_url && (
+												<a
+													className="sect-note-promo__btn sect-note-promo__btn--link"
+													href={
+														abilitiesConfig.mcp_manager_info_url
+													}
+													target="_blank"
+													rel="noopener noreferrer"
+												>
+													{__(
+														'Learn more',
+														'acrossai-abilities-manager'
+													)}
+												</a>
+											)}
+										</span>
+									</div>
+								)}
 							</div>
 
 							{/* Show in MCP */}

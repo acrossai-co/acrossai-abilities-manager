@@ -191,7 +191,7 @@ final class Main {
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL', plugin_dir_url( \ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE ) );
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_NAME_SLUG', $this->plugin_name );
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_NAME', 'AcrossAI Abilities Manager' );
-		$this->define( 'ACROSSAI_ABILITIES_MANAGER_VERSION', '0.0.18' );
+		$this->define( 'ACROSSAI_ABILITIES_MANAGER_VERSION', '0.0.19' );
 	}
 
 	/**
@@ -287,12 +287,6 @@ final class Main {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 		$this->loader->add_action( 'plugin_action_links', $plugin_admin, 'plugin_action_links', 1000, 2 );
-
-		// Feature 053: remove THIS plugin's own entry from the shared
-		// `acrossai_addons` list rendered by the acrossai-co/main-menu Add-ons
-		// page. This plugin is obviously active when the page renders — no
-		// point offering to install itself.
-		$this->loader->add_filter( 'acrossai_addons', $plugin_admin, 'filter_out_self_from_addons' );
 
 		/**
 		 * Add the Plugin Main Menu
