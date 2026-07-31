@@ -223,6 +223,10 @@ class Main {
 			);
 			wp_enqueue_script( 'acrossai-abilities-manager-abilities' );
 
+			if ( ! function_exists( 'is_plugin_active' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+
 			$data = array(
 				'nonce'                    => wp_create_nonce( 'wp_rest' ),
 				'rest_url'                 => untrailingslashit( rest_url() ),
@@ -236,6 +240,9 @@ class Main {
 				// Source of truth: AcrossAI_Abilities_Access_Control::TABLE_SLUG.
 				'access_control_slug'      => \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control::TABLE_SLUG,
 				'protected_slugs'          => \AcrossAI_Abilities_Manager\Includes\Utilities\AcrossAI_Protected_Abilities::get_protected_slugs(),
+				'mcp_manager_active'       => is_plugin_active( 'acrossai-mcp-manager/acrossai-mcp-manager.php' ),
+				'mcp_manager_addons_url'   => admin_url( 'admin.php?page=acrossai-addons' ),
+				'mcp_manager_info_url'     => 'https://acrossai.co/mcp-manager/',
 			);
 
 			/**
