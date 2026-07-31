@@ -425,5 +425,4 @@ class Main {
 		}
 		return $links;
 	}
-
 }
