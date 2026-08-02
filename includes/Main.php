@@ -191,7 +191,7 @@ final class Main {
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_URL', plugin_dir_url( \ACROSSAI_ABILITIES_MANAGER_PLUGIN_FILE ) );
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_NAME_SLUG', $this->plugin_name );
 		$this->define( 'ACROSSAI_ABILITIES_MANAGER_PLUGIN_NAME', 'AcrossAI Abilities Manager' );
-		$this->define( 'ACROSSAI_ABILITIES_MANAGER_VERSION', '0.0.19' );
+		$this->define( 'ACROSSAI_ABILITIES_MANAGER_VERSION', '0.0.20' );
 	}
 
 	/**
@@ -343,10 +343,13 @@ final class Main {
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern (AC-HOOKS-MAIN).
 		$abilities_table = \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\Database\AcrossAI_Abilities_Table::instance();
 
-		// Register Access Control REST routes and admin notice for absent library (SAC-01).
+		// Register Access Control REST routes and library-missing notice (SAC-01).
+		// The library-missing notice is routed through the shared main-menu 0.0.30
+		// `acrossai_notices` filter — surfaces on AcrossAI → Notices submenu +
+		// the top-of-page summary banner instead of a raw admin_notices banner.
 		$abilities_ac = \AcrossAI_Abilities_Manager\Includes\Modules\Abilities\AcrossAI_Abilities_Access_Control::instance();
 		$this->loader->add_action( 'rest_api_init', $abilities_ac, 'register_rest_api' );
-		$this->loader->add_action( 'admin_notices', $abilities_ac, 'maybe_show_library_notice' );
+		$this->loader->add_filter( 'acrossai_notices', $abilities_ac, 'register_library_notice' );
 
 		// Abilities module REST routes (Spec 009).
 		// Named variable before Loader call — Boot Flow Rule variable-first pattern.
