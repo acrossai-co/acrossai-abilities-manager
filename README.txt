@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.19
+Stable tag: 0.0.20
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -137,6 +137,17 @@ No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
 
+= 0.0.20 =
+* **Changed — access-control library-missing notice now routes through the shared AcrossAI notice hub.** The pre-0.0.20 `AcrossAI_Abilities_Access_Control::maybe_show_library_notice()` method was hooked on WordPress core `admin_notices` and printed a raw `.notice.notice-warning` banner on every admin screen when the `wpb-access-control` library wasn't loaded. It is renamed to `register_library_notice( array $notices ): array` and now registers into the new `acrossai_notices` filter shipped by `acrossai-co/main-menu` 0.0.30. The notice appears in two places instead: (1) as a card on the new **AcrossAI → Notices** submenu (only registered when at least one notice is present, with a WP-style count bubble on the menu label), and (2) as a single top-of-page WordPress-native `.notice.notice-warning.is-dismissible` summary banner ("AcrossAI has N notifications for your attention — View notices →") printed on every other admin page. Dismissal is fingerprint-persisted per user until the notice set changes. Notice record shape: `id=wpb_access_control_missing`, `type=warning`, `source=AcrossAI Abilities Manager`. Semantics are unchanged — the fail-open behaviour, the `manage_options` gate (enforced by the menu itself and the summary emitter), and the message copy are all preserved.
+* **Composer dependency bump — `acrossai-co/main-menu` 0.0.29 → 0.0.30.** Ships the cross-plugin notice system this release routes through:
+  * New `acrossai_notices` filter — any AcrossAI consumer plugin can push admin-notice records into a shared collection using a single documented record shape (`id`, `title`, `message`, `type`, optional `source`, optional `action { label, url }`). Later registrations of the same `id` are ignored (first-wins). Missing `id` or both `title` and `message` empty → the entry is dropped.
+  * New **AcrossAI → Notices** submenu (slug `acrossai-notices`, class `NoticesPageRenderer`) — only registered when at least one notice exists. Menu label carries a WP-style count bubble (`.awaiting-mod`).
+  * New top-of-page summary notice emitter (`SummaryNoticeEmitter`) — prints one WordPress-native dismissible banner on every other admin page linking to the Notices submenu. Dismissal is fingerprint-based (SHA-1 of sorted notice IDs stored in per-user meta `_acrossai_notices_summary_fp`) so the summary re-appears whenever the notice set changes.
+  * New AJAX endpoint `wp_ajax_acrossai_notices_dismiss_summary` — nonce + `manage_options` guarded; server re-validates the client-supplied fingerprint against the current notice set as defense-in-depth against poisoning the user meta with an unrelated hash.
+  * New public classes under `AcrossAI_Main_Menu\`: `Notices`, `NoticesPageRenderer`, `NoticesAjaxHandlers`, `SummaryNoticeEmitter`. New page-slug constant `SettingsPage::NOTICES_SLUG` and static accessor `SettingsPage::get_notices(): ?Notices` for consumers that want to inspect the current notice list programmatically.
+* **Note — the vendor-missing boot-resilience notice in `Includes\Main::__construct()` remains on core `admin_notices`.** That code path fires precisely when the composer autoloader is absent — the moment when the shared main-menu package isn't loadable either — so the `acrossai_notices` filter cannot be reached from it. This is intentional and matches Constitution §V Integration Resilience.
+* **No breaking changes.** No ability slug rename. No REST endpoint change. No option-shape change. No new required capability. Existing 218 abilities behave identically. Safe upgrade from 0.0.19.
+
 = 0.0.19 =
 * **New — MCP Manager promo callout on the ability edit form.** The MCP Exposure section (Section 3) of the Custom Abilities edit page now surfaces a blue-tinted informational callout advertising the sibling `acrossai-mcp-manager` plugin when it is not installed / active on the current site. The callout renders directly below the existing "Heads up" warning and offers two actions: an "Install from Add-ons" button that deep-links to the AcrossAI Add-ons page (`admin.php?page=acrossai-addons`), and a "Learn more" external link to `https://acrossai.co/mcp-manager/`. When the AcrossAI MCP Manager plugin IS active on the site, the callout is fully suppressed — zero UI on the edit form. Detection uses WordPress core `is_plugin_active( 'acrossai-mcp-manager/acrossai-mcp-manager.php' )` inside the admin script enqueue path; the resolved boolean plus the two URLs are injected into the existing `window.acrossaiAbilitiesManager` localize payload as `mcp_manager_active`, `mcp_manager_addons_url`, and `mcp_manager_info_url`. The callout also degrades gracefully on older bundles or a customised localize payload — the two action buttons render only when their corresponding URL keys are non-empty.
 * **Composer dependency bump — `acrossai-co/main-menu` 0.0.27 → 0.0.29.** Two-hop bump rolled into one release:
@@ -254,6 +265,9 @@ No data is sent to any external server without an explicit administrator action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.20 =
+Routes the access-control library-missing warning through the new shared AcrossAI notice hub (`acrossai_notices` filter shipped by `acrossai-co/main-menu` 0.0.30). Instead of a raw wp-admin banner on every screen, the notice now appears on the new AcrossAI → Notices submenu (with a count bubble on the menu label) and as a single top-of-page summary banner ("AcrossAI has N notifications for your attention — View notices →") whose dismissal persists per user until the notice set changes. The fail-open semantics and message copy are unchanged. No breaking changes; existing abilities unaffected. Safe upgrade from 0.0.19.
 
 = 0.0.19 =
 Adds a blue promotional callout on the ability edit form (MCP Exposure section) that advertises the sibling AcrossAI MCP Manager plugin when it is not installed / active. The callout links to the AcrossAI Add-ons page for install and to acrossai.co/mcp-manager/ for more info. Fully suppressed when the AcrossAI MCP Manager plugin is active. Also bumps the `acrossai-co/main-menu` composer dependency from 0.0.27 to 0.0.29 — 0.0.28 refreshes the Add-ons page baseline catalogue (AcrossAI Abilities Manager + AcrossAI MCP Manager + AI Connectors) with shared brand icon, `contain`-fitted icon boxes, fixed 3-column grid layout, and a new optional `learn_more_url` field; 0.0.29 reworks the card action states so active add-ons render a non-clickable "● Running" pill (deactivation stays in Plugins → Installed Plugins) and installed non-wp.org add-ons now show an in-page Activate button instead of always linking out. No breaking changes; existing abilities unaffected. Safe upgrade from 0.0.18.
