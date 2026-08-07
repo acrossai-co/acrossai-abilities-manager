@@ -85,6 +85,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		$loader->add_action( 'wp_abilities_api_categories_init', ContentSearch\Category_Registrar::instance(), 'register' );
 		// Feature 059 — Recovery Mode / fatal-error abilities.
 		$loader->add_action( 'wp_abilities_api_categories_init', Recovery\Category_Registrar::instance(), 'register' );
+		// Feature 061 — Debugging category (first sub-group: Conflict Testing).
+		$loader->add_action( 'wp_abilities_api_categories_init', Debugging\Category_Registrar::instance(), 'register' );
 	}
 
 	/**
@@ -338,6 +340,15 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Recovery\Unpause_Plugin();
 		new Recovery\Unpause_Theme();
 		new Recovery\List_Recent_Fatal_Errors();
+
+		// Feature 061 — Debugging / Conflict Testing abilities.
+		new Debugging\List_Plugins();
+		new Debugging\Get_Overrides();
+		new Debugging\Set_Override();
+		new Debugging\Clear_Overrides();
+		new Debugging\Deploy_Mu_Plugin();
+		new Debugging\Remove_Mu_Plugin();
+		new Debugging\Bulk_Set_Overrides();
 
 		// Feature 055 — register the option-backed lifecycle event log.
 		Utilities\Lifecycle_Event_Log::register_hooks();
