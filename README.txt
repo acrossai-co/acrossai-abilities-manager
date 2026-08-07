@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.20
+Stable tag: 0.0.21
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,7 @@ AcrossAI Abilities Manager gives site administrators full visibility and control
 * **Ability Library** — enable or disable add-on ability groups from a dedicated Library page, with All/Specific mode controls per group.
 * **Add-ons page** — browse companion plugins from the WordPress admin. WordPress.org-hosted add-ons install / activate / deactivate in place; add-ons distributed elsewhere link out to the vendor's site so you can install them via Plugins → Add New → Upload Plugin.
 * **MCP server list** — view all registered MCP servers when the MCP Adapter plugin is active.
+* **Debugging → Conflict Testing** — toggle any installed plugin's *effective* active state without ever writing to `wp_options.active_plugins`. Seven WP Abilities API abilities (`acrossai/conflict-test-list-plugins`, `-get-overrides`, `-set-override`, `-bulk-set-overrides`, `-clear-overrides`, `-deploy-mu-plugin`, `-remove-mu-plugin`) let a REST client, MCP AI client, or another plugin reproduce a plugin conflict for a browser session or a support call, then restore the site to its exact prior state by clearing one JSON file. Overrides cascade through WP 6.5+ `Requires Plugins:` headers by default. Every `active=true` write is guarded by a WordPress-core-style `plugin_sandbox_scrape` probe, so a broken plugin can never leave the site in a state where every subsequent page load fatals — the override is refused instead. Feature 061.
 
 All overrides are stored in a dedicated database table. The WordPress ability registry is never modified — only the fields that differ from registry defaults are persisted.
 
@@ -136,6 +137,22 @@ Several admin-only actions can cause external services to receive data — all a
 No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
+
+= 0.0.21 =
+* **New — Debugging ability category with seven Conflict Testing abilities (Feature 061).** Adds a new `acrossai-abilities-manager-debugging` category shared by every current and future debugging sub-group, and lands the first sub-group — **Conflict Testing** — as seven WP Abilities API abilities under `acrossai/conflict-test-*`:
+  * `list-plugins` — enumerates installed plugins with `plugin_file`, `name`, `version`, DB-recorded `status`, and `requires_plugins` (parsed WP 6.5+ `Requires Plugins:` header).
+  * `get-overrides` — returns the current override map plus a `mu_plugin_status` indicator (`deployed`, `missing`, `stale`). Auto-prunes entries for uninstalled plugins on every read and rewrites (or deletes) the on-disk document when the map shrunk.
+  * `set-override` — sets one plugin's effective active state (`active: true|false`) without modifying `wp_options.active_plugins`. Cascade defaults ON: deactivating a plugin walks its dependents; activating a plugin walks its requirements — using WP 6.5+'s `Requires Plugins:` header via BFS transitive closure. `cascade: false` opts out per call.
+  * `bulk-set-overrides` — sets many plugins in a single atomic write. Best-effort with a per-plugin report (`applied` / `no_op` / `skipped` with reason such as `plugin-not-installed` or `plugin-fatal-on-load`). No cascade (caller controls the list).
+  * `clear-overrides` — deletes the on-disk override document in one call. Idempotent.
+  * `deploy-mu-plugin` — installs `wp-content/mu-plugins/wp-conflict-tester.php` via atomic temp-file + rename. Hash-compares to the bundled reference — a redeploy against an already-current mechanism is a zero-write no-op (SC-006).
+  * `remove-mu-plugin` — removes the mu-plugin file. Optional `also_clear_overrides: true` deletes the JSON in the same call. Idempotent.
+* **Fatal-safety mirrors WordPress core.** Every write path that flips a plugin's effective state to *active* (single-plugin and bulk) performs a `WP_SANDBOX_SCRAPING`-guarded `include_once` of the plugin's main file before the override is recorded — the exact ordering `activate_plugin()` uses in `wp-admin/includes/plugin.php` line 641 to prevent a broken plugin from ever leaving `active_plugins` in a state where every subsequent page load fatals. A plugin that fatals on load is refused (`plugin-fatal-on-load`) and no override entry is written; the site's runtime behaviour is identical to the pre-call state.
+* **No custom REST-endpoint code.** Every ability is auto-exposed at `/wp-json/wp-abilities/v1/abilities/acrossai/conflict-test-*/run` by the underlying WP Abilities API. Zero new REST controllers.
+* **No new database tables, no new WP options, no new npm packages, no new Composer packages.** Storage is a per-site JSON document at `wp-content/conflict-test-overrides.json` (byte-compatible with the reference implementation) and a per-site mu-plugin at `wp-content/mu-plugins/wp-conflict-tester.php`. `File_Mods_Guard::blocked_response( 'install' )` gates `deploy-mu-plugin` and `remove-mu-plugin` so `DISALLOW_FILE_MODS=true` sites refuse the write cleanly (FR-013).
+* **Every operation gated on `manage_options`** with no filesystem-path input — target paths are class-level constants derived from `WP_CONTENT_DIR` and `WPMU_PLUGIN_DIR` (FR-014).
+* **PHPUnit coverage for the two non-trivial helpers**: `tests/phpunit/abilities/debugging/OverridesStoreTest.php` (11 tests — read/write, atomic rename, FR-011 matches-DB drop, FR-012 empty-map deletion, FR-019 malformed JSON, FR-020 mu-plugin status, FR-021 orphan prune) and `DependencyResolverTest.php` (9 tests — direct/transitive/diamond/cycle over both traversal directions). New `feature-061-unit` PHPUnit suite plus inclusion in the shared `abilities-unit` suite. Full suite: 89 tests, 142 assertions.
+* **No breaking changes.** No ability slug rename. No REST endpoint change. No option-shape change. No new required capability. Existing 218 abilities behave identically. Safe upgrade from 0.0.20.
 
 = 0.0.20 =
 * **Changed — access-control library-missing notice now routes through the shared AcrossAI notice hub.** The pre-0.0.20 `AcrossAI_Abilities_Access_Control::maybe_show_library_notice()` method was hooked on WordPress core `admin_notices` and printed a raw `.notice.notice-warning` banner on every admin screen when the `wpb-access-control` library wasn't loaded. It is renamed to `register_library_notice( array $notices ): array` and now registers into the new `acrossai_notices` filter shipped by `acrossai-co/main-menu` 0.0.30. The notice appears in two places instead: (1) as a card on the new **AcrossAI → Notices** submenu (only registered when at least one notice is present, with a WP-style count bubble on the menu label), and (2) as a single top-of-page WordPress-native `.notice.notice-warning.is-dismissible` summary banner ("AcrossAI has N notifications for your attention — View notices →") printed on every other admin page. Dismissal is fingerprint-persisted per user until the notice set changes. Notice record shape: `id=wpb_access_control_missing`, `type=warning`, `source=AcrossAI Abilities Manager`. Semantics are unchanged — the fail-open behaviour, the `manage_options` gate (enforced by the menu itself and the summary emitter), and the message copy are all preserved.
@@ -265,6 +282,9 @@ No data is sent to any external server without an explicit administrator action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.21 =
+Adds seven Conflict Testing abilities under a new Debugging category — list plugins, get/set/bulk-set/clear overrides, and deploy/remove the mu-plugin that filters `option_active_plugins` on every request. Site administrators can toggle a suspected plugin OFF for a browser session or a support call, verify the site with that plugin effectively deactivated, then clear the override and return the site to its exact prior state — **without** ever writing to `wp_options.active_plugins`. Every `active=true` write is gated by a WordPress-core-style `plugin_sandbox_scrape` probe so a broken plugin can never leave the site in a state where every subsequent page load fatals. No breaking changes; existing abilities unaffected. Safe upgrade from 0.0.20.
 
 = 0.0.20 =
 Routes the access-control library-missing warning through the new shared AcrossAI notice hub (`acrossai_notices` filter shipped by `acrossai-co/main-menu` 0.0.30). Instead of a raw wp-admin banner on every screen, the notice now appears on the new AcrossAI → Notices submenu (with a count bubble on the menu label) and as a single top-of-page summary banner ("AcrossAI has N notifications for your attention — View notices →") whose dismissal persists per user until the notice set changes. The fail-open semantics and message copy are unchanged. No breaking changes; existing abilities unaffected. Safe upgrade from 0.0.19.
