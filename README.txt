@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.20
+Stable tag: 0.0.21
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -137,6 +137,14 @@ No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
 
+= 0.0.21 =
+* **Composer dependency bump — `wpboilerplate/wpb-access-control` `^2.0.0` → `^3.1.0`.** Adopts two major releases of the shared access-control library in one hop:
+  * **v3.0.0 (breaking, but not for this plugin).** The two plugin-dependent providers shipped in the library's v1.4.0 / v1.5.0 — `BuddyBossProfileTypeProvider` (`bb_profile_type`) and `MemberPressMembershipProvider` (`mepr_membership`) — were extracted into a separate WordPress add-on called **AcrossAI User Access Pro** (`acrossai/user-access-pro`), along with eight new integrations (LearnDash Group, LifterLMS Membership, Paid Memberships Pro, Restrict Content Pro, WooCommerce Memberships, s2Member Level, Wishlist Member Level, Memberium Membership). The library now ships only the three WordPress-native providers (`wp_role`, `wp_user`, `wp_capability`) plus a new `wpb_access_control_register_providers` global filter for add-on registration. **This plugin uses only `AccessControlManager` + `RuleTable` — neither of the removed provider classes.** No consumer-side code change is required; every existing Access Control rule shape is preserved and the per-consumer `AccessControlManager( $providers_filter, $table_slug )` constructor signature is unchanged.
+  * **v3.1.0.** Adds a new `AccessControlManager::TYPE_AUTHENTICATED` (`'authenticated'`) sentinel rule type — grants access to any logged-in user without requiring a specific role or capability match. Rendered in the Access Control dropdown as "Any logged-in user", stored as a single sentinel row like `everyone`. Also renames the public option label from "Everyone (no restriction)" to "Public (no login required)" for clarity. Existing rules are untouched; the `everyone` key behaves identically.
+* **New Access Control rule affordance on every ability.** Site administrators can now pick "Any logged-in user" from the Access Control dropdown on the ability edit panel — useful for abilities that should be reachable by every authenticated user (including subscribers) without curating a specific role list. Rules using the previous "Everyone" wording continue to work unchanged; the dropdown label just clarifies that `everyone` means "no login required."
+* **Migration required only for sites vendoring the built assets.** Consumer plugins that pin `vendor/wpboilerplate/wpb-access-control/assets/build/` in their release bundle should `composer update` and rebuild to pick up the new dropdown option. This plugin re-vendors the library's compiled CSS via `admin/Main.php::enqueue_styles()` and the `composer update` this changelog entry documents already regenerates that asset path.
+* **No breaking changes.** No ability slug rename. No REST endpoint change. No option-shape change. No new required capability. Every existing 218 abilities behave identically. Existing Access Control rules keep working — the removed BuddyBoss / MemberPress providers were never registered from this plugin (they defaulted to `is_available() === false` in the library's v1.6.0 – v2.0.x range on sites that had not explicitly opted in). Safe upgrade from 0.0.20.
+
 = 0.0.20 =
 * **Changed — access-control library-missing notice now routes through the shared AcrossAI notice hub.** The pre-0.0.20 `AcrossAI_Abilities_Access_Control::maybe_show_library_notice()` method was hooked on WordPress core `admin_notices` and printed a raw `.notice.notice-warning` banner on every admin screen when the `wpb-access-control` library wasn't loaded. It is renamed to `register_library_notice( array $notices ): array` and now registers into the new `acrossai_notices` filter shipped by `acrossai-co/main-menu` 0.0.30. The notice appears in two places instead: (1) as a card on the new **AcrossAI → Notices** submenu (only registered when at least one notice is present, with a WP-style count bubble on the menu label), and (2) as a single top-of-page WordPress-native `.notice.notice-warning.is-dismissible` summary banner ("AcrossAI has N notifications for your attention — View notices →") printed on every other admin page. Dismissal is fingerprint-persisted per user until the notice set changes. Notice record shape: `id=wpb_access_control_missing`, `type=warning`, `source=AcrossAI Abilities Manager`. Semantics are unchanged — the fail-open behaviour, the `manage_options` gate (enforced by the menu itself and the summary emitter), and the message copy are all preserved.
 * **Composer dependency bump — `acrossai-co/main-menu` 0.0.29 → 0.0.30.** Ships the cross-plugin notice system this release routes through:
@@ -265,6 +273,9 @@ No data is sent to any external server without an explicit administrator action.
 * MCP server listing via MCP Adapter integration.
 
 == Upgrade Notice ==
+
+= 0.0.21 =
+Bumps the `wpboilerplate/wpb-access-control` composer dependency from `^2.0.0` to `^3.1.0` — two library releases in one hop. v3.0.0 removed two plugin-dependent providers (`BuddyBossProfileTypeProvider`, `MemberPressMembershipProvider`) that were extracted into a separate add-on (`acrossai/user-access-pro`); this plugin uses only the core `AccessControlManager` + `RuleTable` classes, so no consumer code change is required. v3.1.0 adds a new "Any logged-in user" option to the Access Control dropdown (backed by a new `authenticated` sentinel rule type), and renames "Everyone (no restriction)" → "Public (no login required)" for clarity. Existing rules unaffected. Safe upgrade from 0.0.20.
 
 = 0.0.20 =
 Routes the access-control library-missing warning through the new shared AcrossAI notice hub (`acrossai_notices` filter shipped by `acrossai-co/main-menu` 0.0.30). Instead of a raw wp-admin banner on every screen, the notice now appears on the new AcrossAI → Notices submenu (with a count bubble on the menu label) and as a single top-of-page summary banner ("AcrossAI has N notifications for your attention — View notices →") whose dismissal persists per user until the notice set changes. The fail-open semantics and message copy are unchanged. No breaking changes; existing abilities unaffected. Safe upgrade from 0.0.19.
