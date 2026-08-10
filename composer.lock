@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d280e7cb1172c454a799decd5e5a9b79",
+    "content-hash": "1eea1fb79b16993f97658fd49eb2a9c6",
     "packages": [
         {
             "name": "acrossai-co/main-menu",
-            "version": "0.0.30",
+            "version": "0.0.32",
             "source": {
                 "type": "git",
                 "url": "https://github.com/acrossai-co/main-menu.git",
-                "reference": "13337690bc52b21fa177b47138f0c045e15896c5"
+                "reference": "e1faed188c84c71f366397c33f595aca3ab13c88"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/acrossai-co/main-menu/zipball/13337690bc52b21fa177b47138f0c045e15896c5",
-                "reference": "13337690bc52b21fa177b47138f0c045e15896c5",
+                "url": "https://api.github.com/repos/acrossai-co/main-menu/zipball/e1faed188c84c71f366397c33f595aca3ab13c88",
+                "reference": "e1faed188c84c71f366397c33f595aca3ab13c88",
                 "shasum": ""
             },
             "require": {
@@ -41,9 +41,9 @@
             "description": "AcrossAI Admin Dashboard — parent menu, shared Settings page (Settings API, flat or tabbed), and reusable Tabs base for other admin screens.",
             "support": {
                 "issues": "https://github.com/acrossai-co/main-menu/issues",
-                "source": "https://github.com/acrossai-co/main-menu/tree/0.0.30"
+                "source": "https://github.com/acrossai-co/main-menu/tree/0.0.32"
             },
-            "time": "2026-08-02T14:00:49+00:00"
+            "time": "2026-08-10T12:00:45+00:00"
         },
         {
             "name": "automattic/jetpack-autoloader",
