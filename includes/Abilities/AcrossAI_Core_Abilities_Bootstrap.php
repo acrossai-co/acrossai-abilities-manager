@@ -214,6 +214,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Content\Delete_Post();
 		new Content\Get_Post_Meta();
 		new Content\Update_Post_Meta();
+		new Content\Delete_Post_Meta();
 		new Content\Create_Page();
 		new Content\Get_Page();
 		new Content\List_Page_Revisions();
