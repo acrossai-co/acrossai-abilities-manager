@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.21
+Stable tag: 0.0.22
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -136,6 +136,12 @@ Several admin-only actions can cause external services to receive data — all a
 No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
+
+= 0.0.22 =
+* **New — `acrossai/delete-post-meta` ability under the Content category.** Deletes a single post meta row via WordPress core `delete_post_meta()`. Accepts `post_id` + `key` (with the WP-core-native `meta_key` alias) and an optional `value` (with `meta_value` alias). When a value is supplied, only rows matching that value are removed; otherwise every row for the given key is removed. Gated by `manage_options`; annotated `destructive: true`, `idempotent: true`. Mirrors the shape of `acrossai/update-post-meta` for consistent client ergonomics.
+* **Fixed — `acrossai/update-post-meta` no longer rejects protected meta keys (#99).** The pre-0.0.22 `execute()` short-circuited with `success: false` whenever `is_protected_meta( $key, 'post' )` returned true, contradicting the class docblock ("Works for ANY meta key"). Now the ability writes any key the `manage_options` gate allows through — the capability check remains the sole access boundary. The registered `description` was also updated to match the new behaviour ("Works for any meta key, including protected keys.").
+* **Composer dependency bump — `acrossai-co/main-menu` 0.0.30 → 0.0.33.** Rolls three shared-menu library releases into one hop; `composer.lock` regenerated to reference `e17e1e8`.
+* **No breaking changes.** No ability slug rename. No REST endpoint change. No option-shape change. No new required capability. Existing 218 abilities behave identically. Safe upgrade from 0.0.21.
 
 = 0.0.21 =
 * **Composer dependency bump — `wpboilerplate/wpb-access-control` `^2.0.0` → `^3.1.0`.** Adopts two major releases of the shared access-control library in one hop:
