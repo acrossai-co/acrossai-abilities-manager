@@ -140,6 +140,9 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		// Feature 062 — role & capability CRUD.
 		new Users\Add_Role_Capability();
 		new Users\Remove_Role_Capability();
+		new Users\Create_Role();
+		new Users\Delete_Role();
+		new Users\Reset_Role();
 		new Cache\Flush_Object_Cache();
 		new Cache\Flush_Transients();
 		new Cache\Flush_Rewrite_Rules();
