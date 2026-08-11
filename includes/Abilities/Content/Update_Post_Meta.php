@@ -29,7 +29,7 @@ class Update_Post_Meta extends Ability_Definition {
 			'name' => 'acrossai/update-post-meta',
 			'args' => array(
 				'label'               => __( 'Update Post Meta', 'acrossai-abilities-manager' ),
-				'description'         => __( 'Set a post meta value via update_post_meta(). If the meta is registered via register_meta() and protected, the request will be rejected.', 'acrossai-abilities-manager' ),
+				'description'         => __( 'Set a post meta value via update_post_meta(). Works for any meta key, including protected keys.', 'acrossai-abilities-manager' ),
 				'category'            => 'acrossai-abilities-manager-content',
 				'execute_callback'    => array( $this, 'execute' ),
 				'permission_callback' => static function (): bool {
@@ -116,13 +116,6 @@ class Update_Post_Meta extends Ability_Definition {
 			return array(
 				'success' => false,
 				'message' => __( 'Meta key is empty. Pass "key" (or its alias "meta_key").', 'acrossai-abilities-manager' ),
-			);
-		}
-		if ( is_protected_meta( $key, 'post' ) ) {
-			return array(
-				'success' => false,
-				/* translators: %s: meta key */
-				'message' => sprintf( __( 'Meta key "%s" is protected and cannot be modified.', 'acrossai-abilities-manager' ), $key ),
 			);
 		}
 

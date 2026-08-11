@@ -20,6 +20,44 @@ defined( 'ABSPATH' ) || exit;
 class Update_Option extends Ability_Definition {
 
 	/**
+	 * Canonical block-list of protected core option names that must never be
+	 * mutated through the ability layer. Consumed by Patch_Option_Value (which
+	 * mirrors this ability's guardrail surface) so both writers refuse the
+	 * same set.
+	 *
+	 * Kept intentionally narrow — every entry is either load-bearing for site
+	 * boot (siteurl / home / blogname / template / stylesheet) or a security
+	 * surface WP core owns (active_plugins, users_can_register, secret keys,
+	 * db_version). Add sparingly and only for entries that would break a live
+	 * site if a caller mutated them via the abilities API.
+	 *
+	 * @var string[]
+	 */
+	public const BLOCKED_OPTIONS = array(
+		'siteurl',
+		'home',
+		'blogname',
+		'blogdescription',
+		'admin_email',
+		'template',
+		'stylesheet',
+		'current_theme',
+		'active_plugins',
+		'users_can_register',
+		'default_role',
+		'db_version',
+		'secret',
+		'auth_key',
+		'auth_salt',
+		'logged_in_key',
+		'logged_in_salt',
+		'nonce_key',
+		'nonce_salt',
+		'secure_auth_key',
+		'secure_auth_salt',
+	);
+
+	/**
 	 * Full ability spec for wp_register_ability().
 	 *
 	 * @return array
