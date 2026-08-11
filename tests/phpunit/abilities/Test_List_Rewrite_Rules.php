@@ -1,0 +1,71 @@
+<?php
+/**
+ * Structural tests for the Feature 063 acrossai/list-rewrite-rules ability.
+ *
+ * Source-inspection only — mirrors Test_Feature_042_Core_Update precedent.
+ *
+ * @package AcrossAI_Abilities_Manager
+ * @since   0.1.0
+ */
+
+namespace AcrossAI_Abilities_Manager\Tests\PHPUnit\Abilities;
+
+use WP_UnitTestCase;
+
+/**
+ * Class Test_List_Rewrite_Rules.
+ */
+class Test_List_Rewrite_Rules extends WP_UnitTestCase {
+
+	/** @var string */
+	private string $src = '';
+
+	/** @var string */
+	private string $bootstrap = '';
+
+	/**
+	 * Load the ability source once per test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$plugin_root     = dirname( __DIR__, 3 );
+		$this->src       = (string) file_get_contents( $plugin_root . '/includes/Abilities/Settings/List_Rewrite_Rules.php' );
+		$this->bootstrap = (string) file_get_contents( $plugin_root . '/includes/Abilities/AcrossAI_Core_Abilities_Bootstrap.php' );
+	}
+
+	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
+		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
+		$this->assertStringContainsString( "'acrossai/list-rewrite-rules'", $this->src );
+	}
+
+	public function test_targets_the_settings_category(): void {
+		$this->assertStringContainsString( "'acrossai-abilities-manager-settings'", $this->src );
+	}
+
+	public function test_permission_callback_gates_on_manage_options(): void {
+		$this->assertMatchesRegularExpression(
+			"/current_user_can\\(\\s*'manage_options'\\s*\\)/",
+			$this->src
+		);
+	}
+
+	public function test_declares_readonly_idempotent_non_destructive_annotations(): void {
+		$this->assertStringContainsString( "'readonly'    => true", $this->src );
+		$this->assertStringContainsString( "'idempotent'  => true", $this->src );
+		$this->assertStringContainsString( "'destructive' => false", $this->src );
+	}
+
+	public function test_execute_reads_from_the_rewrite_rules_option(): void {
+		$this->assertStringContainsString( "get_option( 'rewrite_rules'", $this->src );
+	}
+
+	public function test_response_includes_count(): void {
+		$this->assertStringContainsString( 'count(', $this->src );
+	}
+
+	public function test_bootstrap_instantiates_the_ability(): void {
+		$this->assertStringContainsString( 'new Settings\\List_Rewrite_Rules()', $this->bootstrap );
+	}
+}
