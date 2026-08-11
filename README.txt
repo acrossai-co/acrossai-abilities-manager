@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.22
+Stable tag: 0.0.23
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -136,6 +136,31 @@ Several admin-only actions can cause external services to receive data — all a
 No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
+
+= 0.0.23 =
+* **New — 30 abilities across three feature spec drops (062, 063, 064).** Bulk expansion of the plugin's ability surface. No breaking changes.
+
+**Feature 062 — Role & capability CRUD + site-wide DB search-replace (8 abilities).**
+  * `acrossai/add-role-capability`, `acrossai/remove-role-capability`, `acrossai/create-role`, `acrossai/delete-role`, `acrossai/reset-role`, `acrossai/add-user-capability`, `acrossai/remove-user-capability` — writers for the role/cap surface WordPress core REST does not expose. Every write is `destructive: true`.
+  * `acrossai/search-replace` — site-wide serialized-data-safe string replacement across every WordPress-managed table. **`dry_run: true` by default** — the ability returns a per-table / per-column match tally without mutating any row, and mutating writes only happen when the caller explicitly passes `dry_run: false`. Table allowlist mirrors `Update_Db_Rows.php` (validates every input table against `SHOW TABLES` before scanning). Skips `wp_posts.guid` unless the caller explicitly opts in via `include_guids: true` (safer default than WP-CLI). Recursive `maybe_unserialize` / `maybe_serialize` walk keeps serialized meta / options structurally valid.
+  * Guardrails: `remove-role-capability` refuses to strip a WP-core administrator baseline capability from the `administrator` role; `delete-role` refuses on any of the 5 built-in roles AND when the role is still held by any user; `reset-role` accepts only the 5 built-in role slugs; `remove-user-capability` refuses to strip a WP-core admin cap from the last remaining administrator.
+
+**Feature 063 — Site introspection reads + new Widgets category (11 abilities).**
+  * `acrossai/get-wp-version`, `acrossai/get-db-prefix`, `acrossai/get-wp-config-constant`, `acrossai/list-theme-mods`, `acrossai/list-rewrite-rules`, `acrossai/list-image-sizes`, `acrossai/get-comment-count`, `acrossai/get-maintenance-mode-status`, `acrossai/test-wp-cron` — small single-purpose reads that WordPress does not expose through a public REST endpoint. Every ability is `readonly: true, idempotent: true, destructive: false`.
+  * `acrossai/list-widgets`, `acrossai/list-sidebars` — legacy widget-system introspection under a new **Widgets** category (slug `acrossai-abilities-manager-widgets`).
+  * Guardrails: `get-wp-config-constant` hard-blocks disclosure of `AUTH_KEY`, `SECURE_AUTH_KEY`, `LOGGED_IN_KEY`, `NONCE_KEY`, `AUTH_SALT`, `SECURE_AUTH_SALT`, `LOGGED_IN_SALT`, `NONCE_SALT`, and `DB_PASSWORD` regardless of the `manage_options` gate; `get-maintenance-mode-status` uses WordPress core's own 10-minute staleness threshold; `test-wp-cron` fires a single non-blocking `wp_remote_get()` with a 0.01s timeout so it never hangs a REST response.
+
+**Feature 064 — Transient CRUD, nested option access, plugin lifecycle & checksum integrity (11 abilities).**
+  * Transient CRUD (Cache category): `acrossai/get-transient`, `acrossai/list-transients` (paginated, search-filterable, expiry-aware), `acrossai/delete-transient`, `acrossai/delete-expired-transients` — closes the previous read-nothing / bulk-only-delete gap.
+  * Nested option access (Options category): `acrossai/get-nested-option-value` and `acrossai/patch-option-value` — read or mutate one nested key inside a serialized option without round-tripping the whole blob. Guarded by `Update_Option::BLOCKED_OPTIONS` (extracted as a `public const` on `Update_Option` in this release so both classes share one authoritative block-list of 21 protected core options).
+  * Post-meta append (Content category): `acrossai/add-post-meta` — WordPress core `add_post_meta()` semantics with the WP-core `unique` flag. Complements the existing update / delete post-meta writers.
+  * Plugin lifecycle (Plugins category): `acrossai/search-wp-plugin-directory` (searches the WordPress.org plugin directory via `plugins_api()`; short description sanitised via `wp_kses_post()`), `acrossai/uninstall-plugin` (fires the plugin's registered uninstall hook + deletes files via WP core `uninstall_plugin()`; refuses on active plugins and on sites with `DISALLOW_FILE_MODS`), `acrossai/verify-plugin-checksums`.
+  * Core integrity (Core category): `acrossai/verify-core-checksums` — fetches the official `api.wordpress.org` checksums manifest via `wp_remote_get()` and compares `md5_file()` hashes; per-file `status: 'ok'|'modified'|'missing'|'added'` and a summary counter.
+
+* **Every one of the 30 new abilities gates on `current_user_can( 'manage_options' )`** using the identical permission-callback pattern already used by all 219 existing abilities: `static function (): bool { return current_user_can( 'manage_options' ); }`. No cap escalation via filter.
+* **One new ability category — Widgets** (`acrossai-abilities-manager-widgets`), registered via `includes/Abilities/Widgets/Category_Registrar.php` mirroring the shape of `includes/Abilities/Menus/`.
+* **204 new PHPUnit test methods** on top of the previous 191 (final suite: ~395 methods across the 8.1 → 8.5 PHP CI matrix). Every new class file passes PHPStan level 8 and the plugin's PHPCS WPCS strict profile.
+* **No breaking changes.** No ability slug rename. No REST endpoint change. No option-shape change. No new required capability. Existing 218 abilities behave identically. The `Update_Option::BLOCKED_OPTIONS` extraction in Feature 064 is a pure move of an inline literal into a `public const`; behaviour is unchanged. Safe upgrade from 0.0.22.
 
 = 0.0.22 =
 * **New — `acrossai/delete-post-meta` ability under the Content category.** Deletes a single post meta row via WordPress core `delete_post_meta()`. Accepts `post_id` + `key` (with the WP-core-native `meta_key` alias) and an optional `value` (with `meta_value` alias). When a value is supplied, only rows matching that value are removed; otherwise every row for the given key is removed. Gated by `manage_options`; annotated `destructive: true`, `idempotent: true`. Mirrors the shape of `acrossai/update-post-meta` for consistent client ergonomics.
