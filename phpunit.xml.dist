@@ -53,6 +53,16 @@
 		<testsuite name="feature-059-unit">
 			<file>tests/phpunit/abilities/Test_Feature_059_Recovery_Mode.php</file>
 		</testsuite>
+		<testsuite name="feature-062-unit">
+			<file>tests/phpunit/abilities/Test_Add_Role_Capability.php</file>
+			<file>tests/phpunit/abilities/Test_Remove_Role_Capability.php</file>
+			<file>tests/phpunit/abilities/Test_Create_Role.php</file>
+			<file>tests/phpunit/abilities/Test_Delete_Role.php</file>
+			<file>tests/phpunit/abilities/Test_Reset_Role.php</file>
+			<file>tests/phpunit/abilities/Test_Add_User_Capability.php</file>
+			<file>tests/phpunit/abilities/Test_Remove_User_Capability.php</file>
+			<file>tests/phpunit/abilities/Test_Search_Replace.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>
