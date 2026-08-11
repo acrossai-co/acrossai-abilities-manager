@@ -61,6 +61,10 @@
 			<file>tests/phpunit/abilities/Test_Get_Nested_Option_Value.php</file>
 			<file>tests/phpunit/abilities/Test_Patch_Option_Value.php</file>
 			<file>tests/phpunit/abilities/Test_Add_Post_Meta.php</file>
+			<file>tests/phpunit/abilities/Test_Search_Wp_Plugin_Directory.php</file>
+			<file>tests/phpunit/abilities/Test_Uninstall_Plugin.php</file>
+			<file>tests/phpunit/abilities/Test_Verify_Plugin_Checksums.php</file>
+			<file>tests/phpunit/abilities/Test_Verify_Core_Checksums.php</file>
 		</testsuite>
 	</testsuites>
 	<source>
