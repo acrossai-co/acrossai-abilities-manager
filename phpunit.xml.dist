@@ -76,6 +76,20 @@
 			<file>tests/phpunit/abilities/Test_List_Widgets.php</file>
 			<file>tests/phpunit/abilities/Test_List_Sidebars.php</file>
 		</testsuite>
+		<testsuite name="feature-064-unit">
+			<file>tests/phpunit/abilities/Test_Get_Transient.php</file>
+			<file>tests/phpunit/abilities/Test_List_Transients.php</file>
+			<file>tests/phpunit/abilities/Test_Delete_Transient.php</file>
+			<file>tests/phpunit/abilities/Test_Delete_Expired_Transients.php</file>
+			<file>tests/phpunit/abilities/Test_Get_Nested_Option_Value.php</file>
+			<file>tests/phpunit/abilities/Test_Patch_Option_Value.php</file>
+			<file>tests/phpunit/abilities/Test_Add_Post_Meta.php</file>
+			<file>tests/phpunit/abilities/Test_Search_Wp_Plugin_Directory.php</file>
+			<file>tests/phpunit/abilities/Test_Uninstall_Plugin.php</file>
+			<file>tests/phpunit/abilities/Test_Verify_Plugin_Checksums.php</file>
+			<file>tests/phpunit/abilities/Test_Verify_Core_Checksums.php</file>
+			<file>tests/phpunit/abilities/Test_Feature_064_Bootstrap_Wiring.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>
