@@ -157,6 +157,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Database\Explain_Db_Query();
 		new Database\Get_Db_Stats();
 		new Database\Optimize_Db_Tables();
+		// Feature 062 — serialized-safe site-wide search-replace.
+		new Database\Search_Replace();
 		new FileManager\Read_File();
 		new FileManager\Create_File();
 		new FileManager\Edit_File();
