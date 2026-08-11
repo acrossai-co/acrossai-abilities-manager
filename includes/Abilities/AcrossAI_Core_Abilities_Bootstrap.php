@@ -85,6 +85,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		$loader->add_action( 'wp_abilities_api_categories_init', ContentSearch\Category_Registrar::instance(), 'register' );
 		// Feature 059 — Recovery Mode / fatal-error abilities.
 		$loader->add_action( 'wp_abilities_api_categories_init', Recovery\Category_Registrar::instance(), 'register' );
+		// Feature 063 — Widgets category.
+		$loader->add_action( 'wp_abilities_api_categories_init', Widgets\Category_Registrar::instance(), 'register' );
 	}
 
 	/**
@@ -124,6 +126,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Settings\Update_Site_Logo();
 		new Settings\Get_Site_Icon();
 		new Settings\Update_Site_Icon();
+		// Feature 063 — Rewrite rules read.
+		new Settings\List_Rewrite_Rules();
 		new Themes\Activate_Theme();
 		new Themes\Delete_Theme();
 		new Themes\Install_Theme();
@@ -149,6 +153,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Database\Explain_Db_Query();
 		new Database\Get_Db_Stats();
 		new Database\Optimize_Db_Tables();
+		// Feature 063 — Database introspection.
+		new Database\Get_Db_Prefix();
 		new FileManager\Read_File();
 		new FileManager\Create_File();
 		new FileManager\Edit_File();
@@ -169,6 +175,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new FileManager\Download_Zip_Backup();
 		new FileManager\List_Zip_Backups();
 		new FileManager\Delete_Zip_Backup();
+		// Feature 063 — wp-config constant read.
+		new FileManager\Get_Wp_Config_Constant();
 		new Block\List_Block_Patterns();
 		new Block\Read_Block_Pattern();
 		new Block\Create_Block_Pattern();
@@ -271,6 +279,9 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Menus\Create_Menu_Item();
 		new Menus\Update_Menu_Item();
 		new Menus\Delete_Menu_Item();
+		// Feature 063 — Widgets category (2 abilities).
+		new Widgets\List_Widgets();
+		new Widgets\List_Sidebars();
 		new Options\Get_Option();
 		new Options\Update_Option();
 		new Options\Delete_Option();
@@ -291,18 +302,26 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Cron\Delete_Cron_Job();
 		new Cron\Delete_Cron_Jobs_By_Hook();
 		new Cron\Delete_Cron_Schedule();
+		// Feature 063 — Cron endpoint reachability probe.
+		new Cron\Test_Wp_Cron();
 		new SiteHealth\Get_Site_Health_Status();
 		new SiteHealth\Get_Site_Health_Info();
 		new Core\Check_Wp_Core_Update();
 		new Core\Update_Wp_Core();
 		new Core\Rollback_Wp_Core();
 		new Core\Reinstall_Wp_Core();
+		// Feature 063 — Core introspection.
+		new Core\Get_Wp_Version();
 
 		// Feature 055 — 31 new abilities across 10 domains.
 		new Users\Get_Current_User_Access();
 		new Taxonomies\Set_Term_Image();
 		new Comments\Bulk_Update_Comments();
+		// Feature 063 — Comment counts read.
+		new Comments\Get_Comment_Count();
 		new Media\Rename_Media_File();
+		// Feature 063 — Image sizes read.
+		new Media\List_Image_Sizes();
 		new Menus\Get_Navigation_Context();
 		new Menus\List_Navigation_Locations();
 		new Content\Update_Post_Block();
@@ -312,8 +331,12 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Block\List_Reusable_Blocks();
 		new Block\List_Block_Areas();
 		new SiteHealth\Get_Site_Maintenance_Report();
+		// Feature 063 — Maintenance-mode status read.
+		new SiteHealth\Get_Maintenance_Mode_Status();
 		new Plugins\Get_Plugin_Lifecycle_Context();
 		new Themes\Get_Theme_Lifecycle_Context();
+		// Feature 063 — Theme mods introspection.
+		new Themes\List_Theme_Mods();
 		new AdminMenu\Get_Admin_Menu_Context();
 		new AdminMenu\Refresh_Admin_Menu_Context();
 		new AdminMenu\List_Admin_Menu_Pages();
