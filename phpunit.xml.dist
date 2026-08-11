@@ -58,6 +58,8 @@
 			<file>tests/phpunit/abilities/Test_List_Transients.php</file>
 			<file>tests/phpunit/abilities/Test_Delete_Transient.php</file>
 			<file>tests/phpunit/abilities/Test_Delete_Expired_Transients.php</file>
+			<file>tests/phpunit/abilities/Test_Get_Nested_Option_Value.php</file>
+			<file>tests/phpunit/abilities/Test_Patch_Option_Value.php</file>
 		</testsuite>
 	</testsuites>
 	<source>
