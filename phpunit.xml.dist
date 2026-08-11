@@ -53,6 +53,29 @@
 		<testsuite name="feature-059-unit">
 			<file>tests/phpunit/abilities/Test_Feature_059_Recovery_Mode.php</file>
 		</testsuite>
+<testsuite name="feature-062-unit">
+			<file>tests/phpunit/abilities/Test_Add_Role_Capability.php</file>
+			<file>tests/phpunit/abilities/Test_Remove_Role_Capability.php</file>
+			<file>tests/phpunit/abilities/Test_Create_Role.php</file>
+			<file>tests/phpunit/abilities/Test_Delete_Role.php</file>
+			<file>tests/phpunit/abilities/Test_Reset_Role.php</file>
+			<file>tests/phpunit/abilities/Test_Add_User_Capability.php</file>
+			<file>tests/phpunit/abilities/Test_Remove_User_Capability.php</file>
+			<file>tests/phpunit/abilities/Test_Search_Replace.php</file>
+		</testsuite>
+		<testsuite name="feature-063-unit">
+			<file>tests/phpunit/abilities/Test_Get_Wp_Version.php</file>
+			<file>tests/phpunit/abilities/Test_Get_Db_Prefix.php</file>
+			<file>tests/phpunit/abilities/Test_Get_Wp_Config_Constant.php</file>
+			<file>tests/phpunit/abilities/Test_List_Theme_Mods.php</file>
+			<file>tests/phpunit/abilities/Test_List_Rewrite_Rules.php</file>
+			<file>tests/phpunit/abilities/Test_List_Image_Sizes.php</file>
+			<file>tests/phpunit/abilities/Test_Get_Comment_Count.php</file>
+			<file>tests/phpunit/abilities/Test_Get_Maintenance_Mode_Status.php</file>
+			<file>tests/phpunit/abilities/Test_Test_Wp_Cron.php</file>
+			<file>tests/phpunit/abilities/Test_List_Widgets.php</file>
+			<file>tests/phpunit/abilities/Test_List_Sidebars.php</file>
+		</testsuite>
 		<testsuite name="feature-064-unit">
 			<file>tests/phpunit/abilities/Test_Get_Transient.php</file>
 			<file>tests/phpunit/abilities/Test_List_Transients.php</file>
