@@ -65,6 +65,7 @@
 			<file>tests/phpunit/abilities/Test_Uninstall_Plugin.php</file>
 			<file>tests/phpunit/abilities/Test_Verify_Plugin_Checksums.php</file>
 			<file>tests/phpunit/abilities/Test_Verify_Core_Checksums.php</file>
+			<file>tests/phpunit/abilities/Test_Feature_064_Bootstrap_Wiring.php</file>
 		</testsuite>
 	</testsuites>
 	<source>
