@@ -114,6 +114,10 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Plugins\Update_Plugin();
 		new Plugins\List_Plugins();
 		new Plugins\Check_Plugin_Updates();
+		// Feature 064 — plugin lifecycle & integrity (3).
+		new Plugins\Search_Wp_Plugin_Directory();
+		new Plugins\Uninstall_Plugin();
+		new Plugins\Verify_Plugin_Checksums();
 		new Settings\Get_Permalink_Structure();
 		new Settings\Set_Permalink_Structure();
 		new Settings\Flush_Permalink_Structure();
@@ -140,6 +144,11 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Cache\Flush_Object_Cache();
 		new Cache\Flush_Transients();
 		new Cache\Flush_Rewrite_Rules();
+		// Feature 064 — transient CRUD (4).
+		new Cache\Get_Transient();
+		new Cache\List_Transients();
+		new Cache\Delete_Transient();
+		new Cache\Delete_Expired_Transients();
 		new Database\Extract_Db_Schema();
 		new Database\Run_Db_Select_Query();
 		new Database\Insert_Db_Row();
@@ -215,6 +224,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Content\Get_Post_Meta();
 		new Content\Update_Post_Meta();
 		new Content\Delete_Post_Meta();
+		// Feature 064 — post-meta append (1).
+		new Content\Add_Post_Meta();
 		new Content\Create_Page();
 		new Content\Get_Page();
 		new Content\List_Page_Revisions();
@@ -276,6 +287,9 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Options\Delete_Option();
 		new Options\List_Options();
 		new Options\Search_Options();
+		// Feature 064 — nested option access (2).
+		new Options\Get_Nested_Option_Value();
+		new Options\Patch_Option_Value();
 		new Cron\List_Cron_Jobs();
 		new Cron\Get_Cron_Job();
 		new Cron\Get_Next_Cron_Run();
@@ -297,6 +311,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Core\Update_Wp_Core();
 		new Core\Rollback_Wp_Core();
 		new Core\Reinstall_Wp_Core();
+		// Feature 064 — core integrity (1).
+		new Core\Verify_Core_Checksums();
 
 		// Feature 055 — 31 new abilities across 10 domains.
 		new Users\Get_Current_User_Access();
