@@ -143,6 +143,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Users\Create_Role();
 		new Users\Delete_Role();
 		new Users\Reset_Role();
+		new Users\Add_User_Capability();
+		new Users\Remove_User_Capability();
 		new Cache\Flush_Object_Cache();
 		new Cache\Flush_Transients();
 		new Cache\Flush_Rewrite_Rules();
