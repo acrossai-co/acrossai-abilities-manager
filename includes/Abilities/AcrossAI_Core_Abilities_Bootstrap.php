@@ -141,6 +141,14 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Users\Reset_User_Password();
 		new Users\List_User_Roles();
 		new Users\Get_Role_Capabilities();
+		// Feature 062 — role & capability CRUD.
+		new Users\Add_Role_Capability();
+		new Users\Remove_Role_Capability();
+		new Users\Create_Role();
+		new Users\Delete_Role();
+		new Users\Reset_Role();
+		new Users\Add_User_Capability();
+		new Users\Remove_User_Capability();
 		new Cache\Flush_Object_Cache();
 		new Cache\Flush_Transients();
 		new Cache\Flush_Rewrite_Rules();
@@ -153,6 +161,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Database\Explain_Db_Query();
 		new Database\Get_Db_Stats();
 		new Database\Optimize_Db_Tables();
+		// Feature 062 — serialized-safe site-wide search-replace.
+		new Database\Search_Replace();
 		// Feature 063 — Database introspection.
 		new Database\Get_Db_Prefix();
 		new FileManager\Read_File();
