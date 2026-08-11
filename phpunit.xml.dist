@@ -53,6 +53,12 @@
 		<testsuite name="feature-059-unit">
 			<file>tests/phpunit/abilities/Test_Feature_059_Recovery_Mode.php</file>
 		</testsuite>
+		<testsuite name="feature-064-unit">
+			<file>tests/phpunit/abilities/Test_Get_Transient.php</file>
+			<file>tests/phpunit/abilities/Test_List_Transients.php</file>
+			<file>tests/phpunit/abilities/Test_Delete_Transient.php</file>
+			<file>tests/phpunit/abilities/Test_Delete_Expired_Transients.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>
