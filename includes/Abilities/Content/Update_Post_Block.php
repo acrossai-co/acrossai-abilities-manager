@@ -10,18 +10,19 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Abilities\Content;
 
+use AcrossAI_Abilities_Manager\Includes\Abilities\Utilities\Block_Tree;
 use AcrossAI_Abilities_Manager\Includes\Modules\Library\Ability_Definition;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Parse a post's block tree, find a single block by client-supplied id
- * (either the `data-block` attribute or a matching `blockName`+`index`
- * fallback), merge new `attributes`, replace `innerHTML`, and save the
- * post with the serialised block tree.
+ * Parse a post's block tree, find a single block, merge new `attributes`,
+ * replace `innerHTML`, and save the post with the serialised block tree.
  *
- * Bounded scope: matches only top-level (non-nested) blocks by index.
- * Nested block editing is deferred to a future spec.
+ * Feature 066: adds an optional `path` input (int[]) so callers can target
+ * blocks at any nesting depth. When `path` is absent the legacy addressing
+ * modes (block_index or block_name+occurrence) continue to work byte-
+ * identically to earlier releases.
  */
 class Update_Post_Block extends Ability_Definition {
 
@@ -35,7 +36,7 @@ class Update_Post_Block extends Ability_Definition {
 			'name' => 'acrossai/update-post-block',
 			'args' => array(
 				'label'               => __( 'Update Block', 'acrossai-abilities-manager' ),
-				'description'         => __( 'Parse a post\'s block tree, find one top-level block by 0-based index (block_index) or by (block_name, occurrence), merge the supplied attributes, replace innerHTML, and save the post. Only top-level blocks are matched; nested-block editing is not supported by this ability.', 'acrossai-abilities-manager' ),
+				'description'         => __( 'Parse a post\'s block tree, find one block, merge the supplied attributes, replace innerHTML, and save the post. Targeting priority: (1) path — a canonical integer-array path targeting a block at any nesting depth; (2) block_index — 0-based top-level index; (3) block_name (+ optional occurrence).', 'acrossai-abilities-manager' ),
 				'category'            => 'acrossai-abilities-manager-content',
 				'execute_callback'    => array( $this, 'execute' ),
 				'permission_callback' => static function (): bool {
@@ -47,6 +48,13 @@ class Update_Post_Block extends Ability_Definition {
 						'post_id'     => array(
 							'type'    => 'integer',
 							'minimum' => 1,
+						),
+						'path'        => array(
+							'type'  => 'array',
+							'items' => array(
+								'type'    => 'integer',
+								'minimum' => 0,
+							),
 						),
 						'block_index' => array(
 							'type'    => 'integer',
@@ -142,6 +150,56 @@ class Update_Post_Block extends Ability_Definition {
 			);
 		}
 
+		// Feature 066 — nested-path branch runs first. When `path` is present
+		// and non-empty, target the block at that path anywhere in the tree.
+		// When absent, fall through to the legacy top-level branches below,
+		// preserving byte-identical behaviour for existing consumers.
+		$path = self::sanitize_path_input( $input['path'] ?? null );
+		if ( array() !== $path ) {
+			$target = Block_Tree::get_at_path( $blocks, $path );
+			if ( ! is_array( $target ) ) {
+				return array(
+					'success' => false,
+					'message' => __( 'Path does not resolve to a block.', 'acrossai-abilities-manager' ),
+				);
+			}
+			if ( isset( $input['attributes'] ) && is_array( $input['attributes'] ) ) {
+				$target['attrs'] = array_merge( (array) ( $target['attrs'] ?? array() ), $input['attributes'] );
+			}
+			if ( isset( $input['inner_html'] ) ) {
+				$target['innerHTML']    = (string) $input['inner_html'];
+				$target['innerContent'] = array( (string) $input['inner_html'] );
+			}
+			if ( ! Block_Tree::replace_at_path( $blocks, $path, $target ) ) {
+				return array(
+					'success' => false,
+					'message' => __( 'Failed to update block at path.', 'acrossai-abilities-manager' ),
+				);
+			}
+			$new_content = serialize_blocks( $blocks );
+			$updated     = wp_update_post(
+				array(
+					'ID'           => $post_id,
+					'post_content' => $new_content,
+				),
+				true
+			);
+			if ( is_wp_error( $updated ) ) {
+				return array(
+					'success' => false,
+					'message' => $updated->get_error_message(),
+				);
+			}
+			$target['path'] = $path;
+			return array(
+				'success' => true,
+				'post_id' => $post_id,
+				'block'   => $target,
+				/* translators: 1: path string, 2: post ID */
+				'message' => sprintf( __( 'Updated block at path [%1$s] on post #%2$d.', 'acrossai-abilities-manager' ), implode( ',', $path ), $post_id ),
+			);
+		}
+
 		$target_index = null;
 		if ( isset( $input['block_index'] ) ) {
 			$target_index = (int) $input['block_index'];
@@ -212,5 +270,31 @@ class Update_Post_Block extends Ability_Definition {
 			/* translators: 1: index, 2: post ID */
 			'message' => sprintf( __( 'Updated block #%1$d on post #%2$d.', 'acrossai-abilities-manager' ), $target_index, $post_id ),
 		);
+	}
+
+	/**
+	 * Feature 066 — coerce a raw `path` input to int[] and return an empty
+	 * array (which means "path input absent, use legacy branches") for any
+	 * malformed or missing value. A valid non-empty path is one or more
+	 * non-negative integers.
+	 *
+	 * @param mixed $raw
+	 * @return int[]
+	 */
+	private static function sanitize_path_input( $raw ): array {
+		if ( ! is_array( $raw ) || array() === $raw ) {
+			return array();
+		}
+		$out = array();
+		foreach ( $raw as $item ) {
+			if ( is_int( $item ) && $item >= 0 ) {
+				$out[] = $item;
+			} elseif ( is_string( $item ) && ctype_digit( $item ) ) {
+				$out[] = (int) $item;
+			} else {
+				return array();
+			}
+		}
+		return $out;
 	}
 }
