@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.23
+Stable tag: 0.0.24
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -136,6 +136,21 @@ Several admin-only actions can cause external services to receive data — all a
 No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
+
+= 0.0.24 =
+* **New — 6 abilities and 1 enhancement for full Gutenberg block-tree control (feature 066).** Closes the gap between the plugin's existing block-registry surface and per-post block-tree manipulation. All abilities live under the existing `acrossai-abilities-manager-content` category.
+
+**Feature 066 — Block tree mutation & nested editing (6 new abilities + 1 modified).**
+  * `acrossai/get-post-blocks` — return a post's parsed Gutenberg block tree with each block annotated with its canonical integer-array path (e.g. `[0, 2, 1]` = 2nd grandchild of the 3rd child of the 1st top-level block). Read-only, idempotent.
+  * `acrossai/add-block` — insert a new block into a post at `parent_path` + `index`. Appends when the requested index exceeds the current sibling count.
+  * `acrossai/remove-block` — remove the block at a canonical path; returns the removed payload so callers can undo/log.
+  * `acrossai/duplicate-block` — deep-clone the block at a path (including all inner blocks) and insert the clone as the next sibling.
+  * `acrossai/move-block` — atomically move a block from `from_path` to `to_parent_path` + `to_index`. Refuses moves into the source's own subtree (would create a cycle).
+  * `acrossai/insert-pattern` — resolve a saved block pattern by slug across database / active theme / installed plugins, then insert its constituent blocks at `parent_path` + `index`. Ambiguous slugs return `multiple_locations` so callers can disambiguate via `source` / `theme_type` / `plugin_slug`.
+  * `acrossai/update-post-block` (modified) — now accepts an optional `path` input for nested editing at any depth. Existing consumers using `block_index` or `block_name` + `occurrence` see **zero behaviour change** — the path branch is a strict addition.
+  * All write abilities share the same guards as the existing `update-post-block`: `manage_options` + `edit_posts` globally, `edit_post` per-post, post-type whitelist against internal CPTs (revision / nav_menu_item / custom_css / customize_changeset / oembed_cache / user_request), block-name regex validation, and soft-fail attribute-schema validation against the registered block type.
+  * Shared `Block_Tree` utility (`includes/Abilities/Utilities/Block_Tree.php`) centralises tree-path primitives — walk, get-at-path, insert / remove / replace / move, block-name and attribute-schema validation. Extracts what was previously private inline logic in `Update_Post_Block::execute`.
+  * Test coverage: 82 new PHPUnit assertions across 8 test files.
 
 = 0.0.23 =
 * **New — 30 abilities across three feature spec drops (062, 063, 064).** Bulk expansion of the plugin's ability surface. No breaking changes.

@@ -89,6 +89,14 @@
 			<file>tests/phpunit/abilities/Test_Verify_Plugin_Checksums.php</file>
 			<file>tests/phpunit/abilities/Test_Verify_Core_Checksums.php</file>
 			<file>tests/phpunit/abilities/Test_Feature_064_Bootstrap_Wiring.php</file>
+			<file>tests/phpunit/abilities/Test_Block_Tree.php</file>
+			<file>tests/phpunit/abilities/Test_Get_Post_Blocks.php</file>
+			<file>tests/phpunit/abilities/Test_Add_Block.php</file>
+			<file>tests/phpunit/abilities/Test_Remove_Block.php</file>
+			<file>tests/phpunit/abilities/Test_Update_Post_Block_Nested.php</file>
+			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
+			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
+			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>
 		</testsuite>
 	</testsuites>
 	<source>
