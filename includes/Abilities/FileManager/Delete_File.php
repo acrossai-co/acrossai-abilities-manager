@@ -21,6 +21,17 @@ defined( 'ABSPATH' ) || exit;
 class Delete_File extends Ability_Definition {
 
 	/**
+	 * Hardcoded filenames (at ABSPATH root) that this ability must never
+	 * delete. Same list as Read_File::PROTECTED_FILES.
+	 *
+	 * @var array<int,string>
+	 */
+	private const PROTECTED_FILES = array(
+		'wp-config.php',
+		'.htaccess',
+	);
+
+	/**
 	 * Full ability spec for wp_register_ability().
 	 *
 	 * @return array
@@ -30,7 +41,7 @@ class Delete_File extends Ability_Definition {
 			'name' => 'acrossai/delete-file',
 			'args' => array(
 				'label'               => __( 'Delete File', 'acrossai-abilities-manager' ),
-				'description'         => __( 'Deletes a file within the WordPress installation. Path must be relative to ABSPATH.', 'acrossai-abilities-manager' ),
+				'description'         => __( 'Deletes a file within the WordPress installation. Path must be relative to ABSPATH. Requires confirm:true, refuses wp-config.php and .htaccess, writes a .bak.<timestamp> copy before deleting, and invalidates OPcache when available.', 'acrossai-abilities-manager' ),
 				'category'            => 'acrossai-abilities-manager-file-manager',
 				'execute_callback'    => array( $this, 'execute' ),
 				'permission_callback' => static function (): bool {
@@ -39,19 +50,25 @@ class Delete_File extends Ability_Definition {
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'path' => array(
+						'path'    => array(
 							'type'        => 'string',
 							'description' => __( 'File path relative to ABSPATH.', 'acrossai-abilities-manager' ),
 						),
+						'confirm' => array(
+							'type'        => 'boolean',
+							'description' => __( 'Must be true to proceed. Guards against accidental deletes.', 'acrossai-abilities-manager' ),
+						),
 					),
-					'required'             => array( 'path' ),
+					'required'             => array( 'path', 'confirm' ),
 					'additionalProperties' => false,
 				),
 				'output_schema'       => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'success' => array( 'type' => 'boolean' ),
-						'message' => array( 'type' => 'string' ),
+						'success'        => array( 'type' => 'boolean' ),
+						'backup'         => array( 'type' => array( 'string', 'null' ) ),
+						'message'        => array( 'type' => 'string' ),
+						'blocked_reason' => array( 'type' => 'string' ),
 					),
 					'required'             => array( 'success', 'message' ),
 					'additionalProperties' => false,
@@ -84,6 +101,15 @@ class Delete_File extends Ability_Definition {
 	 * @return array
 	 */
 	public function execute( array $input = array() ): array {
+		// Explicit-confirmation guard. Refuse before any I/O.
+		if ( empty( $input['confirm'] ) || true !== (bool) $input['confirm'] ) {
+			return array(
+				'success'        => false,
+				'blocked_reason' => 'confirmation_required',
+				'message'        => __( 'Deleting a file is permanent. Pass confirm:true to proceed.', 'acrossai-abilities-manager' ),
+			);
+		}
+
 		$blocked = File_Mods_Guard::blocked_response();
 		if ( null !== $blocked ) {
 			return $blocked;
@@ -100,6 +126,18 @@ class Delete_File extends Ability_Definition {
 			);
 		}
 
+		// Protected-file guard: refuse to delete secret-holding files at
+		// ABSPATH root regardless of the caller's capability.
+		if ( in_array( basename( $real ), self::PROTECTED_FILES, true )
+			&& dirname( $real ) === $base ) {
+			return array(
+				'success'        => false,
+				'blocked_reason' => 'protected_write',
+				/* translators: %s: filename */
+				'message'        => sprintf( __( 'File "%s" is protected and cannot be deleted.', 'acrossai-abilities-manager' ), basename( $real ) ),
+			);
+		}
+
 		if ( ! is_file( $real ) ) {
 			return array(
 				'success' => false,
@@ -107,15 +145,30 @@ class Delete_File extends Ability_Definition {
 			);
 		}
 
+		// Best-effort backup: copy the file to <path>.bak.<timestamp> before
+		// deleting. If the copy fails we still proceed with the delete —
+		// backup is a convenience, not a hard prerequisite.
+		$backup = $real . '.bak.' . time();
+		if ( ! @copy( $real, $backup ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			$backup = null;
+		}
+
 		if ( ! wp_delete_file( $real ) ) {
 			return array(
 				'success' => false,
+				'backup'  => $backup,
 				'message' => __( 'Could not delete file.', 'acrossai-abilities-manager' ),
 			);
 		}
 
+		// OPcache: invalidate the removed path so stale bytecode doesn't linger.
+		if ( function_exists( 'opcache_invalidate' ) ) {
+			opcache_invalidate( $real, true );
+		}
+
 		return array(
 			'success' => true,
+			'backup'  => $backup,
 			'message' => __( 'File deleted.', 'acrossai-abilities-manager' ),
 		);
 	}
