@@ -90,6 +90,9 @@
 			<file>tests/phpunit/abilities/Test_Verify_Core_Checksums.php</file>
 			<file>tests/phpunit/abilities/Test_Feature_064_Bootstrap_Wiring.php</file>
 		</testsuite>
+		<testsuite name="feature-065-unit">
+			<file>tests/phpunit/abilities/Test_Feature_065_Safety_And_Payload.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>
