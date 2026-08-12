@@ -29,7 +29,7 @@ class Get_Post extends Ability_Definition {
 			'name' => 'acrossai/get-post',
 			'args' => array(
 				'label'               => __( 'Get Post', 'acrossai-abilities-manager' ),
-				'description'         => __( 'Fetch a post (any post type) by ID via get_post().', 'acrossai-abilities-manager' ),
+				'description'         => __( 'Fetch a post (any post type) by ID via get_post(). Returns the raw post row plus derived fields (terms, non-protected meta, featured image, permalink, edit link, author).', 'acrossai-abilities-manager' ),
 				'category'            => 'acrossai-abilities-manager-content',
 				'execute_callback'    => array( $this, 'execute' ),
 				'permission_callback' => static function (): bool {
@@ -53,9 +53,15 @@ class Get_Post extends Ability_Definition {
 				'output_schema'       => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'success' => array( 'type' => 'boolean' ),
-						'post'    => array( 'type' => 'object' ),
-						'message' => array( 'type' => 'string' ),
+						'success'        => array( 'type' => 'boolean' ),
+						'post'           => array( 'type' => 'object' ),
+						'terms'          => array( 'type' => 'object' ),
+						'meta'           => array( 'type' => 'object' ),
+						'featured_image' => array( 'type' => array( 'object', 'null' ) ),
+						'permalink'      => array( 'type' => 'string' ),
+						'edit_link'      => array( 'type' => 'string' ),
+						'author'         => array( 'type' => 'object' ),
+						'message'        => array( 'type' => 'string' ),
 					),
 					'required'             => array( 'success' ),
 					'additionalProperties' => false,
@@ -106,9 +112,76 @@ class Get_Post extends Ability_Definition {
 			);
 		}
 
+		// Terms grouped by taxonomy.
+		$terms      = array();
+		$taxonomies = get_object_taxonomies( (string) $post['post_type'] );
+		foreach ( (array) $taxonomies as $tax ) {
+			$t_objs = get_the_terms( $id, (string) $tax );
+			if ( is_array( $t_objs ) ) {
+				$terms[ (string) $tax ] = array_values(
+					array_map(
+						static function ( $t ): array {
+							return array(
+								'term_id' => (int) $t->term_id,
+								'name'    => (string) $t->name,
+								'slug'    => (string) $t->slug,
+							);
+						},
+						$t_objs
+					)
+				);
+			} else {
+				$terms[ (string) $tax ] = array();
+			}
+		}
+
+		// Non-protected meta.
+		$allowed = (array) apply_filters( 'acrossai_allowed_protected_meta', array() );
+		$raw     = (array) get_post_meta( $id );
+		$meta    = array();
+		foreach ( $raw as $key => $vals ) {
+			$key_str = (string) $key;
+			$is_prot = str_starts_with( $key_str, '_' ) || is_protected_meta( $key_str, 'post' );
+			if ( $is_prot && ! in_array( $key_str, $allowed, true ) ) {
+				continue;
+			}
+			$vals_arr = (array) $vals;
+			if ( 1 === count( $vals_arr ) ) {
+				$meta[ $key_str ] = maybe_unserialize( reset( $vals_arr ) );
+			} else {
+				$meta[ $key_str ] = array_map( 'maybe_unserialize', $vals_arr );
+			}
+		}
+
+		// Featured image.
+		$thumb_id = (int) get_post_thumbnail_id( $id );
+		if ( $thumb_id > 0 ) {
+			$featured_image = array(
+				'id'  => $thumb_id,
+				'url' => (string) wp_get_attachment_image_url( $thumb_id, 'full' ),
+				'alt' => (string) get_post_meta( $thumb_id, '_wp_attachment_image_alt', true ),
+			);
+		} else {
+			$featured_image = null;
+		}
+
+		// Author.
+		$author_id  = (int) $post['post_author'];
+		$author_obj = get_userdata( $author_id );
+		$author     = array(
+			'id'   => $author_id,
+			'name' => $author_obj ? (string) $author_obj->display_name : '',
+		);
+
 		return array(
-			'success' => true,
-			'post'    => $post,
+			'success'        => true,
+			'post'           => $post,
+			'terms'          => $terms,
+			'meta'           => $meta,
+			'featured_image' => $featured_image,
+			'permalink'      => (string) get_permalink( $id ),
+			'edit_link'      => (string) get_edit_post_link( $id, 'raw' ),
+			'author'         => $author,
 		);
 	}
 }
