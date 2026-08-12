@@ -55,6 +55,10 @@ class Update_Media extends Ability_Definition {
 					'properties'           => array(
 						'success' => array( 'type' => 'boolean' ),
 						'media'   => array( 'type' => 'object' ),
+						'updated' => array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'string' ),
+						),
 						'message' => array( 'type' => 'string' ),
 					),
 					'required'             => array( 'success' ),
@@ -105,17 +109,21 @@ class Update_Media extends Ability_Definition {
 		}
 
 		$post_data  = array( 'ID' => $id );
+		$updated    = array();
 		$has_change = false;
 		if ( isset( $input['title'] ) ) {
 			$post_data['post_title'] = (string) $input['title'];
+			$updated[]               = 'title';
 			$has_change              = true;
 		}
 		if ( isset( $input['caption'] ) ) {
 			$post_data['post_excerpt'] = (string) $input['caption'];
+			$updated[]                 = 'caption';
 			$has_change                = true;
 		}
 		if ( isset( $input['description'] ) ) {
 			$post_data['post_content'] = (string) $input['description'];
+			$updated[]                 = 'description';
 			$has_change                = true;
 		}
 
@@ -132,12 +140,14 @@ class Update_Media extends Ability_Definition {
 
 		if ( isset( $input['alt_text'] ) ) {
 			update_post_meta( $id, '_wp_attachment_image_alt', wp_slash( (string) $input['alt_text'] ) );
+			$updated[] = 'alt_text';
 		}
 
-		$updated = get_post( $id );
+		$refreshed = get_post( $id );
 		return array(
 			'success' => true,
-			'media'   => $updated instanceof \WP_Post ? Media_Formatter::to_array( $updated ) : array(),
+			'media'   => $refreshed instanceof \WP_Post ? Media_Formatter::to_array( $refreshed ) : array(),
+			'updated' => $updated,
 			/* translators: %d: attachment ID */
 			'message' => sprintf( __( 'Updated attachment #%d.', 'acrossai-abilities-manager' ), $id ),
 		);
