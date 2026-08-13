@@ -459,6 +459,20 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Elementor\Add_Image();
 		new Elementor\Add_Button();
 		new Elementor\Add_Post_Tabs();
+		// System & maintenance.
+		new Elementor\Clear_Cache();
+		new Elementor\Replace_Urls();
+		new Elementor\Get_Maintenance_Mode();
+		new Elementor\Update_Maintenance_Mode();
+		// Theme Builder.
+		new Elementor\Get_Theme_Builder_Conditions();
+		new Elementor\Update_Theme_Builder_Conditions();
+		// Discovery / guidance.
+		new Elementor\Get_Official_Widget_Catalog();
+		new Elementor\Get_Official_Pattern_Guidance();
+		new Elementor\Get_Theme_Context();
+		new Elementor\Get_Style_Guide();
+		new Elementor\Evaluate_Render_Context();
 	}
 
 	/**

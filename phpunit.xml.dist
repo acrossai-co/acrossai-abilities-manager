@@ -122,6 +122,17 @@
 			<file>tests/phpunit/abilities/Test_Elementor_Add_Image.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Add_Button.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Add_Post_Tabs.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Clear_Cache.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Replace_Urls.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Maintenance_Mode.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Update_Maintenance_Mode.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Theme_Builder_Conditions.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Update_Theme_Builder_Conditions.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Official_Widget_Catalog.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Official_Pattern_Guidance.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Theme_Context.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Style_Guide.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Evaluate_Render_Context.php</file>
 			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>

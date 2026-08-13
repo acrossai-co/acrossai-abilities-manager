@@ -138,9 +138,22 @@ No data is sent to any external server without an explicit administrator action.
 == Changelog ==
 
 = Unreleased (NOT YET RELEASED) =
-* **Feature 067 continued — 20 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
+* **Feature 067 continued — 31 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
 
-**Batch 4 — 9 page-composition abilities (this commit):**
+**Batch 5 — 11 site-management abilities (this commit):**
+  * `acrossai/elementor-clear-cache` — clear Elementor cache at post / site / all scope; optional `regenerate_css=true` for a specific post.
+  * `acrossai/elementor-replace-urls` — bulk find/replace URLs across every Elementor document on the site with `dry_run=true` default preview.
+  * `acrossai/elementor-get-maintenance-mode` — read current maintenance mode settings (mode, template, exclude rules).
+  * `acrossai/elementor-update-maintenance-mode` — enable/disable maintenance mode with mode selection (maintenance | coming_soon).
+  * `acrossai/elementor-get-theme-builder-conditions` — read display conditions attached to an Elementor template.
+  * `acrossai/elementor-update-theme-builder-conditions` — replace display conditions; pass empty array to clear. Invalidates Elementor's condition cache.
+  * `acrossai/elementor-get-official-widget-catalog` — canonical widget catalog (Basic / Pro / Theme / WooCommerce) with 12-hour transient.
+  * `acrossai/elementor-get-official-pattern-guidance` — pattern & layout guidance (widgets / patterns / layouts topics) grounded in Elementor documentation.
+  * `acrossai/elementor-get-theme-context` — active theme + Elementor version + active kit + viewport settings snapshot.
+  * `acrossai/elementor-get-style-guide` — style-guide summary from active kit (colors, typography, buttons, forms, layout, custom CSS).
+  * `acrossai/elementor-evaluate-render-context` — inspect frontend template + canvas type + edit-mode flag for a post.
+
+**Batch 4 — 9 page-composition abilities:**
   * `acrossai/elementor-create-page` — insert a new post/page pre-configured for Elementor (sets `_elementor_edit_mode`, `_elementor_template_type`, `_elementor_version`; seeds empty `_elementor_data`). Returns edit URL.
   * `acrossai/elementor-update-page-settings` — merge new page-level settings into `_elementor_page_settings`. `force_replace` guard on materially-smaller payloads.
   * `acrossai/elementor-patch-data` — find/replace text within the raw Elementor JSON string; updates every widget containing the match in one pass.
@@ -166,9 +179,9 @@ No data is sent to any external server without an explicit administrator action.
   * `acrossai/elementor-add-container` — insert Elementor v3+ container.
   * `acrossai/elementor-add-widget` — insert any registered widget (validated via `Widget_Controls`).
 
-**Test coverage:** 43 (batch 2) + 40 (batch 3) + 53 (batch 4) = 136 new source-inspection tests across 20 test files. Full suite: 772 tests, 1686 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
+**Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) = 200 new source-inspection tests across 31 test files. Full suite: 836 tests, 1754 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
 
-**Total shipped Elementor abilities so far: 22 of 88.** Foundation + 2 released in 0.0.25 + 20 unreleased on main. Complete page-composition surface — clients can now create Elementor pages, discover widget schemas, read documents, find/get/update/merge/delete/move/duplicate/reorder elements, add containers + widgets + heading/text/image/button/post-tabs shortcuts, patch text globally, and clone whole documents between posts.
+**Total shipped Elementor abilities so far: 33 of 88.** Foundation + 2 released in 0.0.25 + 31 unreleased on main. Complete page-composition + site-management + discovery surface — clients can now create Elementor pages, discover widget schemas and pattern guidance, read documents, find/get/update/merge/delete/move/duplicate/reorder elements, add containers + widgets + shortcuts, patch text globally, clone whole documents between posts, clear cache, replace URLs site-wide, manage maintenance mode + Theme Builder conditions, read theme/kit/style-guide context.
 
 = 0.0.25 =
 * **New — Feature 067 Elementor Ability Suite (interim ship: foundation + 2 abilities).** First release of the planned 88-ability Elementor integration. This interim release delivers the full foundational infrastructure plus two highest-value abilities. Follow-up features (068+) will incrementally add the remaining 86 abilities.
