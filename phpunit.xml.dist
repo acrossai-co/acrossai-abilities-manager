@@ -115,6 +115,7 @@
 			<file>tests/phpunit/abilities/Test_Elementor_Reorder_Elements.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Create_Page.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Update_Page_Settings.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Update_Data.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Patch_Data.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Clone_Data.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Add_Heading.php</file>

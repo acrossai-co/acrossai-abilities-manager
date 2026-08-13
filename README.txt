@@ -138,7 +138,10 @@ No data is sent to any external server without an explicit administrator action.
 == Changelog ==
 
 = Unreleased (NOT YET RELEASED) =
-* **Feature 067 COMPLETE — 86 Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available on the `main` branch; no plugin release / tag / distribution package has been cut. Feature 067's 88-ability target reached (2 released in 0.0.25 + 86 unreleased on main). Design-audit ability logic is skeletal (`Base_Audit_Ability` skeleton returning empty findings) — real audit heuristics to be filled in follow-up work.
+* **Feature 067 COMPLETE — 87 Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available on the `main` branch; no plugin release / tag / distribution package has been cut. Feature 067's 88-ability target reached (2 released in 0.0.25 + 87 unreleased on main). Design-audit ability logic is skeletal (`Base_Audit_Ability` skeleton returning empty findings) — real audit heuristics to be filled in follow-up work.
+
+**Batch 10 — full-document replacement (closes the parity gap):**
+  * `acrossai/elementor-update-data` — overwrite the entire `_elementor_data` tree for a post with a caller-supplied element array; optional `page_settings` merge; `force_replace=true` required when the new payload is materially smaller than the existing document. Returns `element_count` + cache scope report.
 
 **Batch 9 — 29 design-audit abilities (this commit):**
 

@@ -451,6 +451,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		// Document-scoped ops.
 		new Elementor\Create_Page();
 		new Elementor\Update_Page_Settings();
+		new Elementor\Update_Data();
 		new Elementor\Patch_Data();
 		new Elementor\Clone_Data();
 		// Widget shortcuts.
