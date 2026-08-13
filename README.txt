@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.26
+Stable tag: 0.0.27
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -137,7 +137,9 @@ No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
 
-= Unreleased (NOT YET RELEASED) =
+= 0.0.27 - 2026-08-14 =
+**Patch release — UI polish + admin-surface rename following the 0.0.26 Feature 067 rollup.** No new abilities; both entries below are UX-affecting changes to the admin surface. Plugin version bumped 0.0.26 → 0.0.27.
+
 * **Rename — "Ability Library" admin page is now "Ability Integrations".** The submenu label ("Library" → "Integrations"), page title ("Ability Library" → "Ability Integrations"), main heading, and URL slug (`page=acrossai-abilities-library` → `page=acrossai-abilities-integrations`) all updated. Bookmarks / external links to the old slug will 404 in wp-admin — update saved links to the new URL. Internal class names, hook names, REST endpoint namespace (`/wp-json/acrossai-abilities-library/v1/`), and the DOM mount id are unchanged (deliberately scoped rename — extending to the REST namespace would break external MCP callers).
 * **UI fix — Elementor abilities now render under their own "Elementor" tab in the Ability Integrations screen, not "Core".** Every Elementor ability (all 88 under `acrossai/elementor-*`) had its meta `tab_group` set to `'core'`, causing the group to appear in the Core tab with only a sub-heading identifying it as Elementor. Flipped every declaration to `tab_group => 'elementor'` (63 files including `Base_Audit_Ability`, which drives the 25 audit subclasses via inheritance). The Ability Integrations UI auto-derives tab names from distinct `tab_group` values, so a new "Elementor" tab appears without any frontend/asset rebuild.
 
