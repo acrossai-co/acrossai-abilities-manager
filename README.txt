@@ -138,9 +138,20 @@ No data is sent to any external server without an explicit administrator action.
 == Changelog ==
 
 = Unreleased (NOT YET RELEASED) =
-* **Feature 067 continued — 11 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
+* **Feature 067 continued — 20 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
 
-**Batch 3 — 6 more element-lifecycle abilities (this commit):**
+**Batch 4 — 9 page-composition abilities (this commit):**
+  * `acrossai/elementor-create-page` — insert a new post/page pre-configured for Elementor (sets `_elementor_edit_mode`, `_elementor_template_type`, `_elementor_version`; seeds empty `_elementor_data`). Returns edit URL.
+  * `acrossai/elementor-update-page-settings` — merge new page-level settings into `_elementor_page_settings`. `force_replace` guard on materially-smaller payloads.
+  * `acrossai/elementor-patch-data` — find/replace text within the raw Elementor JSON string; updates every widget containing the match in one pass.
+  * `acrossai/elementor-clone-data` — copy the full Elementor tree from one post to another with fresh element IDs throughout. Optionally include page settings. `force_replace` guard on populated targets.
+  * `acrossai/elementor-add-heading` — widget shortcut (title, header_size h1-h6, align, title_color).
+  * `acrossai/elementor-add-text-editor` — widget shortcut (editor HTML, align).
+  * `acrossai/elementor-add-image` — widget shortcut (image ID or URL, size, align, caption, link).
+  * `acrossai/elementor-add-button` — widget shortcut (text, link, size xs-xl, align).
+  * `acrossai/elementor-add-post-tabs` — higher-order shortcut: Nested Tabs widget where each tab contains a native Posts widget (optionally filtered by taxonomy term or query args).
+
+**Batch 3 — 6 element-lifecycle abilities (previously in this section):**
   * `acrossai/elementor-merge-element-settings` — deep-merge new settings into an element by ID. Additive (no force_replace guard needed); reports `changed_keys` in the response.
   * `acrossai/elementor-delete-element` — remove an element by ID. Guarded by `force_delete=true` for top-level or populated (with-children) elements.
   * `acrossai/elementor-remove-element` — safer alias for `delete-element` with identical semantics.
@@ -155,9 +166,9 @@ No data is sent to any external server without an explicit administrator action.
   * `acrossai/elementor-add-container` — insert Elementor v3+ container.
   * `acrossai/elementor-add-widget` — insert any registered widget (validated via `Widget_Controls`).
 
-**Test coverage:** 43 (batch 2) + 40 (batch 3) = 83 new source-inspection tests across 11 test files. Full suite: 719 tests, 1629 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
+**Test coverage:** 43 (batch 2) + 40 (batch 3) + 53 (batch 4) = 136 new source-inspection tests across 20 test files. Full suite: 772 tests, 1686 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
 
-**Total shipped Elementor abilities so far: 13 of 88.** Foundation + 2 released in 0.0.25 + 11 unreleased on main. Complete element-scoped R/W surface — clients can now discover schemas, read documents, find/get/update/merge/delete/move/duplicate/reorder elements, and compose pages from scratch.
+**Total shipped Elementor abilities so far: 22 of 88.** Foundation + 2 released in 0.0.25 + 20 unreleased on main. Complete page-composition surface — clients can now create Elementor pages, discover widget schemas, read documents, find/get/update/merge/delete/move/duplicate/reorder elements, add containers + widgets + heading/text/image/button/post-tabs shortcuts, patch text globally, and clone whole documents between posts.
 
 = 0.0.25 =
 * **New — Feature 067 Elementor Ability Suite (interim ship: foundation + 2 abilities).** First release of the planned 88-ability Elementor integration. This interim release delivers the full foundational infrastructure plus two highest-value abilities. Follow-up features (068+) will incrementally add the remaining 86 abilities.

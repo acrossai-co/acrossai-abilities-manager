@@ -113,6 +113,15 @@
 			<file>tests/phpunit/abilities/Test_Elementor_Move_Element.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Duplicate_Element.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Reorder_Elements.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Create_Page.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Update_Page_Settings.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Patch_Data.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Clone_Data.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Add_Heading.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Add_Text_Editor.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Add_Image.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Add_Button.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Add_Post_Tabs.php</file>
 			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>

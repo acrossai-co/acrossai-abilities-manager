@@ -448,6 +448,17 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Elementor\Move_Element();
 		new Elementor\Duplicate_Element();
 		new Elementor\Reorder_Elements();
+		// Document-scoped ops.
+		new Elementor\Create_Page();
+		new Elementor\Update_Page_Settings();
+		new Elementor\Patch_Data();
+		new Elementor\Clone_Data();
+		// Widget shortcuts.
+		new Elementor\Add_Heading();
+		new Elementor\Add_Text_Editor();
+		new Elementor\Add_Image();
+		new Elementor\Add_Button();
+		new Elementor\Add_Post_Tabs();
 	}
 
 	/**
