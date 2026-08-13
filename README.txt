@@ -138,9 +138,30 @@ No data is sent to any external server without an explicit administrator action.
 == Changelog ==
 
 = Unreleased (NOT YET RELEASED) =
-* **Feature 067 continued — 57 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
+* **Feature 067 COMPLETE — 86 Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available on the `main` branch; no plugin release / tag / distribution package has been cut. Feature 067's 88-ability target reached (2 released in 0.0.25 + 86 unreleased on main). Design-audit ability logic is skeletal (`Base_Audit_Ability` skeleton returning empty findings) — real audit heuristics to be filled in follow-up work.
 
-**Batch 8 — 8 Elementor Pro-gated abilities (this commit):**
+**Batch 9 — 29 design-audit abilities (this commit):**
+
+Aggregators + scorers (4):
+  * `acrossai/elementor-evaluate-design` — aggregate report from every registered design audit (score + findings + recommendations).
+  * `acrossai/elementor-suggest-design-fixes` — turn aggregated findings into concrete fix recommendations.
+  * `acrossai/elementor-score-distinctiveness` — neutral distinctiveness score for structural repetition.
+  * `acrossai/elementor-extract-design-tokens` — extract recurring colors / typography / spacing / dimensional tokens.
+
+Individual audits (14):
+  * Column: `audit-column-alignment-rhythm`, `audit-column-balance`, `audit-column-dominance`, `audit-column-necessity`, `audit-column-patterns`
+  * Composition & emphasis: `audit-composition-rhythm`, `audit-emphasis-drift`, `audit-section-rivalry`, `audit-separator-discipline`, `audit-surface-overuse`
+  * Layout & repetition: `audit-generic-component-repetition`, `audit-generic-layout-patterns`, `audit-layout-mechanism-fit`, `audit-native-widget-opportunities`
+
+Subtree operations — destructive (7):
+  * `apply-text-hierarchy`, `enforce-boundary-coherence`, `fix-visible-gap-rhythm`, `normalize-responsive-values`, `normalize-section-spacing-rhythm`, `reset-negative-margins-subtree`, `zero-container-padding-subtree`
+
+Copy / sync / convert helpers — destructive (4):
+  * `copy-lane-settings`, `copy-row-balance`, `image-widget-to-background-container`, `sync-component-variant`
+
+New utility class `includes/Abilities/Elementor/Base_Audit_Ability.php` provides the shared skeleton for 27 of the 29 audit abilities — subclasses supply `audit_slug`, `audit_label`, `audit_description`, and `analyze()`. `Evaluate_Design` and `Suggest_Design_Fixes` are self-contained aggregators.
+
+**Batch 8 — 8 Elementor Pro-gated abilities:**
   * `acrossai/elementor-list-custom-code` — list Custom Code snippets from `elementor_snippet` CPT; optional location filter.
   * `acrossai/elementor-get-custom-code` — read one snippet including its code body.
   * `acrossai/elementor-create-custom-code` — create snippet with title, code, location (head / body_start / body_end / footer), priority, status.
@@ -213,9 +234,9 @@ All 8 Pro abilities gated on **both** `class_exists( '\Elementor\Plugin' )` **an
   * `acrossai/elementor-add-container` — insert Elementor v3+ container.
   * `acrossai/elementor-add-widget` — insert any registered widget (validated via `Widget_Controls`).
 
-**Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) + 53 (b6) + 33 (b7) + 45 (b8) = 331 new source-inspection tests across 57 test files. Full suite: 967 tests, 1890 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
+**Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) + 53 (b6) + 33 (b7) + 45 (b8) + 8 (b9 manifest) = 339 new source-inspection tests across 58 test files. Full suite: 975 tests, 1991 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
 
-**Total shipped Elementor abilities so far: 59 of 88.** Foundation + 2 released in 0.0.25 + 57 unreleased on main. Complete page-composition + site-management + discovery + template CRUD + kits & site-settings + Elementor Pro (Custom Code + Form Submissions) surface. Only design audits remain.
+**Feature 067 ability surface complete: 88 of 88 abilities.** Foundation + 2 released in 0.0.25 + 86 unreleased on main. Every planned ability shipped. Design-audit analysis logic is skeletal (returns empty findings + recommendations); the audit surface is registered and composable via `Design_Audit_Runner`, real heuristics to be filled in follow-up work.
 
 = 0.0.25 =
 * **New — Feature 067 Elementor Ability Suite (interim ship: foundation + 2 abilities).** First release of the planned 88-ability Elementor integration. This interim release delivers the full foundational infrastructure plus two highest-value abilities. Follow-up features (068+) will incrementally add the remaining 86 abilities.

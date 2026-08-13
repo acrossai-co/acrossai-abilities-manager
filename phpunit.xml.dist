@@ -159,6 +159,7 @@
 			<file>tests/phpunit/abilities/Test_Elementor_List_Form_Submissions.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Get_Form_Submission.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Delete_Form_Submission.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Design_Audits.php</file>
 			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>

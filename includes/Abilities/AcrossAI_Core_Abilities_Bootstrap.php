@@ -493,6 +493,39 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Elementor\List_Global_Widgets();
 		new Elementor\List_Experiments();
 		new Elementor\Update_Experiment();
+		// Design audits — aggregators + scorers.
+		new Elementor\Evaluate_Design();
+		new Elementor\Suggest_Design_Fixes();
+		new Elementor\Score_Distinctiveness();
+		new Elementor\Extract_Design_Tokens();
+		// Design audits — 14 audit-* abilities.
+		new Elementor\Audit_Column_Alignment_Rhythm();
+		new Elementor\Audit_Column_Balance();
+		new Elementor\Audit_Column_Dominance();
+		new Elementor\Audit_Column_Necessity();
+		new Elementor\Audit_Column_Patterns();
+		new Elementor\Audit_Composition_Rhythm();
+		new Elementor\Audit_Emphasis_Drift();
+		new Elementor\Audit_Generic_Component_Repetition();
+		new Elementor\Audit_Generic_Layout_Patterns();
+		new Elementor\Audit_Layout_Mechanism_Fit();
+		new Elementor\Audit_Native_Widget_Opportunities();
+		new Elementor\Audit_Section_Rivalry();
+		new Elementor\Audit_Separator_Discipline();
+		new Elementor\Audit_Surface_Overuse();
+		// Design audits — 7 subtree operations.
+		new Elementor\Apply_Text_Hierarchy();
+		new Elementor\Enforce_Boundary_Coherence();
+		new Elementor\Fix_Visible_Gap_Rhythm();
+		new Elementor\Normalize_Responsive_Values();
+		new Elementor\Normalize_Section_Spacing_Rhythm();
+		new Elementor\Reset_Negative_Margins_Subtree();
+		new Elementor\Zero_Container_Padding_Subtree();
+		// Design audits — 4 copy/sync/convert helpers.
+		new Elementor\Copy_Lane_Settings();
+		new Elementor\Copy_Row_Balance();
+		new Elementor\Image_Widget_To_Background_Container();
+		new Elementor\Sync_Component_Variant();
 	}
 
 	/**
