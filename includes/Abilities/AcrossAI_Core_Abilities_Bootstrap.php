@@ -437,6 +437,11 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Elementor\Get_Widget_Controls();
 		// Group 1 — document / element operations.
 		new Elementor\Get_Data();
+		new Elementor\Get_Element();
+		new Elementor\Find_Elements();
+		new Elementor\Update_Element();
+		new Elementor\Add_Container();
+		new Elementor\Add_Widget();
 	}
 
 	/**

@@ -102,6 +102,11 @@
 			<file>tests/phpunit/abilities/Test_Elementor_Design_Audit_Runner.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Get_Widget_Controls.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Get_Data.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Element.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Find_Elements.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Update_Element.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Add_Container.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Add_Widget.php</file>
 			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>
