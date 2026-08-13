@@ -68,10 +68,10 @@ class LibraryMenu {
 	public function register_submenu(): void {
 		$suffix = add_submenu_page(
 			'acrossai',
-			__( 'Ability Library', 'acrossai-abilities-manager' ),
-			__( 'Library', 'acrossai-abilities-manager' ),
+			__( 'Ability Integrations', 'acrossai-abilities-manager' ),
+			__( 'Integrations', 'acrossai-abilities-manager' ),
 			'manage_options',
-			'acrossai-abilities-library',
+			'acrossai-abilities-integrations',
 			array( $this, 'render' ),
 			2
 		);

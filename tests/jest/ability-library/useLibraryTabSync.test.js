@@ -77,7 +77,7 @@ describe('parseTabFromUrl', () => {
 	test('no tab query arg → returns sentinel', () => {
 		expect(
 			parseTabFromUrl(
-				'http://example.com/wp-admin/admin.php?page=acrossai-abilities-library',
+				'http://example.com/wp-admin/admin.php?page=acrossai-abilities-integrations',
 				['core', 'themes'],
 				'__all__'
 			)
@@ -87,7 +87,7 @@ describe('parseTabFromUrl', () => {
 	test('valid tab slug is returned as-is', () => {
 		expect(
 			parseTabFromUrl(
-				'http://example.com/wp-admin/admin.php?page=acrossai-abilities-library&tab=core',
+				'http://example.com/wp-admin/admin.php?page=acrossai-abilities-integrations&tab=core',
 				['core', 'themes'],
 				'__all__'
 			)
@@ -97,7 +97,7 @@ describe('parseTabFromUrl', () => {
 	test('SEC-052-I-003: unknown slug falls back to sentinel — raw value never returned', () => {
 		expect(
 			parseTabFromUrl(
-				'http://example.com/wp-admin/admin.php?page=acrossai-abilities-library&tab=nonexistent',
+				'http://example.com/wp-admin/admin.php?page=acrossai-abilities-integrations&tab=nonexistent',
 				['core'],
 				'__all__'
 			)
@@ -119,27 +119,27 @@ describe('buildUrlFromTab', () => {
 	test('sentinel strips the tab query arg (canonical default URL is clean)', () => {
 		const result = buildUrlFromTab(
 			'__all__',
-			'http://example.com/wp-admin/admin.php?page=acrossai-abilities-library&tab=core',
+			'http://example.com/wp-admin/admin.php?page=acrossai-abilities-integrations&tab=core',
 			'__all__'
 		);
 		expect(result).not.toContain('tab=');
-		expect(result).toContain('page=acrossai-abilities-library');
+		expect(result).toContain('page=acrossai-abilities-integrations');
 	});
 
 	test('specific tab is added with page arg preserved', () => {
 		const result = buildUrlFromTab(
 			'themes',
-			'http://example.com/wp-admin/admin.php?page=acrossai-abilities-library',
+			'http://example.com/wp-admin/admin.php?page=acrossai-abilities-integrations',
 			'__all__'
 		);
 		expect(result).toContain('tab=themes');
-		expect(result).toContain('page=acrossai-abilities-library');
+		expect(result).toContain('page=acrossai-abilities-integrations');
 	});
 
 	test('other query args are preserved through both operations', () => {
 		const result = buildUrlFromTab(
 			'blocks',
-			'http://example.com/wp-admin/admin.php?page=acrossai-abilities-library&other=x',
+			'http://example.com/wp-admin/admin.php?page=acrossai-abilities-integrations&other=x',
 			'__all__'
 		);
 		expect(result).toContain('tab=blocks');

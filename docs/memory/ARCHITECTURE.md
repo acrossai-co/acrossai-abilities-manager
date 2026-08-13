@@ -1632,3 +1632,33 @@ The OR breaks the raise-only property: a site returning `read` as the filter val
 Feature 060 `AcrossAI_Ability_Library_Config_Controller::save_config()` implements this for the `acrossai_integration_toggle_capability` filter (FR-016). Manual verification via quickstart Step 6 — a mu-plugin raises the required cap to `manage_network_options` and a `manage_options`-only user gets HTTP 403.
 
 **Tags**: capability, filter, extension-point, authorization, raise-only, current_user_can, feature-060
+
+---
+
+### 2026-08-14 — Ability Integrations page auto-derives tabs from distinct `tab_group` values (PATTERN-ABILITY-LIBRARY-TAB-AUTO-DERIVE)
+
+**Scope**: Ability Library / Ability Integrations admin page, JS-side tab rendering
+
+**Pattern**
+The admin page's tab strip is auto-derived at render time from the set of unique `meta.acrossai.tab_group` strings across all registered abilities. `collectTabGroups()` (`src/js/ability-library/components/LibraryPage.js`) walks every ability, extracts the `tab_group` field, dedupes, sorts, and pins `'core'` first. `titleCaseTabLabel(value)` converts the raw identifier to a display label via `ucwords(str_replace('-', ' ', value))` — so `elementor` → "Elementor", `site-health` → "Site Health", `database` → "Database", etc.
+
+There is **no PHP-side `register_tab()` call**, no admin-registered whitelist, and no server-side validation of tab_group values. The tab strip is a pure JS derivation from ability data.
+
+**Consequence — silent misplacement**
+Setting the wrong `tab_group` value on a new ability is silently accepted — the ability just lands in whichever bucket its string names. Copy-paste inheritance of `'core'` from an unrelated template misplaces the ability into the Core tab with no warning, no error, no test failure. This is exactly what happened to 88 Elementor abilities before PR #128: every one of them declared `'tab_group' => 'core'` (inherited from a Core-tab template used as scaffolding) and the entire Elementor suite silently shipped under the Core tab for weeks. The fix was a mechanical `sed -i "s/'tab_group' *=> *'core'/'tab_group' => 'elementor'/g"` across 63 files — no other change needed to make an "Elementor" tab appear.
+
+**When you add a new ability**
+1. Decide which existing tab it belongs to — Core, Database, Elementor, Site Health, etc. Grep for `'tab_group' *=>` across the closest sibling abilities to check.
+2. Set `meta.acrossai.tab_group` to the matching kebab-case string.
+3. If the ability genuinely belongs to a new integration bucket, no separate tab registration is needed — the tab appears automatically the moment the first ability declares the new `tab_group` string. Its display label comes from `titleCaseTabLabel()`; if the auto-derived label is wrong (e.g. `SiteHealth` becoming "Sitehealth"), use kebab-case (`site-health`) so `ucwords` produces the desired output.
+4. If many similar abilities share a base class (e.g. `Base_Audit_Ability` driving 25 audit subclasses via inheritance), remember to change the base — changing subclasses alone misses inherited declarations.
+
+**Cross-references**
+- Distinct from `PATTERN-LIBRARY-INTEGRATION-TAB-EXTENSION` — that pattern covers third-party plugins REGISTERING a new tab via `<Integration>::TAB_GROUP` const with the 3-step contract. This pattern is about correctly landing FIRST-party abilities in the RIGHT existing tab.
+- Related: `DEC-META-ACROSSAI-NAMESPACE` — establishes `meta.acrossai.tab_group` as the canonical field. This pattern documents the runtime consequence of that decision.
+
+**Reference**
+- `src/js/ability-library/components/LibraryPage.js::collectTabGroups()` and `titleCaseTabLabel()` — the auto-derivation logic.
+- PR #128 (2026-08-14) — flipped 63 Elementor ability files from `'core'` to `'elementor'`; sole change needed to produce a working "Elementor" tab.
+
+**Tags**: ability-library, ability-integrations, tab-derivation, meta-acrossai, tab_group, silent-misplacement, first-party, jsx-runtime-derivation
