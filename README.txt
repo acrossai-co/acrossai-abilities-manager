@@ -137,6 +137,20 @@ No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
 
+= Unreleased (NOT YET RELEASED) =
+* **Feature 067 continued — 5 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
+
+**Five new abilities under `acrossai/elementor-*` namespace, all gated on `class_exists( '\Elementor\Plugin' )`:**
+  * `acrossai/elementor-get-element` — read a single element by its 7-character hex ID; returns the element plus parent-ID path.
+  * `acrossai/elementor-find-elements` — search elements by `element_type` (container / widget / section / column), `widget_type`, and/or `contains` text; returns matches with paths.
+  * `acrossai/elementor-update-element` — replace an element by ID with a new payload. Guarded by `force_replace=true` when the replacement is materially smaller than the existing element (fewer children or <50% of prior settings).
+  * `acrossai/elementor-add-container` — insert a new Elementor v3+ container at root or nested inside another element; auto-generates 7-char hex ID.
+  * `acrossai/elementor-add-widget` — insert any registered Elementor widget (free / Pro / third-party). Widget type validated against Elementor's live registry via `Widget_Controls::get_type()` before writing.
+
+**Test coverage:** 43 new source-inspection tests across 5 test files. Full suite: 679 tests, 1582 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
+
+**Total shipped Elementor abilities so far: 7 of 88** (`get-widget-controls`, `get-data`, `get-element`, `find-elements`, `update-element`, `add-container`, `add-widget`). Client can now discover schemas + read documents + find/edit elements + compose pages from scratch via `add-container` + `add-widget`.
+
 = 0.0.25 =
 * **New — Feature 067 Elementor Ability Suite (interim ship: foundation + 2 abilities).** First release of the planned 88-ability Elementor integration. This interim release delivers the full foundational infrastructure plus two highest-value abilities. Follow-up features (068+) will incrementally add the remaining 86 abilities.
 
