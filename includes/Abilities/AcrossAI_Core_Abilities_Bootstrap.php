@@ -485,6 +485,14 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Elementor\Export_Template();
 		new Elementor\Import_Template();
 		new Elementor\Find_Template_For_Pattern();
+		// Kits & site settings.
+		new Elementor\List_Kits();
+		new Elementor\Get_Kit_Settings();
+		new Elementor\Update_Kit_Settings();
+		new Elementor\Set_Active_Kit();
+		new Elementor\List_Global_Widgets();
+		new Elementor\List_Experiments();
+		new Elementor\Update_Experiment();
 	}
 
 	/**
