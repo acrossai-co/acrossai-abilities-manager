@@ -144,6 +144,13 @@
 			<file>tests/phpunit/abilities/Test_Elementor_Export_Template.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Import_Template.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Find_Template_For_Pattern.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_List_Kits.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Kit_Settings.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Update_Kit_Settings.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Set_Active_Kit.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_List_Global_Widgets.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_List_Experiments.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Update_Experiment.php</file>
 			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>

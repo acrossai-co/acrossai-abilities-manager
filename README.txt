@@ -138,9 +138,18 @@ No data is sent to any external server without an explicit administrator action.
 == Changelog ==
 
 = Unreleased (NOT YET RELEASED) =
-* **Feature 067 continued — 42 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
+* **Feature 067 continued — 49 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
 
-**Batch 6 — 11 template abilities (this commit):**
+**Batch 7 — 7 kits & site-settings abilities (this commit):**
+  * `acrossai/elementor-list-kits` — list all Elementor kits; marks active kit.
+  * `acrossai/elementor-get-kit-settings` — read kit settings (defaults to active kit).
+  * `acrossai/elementor-update-kit-settings` — merge new settings; `force_replace` for full overwrite; site-wide cache invalidation.
+  * `acrossai/elementor-set-active-kit` — switch site-wide active kit; invalidates cache.
+  * `acrossai/elementor-list-global-widgets` — list global (reusable) widgets from elementor_library CPT.
+  * `acrossai/elementor-list-experiments` — list feature flags with current + default state.
+  * `acrossai/elementor-update-experiment` — toggle experiment state (active | inactive | default).
+
+**Batch 6 — 11 template abilities:**
   * `acrossai/elementor-list-templates` — list saved templates with filters on `template_type` + `status` + pagination.
   * `acrossai/elementor-get-template` — return one template's metadata + conditions + optional `_elementor_data`.
   * `acrossai/elementor-create-template` — create a new template of type page / section / popup / header / footer / single / archive; sets taxonomy term + Elementor meta.
@@ -192,9 +201,9 @@ No data is sent to any external server without an explicit administrator action.
   * `acrossai/elementor-add-container` — insert Elementor v3+ container.
   * `acrossai/elementor-add-widget` — insert any registered widget (validated via `Widget_Controls`).
 
-**Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) + 53 (b6) = 253 new source-inspection tests across 42 test files. Full suite: 889 tests, 1809 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
+**Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) + 53 (b6) + 33 (b7) = 286 new source-inspection tests across 49 test files. Full suite: 922 tests, 1842 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
 
-**Total shipped Elementor abilities so far: 44 of 88.** Foundation + 2 released in 0.0.25 + 42 unreleased on main. Complete page-composition + site-management + discovery + template CRUD surface — clients can now create Elementor pages, manage templates end-to-end (list/get/create/update/delete/restore/duplicate/empty-trash/export/import/find-pattern), discover widget schemas and pattern guidance, read documents, find/get/update/merge/delete/move/duplicate/reorder elements, add containers + widgets + shortcuts, patch text globally, clone whole documents, clear cache, replace URLs, manage maintenance mode + Theme Builder conditions.
+**Total shipped Elementor abilities so far: 51 of 88.** Foundation + 2 released in 0.0.25 + 49 unreleased on main. Complete page-composition + site-management + discovery + template CRUD + kits & site-settings surface — clients now have full Elementor authoring, template lifecycle, and site-wide design-token control.
 
 = 0.0.25 =
 * **New — Feature 067 Elementor Ability Suite (interim ship: foundation + 2 abilities).** First release of the planned 88-ability Elementor integration. This interim release delivers the full foundational infrastructure plus two highest-value abilities. Follow-up features (068+) will incrementally add the remaining 86 abilities.
