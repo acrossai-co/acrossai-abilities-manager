@@ -133,6 +133,17 @@
 			<file>tests/phpunit/abilities/Test_Elementor_Get_Theme_Context.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Get_Style_Guide.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Evaluate_Render_Context.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_List_Templates.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Template.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Create_Template.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Update_Template.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Delete_Template.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Restore_Template.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Duplicate_Template.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Empty_Trash.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Export_Template.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Import_Template.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Find_Template_For_Pattern.php</file>
 			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>
