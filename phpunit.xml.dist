@@ -151,6 +151,14 @@
 			<file>tests/phpunit/abilities/Test_Elementor_List_Global_Widgets.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_List_Experiments.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Update_Experiment.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_List_Custom_Code.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Custom_Code.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Create_Custom_Code.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Update_Custom_Code.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Delete_Custom_Code.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_List_Form_Submissions.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Form_Submission.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Delete_Form_Submission.php</file>
 			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>

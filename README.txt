@@ -138,9 +138,21 @@ No data is sent to any external server without an explicit administrator action.
 == Changelog ==
 
 = Unreleased (NOT YET RELEASED) =
-* **Feature 067 continued — 49 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
+* **Feature 067 continued — 57 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
 
-**Batch 7 — 7 kits & site-settings abilities (this commit):**
+**Batch 8 — 8 Elementor Pro-gated abilities (this commit):**
+  * `acrossai/elementor-list-custom-code` — list Custom Code snippets from `elementor_snippet` CPT; optional location filter.
+  * `acrossai/elementor-get-custom-code` — read one snippet including its code body.
+  * `acrossai/elementor-create-custom-code` — create snippet with title, code, location (head / body_start / body_end / footer), priority, status.
+  * `acrossai/elementor-update-custom-code` — update snippet fields.
+  * `acrossai/elementor-delete-custom-code` — trash (default) or permanently delete with `force=true`.
+  * `acrossai/elementor-list-form-submissions` — list Form widget submissions from the `e_submissions` table; optional `form_id` filter + `include_values` flag. Graceful degradation when the Pro submissions table is missing.
+  * `acrossai/elementor-get-form-submission` — read one submission by ID; optional field values.
+  * `acrossai/elementor-delete-form-submission` — permanently delete submission + its `e_submissions_values` rows; requires `confirm=true`.
+
+All 8 Pro abilities gated on **both** `class_exists( '\Elementor\Plugin' )` **and** `class_exists( '\ElementorPro\Plugin' ) || defined( 'ELEMENTOR_PRO_VERSION' )` — silently absent on sites without Elementor Pro. Runtime deactivation returns `error_code: elementor_pro_missing`.
+
+**Batch 7 — 7 kits & site-settings abilities:**
   * `acrossai/elementor-list-kits` — list all Elementor kits; marks active kit.
   * `acrossai/elementor-get-kit-settings` — read kit settings (defaults to active kit).
   * `acrossai/elementor-update-kit-settings` — merge new settings; `force_replace` for full overwrite; site-wide cache invalidation.
@@ -201,9 +213,9 @@ No data is sent to any external server without an explicit administrator action.
   * `acrossai/elementor-add-container` — insert Elementor v3+ container.
   * `acrossai/elementor-add-widget` — insert any registered widget (validated via `Widget_Controls`).
 
-**Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) + 53 (b6) + 33 (b7) = 286 new source-inspection tests across 49 test files. Full suite: 922 tests, 1842 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
+**Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) + 53 (b6) + 33 (b7) + 45 (b8) = 331 new source-inspection tests across 57 test files. Full suite: 967 tests, 1890 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
 
-**Total shipped Elementor abilities so far: 51 of 88.** Foundation + 2 released in 0.0.25 + 49 unreleased on main. Complete page-composition + site-management + discovery + template CRUD + kits & site-settings surface — clients now have full Elementor authoring, template lifecycle, and site-wide design-token control.
+**Total shipped Elementor abilities so far: 59 of 88.** Foundation + 2 released in 0.0.25 + 57 unreleased on main. Complete page-composition + site-management + discovery + template CRUD + kits & site-settings + Elementor Pro (Custom Code + Form Submissions) surface. Only design audits remain.
 
 = 0.0.25 =
 * **New — Feature 067 Elementor Ability Suite (interim ship: foundation + 2 abilities).** First release of the planned 88-ability Elementor integration. This interim release delivers the full foundational infrastructure plus two highest-value abilities. Follow-up features (068+) will incrementally add the remaining 86 abilities.

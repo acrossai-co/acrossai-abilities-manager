@@ -501,7 +501,15 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 	 * @return void
 	 */
 	private function register_elementor_pro_abilities(): void {
-		// Ability instantiations added incrementally per Feature 067 Phase 13
-		// of tasks.md (Custom Code CRUD + Form Submissions).
+		// Custom Code CRUD (elementor_snippet CPT).
+		new Elementor\List_Custom_Code();
+		new Elementor\Get_Custom_Code();
+		new Elementor\Create_Custom_Code();
+		new Elementor\Update_Custom_Code();
+		new Elementor\Delete_Custom_Code();
+		// Form Submissions (Elementor Pro's e_submissions table).
+		new Elementor\List_Form_Submissions();
+		new Elementor\Get_Form_Submission();
+		new Elementor\Delete_Form_Submission();
 	}
 }
