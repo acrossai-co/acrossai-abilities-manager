@@ -107,6 +107,12 @@
 			<file>tests/phpunit/abilities/Test_Elementor_Update_Element.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Add_Container.php</file>
 			<file>tests/phpunit/abilities/Test_Elementor_Add_Widget.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Merge_Element_Settings.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Delete_Element.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Remove_Element.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Move_Element.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Duplicate_Element.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Reorder_Elements.php</file>
 			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>

@@ -442,6 +442,12 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Elementor\Update_Element();
 		new Elementor\Add_Container();
 		new Elementor\Add_Widget();
+		new Elementor\Merge_Element_Settings();
+		new Elementor\Delete_Element();
+		new Elementor\Remove_Element();
+		new Elementor\Move_Element();
+		new Elementor\Duplicate_Element();
+		new Elementor\Reorder_Elements();
 	}
 
 	/**
