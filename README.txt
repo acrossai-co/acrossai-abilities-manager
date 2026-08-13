@@ -137,6 +137,9 @@ No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
 
+= Unreleased (NOT YET RELEASED) =
+* **UI fix — Elementor abilities now render under their own "Elementor" tab in the Ability Library, not "Core".** Every Elementor ability (all 88 under `acrossai/elementor-*`) had its meta `tab_group` set to `'core'`, causing the group to appear in the Core tab with only a sub-heading identifying it as Elementor. Flipped every declaration to `tab_group => 'elementor'` (63 files including `Base_Audit_Ability`, which drives the 25 audit subclasses via inheritance). The Ability Library UI auto-derives tab names from distinct `tab_group` values, so a new "Elementor" tab appears without any frontend/asset rebuild.
+
 = 0.0.26 - 2026-08-14 =
 **Release rollup — 89 abilities total: 87 unreleased Elementor abilities (Feature 067 completion) + 2 native site maintenance-mode abilities.** Plugin version bumped 0.0.25 → 0.0.26. Elementor abilities gate on `class_exists('\Elementor\Plugin')` (with 8 additionally gated on Elementor Pro); site maintenance-mode toggle has no plugin dependency.
 
