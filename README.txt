@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.25
+Stable tag: 0.0.26
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -137,13 +137,15 @@ No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
 
-= Unreleased (NOT YET RELEASED) =
+= 0.0.26 - 2026-08-14 =
+**Release rollup — 89 abilities total: 87 unreleased Elementor abilities (Feature 067 completion) + 2 native site maintenance-mode abilities.** Plugin version bumped 0.0.25 → 0.0.26. Elementor abilities gate on `class_exists('\Elementor\Plugin')` (with 8 additionally gated on Elementor Pro); site maintenance-mode toggle has no plugin dependency.
+
 * **Native site maintenance-mode toggle (2 abilities):**
   * `acrossai/set-site-maintenance-mode` — activate WordPress core maintenance mode by writing the `ABSPATH/.maintenance` marker file (the same file WP core writes during plugin/theme/core updates). A wp-cron event refreshes the marker every 5 minutes so the site stays down for the requested `duration_minutes` (default 60, hard-cap 1440). Requires `confirm=true` — blocks wp-admin as well as the frontend.
   * `acrossai/unset-site-maintenance-mode` — deactivate: delete the marker, clear the refresh cron, drop the expiry option. Idempotent — safe to call when maintenance mode is already inactive. Reports `was_active` in the response.
   * Both live under the existing `acrossai-abilities-manager-site-health` category alongside `acrossai/get-maintenance-mode-status` (Feature 063 read). No Elementor / plugin dependency — works on every WP install.
 
-* **Feature 067 COMPLETE — 87 Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available on the `main` branch; no plugin release / tag / distribution package has been cut. Feature 067's 88-ability target reached (2 released in 0.0.25 + 87 unreleased on main). Design-audit ability logic is skeletal (`Base_Audit_Ability` skeleton returning empty findings) — real audit heuristics to be filled in follow-up work.
+* **Feature 067 COMPLETE — 87 additional Elementor abilities ship in this release.** Combined with the 2 foundation abilities from 0.0.25, the full 88 planned abilities are now available under the `acrossai/elementor-*` namespace. Design-audit ability logic is skeletal (`Base_Audit_Ability` skeleton returning empty findings) — real audit heuristics to be filled in follow-up work.
 
 **Batch 10 — full-document replacement (closes the parity gap):**
   * `acrossai/elementor-update-data` — overwrite the entire `_elementor_data` tree for a post with a caller-supplied element array; optional `page_settings` merge; `force_replace=true` required when the new payload is materially smaller than the existing document. Returns `element_count` + cache scope report.
@@ -244,7 +246,7 @@ All 8 Pro abilities gated on **both** `class_exists( '\Elementor\Plugin' )` **an
 
 **Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) + 53 (b6) + 33 (b7) + 45 (b8) + 8 (b9 manifest) = 339 new source-inspection tests across 58 test files. Full suite: 975 tests, 1991 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
 
-**Feature 067 ability surface complete: 88 of 88 abilities.** Foundation + 2 released in 0.0.25 + 86 unreleased on main. Every planned ability shipped. Design-audit analysis logic is skeletal (returns empty findings + recommendations); the audit surface is registered and composable via `Design_Audit_Runner`, real heuristics to be filled in follow-up work.
+**Feature 067 ability surface complete: 88 of 88 abilities.** Foundation + 2 shipped in 0.0.25 + 86 in this release. Every planned ability shipped. Design-audit analysis logic is skeletal (returns empty findings + recommendations); the audit surface is registered and composable via `Design_Audit_Runner`, real heuristics to be filled in follow-up work.
 
 = 0.0.25 =
 * **New — Feature 067 Elementor Ability Suite (interim ship: foundation + 2 abilities).** First release of the planned 88-ability Elementor integration. This interim release delivers the full foundational infrastructure plus two highest-value abilities. Follow-up features (068+) will incrementally add the remaining 86 abilities.
