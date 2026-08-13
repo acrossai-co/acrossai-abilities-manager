@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.24
+Stable tag: 0.0.25
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -136,6 +136,32 @@ Several admin-only actions can cause external services to receive data — all a
 No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
+
+= 0.0.25 =
+* **New — Feature 067 Elementor Ability Suite (interim ship: foundation + 2 abilities).** First release of the planned 88-ability Elementor integration. This interim release delivers the full foundational infrastructure plus two highest-value abilities. Follow-up features (068+) will incrementally add the remaining 86 abilities.
+
+**Foundation — 6 utility classes + category registrar under `includes/Abilities/Utilities/Elementor/` and `includes/Abilities/Elementor/`:**
+  * `Category_Registrar` — registers the new `acrossai-abilities-manager-elementor` ability category. Self-guards on `class_exists( '\Elementor\Plugin' )` so the category is silently absent on non-Elementor sites.
+  * `Document_Repository` — Elementor document I/O with mandatory `wp_slash()` policy on `_elementor_data` writes, cache invalidation (Elementor files manager + WP post cache + `_elementor_css` meta delete), and full tree helpers (find/insert/remove/reorder/replace by element ID, deep-clone with fresh IDs, descendant-guard).
+  * `Widget_Controls` — schema-safe summariser over Elementor's `WidgetsManager::get_widget_types()` with case-insensitive control-name filtering.
+  * `Template_Query` — `WP_Query` wrappers for the `elementor_library` CPT with tax filters + keyword-scoring for pattern-search abilities.
+  * `Guidance_Catalog` — canonical Elementor.com widget catalog (60+ Basic/Pro/Theme/WooCommerce widgets seeded, 12-hour transient) + pattern & layout guidance data (nav-menu vs mega-menu, container vs section, Grid vs Flexbox for symmetric columns, etc.).
+  * `Design_Audit_Runner` — orchestrator for the 28 design-audit abilities landing in follow-up features (register + run individual + run-all with aggregate score + findings + recommendations).
+
+**Bootstrap gating** in `includes/Abilities/AcrossAI_Core_Abilities_Bootstrap.php`:
+  * Two-layer gate: outer `class_exists( '\Elementor\Plugin' )` at `plugins_loaded` P20 (registration-time) plus per-ability defense-in-depth check at execution time (runtime deactivation returns clean `error_code: elementor_missing` envelope, no fatals).
+  * Inner Pro gate: `class_exists( '\ElementorPro\Plugin' ) || defined( 'ELEMENTOR_PRO_VERSION' )` for the future Custom Code + Form Submissions abilities.
+  * Split into two private methods `register_elementor_free_abilities()` + `register_elementor_pro_abilities()` — new `new Elementor\<Class>()` lines added as each ability class lands.
+
+**Two shipped abilities under `acrossai/elementor-*` namespace:**
+  * `acrossai/elementor-get-widget-controls` — schema-lookup primitive. Returns the schema-safe control summary for any registered Elementor widget on the current site (free + Pro + third-party). Enables clients to author valid add-widget / update-element payloads without hard-coded per-widget wrappers. Optional case-insensitive search filter.
+  * `acrossai/elementor-get-data` — the read primitive. Returns the parsed Elementor document tree + page settings for a post, plus recursive element count.
+
+**Test coverage:** 44 new utility tests + 15 new ability tests = 59 additional PHPUnit assertions. Full suite: 636 tests, 1530 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
+
+**Test-bootstrap additions:** stubs for `wp_rand`, `get_transient`, `set_transient`, `delete_transient`, and `HOUR_IN_SECONDS` constant to support the new utilities under the unit-only bootstrap.
+
+**Spec artifacts** at `specs/067-elementor-abilities/`: complete design for all 88 abilities documented in `spec.md` / `plan.md` / `research.md` / `data-model.md` / `contracts/abilities.md` / `quickstart.md` / `tasks.md` — follow-up features will implement Phases 3-13 tasks against these contracts.
 
 = 0.0.24 =
 * **New — 6 abilities and 1 enhancement for full Gutenberg block-tree control (feature 066).** Closes the gap between the plugin's existing block-registry surface and per-post block-tree manipulation. All abilities live under the existing `acrossai-abilities-manager-content` category.

@@ -69,6 +69,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		$loader->add_action( 'wp_abilities_api_categories_init', Database\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Users\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Block\Category_Registrar::instance(), 'register' );
+		// Feature 067 — Elementor category (self-guards on class_exists inside register()).
+		$loader->add_action( 'wp_abilities_api_categories_init', Elementor\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Settings\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Fonts\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Content\Category_Registrar::instance(), 'register' );
@@ -409,5 +411,41 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		// Feature 041: Upload_Zip_Backup chunk sweeper — same shape as Upload_Media.
 		add_action( FileManager\Upload_Zip_Backup::CHUNK_SWEEP_HOOK, array( FileManager\Upload_Zip_Backup::class, 'sweep_chunk_sessions' ) );
 		FileManager\Upload_Zip_Backup::register_sweep_cron();
+
+		// Feature 067 — Elementor ability suite (up to 88 abilities under
+		// acrossai/elementor-*). Gated on Elementor presence; the Pro-only
+		// subset (Custom Code CRUD + Form Submissions) is additionally gated
+		// on Elementor Pro. See specs/067-elementor-abilities/plan.md.
+		if ( class_exists( '\Elementor\Plugin' ) ) {
+			$this->register_elementor_free_abilities();
+			if ( class_exists( '\ElementorPro\Plugin' ) || defined( 'ELEMENTOR_PRO_VERSION' ) ) {
+				$this->register_elementor_pro_abilities();
+			}
+		}
+	}
+
+	/**
+	 * Feature 067 — instantiate the free-Elementor ability classes.
+	 *
+	 * Each `new Elementor\<Class>()` line is added as the corresponding
+	 * ability class lands in Phases 3-12 of tasks.md.
+	 *
+	 * @return void
+	 */
+	private function register_elementor_free_abilities(): void {
+		// Group 3 — discovery / guidance.
+		new Elementor\Get_Widget_Controls();
+		// Group 1 — document / element operations.
+		new Elementor\Get_Data();
+	}
+
+	/**
+	 * Feature 067 — instantiate the Elementor Pro-gated ability classes.
+	 *
+	 * @return void
+	 */
+	private function register_elementor_pro_abilities(): void {
+		// Ability instantiations added incrementally per Feature 067 Phase 13
+		// of tasks.md (Custom Code CRUD + Form Submissions).
 	}
 }

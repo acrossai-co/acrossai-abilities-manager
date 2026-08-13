@@ -438,6 +438,46 @@ if ( ! class_exists( 'WP_REST_Request' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_rand' ) ) {
+	/** Feature 067 stub — mirrors WordPress wp_rand. */
+	function wp_rand( int $min = 0, int $max = 0 ): int {
+		if ( 0 === $max ) {
+			$max = mt_getrandmax();
+		}
+		return mt_rand( $min, $max );
+	}
+}
+
+if ( ! function_exists( 'get_transient' ) ) {
+	/** Feature 067 stub — in-memory transient store. */
+	function get_transient( string $key ) {
+		global $acrossai_transients;
+		return $acrossai_transients[ $key ] ?? false;
+	}
+}
+
+if ( ! function_exists( 'set_transient' ) ) {
+	/** Feature 067 stub — in-memory transient store. */
+	function set_transient( string $key, $value, int $expiration = 0 ): bool {
+		global $acrossai_transients;
+		$acrossai_transients[ $key ] = $value;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_transient' ) ) {
+	/** Feature 067 stub — in-memory transient store. */
+	function delete_transient( string $key ): bool {
+		global $acrossai_transients;
+		unset( $acrossai_transients[ $key ] );
+		return true;
+	}
+}
+
+if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
+	define( 'HOUR_IN_SECONDS', 60 * 60 );
+}
+
 if ( ! class_exists( 'WP_UnitTestCase' ) ) {
 	/**
 	 * Alias: in unit-only mode WP_UnitTestCase is a plain PHPUnit TestCase.
