@@ -1857,3 +1857,27 @@ The strip predicate encoded a single global assumption (`enabled === true`) rath
 - `docs/planning/060-library-third-party-integration-toggles.md` divergence #2 (2026-07-27) — the original bug report and fix rationale.
 
 **Tags**: sparse-storage, config, options, asymmetric-default, round-trip, silent-fail, feature-060
+
+---
+
+### 2026-08-14 — WP core silently expires the `.maintenance` marker 10 minutes after its `$upgrading` timestamp (BUG-WP-MAINTENANCE-MARKER-STALE-AT-10MIN)
+
+**Scope**: SiteHealth abilities / any code toggling WP-core maintenance mode via `ABSPATH/.maintenance`
+
+**Symptom**
+Site returns the standard "Briefly unavailable for scheduled maintenance" 503 for exactly 10 minutes after the marker file is created, then silently starts serving normal traffic while `.maintenance` is still on disk. Callers who check `file_exists(ABSPATH . '.maintenance')` — including our own `acrossai/get-maintenance-mode-status` ability — will report `active: true, is_stale: true` while WordPress core is actually serving the site normally. Any tool that assumes "file present ⇒ site is down" is wrong for the 90%+ of the maintenance window past the 10-minute mark.
+
+**Cause**
+`wp_maintenance()` in `wp-includes/load.php` gates the 503 render on `( time() - $upgrading ) < 600`. Once that condition is false, WP returns from the guard as if the marker file were absent, regardless of file existence. This threshold was designed for `WP_Upgrader::maintenance_mode(true)` which sits behind a ~30-second file swap during plugin/theme/core updates — not for long "site under maintenance" windows.
+
+**Prevention**
+- For any maintenance window longer than a plugin update (~30s), pair the marker write with a wp-cron event on a ≤ 5-minute interval that rewrites the `$upgrading` timestamp. Store an expiry timestamp in a WP option so the cron self-terminates and deletes the marker + clears itself once the window ends.
+- Never rely on file presence alone to answer "is the site in maintenance mode?" — always include an age check (`time() - $upgrading > 600`) and treat stale markers as "not blocking" to match WP core's own behavior.
+- If a caller needs to lock the site down for >24 hours or spans multiple wp-cron misses, a `.maintenance` marker refresh cron is NOT a robust guarantee — use an MU-plugin that short-circuits at `plugins_loaded` or a webserver-level redirect instead.
+
+**Where to look**
+- `includes/Abilities/SiteHealth/Set_Site_Maintenance_Mode.php` — the `register_cron_schedule()` + `refresh_marker()` + `REFRESH_INTERVAL = 300` scaffolding is exactly the pattern for holding a window longer than 10 minutes.
+- `includes/Abilities/SiteHealth/Get_Maintenance_Mode_Status.php` — mirrors the same 600-second `STALE_AFTER_SECONDS` constant when reporting status, matching WP core semantics.
+- `wp-includes/load.php::wp_maintenance()` — the canonical gate; look for the `< 600` literal.
+
+**Tags**: wp-core, maintenance-mode, .maintenance, upgrading-timestamp, wp-cron, silent-expiry, 600-seconds
