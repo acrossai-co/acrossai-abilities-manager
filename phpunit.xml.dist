@@ -94,6 +94,14 @@
 			<file>tests/phpunit/abilities/Test_Add_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Remove_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Update_Post_Block_Nested.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Category_Registrar.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Document_Repository.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Widget_Controls.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Template_Query.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Guidance_Catalog.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Design_Audit_Runner.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Widget_Controls.php</file>
+			<file>tests/phpunit/abilities/Test_Elementor_Get_Data.php</file>
 			<file>tests/phpunit/abilities/Test_Move_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>
