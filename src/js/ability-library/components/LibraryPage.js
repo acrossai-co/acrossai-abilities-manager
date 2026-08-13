@@ -401,7 +401,7 @@ export default function LibraryPage() {
 
 			<div className="acrossai-library-page__header">
 				<h1 className="acrossai-library-page__title">
-					{__('Ability Library', 'acrossai-abilities-manager')}
+					{__('Ability Integrations', 'acrossai-abilities-manager')}
 				</h1>
 				<div className="acrossai-library-page__header-actions">
 					<Button variant="primary" onClick={handleEnableAll}>

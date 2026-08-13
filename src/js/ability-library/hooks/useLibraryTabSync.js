@@ -4,8 +4,8 @@
  * via browser back/forward.
  *
  * URL scheme:
- *   - default view                → ?page=acrossai-abilities-library                  (no `tab` arg)
- *   - specific tab (e.g. core)    → ?page=acrossai-abilities-library&tab=core
+ *   - default view                → ?page=acrossai-abilities-integrations                  (no `tab` arg)
+ *   - specific tab (e.g. core)    → ?page=acrossai-abilities-integrations&tab=core
  *
  * Mirrors the three-effect structure of src/js/abilities/hooks/useUrlViewSync.js.
  *
