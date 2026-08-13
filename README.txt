@@ -138,9 +138,22 @@ No data is sent to any external server without an explicit administrator action.
 == Changelog ==
 
 = Unreleased (NOT YET RELEASED) =
-* **Feature 067 continued — 31 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
+* **Feature 067 continued — 42 more Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available to anyone on the `main` branch but no plugin release / tag / distribution package has been cut. A future release will bundle these plus additional Feature 067 abilities under a single version bump.
 
-**Batch 5 — 11 site-management abilities (this commit):**
+**Batch 6 — 11 template abilities (this commit):**
+  * `acrossai/elementor-list-templates` — list saved templates with filters on `template_type` + `status` + pagination.
+  * `acrossai/elementor-get-template` — return one template's metadata + conditions + optional `_elementor_data`.
+  * `acrossai/elementor-create-template` — create a new template of type page / section / popup / header / footer / single / archive; sets taxonomy term + Elementor meta.
+  * `acrossai/elementor-update-template` — update title / page_settings / full data with `force_replace` guard.
+  * `acrossai/elementor-delete-template` — trash (default) or permanently delete with `force=true`.
+  * `acrossai/elementor-restore-template` — restore a trashed template.
+  * `acrossai/elementor-duplicate-template` — clone template preserving type + conditions + sub_type; regenerates element IDs.
+  * `acrossai/elementor-empty-trash` — permanently delete every trashed template; requires `confirm=true`.
+  * `acrossai/elementor-export-template` — export template as JSON-encodable object (title, template_type, sub_type, page_settings, content, conditions).
+  * `acrossai/elementor-import-template` — import from JSON export; regenerates element IDs; optional `overwrite_id` to replace an existing template.
+  * `acrossai/elementor-find-template-for-pattern` — rank saved templates by keyword match (title + tax term + widget-types in content); returns top N with scores.
+
+**Batch 5 — 11 site-management abilities:**
   * `acrossai/elementor-clear-cache` — clear Elementor cache at post / site / all scope; optional `regenerate_css=true` for a specific post.
   * `acrossai/elementor-replace-urls` — bulk find/replace URLs across every Elementor document on the site with `dry_run=true` default preview.
   * `acrossai/elementor-get-maintenance-mode` — read current maintenance mode settings (mode, template, exclude rules).
@@ -179,9 +192,9 @@ No data is sent to any external server without an explicit administrator action.
   * `acrossai/elementor-add-container` — insert Elementor v3+ container.
   * `acrossai/elementor-add-widget` — insert any registered widget (validated via `Widget_Controls`).
 
-**Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) = 200 new source-inspection tests across 31 test files. Full suite: 836 tests, 1754 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
+**Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) + 53 (b6) = 253 new source-inspection tests across 42 test files. Full suite: 889 tests, 1809 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
 
-**Total shipped Elementor abilities so far: 33 of 88.** Foundation + 2 released in 0.0.25 + 31 unreleased on main. Complete page-composition + site-management + discovery surface — clients can now create Elementor pages, discover widget schemas and pattern guidance, read documents, find/get/update/merge/delete/move/duplicate/reorder elements, add containers + widgets + shortcuts, patch text globally, clone whole documents between posts, clear cache, replace URLs site-wide, manage maintenance mode + Theme Builder conditions, read theme/kit/style-guide context.
+**Total shipped Elementor abilities so far: 44 of 88.** Foundation + 2 released in 0.0.25 + 42 unreleased on main. Complete page-composition + site-management + discovery + template CRUD surface — clients can now create Elementor pages, manage templates end-to-end (list/get/create/update/delete/restore/duplicate/empty-trash/export/import/find-pattern), discover widget schemas and pattern guidance, read documents, find/get/update/merge/delete/move/duplicate/reorder elements, add containers + widgets + shortcuts, patch text globally, clone whole documents, clear cache, replace URLs, manage maintenance mode + Theme Builder conditions.
 
 = 0.0.25 =
 * **New — Feature 067 Elementor Ability Suite (interim ship: foundation + 2 abilities).** First release of the planned 88-ability Elementor integration. This interim release delivers the full foundational infrastructure plus two highest-value abilities. Follow-up features (068+) will incrementally add the remaining 86 abilities.

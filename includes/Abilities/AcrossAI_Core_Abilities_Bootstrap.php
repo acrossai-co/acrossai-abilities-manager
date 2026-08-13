@@ -473,6 +473,18 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new Elementor\Get_Theme_Context();
 		new Elementor\Get_Style_Guide();
 		new Elementor\Evaluate_Render_Context();
+		// Templates (Group 4 — full CRUD).
+		new Elementor\List_Templates();
+		new Elementor\Get_Template();
+		new Elementor\Create_Template();
+		new Elementor\Update_Template();
+		new Elementor\Delete_Template();
+		new Elementor\Restore_Template();
+		new Elementor\Duplicate_Template();
+		new Elementor\Empty_Trash();
+		new Elementor\Export_Template();
+		new Elementor\Import_Template();
+		new Elementor\Find_Template_For_Pattern();
 	}
 
 	/**
