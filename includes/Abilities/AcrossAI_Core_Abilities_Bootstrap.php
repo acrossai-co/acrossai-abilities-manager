@@ -368,6 +368,9 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new SiteHealth\Get_Site_Maintenance_Report();
 		// Feature 063 — Maintenance-mode status read.
 		new SiteHealth\Get_Maintenance_Mode_Status();
+		// Site maintenance-mode toggle (write) — native WP-core .maintenance marker.
+		new SiteHealth\Set_Site_Maintenance_Mode();
+		new SiteHealth\Unset_Site_Maintenance_Mode();
 		new Plugins\Get_Plugin_Lifecycle_Context();
 		new Themes\Get_Theme_Lifecycle_Context();
 		// Feature 063 — Theme mods introspection.
@@ -411,6 +414,10 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		// Feature 041: Upload_Zip_Backup chunk sweeper — same shape as Upload_Media.
 		add_action( FileManager\Upload_Zip_Backup::CHUNK_SWEEP_HOOK, array( FileManager\Upload_Zip_Backup::class, 'sweep_chunk_sessions' ) );
 		FileManager\Upload_Zip_Backup::register_sweep_cron();
+
+		// Site maintenance-mode toggle — 5-min cron schedule + refresh callback.
+		add_filter( 'cron_schedules', array( SiteHealth\Set_Site_Maintenance_Mode::class, 'register_cron_schedule' ) );
+		add_action( SiteHealth\Set_Site_Maintenance_Mode::CRON_HOOK, array( SiteHealth\Set_Site_Maintenance_Mode::class, 'refresh_marker' ) );
 
 		// Feature 067 — Elementor ability suite (up to 88 abilities under
 		// acrossai/elementor-*). Gated on Elementor presence; the Pro-only

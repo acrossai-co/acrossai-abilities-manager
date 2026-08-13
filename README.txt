@@ -138,6 +138,11 @@ No data is sent to any external server without an explicit administrator action.
 == Changelog ==
 
 = Unreleased (NOT YET RELEASED) =
+* **Native site maintenance-mode toggle (2 abilities):**
+  * `acrossai/set-site-maintenance-mode` — activate WordPress core maintenance mode by writing the `ABSPATH/.maintenance` marker file (the same file WP core writes during plugin/theme/core updates). A wp-cron event refreshes the marker every 5 minutes so the site stays down for the requested `duration_minutes` (default 60, hard-cap 1440). Requires `confirm=true` — blocks wp-admin as well as the frontend.
+  * `acrossai/unset-site-maintenance-mode` — deactivate: delete the marker, clear the refresh cron, drop the expiry option. Idempotent — safe to call when maintenance mode is already inactive. Reports `was_active` in the response.
+  * Both live under the existing `acrossai-abilities-manager-site-health` category alongside `acrossai/get-maintenance-mode-status` (Feature 063 read). No Elementor / plugin dependency — works on every WP install.
+
 * **Feature 067 COMPLETE — 87 Elementor abilities merged to main without a version bump.** Plugin version remains 0.0.25. These abilities are available on the `main` branch; no plugin release / tag / distribution package has been cut. Feature 067's 88-ability target reached (2 released in 0.0.25 + 87 unreleased on main). Design-audit ability logic is skeletal (`Base_Audit_Ability` skeleton returning empty findings) — real audit heuristics to be filled in follow-up work.
 
 **Batch 10 — full-document replacement (closes the parity gap):**
