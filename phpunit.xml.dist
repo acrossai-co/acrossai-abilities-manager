@@ -183,6 +183,8 @@
 			<file>tests/phpunit/abilities/Test_Rank_Math_Settings_Writer.php</file>
 			<file>tests/phpunit/abilities/Test_Rank_Math_Settings_Abilities.php</file>
 			<file>tests/phpunit/abilities/Test_Rank_Math_Redirections_Repository.php</file>
+			<file>tests/phpunit/abilities/Test_Rank_Math_Maintenance_Tools.php</file>
+			<file>tests/phpunit/abilities/Test_Rank_Math_Suite_Contract.php</file>
 		</testsuite>
 	</testsuites>
 	<source>

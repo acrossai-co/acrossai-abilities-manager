@@ -117,6 +117,11 @@ class Test_Rank_Math_Architecture extends WP_UnitTestCase {
 	 * FR-009 — destructive and requires_confirmation() must agree. One without
 	 * the other is the likely bug: a destructive ability with no confirm gate, or
 	 * a confirm gate on something the annotations call safe.
+	 *
+	 * Note this rule has NO exception for credit-spending abilities. Spending an
+	 * unrecoverable paid balance destroys no data, but the destructive annotation
+	 * exists to warn clients about irreversibility, which unrecoverable spend is.
+	 * One machine-checkable rule beats an exception every client must reason about.
 	 */
 	public function test_destructive_and_confirmation_agree(): void {
 		foreach ( self::ability_files() as $file ) {

@@ -10,6 +10,8 @@
 
 namespace AcrossAI_Abilities_Manager\Includes\Abilities\Utilities\RankMath;
 
+use WP_Error;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -170,6 +172,76 @@ final class Routes_Repository {
 			'rule_present_before' => false,
 			'flushed'             => true,
 			'rule_present_after'  => (bool) $after['present'],
+		);
+	}
+
+	/**
+	 * Fetch Rank Math's rendered <head> for a URL.
+	 *
+	 * MUST be an HTTP loopback, never an in-process call (research F4). Rank Math's
+	 * Headless::get_head() mutates $_SERVER['REQUEST_URI'], calls
+	 * remove_all_actions('wp') and remove_all_actions('parse_request'), re-runs wp(),
+	 * emits a header and reloads every module. Invoking it in-process would corrupt
+	 * any later ability in the same request.
+	 *
+	 * The route's permission_callback is '__return_true', so no auth plumbing is
+	 * needed — but it is only registered when general.headless_support is enabled.
+	 *
+	 * @param string $url URL to render.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	public static function rendered_head( string $url ) {
+		if ( ! class_exists( '\RankMath\Helper' ) ) {
+			return new WP_Error( 'rank_math_missing', __( 'Rank Math SEO is not active.', 'acrossai-abilities-manager' ) );
+		}
+		if ( empty( \RankMath\Helper::get_settings( 'general.headless_support' ) ) ) {
+			return new WP_Error(
+				'headless_support_disabled',
+				__( 'Rank Math headless support is off, so the getHead route is not registered. Enable it with acrossai/rank-math-update-general-settings using section=others and headless_support=true.', 'acrossai-abilities-manager' )
+			);
+		}
+		if ( ! wp_http_validate_url( $url ) ) {
+			return new WP_Error( 'invalid_input', __( 'url must be a valid absolute URL.', 'acrossai-abilities-manager' ) );
+		}
+
+		$endpoint = add_query_arg( 'url', rawurlencode( $url ), rest_url( 'rankmath/v1/getHead' ) );
+		$response = wp_remote_get( $endpoint, array( 'timeout' => 30, 'redirection' => 3, 'sslverify' => false ) );
+
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error(
+				'not_found',
+				sprintf(
+					/* translators: 1: requested URL, 2: transport error */
+					__( 'Could not fetch the rendered head for %1$s: %2$s', 'acrossai-abilities-manager' ),
+					$url,
+					$response->get_error_message()
+				)
+			);
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		$body = (string) wp_remote_retrieve_body( $response );
+		if ( 200 !== $code ) {
+			return new WP_Error(
+				'not_found',
+				sprintf(
+					/* translators: 1: requested URL, 2: HTTP status code */
+					__( 'Rank Math returned HTTP %2$d when rendering the head for %1$s.', 'acrossai-abilities-manager' ),
+					$url,
+					$code
+				)
+			);
+		}
+
+		// The route returns the markup as a JSON string.
+		$decoded = json_decode( $body, true );
+		$head    = is_string( $decoded ) ? $decoded : $body;
+
+		return array(
+			'url'           => $url,
+			'response_code' => $code,
+			'head'          => $head,
+			'length'        => strlen( $head ),
 		);
 	}
 }

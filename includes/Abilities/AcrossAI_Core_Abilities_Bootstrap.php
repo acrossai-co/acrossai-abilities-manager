@@ -514,6 +514,45 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		// go through the plugin's existing acrossai/add-role-capability.
 		new RankMath\Get_Role_Capabilities();
 		new RankMath\Reset_Role_Capabilities();
+
+		// Batch 5 — status, maintenance tools, backups, import/export.
+		new RankMath\Run_Maintenance_Tool();
+		new RankMath\Export_Settings();
+		new RankMath\Import_Settings();
+		new RankMath\List_Backups();
+		new RankMath\Create_Backup();
+		new RankMath\Manage_Backup();
+		new RankMath\Detect_Seo_Plugins();
+		new RankMath\Get_Seo_Analysis_Results();
+
+		// Batch 6 — analytics.
+		new RankMath\Get_Analytics_Summary();
+		new RankMath\Get_Analytics_Rows();
+		new RankMath\Get_Index_Status();
+		new RankMath\Inspect_Url();
+
+		// Batch 6 — post-level content and schema.
+		new RankMath\Update_Seo_Meta();
+		new RankMath\Bulk_Update_Meta();
+		new RankMath\Update_Seo_Scores();
+		new RankMath\Get_Primary_Term();
+		new RankMath\Update_Primary_Term();
+		new RankMath\Update_Post_Schemas();
+		new RankMath\Delete_Post_Schemas();
+		new RankMath\Get_Schema_Status();
+		new RankMath\Get_Rendered_Head();
+		new RankMath\Audit_Content_Seo();
+		new RankMath\Get_Inbound_Links();
+		new RankMath\Audit_Faq_Links();
+
+		// Batch 7 — entitlement-gated. Registered UNCONDITIONALLY and gated at
+		// runtime; see the block comment above register_rank_math_abilities().
+		new RankMath\Get_Content_Ai_Status();
+		new RankMath\Manage_Content_Ai_Prompts();
+		new RankMath\Manage_Content_Ai_Output();
+		new RankMath\Research_Keyword();
+		new RankMath\Get_Ai_Visibility_Brand();
+		new RankMath\Update_Ai_Visibility_Object();
 	}
 
 	/**

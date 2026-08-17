@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.27
+Stable tag: 0.0.28
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -136,6 +136,31 @@ Several admin-only actions can cause external services to receive data — all a
 No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
+
+= 0.0.28 - 2026-08-17 =
+**Feature 069 — Rank Math ability suite: 61 new abilities under a new "Rank Math" tab.** Gated on Rank Math SEO being active; absent entirely without it. Plugin version bumped 0.0.27 → 0.0.28.
+
+Coverage baseline was deliberately narrow: Rank Math core ships **13** abilities of its own under `rank-math/`, and only those 13 counted as existing coverage. The third-party `mcp-abilities-rankmath` companion plugin was **not** treated as coverage — it is not ours to maintain, its writes go through raw `update_option()` blobs that bypass Rank Math's sanitizer, and it gates every ability on blanket `manage_options` regardless of the Role Manager. Slugs do not collide (`rank-math/` vs `rankmath/` vs `acrossai/rank-math-`).
+
+**Batch 1 — plumbing.** `RankMath\Category_Registrar` registers `acrossai-abilities-manager-rank-math`, guarded on `class_exists('\RankMath\Helper')`. `Base_Rank_Math_Ability` is the sole assembler of `ability()` and sole enforcer of the `execute()` guard order, which is what guarantees `tab_group => 'rank-math'` on all 61 — the Feature 078 regression class. `Rank_Math_Guard` holds every guard plus the response envelope.
+
+**Batch 2 — typed settings (6 abilities).** `acrossai/rank-math-get-settings` reads any of 20 panels with each field's type, allowed values, bounds and current value, which makes the writers' accepted keys discoverable at runtime. `-update-general-settings`, `-update-title-settings` and `-update-sitemap-settings` take a section/scope enum, replacing ~20 near-identical per-panel classes. `-update-instant-indexing-settings` and `-update-robots-txt` are separate because the first writes a different option and the second is conditional on state the caller cannot see. Titles & Meta templates — the global per-post-type and per-taxonomy layer — had no read or write anywhere before this.
+
+**Batch 3 — Instant Indexing, modules, sitemap, routes (10 abilities).** `-submit-urls`, `-get-indexing-log`, `-clear-indexing-log`, `-reset-indexing-key`; `-list-modules` and `-set-module-state`; `-get-sitemap-status`, `-list-sitemap-urls`, `-invalidate-sitemap-cache`; `-get-llms-status` and `-refresh-llms-route`. `-set-module-state` replicates Rank Math's own `save_module()` in full including the rewrite-rule refresh and `rank_math/module_changed` action — omitting either leaves stale rewrite rules, so the sitemap and llms.txt routes 404 while the module reports itself active.
+
+**Batch 4 — redirections, 404 logs, roles (13 abilities).** `-list-redirections` (with the `status=trashed` filter), `-find-redirection`, `-get-redirection-stats`, `-export-redirections`, `-create-redirection`, `-update-redirection`, `-change-redirection-status`, `-delete-redirections`, `-delete-trashed-redirections`; `-list-404-logs` and `-delete-404-logs`; `-get-role-capabilities` and `-reset-role-capabilities`. **`-update-redirection` fills a real gap: nothing could previously EDIT a redirection**, and emulating it by delete-then-recreate loses the rule's id, hit counter and creation date. Apache/Nginx export is a port of Rank Math's private formatters, since its own exporter reads `$_GET`, calls `check_admin_referer()`, echoes and exits.
+
+**Batch 5 — status, maintenance, backups (8 abilities).** `-get-status` (5 panels behind an enum), `-run-maintenance-tool` (12 tools behind an enum), `-export-settings`, `-import-settings`, `-list-backups`, `-create-backup`, `-manage-backup`, `-detect-seo-plugins`, plus `-get-seo-analysis-results` for the cached audit.
+
+**Batch 6 — analytics and post-level content (16 abilities).** `-get-analytics-summary` (6 reports), `-get-analytics-rows` (3 datasets), `-get-index-status`, `-inspect-url`; `-update-seo-meta`, `-bulk-update-meta`, `-update-seo-scores`, `-get-primary-term`, `-update-primary-term`, `-update-post-schemas`, `-delete-post-schemas`, `-get-schema-status`, `-get-rendered-head`, `-audit-content-seo`, `-get-inbound-links`, `-audit-faq-links`. `-get-inbound-links` answers which pages link **to** a page, including navigation-menu links — the opposite direction from every existing outbound-link ability.
+
+**Batch 7 — entitlement-gated (6 abilities).** `-get-content-ai-status`, `-manage-content-ai-prompts`, `-manage-content-ai-output`, `-research-keyword`; `-get-ai-visibility-brand`, `-update-ai-visibility-object`. Registered **unconditionally** and gated at runtime, deliberately unlike `register_elementor_pro_abilities()`: Content AI and AI Visibility ship in Rank Math *free* and gate on cloud-account registration plus a credit balance, not on a separate plugin, so availability can change without an activation and cannot be decided at registration time.
+
+**Security.** Every ability composes the house capability floor with Rank Math's own granular `rank_math_*` capability, so revoking a capability in Rank Math's Role Manager actually blocks the corresponding ability — the companion plugin's blanket `manage_options` ignores it. One documented filter, `acrossai_abilities_manager_rank_math_permission`, lets site owners relax the policy. Twelve abilities are irreversible and require `confirm: true`; the four post-scoped writers use the `edit_posts` floor plus a per-object `edit_post` check.
+
+**Data-loss prevention.** Rank Math's settings sanitizer defaults any field it was not told the type of to single-line text, which strips newlines, and its own field definitions use *legacy* CMB2 type names while the sanitizer's cases are the *React* names — 11 of 19 legacy types match no case. `Settings_Registry` therefore ships a declarative field-spec table for all 20 panels, mirroring the Rank Math source with a file citation per panel, and maps legacy names onto the sanitizer's vocabulary. Verified live with a control: writing `nofollow_domains` with the mapped `textarea` type preserves newlines, while the identical write using Rank Math's own declared `textarea_small` stores them collapsed onto one line. Nine multi-line settings were at risk.
+
+**Notable.** No raw Rank Math option read/write ability ships — the plugin already provides generic option abilities, and adding Rank Math-branded raw writers would reintroduce exactly the data-loss path above. No bulk role-capability writer ships either, because `Helper::set_capabilities()` strips capabilities from roles omitted from the payload; the existing per-capability abilities cannot trigger that. The `.htaccess` editor, version rollback and beta opt-in are out of scope.
 
 = 0.0.27 - 2026-08-14 =
 **Patch release — UI polish + admin-surface rename following the 0.0.26 Feature 067 rollup.** No new abilities; both entries below are UX-affecting changes to the admin surface. Plugin version bumped 0.0.26 → 0.0.27.
