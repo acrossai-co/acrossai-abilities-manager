@@ -112,7 +112,7 @@ Paths are relative to the plugin root. Rank Math paths are relative to
 
 - [x] **T090** Full `composer phpstan` — must pass at level 8 with no new `ignoreErrors`.
 - [x] **T091** Full `feature-069-unit` suite green; confirm every test file is listed in `phpunit.xml.dist`.
-- [ ] **T092** Security review → `docs/security-reviews/<date>-069-rank-math-abilities.md`.
+- [x] **T092** Security review → `docs/security-reviews/2026-08-17-069-rank-math-abilities.md`. One HIGH finding (missing per-object authorisation on term/user schema writes) fixed in `7c17cd5`; one candidate dismissed as a false positive.
 - [x] **T093** Walk `checklists/requirements.md` and tick every row.
 - [x] **T094** Admin-UI verification pass over all sub-groups; execute one ability per sub-group through MCP.
 - [x] **T095** Bump `Version:` in `acrossai-abilities-manager.php`, `ACROSSAI_ABILITIES_MANAGER_VERSION` in `includes/Main.php`, `Stable tag:` in `README.txt`, and add the `= 0.0.28 - <date> =` changelog block with bold **Batch N** groupings.
@@ -131,10 +131,13 @@ clean with no new `ignoreErrors`.
 
 ### Outstanding
 
-- **T092 — security review not run.** The plugin's own `/security-review` flow was not
-  executed. The capability model, deny lists and confirm gates are asserted by
-  `Test_Rank_Math_Suite_Contract` and `Test_Rank_Math_Architecture`, but that is not a
-  substitute for the review the Constitution requires before release.
+- **T092 — security review COMPLETE.** See
+  `docs/security-reviews/2026-08-17-069-rank-math-abilities.md`. One HIGH finding was
+  found and fixed in `7c17cd5`: `update_schemas()` asserted per-object rights only for
+  `object_type=post`, dropping the `edit_user` and `edit_terms` checks Rank Math's own
+  route performs, reachable because ten abilities used an `edit_posts` floor and Rank
+  Math grants `rank_math_onpage_snippet` to author/editor by default. All floor
+  overrides are now removed and the base floor is `final manage_options`.
 - **T096 — POT not regenerated.** `wp-cli` is unavailable in this environment. Note the
   file has been 0 bytes since the initial commit, so this is pre-existing rather than a
   regression — but Feature 069 adds roughly 507 translatable strings and the POT must be
