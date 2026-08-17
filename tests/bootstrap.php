@@ -111,6 +111,57 @@ if ( ! function_exists( 'do_action' ) ) {
 	function do_action( string $hook, mixed ...$args ): void {}
 }
 
+if ( ! function_exists( 'wp_parse_url' ) ) {
+	/**
+	 * Stub: mirrors WP wp_parse_url() for unit tests.
+	 *
+	 * @param  string $url       URL to parse.
+	 * @param  int    $component Optional PHP_URL_* component.
+	 * @return mixed
+	 */
+	function wp_parse_url( string $url, int $component = -1 ): mixed {
+		return parse_url( $url, $component );
+	}
+}
+
+if ( ! function_exists( 'maybe_unserialize' ) ) {
+	/**
+	 * Stub: mirrors WP maybe_unserialize() for unit tests.
+	 *
+	 * @param  mixed $data Value that may be serialized.
+	 * @return mixed
+	 */
+	function maybe_unserialize( mixed $data ): mixed {
+		if ( is_string( $data ) ) {
+			$trimmed = trim( $data );
+			// Cheap serialized-string sniff, matching core's intent.
+			if ( preg_match( '/^([adObis]):/', $trimmed ) ) {
+				return @unserialize( $trimmed ); // phpcs:ignore
+			}
+		}
+		return $data;
+	}
+}
+
+if ( ! function_exists( 'maybe_serialize' ) ) {
+	/**
+	 * Stub: mirrors WP maybe_serialize() for unit tests.
+	 *
+	 * @param  mixed $data Value to serialize when not scalar.
+	 * @return mixed
+	 */
+	function maybe_serialize( mixed $data ): mixed {
+		return ( is_array( $data ) || is_object( $data ) ) ? serialize( $data ) : $data;
+	}
+}
+
+if ( ! function_exists( 'untrailingslashit' ) ) {
+	/** Stub: strips trailing slashes. */
+	function untrailingslashit( string $value ): string {
+		return rtrim( $value, '/\\' );
+	}
+}
+
 if ( ! function_exists( 'wp_parse_args' ) ) {
 	/** Stub: merges args with defaults similar to WP. */
 	function wp_parse_args( mixed $args, mixed $defaults = array() ): array {
@@ -391,6 +442,20 @@ if ( ! class_exists( 'WP_Error' ) ) {
 		public function get_error_code(): string {
 			$codes = $this->get_error_codes();
 			return $codes[0] ?? '';
+		}
+
+		/**
+		 * Returns the first error message as a string (singular form).
+		 *
+		 * Mirrors WP_Error::get_error_message() in core. Production code that
+		 * unwraps a WP_Error into a response envelope calls this, so the stub
+		 * needs it for those paths to be unit-testable.
+		 *
+		 * @param string $code Optional. Error code to retrieve the message for.
+		 */
+		public function get_error_message( string $code = '' ): string {
+			$messages = $this->get_error_messages( $code );
+			return isset( $messages[0] ) ? (string) $messages[0] : '';
 		}
 
 		/** @param string $message */

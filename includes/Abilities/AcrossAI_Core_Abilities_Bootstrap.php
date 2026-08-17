@@ -71,6 +71,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		$loader->add_action( 'wp_abilities_api_categories_init', Block\Category_Registrar::instance(), 'register' );
 		// Feature 067 — Elementor category (self-guards on class_exists inside register()).
 		$loader->add_action( 'wp_abilities_api_categories_init', Elementor\Category_Registrar::instance(), 'register' );
+		// Feature 069 — Rank Math category (self-guards on class_exists inside register()).
+		$loader->add_action( 'wp_abilities_api_categories_init', RankMath\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Settings\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Fonts\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Content\Category_Registrar::instance(), 'register' );
@@ -429,6 +431,128 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 				$this->register_elementor_pro_abilities();
 			}
 		}
+
+		// Feature 069 — Rank Math ability suite (up to 61 abilities under
+		// acrossai/rank-math-*). Gated on Rank Math presence only.
+		//
+		// DELIBERATE DIVERGENCE from the Elementor block above: there is no
+		// second entitlement-gated registration method. Rank Math's Content AI
+		// and AI Visibility abilities are registered UNCONDITIONALLY and gate at
+		// runtime inside execute(), returning rank_math_account_required or
+		// content_ai_no_credits. This is a product decision, not an oversight —
+		// unlike Elementor Pro, those features ship in Rank Math free core and
+		// gate on cloud-account registration plus a credit balance rather than on
+		// a separate plugin, so their availability can change without a plugin
+		// activation and cannot be decided at registration time.
+		// Do not "fix" this into the Elementor shape.
+		// See specs/069-rank-math-abilities/research.md F7.
+		if ( class_exists( '\RankMath\Helper' ) ) {
+			$this->register_rank_math_abilities();
+		}
+	}
+
+	/**
+	 * Feature 069 — instantiate the Rank Math ability classes.
+	 *
+	 * Each `new RankMath\<Class>()` line is added as the corresponding ability
+	 * class lands across Batches 1-7 of
+	 * specs/069-rank-math-abilities/tasks.md.
+	 *
+	 * @return void
+	 */
+	private function register_rank_math_abilities(): void {
+		// Batch 1 — status / diagnostics.
+		new RankMath\Get_Status();
+
+		// Batch 2 — typed settings. One reader for all 20 panels, one writer per
+		// Rank Math option blob, plus the two blobs that need their own ability.
+		new RankMath\Get_Settings();
+		new RankMath\Update_General_Settings();
+		new RankMath\Update_Title_Settings();
+		new RankMath\Update_Sitemap_Settings();
+		new RankMath\Update_Instant_Indexing_Settings();
+		new RankMath\Update_Robots_Txt();
+
+		// Batch 3 — Instant Indexing.
+		new RankMath\Submit_Urls();
+		new RankMath\Get_Indexing_Log();
+		new RankMath\Clear_Indexing_Log();
+		new RankMath\Reset_Indexing_Key();
+
+		// Batch 3 — module state.
+		new RankMath\List_Modules();
+		new RankMath\Set_Module_State();
+
+		// Batch 3 — sitemap operations.
+		new RankMath\Get_Sitemap_Status();
+		new RankMath\List_Sitemap_Urls();
+		new RankMath\Invalidate_Sitemap_Cache();
+
+		// Batch 3 — virtual routes.
+		new RankMath\Get_Llms_Status();
+		new RankMath\Refresh_Llms_Route();
+
+		// Batch 4 — redirections. Reads first, then writes; hard delete is
+		// separate from the reversible status transitions so each can declare its
+		// annotations honestly.
+		new RankMath\List_Redirections();
+		new RankMath\Find_Redirection();
+		new RankMath\Get_Redirection_Stats();
+		new RankMath\Export_Redirections();
+		new RankMath\Create_Redirection();
+		new RankMath\Update_Redirection();
+		new RankMath\Change_Redirection_Status();
+		new RankMath\Delete_Redirections();
+		new RankMath\Delete_Trashed_Redirections();
+
+		// Batch 4 — 404 monitor log.
+		new RankMath\List_404_Logs();
+		new RankMath\Delete_404_Logs();
+
+		// Batch 4 — role capabilities. Read and reset only: no bulk writer, because
+		// Helper::set_capabilities() strips capabilities from omitted roles. Grants
+		// go through the plugin's existing acrossai/add-role-capability.
+		new RankMath\Get_Role_Capabilities();
+		new RankMath\Reset_Role_Capabilities();
+
+		// Batch 5 — status, maintenance tools, backups, import/export.
+		new RankMath\Run_Maintenance_Tool();
+		new RankMath\Export_Settings();
+		new RankMath\Import_Settings();
+		new RankMath\List_Backups();
+		new RankMath\Create_Backup();
+		new RankMath\Manage_Backup();
+		new RankMath\Detect_Seo_Plugins();
+		new RankMath\Get_Seo_Analysis_Results();
+
+		// Batch 6 — analytics.
+		new RankMath\Get_Analytics_Summary();
+		new RankMath\Get_Analytics_Rows();
+		new RankMath\Get_Index_Status();
+		new RankMath\Inspect_Url();
+
+		// Batch 6 — post-level content and schema.
+		new RankMath\Update_Seo_Meta();
+		new RankMath\Bulk_Update_Meta();
+		new RankMath\Update_Seo_Scores();
+		new RankMath\Get_Primary_Term();
+		new RankMath\Update_Primary_Term();
+		new RankMath\Update_Post_Schemas();
+		new RankMath\Delete_Post_Schemas();
+		new RankMath\Get_Schema_Status();
+		new RankMath\Get_Rendered_Head();
+		new RankMath\Audit_Content_Seo();
+		new RankMath\Get_Inbound_Links();
+		new RankMath\Audit_Faq_Links();
+
+		// Batch 7 — entitlement-gated. Registered UNCONDITIONALLY and gated at
+		// runtime; see the block comment above register_rank_math_abilities().
+		new RankMath\Get_Content_Ai_Status();
+		new RankMath\Manage_Content_Ai_Prompts();
+		new RankMath\Manage_Content_Ai_Output();
+		new RankMath\Research_Keyword();
+		new RankMath\Get_Ai_Visibility_Brand();
+		new RankMath\Update_Ai_Visibility_Object();
 	}
 
 	/**
