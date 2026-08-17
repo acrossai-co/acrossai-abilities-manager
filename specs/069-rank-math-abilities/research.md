@@ -264,6 +264,51 @@ does not register when Elementor Pro is absent.
 
 ---
 
+## F8 — Rank Math normalises legacy toggle representations on any save
+
+Discovered while running integration check 1 against Rank Math 1.0.276, and isolated so our own code
+was not involved in the write at all.
+
+`Option_Center::save_settings()` reads the current blob with `Helper::get_settings( $type )`
+(`includes/admin/class-option-center.php:406`), merges the submitted fields over it
+(`get_changed_settings()`, F1), and persists the whole merged array with
+`Helper::update_all_settings()`.
+
+`Helper::get_settings()` delegates to `rank_math()->settings->get()`
+(`includes/helpers/class-api.php:70`), which **casts** toggle values: a stored `'off'` reads back as
+`false`, `'on'` as `true`. Because the cast values are what gets merged and written, one save
+rewrites every legacy string toggle in that option blob to its boolean form.
+
+Isolation test — seed two toggles as legacy strings directly via `update_option()`, then save an
+**unrelated** field through **Rank Math's own** API:
+
+```
+seeded:  strip_category_base = 'off'    nofollow_image_links = 'on'
+read as: strip_category_base = false    nofollow_image_links = true
+after Rank Math's own save of breadcrumbs_prefix:
+         strip_category_base = false    nofollow_image_links = true   <-- rewritten
+```
+
+**This is Rank Math's behaviour, not ours.** Clicking Save on any Rank Math settings screen does the
+same thing. It is:
+
+- **one-time** — a second save changes nothing (verified: 0 fields differ on a no-op save once the
+  blob is normalised);
+- **not data loss** — every consumer reads through `Helper::get_settings()`, which returns the same
+  value either way. `'off'` and `false` are indistinguishable downstream.
+
+**Consequence**: the original SC-002, "writing a single settings field leaves every other key in that
+option blob byte-identical", is **not achievable** on a site whose blob still holds legacy string
+toggles, through any code path including Rank Math's own UI. SC-002 is restated as: no *other*
+setting's effective value changes, and any byte-level difference is limited to Rank Math's own
+one-time boolean normalisation of toggle fields.
+
+**Verification owed**: integration check 1 asserts effective-value equality via
+`Helper::get_settings()` rather than raw `wp_options` equality, and separately asserts that a second
+identical write is a true no-op.
+
+---
+
 ## Secondary findings
 
 | Finding | Source | Consequence |

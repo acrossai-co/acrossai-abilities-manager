@@ -259,8 +259,11 @@ issuing any remote request.
 
 - **SC-001**: 61 abilities appear under a "Rank Math" tab on the Integrations page when Rank Math is
   active, and the tab is absent when it is not.
-- **SC-002**: Writing a single settings field leaves every other key in that option blob
-  byte-identical.
+- **SC-002**: Writing a single settings field changes no other setting's **effective value**, as read
+  through Rank Math's own accessor. Byte-level differences in `wp_options` are permitted only for Rank
+  Math's own one-time normalisation of legacy string toggles (`'off'` → `false`), which its own admin
+  UI performs identically on any save — see research F8. A second identical write MUST be a true
+  no-op.
 - **SC-003**: A multi-line settings value round-trips with its line breaks intact.
 - **SC-004**: No destructive ability performs work without `confirm: true`.
 - **SC-005**: Every ability returns the envelope on both success and failure; none emits a fatal or a

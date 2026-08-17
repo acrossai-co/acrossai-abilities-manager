@@ -55,17 +55,32 @@ These cannot be verified by source inspection. Each is written as a PHPUnit test
 `markTestSkipped()` when `! class_exists( '\RankMath\Helper' )`, and is **not** listed in the
 `feature-069-unit` suite.
 
-### 1. Partial-write safety (research F1)
+### 1. Partial-write safety (research F1 and F8)
 
 The entire settings design rests on this.
 
 ```
-$before = get_option( 'rank-math-options-general' );
+$before = RankMath\Helper::get_settings( 'general' );
 → acrossai/rank-math-update-general-settings { section: "breadcrumbs", settings: { breadcrumbs_separator: "›" } }
-$after  = get_option( 'rank-math-options-general' );
+$after  = RankMath\Helper::get_settings( 'general' );
 ```
 
-Assert every key except `breadcrumbs_separator` is byte-identical.
+Assert every key except `breadcrumbs_separator` has the same **effective value**.
+
+Compare through `Helper::get_settings()`, **not** raw `get_option()`. Rank Math's `save_settings()`
+reads the blob through that accessor, which casts `'off'` → `false`, and then persists the merged cast
+array — so the first save on a site with legacy string toggles rewrites all of them at the byte level
+(research F8). Its own admin UI does exactly the same. Raw `wp_options` comparison therefore reports
+~20 spurious "changes" on a non-normalised site and none on a normalised one, which makes it a flaky
+assertion rather than a meaningful one.
+
+Then assert idempotence, which is the real invariant:
+
+```
+→ (same call again)
+```
+
+Zero fields differ at the byte level on the second write.
 
 ### 2. Newline preservation (research F2)
 
