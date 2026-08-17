@@ -483,6 +483,153 @@ final class Post_Meta_Repository {
 	}
 
 	/**
+	 * Assert the caller may edit the given object, whatever its type.
+	 *
+	 * Mirrors Rank Math's Rest_Helper::get_schema_permissions_check(), which its own
+	 * REST route relies on and which is skipped when the handler is invoked directly.
+	 *
+	 * @param string $object_type 'post' | 'term' | 'user'.
+	 * @param int    $object_id   Object id.
+	 * @return true|WP_Error
+	 */
+	public static function assert_object_editable( string $object_type, int $object_id ) {
+		if ( $object_id < 1 ) {
+			return new WP_Error( 'invalid_input', __( 'object_id must be a positive integer.', 'acrossai-abilities-manager' ) );
+		}
+
+		switch ( $object_type ) {
+			case 'post':
+				return self::assert_editable( $object_id );
+
+			case 'term':
+				$term = get_term( $object_id );
+				if ( ! $term || is_wp_error( $term ) ) {
+					return new WP_Error(
+						'not_found',
+						sprintf(
+							/* translators: %d: term id */
+							__( 'Term %d does not exist.', 'acrossai-abilities-manager' ),
+							$object_id
+						)
+					);
+				}
+				$taxonomy = get_taxonomy( $term->taxonomy );
+				$cap      = ( $taxonomy && isset( $taxonomy->cap->edit_terms ) )
+					? (string) $taxonomy->cap->edit_terms
+					: 'manage_categories';
+				if ( ! current_user_can( $cap, $object_id ) ) {
+					return new WP_Error(
+						'insufficient_capability',
+						sprintf(
+							/* translators: 1: term id, 2: required capability */
+							__( 'You cannot edit term %1$d; it requires the %2$s capability.', 'acrossai-abilities-manager' ),
+							$object_id,
+							$cap
+						)
+					);
+				}
+				return true;
+
+			case 'user':
+				if ( false === get_userdata( $object_id ) ) {
+					return new WP_Error(
+						'not_found',
+						sprintf(
+							/* translators: %d: user id */
+							__( 'User %d does not exist.', 'acrossai-abilities-manager' ),
+							$object_id
+						)
+					);
+				}
+				if ( ! current_user_can( 'edit_user', $object_id ) ) {
+					return new WP_Error(
+						'insufficient_capability',
+						sprintf(
+							/* translators: %d: user id */
+							__( 'You cannot edit user %d.', 'acrossai-abilities-manager' ),
+							$object_id
+						)
+					);
+				}
+				return true;
+		}
+
+		return new WP_Error(
+			'invalid_input',
+			sprintf(
+				/* translators: %s: submitted object type */
+				__( 'Unknown object_type "%s". Expected post, term or user.', 'acrossai-abilities-manager' ),
+				$object_type
+			)
+		);
+	}
+
+	/**
+	 * Assert a meta row belongs to the object the caller named.
+	 *
+	 * update_metadata_by_mid() addresses a row by meta_id only — it derives the object
+	 * id FROM the row and ignores whatever the caller passed, and it rewrites the row's
+	 * meta_key. Without this check a caller could enumerate small integers and
+	 * overwrite (and rename) any row in postmeta, termmeta or usermeta, including rows
+	 * belonging to objects they have no rights over.
+	 *
+	 * @param string $object_type 'post' | 'term' | 'user'.
+	 * @param int    $meta_id     Meta row id from a 'schema-<meta_id>' key.
+	 * @param int    $object_id   Object the caller claims the row belongs to.
+	 * @return true|WP_Error
+	 */
+	public static function assert_meta_row_belongs_to( string $object_type, int $meta_id, int $object_id ) {
+		if ( $meta_id < 1 ) {
+			return new WP_Error( 'invalid_input', __( 'A schema-<meta_id> key needs a positive meta id.', 'acrossai-abilities-manager' ) );
+		}
+
+		$row = get_metadata_by_mid( $object_type, $meta_id );
+		if ( false === $row || ! is_object( $row ) ) {
+			return new WP_Error(
+				'not_found',
+				sprintf(
+					/* translators: %d: meta row id */
+					__( 'No schema row with meta id %d exists.', 'acrossai-abilities-manager' ),
+					$meta_id
+				)
+			);
+		}
+
+		$column = 'user' === $object_type ? 'user_id' : ( 'term' === $object_type ? 'term_id' : 'post_id' );
+		$owner  = isset( $row->$column ) ? (int) $row->$column : 0;
+
+		if ( $owner !== $object_id ) {
+			return new WP_Error(
+				'invalid_input',
+				sprintf(
+					/* translators: 1: meta row id, 2: object id it actually belongs to, 3: submitted object id */
+					__( 'Schema row %1$d belongs to object %2$d, not %3$d. Refusing the write, because Rank Math addresses schema rows by meta id and would have updated the other object.', 'acrossai-abilities-manager' ),
+					$meta_id,
+					$owner,
+					$object_id
+				)
+			);
+		}
+
+		// Only Rank Math schema rows are in scope; anything else is an unrelated meta
+		// row that this ability must never touch, since the write also renames the key.
+		$key = isset( $row->meta_key ) ? (string) $row->meta_key : '';
+		if ( ! str_starts_with( $key, 'rank_math_schema_' ) && ! str_starts_with( $key, 'rank_math_shortcode_schema_' ) ) {
+			return new WP_Error(
+				'invalid_input',
+				sprintf(
+					/* translators: 1: meta row id, 2: the row's meta key */
+					__( 'Meta row %1$d is "%2$s", not a Rank Math schema row. Refusing the write, which would overwrite and rename it.', 'acrossai-abilities-manager' ),
+					$meta_id,
+					$key
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Write schemas through Rank Math's own bulk schema handler.
 	 *
 	 * Schema keys are 'new-<n>' to add or 'schema-<meta_id>' to update, which is why
@@ -500,11 +647,18 @@ final class Post_Meta_Repository {
 		if ( ! class_exists( '\RankMath\Rest\Shared' ) ) {
 			return new WP_Error( 'rank_math_missing', __( 'Rank Math\'s schema handler is unavailable.', 'acrossai-abilities-manager' ) );
 		}
-		if ( 'post' === $object_type ) {
-			$editable = self::assert_editable( $object_id );
-			if ( is_wp_error( $editable ) ) {
-				return $editable;
-			}
+
+		// Per-object authorisation for EVERY object type.
+		//
+		// Rank Math's Rest\Shared::update_schemas() carries no capability logic of its
+		// own — all per-object authorisation lives in its REST route's
+		// permission_callback (Rest_Helper::get_schema_permissions_check()). Calling
+		// the handler directly bypasses that, so the equivalent checks are made here.
+		// Omitting the term and user branches previously dropped edit_terms and
+		// edit_user entirely.
+		$authorised = self::assert_object_editable( $object_type, $object_id );
+		if ( is_wp_error( $authorised ) ) {
+			return $authorised;
 		}
 
 		foreach ( array_keys( $schemas ) as $key ) {
@@ -518,6 +672,18 @@ final class Post_Meta_Repository {
 						$key
 					)
 				);
+			}
+
+			// A 'schema-<meta_id>' key routes to update_metadata_by_mid(), which
+			// locates the row by meta_id ALONE and ignores $object_id — so without
+			// this check the object authorisation above guards an id the write does
+			// not use, and any meta row on the site is reachable by enumerating small
+			// integers. Confirm the row actually belongs to the named object.
+			if ( str_starts_with( $key, 'schema-' ) ) {
+				$owned = self::assert_meta_row_belongs_to( $object_type, (int) substr( $key, 7 ), $object_id );
+				if ( is_wp_error( $owned ) ) {
+					return $owned;
+				}
 			}
 		}
 

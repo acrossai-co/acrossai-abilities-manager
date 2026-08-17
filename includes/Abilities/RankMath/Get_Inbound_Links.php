@@ -48,10 +48,6 @@ class Get_Inbound_Links extends Base_Rank_Math_Ability {
 		return 'link_builder';
 	}
 
-	protected function permission_floor(): string {
-		return 'edit_posts';
-	}
-
 	protected function input_properties(): array {
 		return array(
 			'target_post_id'  => array( 'type' => 'integer', 'minimum' => 1, 'description' => __( 'Inspect inbound links to this post.', 'acrossai-abilities-manager' ) ),

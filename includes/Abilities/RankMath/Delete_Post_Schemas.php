@@ -44,8 +44,12 @@ class Delete_Post_Schemas extends Base_Rank_Math_Ability {
 		return 'onpage_snippet';
 	}
 
-	protected function permission_floor(): string {
-		return 'edit_posts';
+	/**
+	 * Rank Math's own schema route requires this module; matching it means the ability
+	 * reports rank_math_module_inactive rather than writing schema that will not render.
+	 */
+	protected function required_module(): string {
+		return 'rich-snippet';
 	}
 
 	protected function requires_confirmation(): bool {

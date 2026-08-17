@@ -44,10 +44,6 @@ class Get_Primary_Term extends Base_Rank_Math_Ability {
 		return 'onpage_general';
 	}
 
-	protected function permission_floor(): string {
-		return 'edit_posts';
-	}
-
 	protected function input_properties(): array {
 		return array(
 			'post_id'  => array( 'type' => 'integer', 'minimum' => 1 ),

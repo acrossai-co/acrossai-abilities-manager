@@ -236,8 +236,10 @@ issuing any remote request.
 - **FR-010**: Reversible operations MUST NOT require confirmation.
 - **FR-011**: Abilities whose backing work continues after the response MUST mark themselves
   asynchronous.
-- **FR-012**: Permission checks MUST compose the house capability floor with Rank Math's own granular
-  `rank_math_*` capability, overridable by a single documented filter.
+- **FR-012**: Permission checks MUST compose the `manage_options` capability floor with Rank Math's
+  own granular `rank_math_*` capability, overridable by a single documented filter. The floor is
+  uniform across the whole suite — no ability may lower it — matching the convention across the rest
+  of `includes/Abilities/`.
 - **FR-013**: Entitlement-backed abilities MUST register unconditionally when Rank Math is present and
   gate at runtime with a distinct error per gate flavour (PRO plugin, cloud account, credit balance).
 - **FR-014**: Credit-consuming abilities MUST verify balance before issuing a remote request.

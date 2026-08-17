@@ -45,10 +45,6 @@ class Bulk_Update_Meta extends Base_Rank_Math_Ability {
 		return 'onpage_general';
 	}
 
-	protected function permission_floor(): string {
-		return 'edit_posts';
-	}
-
 	protected function input_properties(): array {
 		return array(
 			'object_type' => array(

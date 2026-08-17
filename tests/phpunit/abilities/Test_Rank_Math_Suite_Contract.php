@@ -364,16 +364,52 @@ class Test_Rank_Math_Suite_Contract extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The four post-scoped abilities use the edit_posts floor plus a per-object check,
-	 * rather than manage_options — an editor must be able to edit their own posts' SEO.
+	 * SECURITY — every ability in the suite requires manage_options, matching the
+	 * convention across the rest of includes/Abilities/. No ability may lower it.
+	 *
+	 * An earlier revision used an edit_posts floor for the ten post-scoped abilities.
+	 * That opened a real hole: Rank Math grants rank_math_onpage_snippet to author and
+	 * editor by default, so an Author passed the callback for update-post-schemas,
+	 * which reaches a writer that addresses meta rows by id and ignores the object id.
 	 */
-	public function test_post_scoped_abilities_use_the_edit_posts_floor(): void {
-		foreach ( array( 'Update_Seo_Meta', 'Bulk_Update_Meta', 'Update_Seo_Scores', 'Update_Post_Schemas', 'Delete_Post_Schemas', 'Get_Primary_Term', 'Update_Primary_Term', 'Audit_Content_Seo', 'Get_Inbound_Links', 'Audit_Faq_Links' ) as $class ) {
-			$this->assertStringContainsString(
-				"return 'edit_posts';",
+	public function test_no_ability_lowers_the_capability_floor(): void {
+		foreach ( array_keys( self::inventory() ) as $class ) {
+			$this->assertStringNotContainsString(
+				'function permission_floor()',
 				self::src( $class ),
-				"{$class} should use the edit_posts floor."
+				"{$class} must not override permission_floor(); the whole suite is manage_options."
 			);
 		}
+	}
+
+	/**
+	 * The base declares it final so it cannot be overridden at all.
+	 */
+	public function test_base_floor_is_manage_options_and_final(): void {
+		$src = (string) file_get_contents(
+			dirname( __DIR__, 3 ) . '/includes/Abilities/RankMath/Base_Rank_Math_Ability.php'
+		);
+		$this->assertStringContainsString( 'final protected function permission_floor(): string', $src );
+		$this->assertStringContainsString( "return 'manage_options';", $src );
+		$this->assertStringNotContainsString( "return 'edit_posts';", $src );
+	}
+
+	/**
+	 * SECURITY regression guard. Rank Math's schema handler carries no capability
+	 * logic — its REST route's permission_callback does — so calling it directly must
+	 * re-assert per-object rights for post, term AND user, and must verify that a
+	 * schema-<meta_id> row actually belongs to the named object, because
+	 * update_metadata_by_mid() addresses rows by meta id alone.
+	 */
+	public function test_schema_writes_authorise_every_object_type(): void {
+		$src = (string) file_get_contents(
+			dirname( __DIR__, 3 ) . '/includes/Abilities/Utilities/RankMath/Post_Meta_Repository.php'
+		);
+		$this->assertStringContainsString( 'assert_object_editable( $object_type, $object_id )', $src );
+		$this->assertStringContainsString( 'assert_meta_row_belongs_to(', $src );
+		$this->assertStringContainsString( "current_user_can( 'edit_user', \$object_id )", $src );
+		$this->assertStringContainsString( 'get_metadata_by_mid( $object_type, $meta_id )', $src );
+		// The old shape gated only the post branch.
+		$this->assertStringNotContainsString( "if ( 'post' === \$object_type ) {\n\t\t\t\$editable", $src );
 	}
 }

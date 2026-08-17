@@ -51,10 +51,6 @@ class Update_Seo_Scores extends Base_Rank_Math_Ability {
 		return '';
 	}
 
-	protected function permission_floor(): string {
-		return 'edit_posts';
-	}
-
 	protected function input_properties(): array {
 		return array(
 			'scores' => array(

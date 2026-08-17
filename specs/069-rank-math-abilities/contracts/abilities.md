@@ -22,9 +22,11 @@ Applies to every ability; not repeated per entry.
    `run()` → envelope. Enforced by `Base_Rank_Math_Ability::execute()`, not by each subclass.
 3. **Permissions** — `Rank_Math_Guard::can( $rm_cap, $floor )` returns
    `current_user_can( $floor ) && has_cap( $rm_cap )`, filtered through
-   `acrossai_abilities_manager_rank_math_permission`. Floor is `manage_options` except for the four
-   post-scoped abilities (#33, #34, #35, #36), which use `edit_posts` plus a per-object
-   `current_user_can( 'edit_post', $id )` inside `run()`.
+   `acrossai_abilities_manager_rank_math_permission`. The floor is **`manage_options` for every
+   ability in the suite**, declared `final` on the base so it cannot be lowered. The post-scoped
+   abilities additionally perform a per-object `current_user_can( 'edit_post', $id )` inside `run()`
+   as defence in depth, and the schema writers additionally re-assert `edit_user` / `edit_terms` and
+   verify meta-row ownership — see the security note under `rank-math-schema`.
 4. **Destructive abilities** require `confirm: true` (boolean, default `false`) in `input_schema` and
    declare `annotations.destructive = true`. Reversible operations do not.
 5. **`meta`** — `show_in_rest => true`, `mcp => ['public' => false, 'type' => 'tool']`, and the

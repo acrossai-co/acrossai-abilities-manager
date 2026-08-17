@@ -132,12 +132,29 @@ abstract class Base_Rank_Math_Ability extends Ability_Definition {
 	abstract protected function run( array $input );
 
 	/**
-	 * WordPress capability floor. Override to 'edit_posts' for post-scoped
-	 * abilities, which additionally check edit_post per object inside run().
+	 * WordPress capability floor for the entire suite.
+	 *
+	 * DELIBERATELY final. Every Rank Math ability requires manage_options, matching
+	 * the convention across the rest of includes/Abilities/. An earlier revision
+	 * lowered the floor to 'edit_posts' for the ten post-scoped abilities on the
+	 * reasoning that an editor should be able to manage their own posts' SEO. That
+	 * was wrong for two reasons:
+	 *
+	 * 1. It broke consistency with every other ability suite in the plugin, so the
+	 *    capability an integrator must grant differed per ability.
+	 * 2. It opened a real authorisation hole. Rank Math grants
+	 *    rank_math_onpage_snippet to the author and editor roles by default, so with
+	 *    an edit_posts floor an Author passed the permission_callback for
+	 *    update-post-schemas — an ability that reaches Rank Math's schema writer,
+	 *    which addresses rows by meta_id and ignores the object id entirely.
+	 *
+	 * Per-object current_user_can( 'edit_post', $id ) checks remain inside run() as
+	 * defence in depth; they are no longer the only thing standing between a
+	 * lower-privileged role and a cross-object write.
 	 *
 	 * @return string
 	 */
-	protected function permission_floor(): string {
+	final protected function permission_floor(): string {
 		return 'manage_options';
 	}
 
