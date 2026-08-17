@@ -491,6 +491,29 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		// Batch 3 — virtual routes.
 		new RankMath\Get_Llms_Status();
 		new RankMath\Refresh_Llms_Route();
+
+		// Batch 4 — redirections. Reads first, then writes; hard delete is
+		// separate from the reversible status transitions so each can declare its
+		// annotations honestly.
+		new RankMath\List_Redirections();
+		new RankMath\Find_Redirection();
+		new RankMath\Get_Redirection_Stats();
+		new RankMath\Export_Redirections();
+		new RankMath\Create_Redirection();
+		new RankMath\Update_Redirection();
+		new RankMath\Change_Redirection_Status();
+		new RankMath\Delete_Redirections();
+		new RankMath\Delete_Trashed_Redirections();
+
+		// Batch 4 — 404 monitor log.
+		new RankMath\List_404_Logs();
+		new RankMath\Delete_404_Logs();
+
+		// Batch 4 — role capabilities. Read and reset only: no bulk writer, because
+		// Helper::set_capabilities() strips capabilities from omitted roles. Grants
+		// go through the plugin's existing acrossai/add-role-capability.
+		new RankMath\Get_Role_Capabilities();
+		new RankMath\Reset_Role_Capabilities();
 	}
 
 	/**
