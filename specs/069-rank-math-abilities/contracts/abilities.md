@@ -39,7 +39,7 @@ Applies to every ability; not repeated per entry.
 
 | # | Slug | Input | Output payload |
 |---|---|---|---|
-| 1 | `get-settings` | `panel` (enum, 19 values, required), `object` (string — post type or taxonomy, required when the panel is dynamic) | `panel`, `object`, `fields[]` of `{id, type, enum, min, max, default, current, readonly}`, `state` (robots-txt panel only) |
+| 1 | `get-settings` | `panel` (enum, 20 values, required), `object` (string — post type or taxonomy, required when the panel is dynamic) | `panel`, `object`, `fields[]` of `{id, type, enum, min, max, default, current, readonly}`, `state` (robots-txt panel only) |
 | 2 | `update-general-settings` | `section` (enum: links, breadcrumbs, webmaster, image-seo, 404-monitor, redirections, robots-txt, others), `settings` (object), | `section`, `updated{}` (only the fields written), `notifications[]` from Rank Math |
 | 3 | `update-title-settings` | `scope` (enum: post-type, taxonomy, homepage, author, misc, global, social, local-seo), `object` (required for post-type/taxonomy), `settings` (object) | `scope`, `object`, `updated{}`, `notifications[]` |
 | 4 | `update-sitemap-settings` | `scope` (enum: general, post-type, taxonomy), `object`, `settings` (object) | `scope`, `object`, `updated{}`, `notifications[]` |

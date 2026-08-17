@@ -71,8 +71,8 @@ One settings field. Lives in `Settings_Registry::panels()`.
 
 | Field | Type | Notes |
 |---|---|---|
-| `type` | string | One of the `Settings_Registry::TYPE_*` constants |
-| `enum` | string[]\|null | Allowed values for `select` / `multicheck` |
+| `type` | string | The LEGACY CMB2 type, verbatim from the Rank Math source. Translated to a `TYPE_*` value by `emitted_type()` |
+| `enum` | string[]\|null | Allowed values for `select` / `checkboxlist` |
 | `min` / `max` | int\|null | Bounds for `number` |
 | `pattern` | string\|null | Regex for constrained text (e.g. `HH:MM-HH:MM`) |
 | `group_schema` | array\|null | Field Specs for each row, when `type` is `group` |
@@ -89,7 +89,7 @@ One settings field. Lives in `Settings_Registry::panels()`.
 | `TYPE_TOGGLE` | `toggle` | Normalized to `'on'` / `'off'` |
 | `TYPE_NUMBER` | `number` | Integer, clamped to `min`/`max` |
 | `TYPE_SELECT` | `select` | Must be in `enum` |
-| `TYPE_MULTICHECK` | `multicheck` | List of `enum` members |
+| `TYPE_CHECKBOXLIST` | `checkboxlist` | List of `enum` members |
 | `TYPE_GROUP` | `group` | Repeatable; **must** be `array_values()`-reindexed |
 | `TYPE_FILE` | `file` | `esc_url_raw` |
 
@@ -100,7 +100,7 @@ One settings field. Lives in `Settings_Registry::panels()`.
 
 ## Settings Panel
 
-A named group of Field Specs. 19 panels.
+A named group of Field Specs. 20 panels.
 
 | Field | Type | Notes |
 |---|---|---|

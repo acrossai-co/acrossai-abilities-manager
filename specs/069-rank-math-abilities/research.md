@@ -37,7 +37,11 @@ key in `rank-math-options-general` is byte-identical).
 
 ---
 
-## F2 — There is no server-side field-type registry, and the default is destructive
+## F2 — No server-side type source, a lossy default, and two different type vocabularies
+
+Three facts compound here. All verified against Rank Math 1.0.276.
+
+### F2a — there is nothing on the server to ask
 
 `Sanitize_Settings::sanitize()` at `includes/admin/class-sanitize-settings.php:33`:
 
@@ -45,27 +49,82 @@ key in `rank-math-options-general` is byte-identical).
 $type = $field_types[ $field_id ] ?? 'text';
 ```
 
-`'text'` routes to `sanitize_textfield()` at `:142`, which collapses runs of `\r\n\t` and spaces into
-a single space.
-
-The CMB2 field definitions that carry the real per-field `type` exist **only** inside
-`CMB2_Options::register_option_page()` (`includes/admin/class-cmb2-options.php:139-190`). That path
-is dead code by default: `Helper::is_react_enabled()` returns
+The CMB2 field definitions carrying the real per-field `type` exist **only** inside
+`CMB2_Options::register_option_page()` (`includes/admin/class-cmb2-options.php:139-190`). That path is
+dead code by default: `Helper::is_react_enabled()` returns
 `apply_filters( 'rank_math/is_react_enabled', true )` (`includes/helpers/class-conditional.php:264`),
 and in React mode `Register_Options_Page` instantiates `RankMath\Admin\Options`, which never
 `include`s `includes/settings/{general,titles,sitemap}/*.php`. The live admin UI builds its
 `fieldTypes` map client-side in JavaScript.
 
-**Consequence**: writing `robots_txt_content` or `custom_webmaster_tags` without explicitly passing
-`'textarea'` silently flattens the content to one line.
+### F2b — the highest-risk fields are protected by ID, not by type
 
-**Decision**: ship `Settings_Registry` — our own declarative field-spec table, one entry per field,
-citing the Rank Math source file and line it mirrors. `Settings_Writer` refuses any field absent from
-the registry, so "forgot to type a field" is impossible by construction: the write is rejected rather
-than mis-sanitized.
+`sanitize_field()` calls `sanitize_by_field_id()` **first** (`:49`), which short-circuits four field
+groups regardless of the type passed and returns `null` to fall through for everything else:
 
-**Verification owed**: unit test asserting `field_types_for('general-webmaster')` maps
-`custom_webmaster_tags` to `'textarea'`; integration check #2 (multi-line round-trip).
+| Field(s) | Handler | Newlines |
+|---|---|---|
+| `robots_txt_content` | `sanitize_robots_text()` → `wp_strip_all_tags()` (`:186`) | preserved |
+| `google_verify`, `bing_verify`, `baidu_verify`, `yandex_verify`, `pinterest_verify`, `norton_verify` | `sanitize_webmaster_tags()` (`:200`) | n/a — scalar |
+| `custom_webmaster_tags` | `sanitize_custom_webmaster_tags()` → `wp_kses()` allowing `<meta>` (`:218`) | preserved |
+| `console_caching_control` | `sanitize_cache_control()` | n/a |
+
+An earlier draft of this document named `robots_txt_content` and `custom_webmaster_tags` as the
+data-loss examples. **That was wrong** — both are ID-protected. The conclusion still holds, but the
+risk lives elsewhere.
+
+### F2c — the sanitizer speaks React type names, the definitions speak legacy CMB2 names
+
+The `switch` in `sanitize_field()` (`:56`) has cases `text`, `textarea`, `toggle`, `checkbox`,
+`checkboxlist`, `select`, `selectSearch`, `selectVariable`, `searchPage`, `toggleGroup`, `number`,
+`file`, `group`, `repeatableGroup` — the names the **React** layer sends. The definitions in
+`includes/settings/**` use **legacy CMB2** names. Across all settings sources there are 19 distinct
+legacy types and 11 match no case:
+
+| Legacy type | Count | Case? | Falls to |
+|---|---|---|---|
+| `text`, `toggle`, `select`, `textarea`, `number`, `file`, `group` | 149 | yes | correct handler |
+| **`textarea_small`** | **16** | **no** | `default` → **newlines stripped** |
+| `radio_inline` | 14 | no | `default` — scalar, benign |
+| `notice` | 13 | no | display-only, never writable |
+| `multicheck` | 11 | no | `default` via `map_deep` — array, benign |
+| `raw` | 7 | no | display-only, never writable |
+| `advanced_robots` | 6 | no | `default` |
+| `text_url` | 4 | no | `default` — scalar |
+| `switch` | 3 | no | `default` |
+| `password` | 2 | no | `default` |
+| `radio`, `multicheck_inline`, `address` | 3 | no | `default` |
+
+`default` → `sanitize_default_value()` (`:99`) → `sanitize_text_field()` for strings, which collapses
+`[\r\n\t ]+` to a single space.
+
+**The genuine data-loss set** is multi-line fields typed `textarea_small` with no ID override:
+`nofollow_domains` and `nofollow_exclude_domains` (`includes/settings/general/links.php:77`, `:91`),
+`rss_before_content` and `rss_after_content` (`includes/settings/general/others.php:112`, `:121`), and
+`pt_{$type}_image_customfields` (`includes/modules/sitemap/settings/post-types.php:57`). Passing the
+legacy name through verbatim destroys every one of them.
+
+**Decision**: ship `Settings_Registry` holding our own declarative field-spec table — one entry per
+field, citing the Rank Math source file and line it mirrors — and emit **the sanitizer's vocabulary**,
+never the legacy names. The legacy→sanitizer map is part of the registry:
+
+| Legacy | Emitted |
+|---|---|
+| `textarea_small` | `textarea` |
+| `multicheck`, `multicheck_inline` | `checkboxlist` |
+| `radio`, `radio_inline` | `select` |
+| `switch` | `toggle` |
+| `text_url`, `password` | `text` |
+| `address` | `group` |
+| `notice`, `raw` | read-only — rejected on write |
+
+`Settings_Writer` refuses any field absent from the registry, so "forgot to type a field" is
+impossible by construction: the write is rejected rather than mis-sanitized.
+
+**Verification owed**: unit test asserting `field_types_for('general-links')` maps `nofollow_domains`
+to `textarea` and never to `textarea_small`; unit test asserting `notice`/`raw` fields are read-only;
+integration check #2 exercising `nofollow_domains` (unprotected) rather than `robots_txt_content`
+(ID-protected).
 
 ---
 

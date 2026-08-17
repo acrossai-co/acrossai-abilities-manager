@@ -69,14 +69,26 @@ Assert every key except `breadcrumbs_separator` is byte-identical.
 
 ### 2. Newline preservation (research F2)
 
+Use an **unprotected** multi-line field. `robots_txt_content` and `custom_webmaster_tags` are poor
+tests here: `sanitize_by_field_id()` protects both by ID regardless of the type passed (F2b), so they
+round-trip correctly even with a broken type map. The real test is a `textarea_small` field, which
+falls through to the lossy `default` branch unless the registry maps it to `textarea` (F2c).
+
 ```
-→ acrossai/rank-math-update-robots-txt { content: "User-agent: *\nDisallow: /private/\n" }
-→ acrossai/rank-math-get-settings { panel: "general-robots-txt" }
+→ acrossai/rank-math-update-general-settings {
+    section: "links",
+    settings: { nofollow_domains: "example.com\nexample.org\nexample.net" }
+  }
+→ acrossai/rank-math-get-settings { panel: "general-links" }
 ```
 
-Assert the `\n` characters survived. Repeat for `custom_webmaster_tags` via
-`update-general-settings { section: "webmaster" }`. If either comes back as one line, the field-type
-map is not reaching Rank Math's sanitizer.
+Assert the two `\n` characters survived. If the value comes back as
+`"example.com example.org example.net"`, the registry emitted `textarea_small` verbatim instead of
+mapping it to `textarea`, and Rank Math's `sanitize_text_field()` collapsed the whitespace.
+
+Repeat for `rss_before_content` (`section: "others"`) and `pt_post_image_customfields`
+(`update-sitemap-settings { scope: "post-type", object: "post" }`) — the other unprotected
+`textarea_small` fields.
 
 ### 3. Maintenance tool dispatch (research F3)
 

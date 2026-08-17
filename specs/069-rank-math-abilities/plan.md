@@ -62,7 +62,7 @@ comment must state this, or a future maintainer will "fix" it into the Elementor
 | Class | Responsibility |
 |---|---|
 | `Rank_Math_Guard` | Availability, module, PRO, account, credit, console and confirmation guards; `has_cap()`; the `can()` permission factory; the `ok()`/`fail()`/`error()` envelope helpers |
-| `Settings_Registry` | Declarative field-spec tables for 19 panels, `DENIED_KEYS`, `field_types_for()`, `validate()` |
+| `Settings_Registry` | Declarative field-spec tables for 20 panels, `DENIED_KEYS`, `field_types_for()`, `validate()` |
 | `Settings_Writer` | The only caller of `Option_Center::save_settings()` |
 | `Instant_Indexing_Repository` | IndexNow settings, submit, log, key |
 | `Redirections_Repository` | Update, status change, stats, list, find, create + the ported Apache/Nginx serializers |

@@ -177,6 +177,7 @@
 			<file>tests/phpunit/abilities/Test_Rank_Math_Guard.php</file>
 			<file>tests/phpunit/abilities/Test_Rank_Math_Bootstrap_Wiring.php</file>
 			<file>tests/phpunit/abilities/Test_Rank_Math_Status_Repository.php</file>
+			<file>tests/phpunit/abilities/Test_Rank_Math_Settings_Registry.php</file>
 			<file>tests/phpunit/abilities/Test_Rank_Math_Get_Status.php</file>
 		</testsuite>
 	</testsuites>
