@@ -393,6 +393,20 @@ if ( ! class_exists( 'WP_Error' ) ) {
 			return $codes[0] ?? '';
 		}
 
+		/**
+		 * Returns the first error message as a string (singular form).
+		 *
+		 * Mirrors WP_Error::get_error_message() in core. Production code that
+		 * unwraps a WP_Error into a response envelope calls this, so the stub
+		 * needs it for those paths to be unit-testable.
+		 *
+		 * @param string $code Optional. Error code to retrieve the message for.
+		 */
+		public function get_error_message( string $code = '' ): string {
+			$messages = $this->get_error_messages( $code );
+			return isset( $messages[0] ) ? (string) $messages[0] : '';
+		}
+
 		/** @param string $message */
 		public function add( string $code, string $message, mixed $data = '' ): void {
 			$this->errors[ $code ][]   = $message;

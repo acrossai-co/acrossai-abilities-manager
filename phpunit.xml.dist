@@ -167,6 +167,18 @@
 			<file>tests/phpunit/abilities/Test_Duplicate_Block.php</file>
 			<file>tests/phpunit/abilities/Test_Insert_Pattern.php</file>
 		</testsuite>
+		<!--
+			Feature 069 — Rank Math ability suite. Files must be listed explicitly:
+			a test file that is not listed here silently does not run.
+		-->
+		<testsuite name="feature-069-unit">
+			<file>tests/phpunit/abilities/Test_Rank_Math_Category_Registrar.php</file>
+			<file>tests/phpunit/abilities/Test_Rank_Math_Base_Ability.php</file>
+			<file>tests/phpunit/abilities/Test_Rank_Math_Guard.php</file>
+			<file>tests/phpunit/abilities/Test_Rank_Math_Bootstrap_Wiring.php</file>
+			<file>tests/phpunit/abilities/Test_Rank_Math_Status_Repository.php</file>
+			<file>tests/phpunit/abilities/Test_Rank_Math_Get_Status.php</file>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>

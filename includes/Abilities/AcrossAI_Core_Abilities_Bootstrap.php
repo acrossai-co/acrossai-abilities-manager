@@ -71,6 +71,8 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		$loader->add_action( 'wp_abilities_api_categories_init', Block\Category_Registrar::instance(), 'register' );
 		// Feature 067 — Elementor category (self-guards on class_exists inside register()).
 		$loader->add_action( 'wp_abilities_api_categories_init', Elementor\Category_Registrar::instance(), 'register' );
+		// Feature 069 — Rank Math category (self-guards on class_exists inside register()).
+		$loader->add_action( 'wp_abilities_api_categories_init', RankMath\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Settings\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Fonts\Category_Registrar::instance(), 'register' );
 		$loader->add_action( 'wp_abilities_api_categories_init', Content\Category_Registrar::instance(), 'register' );
@@ -429,6 +431,38 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 				$this->register_elementor_pro_abilities();
 			}
 		}
+
+		// Feature 069 — Rank Math ability suite (up to 61 abilities under
+		// acrossai/rank-math-*). Gated on Rank Math presence only.
+		//
+		// DELIBERATE DIVERGENCE from the Elementor block above: there is no
+		// second entitlement-gated registration method. Rank Math's Content AI
+		// and AI Visibility abilities are registered UNCONDITIONALLY and gate at
+		// runtime inside execute(), returning rank_math_account_required or
+		// content_ai_no_credits. This is a product decision, not an oversight —
+		// unlike Elementor Pro, those features ship in Rank Math free core and
+		// gate on cloud-account registration plus a credit balance rather than on
+		// a separate plugin, so their availability can change without a plugin
+		// activation and cannot be decided at registration time.
+		// Do not "fix" this into the Elementor shape.
+		// See specs/069-rank-math-abilities/research.md F7.
+		if ( class_exists( '\RankMath\Helper' ) ) {
+			$this->register_rank_math_abilities();
+		}
+	}
+
+	/**
+	 * Feature 069 — instantiate the Rank Math ability classes.
+	 *
+	 * Each `new RankMath\<Class>()` line is added as the corresponding ability
+	 * class lands across Batches 1-7 of
+	 * specs/069-rank-math-abilities/tasks.md.
+	 *
+	 * @return void
+	 */
+	private function register_rank_math_abilities(): void {
+		// Batch 1 — status / diagnostics.
+		new RankMath\Get_Status();
 	}
 
 	/**
