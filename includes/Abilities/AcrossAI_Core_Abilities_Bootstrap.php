@@ -472,6 +472,25 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		new RankMath\Update_Sitemap_Settings();
 		new RankMath\Update_Instant_Indexing_Settings();
 		new RankMath\Update_Robots_Txt();
+
+		// Batch 3 — Instant Indexing.
+		new RankMath\Submit_Urls();
+		new RankMath\Get_Indexing_Log();
+		new RankMath\Clear_Indexing_Log();
+		new RankMath\Reset_Indexing_Key();
+
+		// Batch 3 — module state.
+		new RankMath\List_Modules();
+		new RankMath\Set_Module_State();
+
+		// Batch 3 — sitemap operations.
+		new RankMath\Get_Sitemap_Status();
+		new RankMath\List_Sitemap_Urls();
+		new RankMath\Invalidate_Sitemap_Cache();
+
+		// Batch 3 — virtual routes.
+		new RankMath\Get_Llms_Status();
+		new RankMath\Refresh_Llms_Route();
 	}
 
 	/**

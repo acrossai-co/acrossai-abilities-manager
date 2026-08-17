@@ -196,12 +196,23 @@ abstract class Base_Rank_Math_Ability extends Ability_Definition {
 		}
 
 		$properties = $this->input_properties();
+		$required   = $this->required_input();
+
 		if ( $this->requires_confirmation() ) {
 			$properties['confirm'] = array(
 				'type'        => 'boolean',
 				'default'     => false,
 				'description' => __( 'Must be true to perform this irreversible operation.', 'acrossai-abilities-manager' ),
 			);
+
+			// 'confirm' must NOT be schema-required. WP core validates input_schema
+			// before execute() runs, so a required confirm makes an unconfirmed call
+			// fail with a generic ability_invalid_input ("confirm is a required
+			// property") and assert_confirmed() never fires. The caller then never
+			// sees confirmation_required or the message naming the flag, which is
+			// the entire point of the gate. Strip it defensively so no subclass can
+			// reintroduce the bug.
+			$required = array_values( array_diff( $required, array( 'confirm' ) ) );
 		}
 
 		return array(
@@ -215,7 +226,7 @@ abstract class Base_Rank_Math_Ability extends Ability_Definition {
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => $properties,
-					'required'             => $this->required_input(),
+					'required'             => $required,
 					'additionalProperties' => false,
 				),
 				'output_schema'       => array(

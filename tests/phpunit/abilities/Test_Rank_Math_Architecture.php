@@ -135,6 +135,41 @@ class Test_Rank_Math_Architecture extends WP_UnitTestCase {
 	}
 
 	/**
+	 * 'confirm' must never be schema-required.
+	 *
+	 * WP core validates input_schema BEFORE execute() runs, so a required confirm
+	 * makes an unconfirmed call fail with a generic ability_invalid_input
+	 * ("confirm is a required property") and assert_confirmed() never fires — the
+	 * caller never sees confirmation_required or the message naming the flag,
+	 * which defeats the entire gate. Found live in Batch 3.
+	 */
+	public function test_confirm_is_never_schema_required(): void {
+		foreach ( self::ability_files() as $file ) {
+			$src = self::code_only( (string) file_get_contents( $file ) );
+			if ( ! preg_match( '/function required_input\(\): array \{(.*?)\}/s', $src, $m ) ) {
+				continue;
+			}
+			$this->assertStringNotContainsString(
+				"'confirm'",
+				$m[1],
+				basename( $file ) . " lists 'confirm' as schema-required, which suppresses the confirmation_required error."
+			);
+		}
+	}
+
+	/**
+	 * The base must strip it defensively too, so no future subclass can
+	 * reintroduce the bug.
+	 */
+	public function test_base_strips_confirm_from_the_required_list(): void {
+		$src = (string) file_get_contents( self::abilities_dir() . 'Base_Rank_Math_Ability.php' );
+		$this->assertStringContainsString(
+			"array_diff( \$required, array( 'confirm' ) )",
+			$src
+		);
+	}
+
+	/**
 	 * Every ability must declare the full annotation triple — a missing key would
 	 * silently default and misdescribe the ability to clients.
 	 */
