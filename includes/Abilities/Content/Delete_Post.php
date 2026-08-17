@@ -30,7 +30,7 @@ class Delete_Post extends Ability_Definition {
 			'name' => 'acrossai/delete-post',
 			'args' => array(
 				'label'               => __( 'Delete Post', 'acrossai-abilities-manager' ),
-				'description'         => __( 'Delete a post (any post type) via wp_delete_post(). Defaults to trash; pass force=true to delete permanently.', 'acrossai-abilities-manager' ),
+				'description'         => __( 'Delete a post (any post type) via wp_delete_post(). Defaults to trash; pass force=true to delete permanently. When a published post is force-deleted, the response includes a suggested_redirect target for the dead URL.', 'acrossai-abilities-manager' ),
 				'category'            => 'acrossai-abilities-manager-content',
 				'execute_callback'    => array( $this, 'execute' ),
 				'permission_callback' => static function (): bool {
@@ -54,10 +54,11 @@ class Delete_Post extends Ability_Definition {
 				'output_schema'       => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'success' => array( 'type' => 'boolean' ),
-						'id'      => array( 'type' => 'integer' ),
-						'force'   => array( 'type' => 'boolean' ),
-						'message' => array( 'type' => 'string' ),
+						'success'            => array( 'type' => 'boolean' ),
+						'id'                 => array( 'type' => 'integer' ),
+						'force'              => array( 'type' => 'boolean' ),
+						'suggested_redirect' => array( 'type' => 'object' ),
+						'message'            => array( 'type' => 'string' ),
 					),
 					'required'             => array( 'success' ),
 					'additionalProperties' => false,
@@ -93,7 +94,8 @@ class Delete_Post extends Ability_Definition {
 		$id    = (int) ( $input['id'] ?? 0 );
 		$force = ! empty( $input['force'] );
 
-		if ( $id <= 0 || ! get_post( $id ) ) {
+		$post = $id > 0 ? get_post( $id ) : null;
+		if ( ! ( $post instanceof \WP_Post ) ) {
 			return array(
 				'success' => false,
 				'message' => __( 'Post not found.', 'acrossai-abilities-manager' ),
@@ -107,6 +109,13 @@ class Delete_Post extends Ability_Definition {
 			);
 		}
 
+		// Snapshot state that becomes unavailable after the delete so we can
+		// compute a suggested_redirect for published-post force deletes.
+		$was_publish = ( 'publish' === (string) $post->post_status );
+		$permalink   = (string) get_permalink( $post );
+		$parent_id   = (int) $post->post_parent;
+		$post_type   = (string) $post->post_type;
+
 		$result = $force ? wp_delete_post( $id, true ) : wp_trash_post( $id );
 		if ( ! $result ) {
 			return array(
@@ -115,7 +124,7 @@ class Delete_Post extends Ability_Definition {
 			);
 		}
 
-		return array(
+		$response = array(
 			'success' => true,
 			'id'      => $id,
 			'force'   => $force,
@@ -125,5 +134,31 @@ class Delete_Post extends Ability_Definition {
 				/* translators: %d: post ID */
 				: sprintf( __( 'Moved post #%d to trash.', 'acrossai-abilities-manager' ), $id ),
 		);
+
+		if ( $force && $was_publish ) {
+			$target = '';
+			if ( $parent_id > 0 ) {
+				$parent_post = get_post( $parent_id );
+				if ( $parent_post instanceof \WP_Post && 'publish' === (string) $parent_post->post_status ) {
+					$target = (string) get_permalink( $parent_post );
+				}
+			}
+			if ( '' === $target ) {
+				$archive = get_post_type_archive_link( $post_type );
+				if ( is_string( $archive ) && '' !== $archive ) {
+					$target = $archive;
+				}
+			}
+			if ( '' === $target ) {
+				$target = (string) home_url( '/' );
+			}
+
+			$response['suggested_redirect'] = array(
+				'from' => $permalink,
+				'to'   => $target,
+			);
+		}
+
+		return $response;
 	}
 }

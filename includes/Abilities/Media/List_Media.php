@@ -29,7 +29,7 @@ class List_Media extends Ability_Definition {
 			'name' => 'acrossai/list-media',
 			'args' => array(
 				'label'               => __( 'List Media', 'acrossai-abilities-manager' ),
-				'description'         => __( 'List media items via GET /wp/v2/media. Supports search, pagination, and a mime_type filter.', 'acrossai-abilities-manager' ),
+				'description'         => __( 'List media items via GET /wp/v2/media. Supports search (across title, caption, description, and alt-text), pagination, and a mime_type filter.', 'acrossai-abilities-manager' ),
 				'category'            => 'acrossai-abilities-manager-media',
 				'execute_callback'    => array( $this, 'execute' ),
 				'permission_callback' => static function (): bool {
@@ -106,14 +106,62 @@ class List_Media extends Ability_Definition {
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 		);
-		if ( ! empty( $input['search'] ) ) {
-			$args['s'] = sanitize_text_field( (string) $input['search'] );
-		}
 		if ( ! empty( $input['mime_type'] ) ) {
 			$args['post_mime_type'] = sanitize_mime_type( (string) $input['mime_type'] );
 		}
 		if ( isset( $input['parent'] ) ) {
 			$args['post_parent'] = (int) $input['parent'];
+		}
+
+		// Widened search: union the WP_Query `s` match (title/caption/description)
+		// with a meta_query id-only lookup against _wp_attachment_image_alt so
+		// alt-text-only matches are included.
+		if ( ! empty( $input['search'] ) ) {
+			$search = sanitize_text_field( (string) $input['search'] );
+
+			$base_filters = array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'fields'         => 'ids',
+				'posts_per_page' => -1,
+				'no_found_rows'  => true,
+			);
+			if ( ! empty( $args['post_mime_type'] ) ) {
+				$base_filters['post_mime_type'] = $args['post_mime_type'];
+			}
+			if ( isset( $args['post_parent'] ) ) {
+				$base_filters['post_parent'] = $args['post_parent'];
+			}
+
+			$args_text_ids       = $base_filters;
+			$args_text_ids['s']  = $search;
+			$args_alt_ids        = $base_filters;
+			$args_alt_ids['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				array(
+					'key'     => '_wp_attachment_image_alt',
+					'value'   => $search,
+					'compare' => 'LIKE',
+				),
+			);
+
+			$text_ids = get_posts( $args_text_ids );
+			$alt_ids  = get_posts( $args_alt_ids );
+
+			$ids = array_values(
+				array_unique(
+					array_map( 'absint', array_merge( (array) $text_ids, (array) $alt_ids ) )
+				)
+			);
+
+			if ( empty( $ids ) ) {
+				return array(
+					'success' => true,
+					'media'   => array(),
+					'total'   => 0,
+				);
+			}
+
+			$args['post__in'] = $ids;
 		}
 
 		$query = new \WP_Query( $args );

@@ -29,7 +29,7 @@ class Delete_Media extends Ability_Definition {
 			'name' => 'acrossai/delete-media',
 			'args' => array(
 				'label'               => __( 'Delete Media', 'acrossai-abilities-manager' ),
-				'description'         => __( 'Permanently delete a media attachment via DELETE /wp/v2/media/{id}. Attachments do not support trash.', 'acrossai-abilities-manager' ),
+				'description'         => __( 'Delete a media attachment. Requires confirm:true. Honours MEDIA_TRASH when defined; pass force:true to skip trash and delete permanently.', 'acrossai-abilities-manager' ),
 				'category'            => 'acrossai-abilities-manager-media',
 				'execute_callback'    => array( $this, 'execute' ),
 				'permission_callback' => static function (): bool {
@@ -38,21 +38,34 @@ class Delete_Media extends Ability_Definition {
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'id' => array(
+						'id'      => array(
 							'type'    => 'integer',
 							'minimum' => 1,
 						),
+						'confirm' => array(
+							'type'        => 'boolean',
+							'description' => __( 'Must be true to proceed. Guards against accidental hard-deletes.', 'acrossai-abilities-manager' ),
+						),
+						'force'   => array(
+							'type'        => 'boolean',
+							'default'     => false,
+							'description' => __( 'Skip trash even when MEDIA_TRASH is defined.', 'acrossai-abilities-manager' ),
+						),
 					),
-					'required'             => array( 'id' ),
+					'required'             => array( 'id', 'confirm' ),
 					'additionalProperties' => false,
 				),
 				'output_schema'       => array(
 					'type'                 => 'object',
 					'properties'           => array(
-						'success' => array( 'type' => 'boolean' ),
-						'deleted' => array( 'type' => 'boolean' ),
-						'media'   => array( 'type' => 'object' ),
-						'message' => array( 'type' => 'string' ),
+						'success'        => array( 'type' => 'boolean' ),
+						'deleted'        => array(
+							'type' => 'string',
+							'enum' => array( 'deleted', 'trashed' ),
+						),
+						'media'          => array( 'type' => 'object' ),
+						'message'        => array( 'type' => 'string' ),
+						'blocked_reason' => array( 'type' => 'string' ),
 					),
 					'required'             => array( 'success' ),
 					'additionalProperties' => false,
@@ -93,6 +106,15 @@ class Delete_Media extends Ability_Definition {
 			);
 		}
 
+		// Explicit-confirmation guard. Refuse without mutating state.
+		if ( empty( $input['confirm'] ) || true !== (bool) $input['confirm'] ) {
+			return array(
+				'success'        => false,
+				'blocked_reason' => 'confirmation_required',
+				'message'        => __( 'Deleting media is permanent unless MEDIA_TRASH is defined. Pass confirm:true to proceed.', 'acrossai-abilities-manager' ),
+			);
+		}
+
 		$post = get_post( $id );
 		if ( ! ( $post instanceof \WP_Post ) || 'attachment' !== $post->post_type ) {
 			return array(
@@ -103,10 +125,14 @@ class Delete_Media extends Ability_Definition {
 
 		$snapshot = Media_Formatter::to_array( $post );
 
-		// wp_delete_attachment (NOT wp_delete_post) removes the file from disk
-		// and cleans up intermediate image sizes too. force=true matches the
-		// REST controller, which always hard-deletes attachments.
-		$deleted = wp_delete_attachment( $id, true );
+		// Honour MEDIA_TRASH unless the caller explicitly forces a hard delete.
+		$force   = ! empty( $input['force'] );
+		$trashed = ! $force && defined( 'MEDIA_TRASH' ) && MEDIA_TRASH;
+
+		// wp_delete_attachment second argument is $force_delete — true when we
+		// bypass the trash. When $trashed is true we want the trash path, so
+		// pass false; when $trashed is false we want a hard delete, so pass true.
+		$deleted = wp_delete_attachment( $id, ! $trashed );
 		if ( ! $deleted ) {
 			return Media_Formatter::error_from(
 				false,
@@ -117,10 +143,13 @@ class Delete_Media extends Ability_Definition {
 
 		return array(
 			'success' => true,
-			'deleted' => true,
+			'deleted' => $trashed ? 'trashed' : 'deleted',
 			'media'   => $snapshot,
-			/* translators: %d: attachment ID */
-			'message' => sprintf( __( 'Deleted attachment #%d.', 'acrossai-abilities-manager' ), $id ),
+			'message' => $trashed
+				/* translators: %d: attachment ID */
+				? sprintf( __( 'Trashed attachment #%d.', 'acrossai-abilities-manager' ), $id )
+				/* translators: %d: attachment ID */
+				: sprintf( __( 'Deleted attachment #%d.', 'acrossai-abilities-manager' ), $id ),
 		);
 	}
 }
