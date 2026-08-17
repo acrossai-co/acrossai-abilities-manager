@@ -463,6 +463,15 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 	private function register_rank_math_abilities(): void {
 		// Batch 1 — status / diagnostics.
 		new RankMath\Get_Status();
+
+		// Batch 2 — typed settings. One reader for all 20 panels, one writer per
+		// Rank Math option blob, plus the two blobs that need their own ability.
+		new RankMath\Get_Settings();
+		new RankMath\Update_General_Settings();
+		new RankMath\Update_Title_Settings();
+		new RankMath\Update_Sitemap_Settings();
+		new RankMath\Update_Instant_Indexing_Settings();
+		new RankMath\Update_Robots_Txt();
 	}
 
 	/**
