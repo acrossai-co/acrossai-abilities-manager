@@ -228,6 +228,74 @@ class Test_Rank_Math_Architecture extends WP_UnitTestCase {
 	}
 
 	/**
+	 * ARCHITECTURE RULE — go through Rank Math's PHP API, never its database.
+	 *
+	 * Rank Math owns its storage format. Reading or writing its tables directly gives
+	 * up its sanitization, its side-effect hooks (rewrite flushing, module_changed) and
+	 * its caching, and silently breaks whenever it changes a column or a serialisation.
+	 * No raw SQL is permitted anywhere in the suite.
+	 */
+	public function test_no_direct_database_access(): void {
+		// $wpdb is the only way to run SQL in WordPress, so it is the real gate. The
+		// SQL keywords are matched only inside string literals — a bare uppercase
+		// word also appears in identifiers such as TYPE_SELECT.
+		$patterns = array(
+			'/\$wpdb\b/'                              => 'uses $wpdb',
+			'/[\'"]\s*SELECT\s/i'                     => 'contains a SELECT statement',
+			'/[\'"]\s*DELETE\s+FROM/i'                => 'contains a DELETE statement',
+			'/[\'"]\s*INSERT\s+INTO/i'                => 'contains an INSERT statement',
+			'/[\'"]\s*(TRUNCATE|DROP)\s+TABLE/i'      => 'contains a TRUNCATE/DROP statement',
+		);
+
+		foreach ( array_merge( (array) glob( self::abilities_dir() . '*.php' ), (array) glob( self::utilities_dir() . '*.php' ) ) as $file ) {
+			$code = self::code_only( (string) file_get_contents( (string) $file ) );
+			foreach ( $patterns as $pattern => $what ) {
+				$this->assertDoesNotMatchRegularExpression(
+					$pattern,
+					$code,
+					basename( (string) $file ) . " {$what}; call Rank Math's API instead of its database."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Corollary — Rank Math's own option blobs must not be read or written directly
+	 * either, with exactly one documented exception.
+	 *
+	 * Instant Indexing is not in save_settings()'s internal $map, so no API exists to
+	 * call; Rank Math writes that blob with a bare update_option() itself
+	 * (instant-indexing/class-api.php:379). Settings_Writer is therefore allowed, and
+	 * still validates and types the payload first.
+	 */
+	public function test_rank_math_options_are_not_accessed_directly(): void {
+		$allowed = array( 'Settings_Writer.php' );
+
+		foreach ( array_merge( (array) glob( self::abilities_dir() . '*.php' ), (array) glob( self::utilities_dir() . '*.php' ) ) as $file ) {
+			if ( in_array( basename( (string) $file ), $allowed, true ) ) {
+				continue;
+			}
+			$code = self::code_only( (string) file_get_contents( (string) $file ) );
+			$this->assertDoesNotMatchRegularExpression(
+				'/(get|update|delete)_option\(\s*[\'"]rank[_-]math/i',
+				$code,
+				basename( (string) $file ) . " reads or writes a Rank Math option directly; use Rank Math's API."
+			);
+		}
+	}
+
+	/**
+	 * Module state must be derived through Helper::is_module_active(), which also
+	 * verifies the slug is registered — reading rank_math_modules directly reports a
+	 * stale slug from a removed module as still active.
+	 */
+	public function test_module_state_uses_the_rank_math_api(): void {
+		$src = (string) file_get_contents( self::utilities_dir() . 'Module_Repository.php' );
+		$this->assertStringContainsString( '\RankMath\Helper::is_module_active( $slug )', $src );
+		$this->assertStringContainsString( '\RankMath\Helper::update_modules(', $src );
+	}
+
+	/**
 	 * DEC-UTILITY-STATIC-ONLY — helper classes are final, static-only, and never
 	 * singletons.
 	 */

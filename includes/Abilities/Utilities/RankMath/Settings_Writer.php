@@ -185,10 +185,17 @@ final class Settings_Writer {
 	/**
 	 * Write the Instant Indexing option.
 	 *
-	 * This blob is not part of save_settings()'s $map, so Rank Math writes it
-	 * directly — see includes/rest/class-admin.php:287-302 and
-	 * Api::reset_key() at instant-indexing/class-api.php:375-381. Values are
-	 * merged so a partial payload behaves like the save_settings() path.
+	 * The ONLY direct option write in this suite, and it matches what Rank Math
+	 * itself does. This blob is not part of save_settings()'s $map, so there is no
+	 * API to call: Rank Math writes it with a bare update_option() in
+	 * Api::reset_key() (instant-indexing/class-api.php:379) and special-cases it in
+	 * its own REST handler (includes/rest/class-admin.php:287-302). Going through
+	 * save_settings() is not an option — its internal $map has no entry for this
+	 * type and would fatal on the argument spread.
+	 *
+	 * Values are still validated and typed by Settings_Registry first, and are
+	 * merged rather than replacing the blob, so a partial payload behaves exactly
+	 * like the save_settings() path.
 	 *
 	 * @param string              $panel     Panel slug.
 	 * @param string              $object    Object name.

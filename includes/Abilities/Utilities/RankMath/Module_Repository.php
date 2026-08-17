@@ -28,6 +28,10 @@ final class Module_Repository {
 	/**
 	 * Option holding the active module slugs.
 	 *
+	 * Recorded for reference only — this class never reads or writes it directly.
+	 * Reads go through Helper::is_module_active() and writes through
+	 * Helper::update_modules(), so Rank Math owns the storage format.
+	 *
 	 * @see seo-by-rank-math/includes/class-helper.php:182
 	 */
 	private const ACTIVE_OPTION = 'rank_math_modules';
@@ -62,11 +66,27 @@ final class Module_Repository {
 	/**
 	 * Currently active module slugs.
 	 *
+	 * Derived through Helper::is_module_active() per registered module rather than by
+	 * reading the rank_math_modules option directly. The option is only half the
+	 * answer: is_module_active() additionally requires the slug to be REGISTERED in
+	 * rank_math()->manager->modules, so a stale entry left behind by a removed or
+	 * renamed module is correctly reported inactive instead of being echoed back as
+	 * active.
+	 *
 	 * @return string[]
 	 */
 	public static function active(): array {
-		$stored = get_option( self::ACTIVE_OPTION, array() );
-		return is_array( $stored ) ? array_map( 'strval', $stored ) : array();
+		if ( ! class_exists( '\RankMath\Helper' ) ) {
+			return array();
+		}
+
+		$active = array();
+		foreach ( self::available() as $slug ) {
+			if ( \RankMath\Helper::is_module_active( $slug ) ) {
+				$active[] = $slug;
+			}
+		}
+		return $active;
 	}
 
 	/**

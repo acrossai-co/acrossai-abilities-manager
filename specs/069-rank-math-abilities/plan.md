@@ -57,6 +57,32 @@ registered *unconditionally* whenever Rank Math is present and gated at runtime,
 `register_elementor_pro_abilities()` which does not register at all when Pro is absent. The bootstrap
 comment must state this, or a future maintainer will "fix" it into the Elementor shape.
 
+### Architecture rule — call Rank Math's API, never its database
+
+Rank Math owns its storage format. Every read and write in this suite goes through its
+PHP API; nothing touches its tables. Reading the database directly would give up its
+sanitization, its side-effect hooks (rewrite flushing, `rank_math/module_changed`) and
+its caching, and would break silently whenever it changes a column or a serialisation
+format.
+
+Concretely: no `$wpdb` and no SQL anywhere in the suite; module state derives from
+`Helper::is_module_active()` rather than the `rank_math_modules` option, so a stale
+slug from a removed module is not reported as active; settings write through
+`Option_Center::save_settings()`.
+
+**One documented exception.** Instant Indexing is not in `save_settings()`'s internal
+`$map`, so no API exists to call — Rank Math writes that blob with a bare
+`update_option()` itself (`instant-indexing/class-api.php:379`). `Settings_Writer` does
+the same, after validating and typing the payload. It is the only direct option write,
+and the only file exempted from the rule.
+
+Post-meta **writes** use `update_post_meta()` because Rank Math ships a getter
+(`Helper::get_post_meta()`) but no setter — there is no counter to go to.
+
+Enforced by `Test_Rank_Math_Architecture::test_no_direct_database_access()`,
+`::test_rank_math_options_are_not_accessed_directly()` and
+`::test_module_state_uses_the_rank_math_api()`.
+
 ### Helper layer — `includes/Abilities/Utilities/RankMath/` (12 static final classes)
 
 | Class | Responsibility |
