@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.28
+Stable tag: 0.0.29
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -136,6 +136,21 @@ Several admin-only actions can cause external services to receive data — all a
 No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
+
+= 0.0.29 - 2026-08-18 =
+**Feature 065 — safety envelope + payload enrichment across 9 existing abilities.** No new abilities. Plugin version bumped 0.0.28 → 0.0.29. Two changes are breaking for programmatic callers: `acrossai/delete-media` and `acrossai/delete-file` now require an explicit `confirm: true`; `acrossai/update-post` silently strips protected meta keys (reported back in `dropped_meta_keys`). Every guardrail-triggered refusal now returns `success: false` + a machine-readable `blocked_reason` + a human `message`, with no state mutation on the refusal path.
+
+* **`acrossai/deactivate-plugin` — protected-plugin guard.** Refuses to deactivate `acrossai-mcp-manager`, `acrossai-abilities-manager`, or `acrossai-pro` — the three plugins that host either the ability surface itself or the MCP transport the AI is using to reach the site. Match runs against the *resolved* plugin file path, so slug / partial-name / file-path variants that fuzzy-resolve to a protected plugin are all refused (`blocked_reason: "protected_plugin"`).
+* **`acrossai/delete-media` — explicit confirmation + trash-aware.** Requires `confirm: true` (refuses with `blocked_reason: "confirmation_required"` otherwise). Honours the `MEDIA_TRASH` constant — trashes when defined truthy and `force` is absent; permanent-deletes otherwise. Response now carries `deleted: "deleted" | "trashed"`.
+* **`acrossai/delete-file` — confirmation + protected-write + backup + opcache invalidation.** Requires `confirm: true`. Refuses on `wp-config.php` / `.htaccess` at ABSPATH (`blocked_reason: "protected_write"`). Writes a `.bak.<timestamp>` copy next to the target before the delete and returns the backup path in `backup`. Calls `opcache_invalidate()` on the deleted path when OPcache is loaded.
+* **`acrossai/read-file` — protected-read + size cap + binary detection.** Refuses on `wp-config.php` / `.htaccess` at ABSPATH (`blocked_reason: "protected_read"`) — this closes the highest-value accidental disclosure path (database password + eight auth constants). Refuses files over 5 MB without loading them into memory (`blocked_reason: "file_too_large"`; response reports observed size + cap). Non-UTF-8 payloads return `{ binary: true, size, path, message }` instead of raw bytes.
+* **`acrossai/list-media` — alt-text search.** `search` now matches against `_wp_attachment_image_alt` postmeta in addition to WP_Query's default `s` fields (title / caption / description). Results are de-duplicated by attachment ID, so an image matched by both title and alt-text appears once.
+* **`acrossai/update-media` — updated-fields report.** Response now carries an `updated` array naming each field that was actually written (subset of `title` / `caption` / `description` / `alt_text`), in the order fields were processed. Empty array when no update fields were passed.
+* **`acrossai/update-post` — writability + protected-meta + publish / author gates.** Refuses on post types that are neither `public: true` nor `show_in_rest: true` (matches WP-REST writability). Filters caller-supplied `meta` to drop `_`-prefixed keys and any key that `is_protected_meta()` reports; the `acrossai_allowed_protected_meta` filter opts specific keys back in. Dropped keys are reported in the response as `dropped_meta_keys`. Refuses `status: "publish"` (or any status entering a public state) unless the caller holds `publish_posts` for the post type. Refuses `author: <different_user_id>` unless the caller holds `edit_others_posts`.
+* **`acrossai/get-post` — hydrated payload.** Response now includes `terms` (object keyed by taxonomy, each entry `{ term_id, name, slug }`), `meta` (non-protected keys only — same allow-list filter as `update-post`), `featured_image` (`{ id, url, alt }` or `null`), `permalink`, `edit_link`, and `author: { id, name }`. Callers no longer need 4–5 follow-up hydration calls per post.
+* **`acrossai/delete-post` — suggested-redirect hint.** When the target was `publish` and `force: true` is passed, the response includes `suggested_redirect: { from: <permalink>, to: <parent-or-archive-or-root-url> }`. Omitted for drafts and for trash operations (URL may return on restore).
+
+**Test coverage.** `Test_Feature_065_Safety_And_Payload` — 23 source-inspection tests covering all 23 FRs. Full suite green; PHPCS (WPCS strict) and PHPStan level 8 clean.
 
 = 0.0.28 - 2026-08-17 =
 **Feature 069 — Rank Math ability suite: 61 new abilities under a new "Rank Math" tab.** Gated on Rank Math SEO being active; absent entirely without it. Plugin version bumped 0.0.27 → 0.0.28.
