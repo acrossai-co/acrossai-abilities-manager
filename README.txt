@@ -5,7 +5,7 @@ Tags: abilities, ability management, access control, site management, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.0.29
+Stable tag: 0.0.30
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -136,6 +136,23 @@ Several admin-only actions can cause external services to receive data — all a
 No data is sent to any external server without an explicit administrator action.
 
 == Changelog ==
+
+= 0.0.30 - 2026-08-19 =
+**Ability namespace migration — every ability slug moves from `acrossai/*` to a topic-based prefix.** 388 abilities across 24 topic namespaces. No behavioural changes; this is a slug rename only. Delivered as four disjoint PRs merged in order: #134 (blocks), #135 (elementor), #136 (rank-math), #137 (remaining 21 domains).
+
+**Breaking for every MCP client:** any reference to `acrossai/<slug>` must switch to `<topic>/<slug>`. There is no back-compat alias — discovery now returns the new names only.
+
+* **`blocks/*` (40)** — every block-editor primitive: templates, template parts, patterns, style variations, global styles, theme.json, site-editor context, blocks/reusable blocks. Also includes the 7 block-tree ops that previously lived under `acrossai/*` in the Content folder (add-block, duplicate-block, get-post-blocks, insert-pattern, move-block, remove-block, update-post-block). Prefix-only rename — the second segment is preserved (e.g. `acrossai/create-block-template` → `blocks/create-block-template`).
+* **`elementor/*` (62)** — every Elementor ability. Redundant `elementor-` fragment collapsed into the namespace, so `acrossai/elementor-add-widget` → `elementor/add-widget`, `acrossai/elementor-create-template` → `elementor/create-template`, etc. `Base_Audit_Ability` now builds slugs as `'elementor/' . audit_slug()` — all dynamic audit subclasses inherit the new prefix.
+* **`rank-math/*` (61)** — every Rank Math ability. Redundant `rank-math-` fragment collapsed. `Base_Rank_Math_Ability` slug construction changed in one line (`'rank-math/' . slug()`) — the entire suite picks up the rename automatically. User-visible error messages that name specific slugs (e.g. `Utilities/RankMath/Maintenance_Tools`) refreshed to match.
+* **Remaining 21 topic namespaces (225)** — prefix-only rename per domain:
+  * `admin-menu/` (5), `cache/` (7), `comments/` (12), `content/` (29), `content-search/` (11), `core/` (6), `cron/` (16), `database/` (11), `file-manager/` (15), `fonts/` (8), `media/` (11), `menus/` (12), `options/` (7), `plugins/` (13), `recovery/` (7), `settings/` (11), `site-health/` (6), `taxonomies/` (10), `themes/` (10), `users/` (16), `widgets/` (2).
+  * Examples: `acrossai/get-option` → `options/get-option`; `acrossai/list-db-tables` → `database/list-db-tables`; `acrossai/create-user` → `users/create-user`.
+  * The second segment is unchanged from what shipped before — only the vendor prefix moves. No collapsing (unlike Elementor/Rank Math, where the redundant fragment was literally the namespace name).
+
+**Why:** topic namespaces make the ability surface discoverable — a client fetching `mcp-adapter-discover-abilities` and filtering on the prefix gets exactly the domain it asked for. The old `acrossai/` prefix tagged ownership but carried no discovery information. Full per-ability inventory is now published at `docs/abilities-inventory.md`.
+
+**Category taxonomy slugs (`acrossai-abilities-manager-*`) are unchanged.** Internal PHP class namespaces are unchanged. Tests, spec artifacts, and docstring cross-references were updated in the same commits as the slug renames — nothing left pointing at `acrossai/*`.
 
 = 0.0.29 - 2026-08-18 =
 **Feature 065 — safety envelope + payload enrichment across 9 existing abilities.** No new abilities. Plugin version bumped 0.0.28 → 0.0.29. Two changes are breaking for programmatic callers: `media/delete-media` and `file-manager/delete-file` now require an explicit `confirm: true`; `content/update-post` silently strips protected meta keys (reported back in `dropped_meta_keys`). Every guardrail-triggered refusal now returns `success: false` + a machine-readable `blocked_reason` + a human `message`, with no state mutation on the refusal path.
