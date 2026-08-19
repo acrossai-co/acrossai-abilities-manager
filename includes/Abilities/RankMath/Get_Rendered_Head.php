@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #37 — acrossai/rank-math-get-rendered-head.
+ * Ability #37 — rank-math/get-rendered-head.
  *
  * The verification workhorse: every other ability in this suite reports what is
  * STORED, and this reports what is actually OUTPUT. Template variables resolved,

@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #9 — acrossai/rank-math-clear-indexing-log.
+ * Ability #9 — rank-math/clear-indexing-log.
  *
  * Destructive: the submission history cannot be recovered, so it requires
  * confirm: true.
@@ -32,7 +32,7 @@ class Clear_Indexing_Log extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Permanently delete the entire IndexNow submission history. The log is the only record of what was submitted and when, and it cannot be recovered. Read it first with acrossai/rank-math-get-indexing-log.', 'acrossai-abilities-manager' );
+		return __( 'Permanently delete the entire IndexNow submission history. The log is the only record of what was submitted and when, and it cannot be recovered. Read it first with rank-math/get-indexing-log.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

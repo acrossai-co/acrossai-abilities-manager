@@ -13,15 +13,15 @@ namespace AcrossAI_Abilities_Manager\Includes\Abilities\RankMath;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #4 — acrossai/rank-math-update-sitemap-settings.
+ * Ability #4 — rank-math/update-sitemap-settings.
  *
- * Complements acrossai/rank-math-get-sitemap-status, which reports live state:
+ * Complements rank-math/get-sitemap-status, which reports live state:
  * this ability changes configuration. Sitemap exclusions (exclude_posts,
  * exclude_terms) are only reachable here — nothing else can exclude a post from
  * the sitemap.
  *
  * A write does not rebuild the sitemap; pair with
- * acrossai/rank-math-invalidate-sitemap-cache when the change must take effect
+ * rank-math/invalidate-sitemap-cache when the change must take effect
  * immediately.
  */
 class Update_Sitemap_Settings extends Base_Settings_Write_Ability {
@@ -44,7 +44,7 @@ class Update_Sitemap_Settings extends Base_Settings_Write_Ability {
 	 * @return string
 	 */
 	protected function ability_description(): string {
-		return __( 'Write Rank Math sitemap settings: items per page, image inclusion, and the post and term exclusion lists (scope=general), or whether a given post type or taxonomy appears in the XML and HTML sitemaps (scope=post-type or taxonomy with an object). This changes configuration only — follow with acrossai/rank-math-invalidate-sitemap-cache for the change to appear in the served sitemap immediately.', 'acrossai-abilities-manager' );
+		return __( 'Write Rank Math sitemap settings: items per page, image inclusion, and the post and term exclusion lists (scope=general), or whether a given post type or taxonomy appears in the XML and HTML sitemaps (scope=post-type or taxonomy with an object). This changes configuration only — follow with rank-math/invalidate-sitemap-cache for the change to appear in the served sitemap immediately.', 'acrossai-abilities-manager' );
 	}
 
 	/**

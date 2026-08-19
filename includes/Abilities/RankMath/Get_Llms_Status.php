@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #59 — acrossai/rank-math-get-llms-status.
+ * Ability #59 — rank-math/get-llms-status.
  *
  * Returns state, settings, rewrite status AND a live preview in one call, so no
  * separate preview ability is needed.
@@ -34,7 +34,7 @@ class Get_Llms_Status extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Return everything about the Rank Math llms.txt route in one call: whether the module is active, which post types and taxonomies are included, whether the rewrite rule is actually persisted, and a live preview of the served output. If the module is active but the rule is missing the route will 404 — repair that with acrossai/rank-math-refresh-llms-route.', 'acrossai-abilities-manager' );
+		return __( 'Return everything about the Rank Math llms.txt route in one call: whether the module is active, which post types and taxonomies are included, whether the rewrite rule is actually persisted, and a live preview of the served output. If the module is active but the rule is missing the route will 404 — repair that with rank-math/refresh-llms-route.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -86,9 +86,9 @@ class Get_Llms_Status extends Base_Rank_Math_Ability {
 		$status = Routes_Repository::llms_status( $lines );
 
 		if ( ! $status['module_active'] ) {
-			$status['message'] = __( 'The Rank Math llms.txt module is inactive, so /llms.txt is not served. Enable it with acrossai/rank-math-set-module-state.', 'acrossai-abilities-manager' );
+			$status['message'] = __( 'The Rank Math llms.txt module is inactive, so /llms.txt is not served. Enable it with rank-math/set-module-state.', 'acrossai-abilities-manager' );
 		} elseif ( empty( $status['rewrite']['present'] ) ) {
-			$status['message'] = __( 'The llms.txt module is active but its rewrite rule is not persisted, so the route will 404. Run acrossai/rank-math-refresh-llms-route.', 'acrossai-abilities-manager' );
+			$status['message'] = __( 'The llms.txt module is active but its rewrite rule is not persisted, so the route will 404. Run rank-math/refresh-llms-route.', 'acrossai-abilities-manager' );
 		} else {
 			$status['message'] = __( 'Returned llms.txt status, settings and a live preview.', 'acrossai-abilities-manager' );
 		}

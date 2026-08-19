@@ -56,7 +56,7 @@ abstract class Base_Rank_Math_Ability extends Ability_Definition {
 	protected const TAB_GROUP = 'rank-math';
 
 	/**
-	 * Slug suffix, appended to 'acrossai/rank-math-'.
+	 * Slug suffix, appended to 'rank-math/'.
 	 *
 	 * @return string
 	 */
@@ -233,7 +233,7 @@ abstract class Base_Rank_Math_Ability extends Ability_Definition {
 		}
 
 		return array(
-			'name' => 'acrossai/rank-math-' . $this->slug(),
+			'name' => 'rank-math/' . $this->slug(),
 			'args' => array(
 				'label'               => $this->ability_label(),
 				'description'         => $this->ability_description(),

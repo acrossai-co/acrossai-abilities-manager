@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #34 — acrossai/rank-math-update-post-schemas.
+ * Ability #34 — rank-math/update-post-schemas.
  *
  * The only schema WRITE in the suite: Rank Math core's rank-math/get-post-schema reads
  * but cannot change.

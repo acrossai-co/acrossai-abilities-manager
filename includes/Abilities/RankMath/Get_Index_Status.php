@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #31 — acrossai/rank-math-get-index-status.
+ * Ability #31 — rank-math/get-index-status.
  *
  * Read-only, idempotent. Reports inspections_table_missing distinctly, because that
  * needs a maintenance tool rather than a retry.

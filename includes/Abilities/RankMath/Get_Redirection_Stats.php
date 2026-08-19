@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #14 — acrossai/rank-math-get-redirection-stats.
+ * Ability #14 — rank-math/get-redirection-stats.
  *
  * Merges Rank Math's two separate reads (DB::get_counts() and DB::get_stats()) into
  * one payload, because its own UI always shows them together and a caller deciding
@@ -35,7 +35,7 @@ class Get_Redirection_Stats extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Return redirection counts by status — active, inactive, trashed — alongside hit statistics. Use this to size a cleanup before listing: a large trashed count means acrossai/rank-math-delete-trashed-redirections has work to do, and zero-hit rules are candidates for removal.', 'acrossai-abilities-manager' );
+		return __( 'Return redirection counts by status — active, inactive, trashed — alongside hit statistics. Use this to size a cleanup before listing: a large trashed count means rank-math/delete-trashed-redirections has work to do, and zero-hit rules are candidates for removal.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

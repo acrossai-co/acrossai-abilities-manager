@@ -16,10 +16,10 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #21 — acrossai/rank-math-export-settings.
+ * Ability #21 — rank-math/export-settings.
  *
  * Read-only, idempotent. The natural safety step before any bulk settings change:
- * export, then use acrossai/rank-math-import-settings to roll back if needed.
+ * export, then use rank-math/import-settings to roll back if needed.
  */
 class Export_Settings extends Base_Rank_Math_Ability {
 
@@ -32,7 +32,7 @@ class Export_Settings extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Export Rank Math settings as a portable payload — all panels by default, or a chosen subset of general, titles, sitemap, role-manager and redirections. Take one of these before any bulk settings change so acrossai/rank-math-import-settings can roll it back.', 'acrossai-abilities-manager' );
+		return __( 'Export Rank Math settings as a portable payload — all panels by default, or a chosen subset of general, titles, sitemap, role-manager and redirections. Take one of these before any bulk settings change so rank-math/import-settings can roll it back.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

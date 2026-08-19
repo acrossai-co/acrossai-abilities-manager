@@ -21,7 +21,7 @@ prefix `rankmath/`. It is **explicitly not treated as coverage**: it is not ours
 writes go through raw `update_option()` blobs that bypass Rank Math's sanitizer, and it gates every
 ability on blanket `manage_options` regardless of Rank Math's Role Manager. Where this feature
 re-implements something it also does, we do it correctly; the two coexist without slug collision
-(`rank-math/` vs `rankmath/` vs `acrossai/rank-math-`).
+(`rank-math/` vs `rankmath/` vs `rank-math/`).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -216,7 +216,7 @@ issuing any remote request.
 
 ### Functional
 
-- **FR-001**: The suite MUST register 61 abilities under the slug prefix `acrossai/rank-math-` and the
+- **FR-001**: The suite MUST register 61 abilities under the slug prefix `rank-math/` and the
   category `acrossai-abilities-manager-rank-math`.
 - **FR-002**: Every ability MUST carry `meta.acrossai.tab_group = 'rank-math'` so the admin
   Integrations page renders a "Rank Math" tab.

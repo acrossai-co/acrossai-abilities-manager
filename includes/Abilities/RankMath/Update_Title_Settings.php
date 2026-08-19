@@ -13,7 +13,7 @@ namespace AcrossAI_Abilities_Manager\Includes\Abilities\RankMath;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #3 — acrossai/rank-math-update-title-settings.
+ * Ability #3 — rank-math/update-title-settings.
  *
  * This is the global template layer, which nothing else covers: Rank Math core's
  * own abilities read a single post's resolved meta, and per-post writes set one
@@ -44,7 +44,7 @@ class Update_Title_Settings extends Base_Settings_Write_Ability {
 	 * @return string
 	 */
 	protected function ability_description(): string {
-		return __( 'Write Rank Math title and meta settings — the GLOBAL template layer that applies to every object of a type, not a single post\'s override. Covers per-post-type and per-taxonomy title/description templates and robots directives, the homepage, author and date archives, global defaults, social profiles, and Local SEO including opening hours. Use scope=post-type or taxonomy with an object naming it. Read the matching panel with acrossai/rank-math-get-settings first to discover the field ids and allowed values.', 'acrossai-abilities-manager' );
+		return __( 'Write Rank Math title and meta settings — the GLOBAL template layer that applies to every object of a type, not a single post\'s override. Covers per-post-type and per-taxonomy title/description templates and robots directives, the homepage, author and date archives, global defaults, social profiles, and Local SEO including opening hours. Use scope=post-type or taxonomy with an object naming it. Read the matching panel with rank-math/get-settings first to discover the field ids and allowed values.', 'acrossai-abilities-manager' );
 	}
 
 	/**

@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #47 — acrossai/rank-math-update-primary-term.
+ * Ability #47 — rank-math/update-primary-term.
  *
  * Refuses a term the post does not have, rather than storing a value Rank Math will
  * silently ignore — which would look like success while changing nothing.

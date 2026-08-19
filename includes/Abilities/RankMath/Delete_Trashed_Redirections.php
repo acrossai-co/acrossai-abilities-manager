@@ -16,10 +16,10 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #13 — acrossai/rank-math-delete-trashed-redirections.
+ * Ability #13 — rank-math/delete-trashed-redirections.
  *
  * The discovery path for this is
- * acrossai/rank-math-list-redirections with status=trashed, which is why that filter
+ * rank-math/list-redirections with status=trashed, which is why that filter
  * had to be exposed — otherwise this would be a blind destructive call.
  */
 class Delete_Trashed_Redirections extends Base_Rank_Math_Ability {
@@ -33,7 +33,7 @@ class Delete_Trashed_Redirections extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Permanently delete every trashed redirection. Inspect what will be removed first with acrossai/rank-math-list-redirections using status=trashed. Trashed rules are inactive but restorable until this runs.', 'acrossai-abilities-manager' );
+		return __( 'Permanently delete every trashed redirection. Inspect what will be removed first with rank-math/list-redirections using status=trashed. Trashed rules are inactive but restorable until this runs.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

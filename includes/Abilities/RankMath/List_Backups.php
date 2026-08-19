@@ -16,9 +16,9 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #23 — acrossai/rank-math-list-backups.
+ * Ability #23 — rank-math/list-backups.
  *
- * The discovery read for acrossai/rank-math-manage-backup, which needs a key.
+ * The discovery read for rank-math/manage-backup, which needs a key.
  *
  * Read-only, idempotent.
  */
@@ -33,7 +33,7 @@ class List_Backups extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'List existing Rank Math settings backups with their keys and dates. Rank Math creates one automatically before an import. Pass a key to acrossai/rank-math-manage-backup to restore or delete it.', 'acrossai-abilities-manager' );
+		return __( 'List existing Rank Math settings backups with their keys and dates. Rank Math creates one automatically before an import. Pass a key to rank-math/manage-backup to restore or delete it.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -74,7 +74,7 @@ class List_Backups extends Base_Rank_Math_Ability {
 			'backups' => $backups,
 			'count'   => count( $backups ),
 			'message' => 0 === count( $backups )
-				? __( 'No Rank Math settings backups exist. Create one with acrossai/rank-math-create-backup.', 'acrossai-abilities-manager' )
+				? __( 'No Rank Math settings backups exist. Create one with rank-math/create-backup.', 'acrossai-abilities-manager' )
 				: sprintf(
 					/* translators: %d: number of backups */
 					_n( 'Found %d Rank Math settings backup.', 'Found %d Rank Math settings backups.', count( $backups ), 'acrossai-abilities-manager' ),

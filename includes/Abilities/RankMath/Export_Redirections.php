@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #15 — acrossai/rank-math-export-redirections.
+ * Ability #15 — rank-math/export-redirections.
  *
  * Moving redirections into the web server removes a PHP round-trip per redirect, so
  * this is a real performance lever, not just a backup.

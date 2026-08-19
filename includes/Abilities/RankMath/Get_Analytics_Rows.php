@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #30 — acrossai/rank-math-get-analytics-rows.
+ * Ability #30 — rank-math/get-analytics-rows.
  *
  * Three row datasets behind one enum, sharing the same paging, sorting and search
  * inputs.
