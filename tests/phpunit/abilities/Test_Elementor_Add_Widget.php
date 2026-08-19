@@ -26,7 +26,7 @@ class Test_Elementor_Add_Widget extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-add-widget'", $this->src );
+		$this->assertStringContainsString( "'elementor/add-widget'", $this->src );
 	}
 
 	public function test_input_requires_post_id_and_widget_type(): void {

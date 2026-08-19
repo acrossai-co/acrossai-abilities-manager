@@ -29,7 +29,7 @@ class Move_Element extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-move-element',
+			'name' => 'elementor/move-element',
 			'args' => array(
 				'label'               => __( 'Move Elementor Element', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Move an Elementor element to a new parent and sibling position. Atomic: source and destination are updated together. Refuses moves whose destination lies inside the source subtree.', 'acrossai-abilities-manager' ),

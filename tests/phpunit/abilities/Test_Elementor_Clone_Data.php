@@ -26,7 +26,7 @@ class Test_Elementor_Clone_Data extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-clone-data'", $this->src );
+		$this->assertStringContainsString( "'elementor/clone-data'", $this->src );
 	}
 
 	public function test_requires_source_and_target(): void {

@@ -20,7 +20,7 @@ class List_Kits extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-list-kits',
+			'name' => 'elementor/list-kits',
 			'args' => array(
 				'label'               => __( 'List Elementor Kits', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List all Elementor Kits (elementor_library posts with template_type=kit). Marks the active kit.', 'acrossai-abilities-manager' ),

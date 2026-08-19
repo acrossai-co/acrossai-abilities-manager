@@ -26,7 +26,7 @@ class Test_Elementor_Reorder_Elements extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-reorder-elements'", $this->src );
+		$this->assertStringContainsString( "'elementor/reorder-elements'", $this->src );
 	}
 
 	public function test_input_requires_post_id_and_ordered_ids(): void {

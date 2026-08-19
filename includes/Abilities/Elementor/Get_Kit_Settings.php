@@ -19,7 +19,7 @@ class Get_Kit_Settings extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-kit-settings',
+			'name' => 'elementor/get-kit-settings',
 			'args' => array(
 				'label'               => __( 'Get Elementor Kit Settings', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the settings for an Elementor kit (defaults to active kit) — colors, typography, buttons, forms, layout, custom CSS.', 'acrossai-abilities-manager' ),

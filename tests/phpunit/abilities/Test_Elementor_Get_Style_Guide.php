@@ -26,7 +26,7 @@ class Test_Elementor_Get_Style_Guide extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-get-style-guide'", $this->src );
+		$this->assertStringContainsString( "'elementor/get-style-guide'", $this->src );
 	}
 
 	public function test_defaults_to_active_kit(): void {

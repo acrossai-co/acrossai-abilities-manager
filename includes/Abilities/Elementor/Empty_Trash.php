@@ -20,7 +20,7 @@ class Empty_Trash extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-empty-trash',
+			'name' => 'elementor/empty-trash',
 			'args' => array(
 				'label'               => __( 'Empty Elementor Template Trash', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Permanently delete every trashed Elementor template. Requires confirm=true.', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Test_Elementor_Create_Page extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-create-page'", $this->src );
+		$this->assertStringContainsString( "'elementor/create-page'", $this->src );
 	}
 
 	public function test_input_requires_title(): void {

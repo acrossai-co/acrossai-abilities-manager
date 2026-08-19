@@ -26,7 +26,7 @@ class Test_Elementor_Get_Data extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-get-data'", $this->src );
+		$this->assertStringContainsString( "'elementor/get-data'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-elementor'", $this->src );
 	}
 

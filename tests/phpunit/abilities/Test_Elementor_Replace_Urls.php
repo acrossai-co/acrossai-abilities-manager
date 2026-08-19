@@ -26,7 +26,7 @@ class Test_Elementor_Replace_Urls extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-replace-urls'", $this->src );
+		$this->assertStringContainsString( "'elementor/replace-urls'", $this->src );
 	}
 
 	public function test_requires_from_and_to(): void {

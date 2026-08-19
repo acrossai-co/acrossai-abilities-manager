@@ -19,7 +19,7 @@ class Get_Form_Submission extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-form-submission',
+			'name' => 'elementor/get-form-submission',
 			'args' => array(
 				'label'               => __( 'Get Elementor Pro Form Submission', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Read one Elementor Pro Form widget submission by ID; optional include_values to fetch field values. Requires Elementor Pro.', 'acrossai-abilities-manager' ),

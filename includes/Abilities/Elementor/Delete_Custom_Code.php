@@ -19,7 +19,7 @@ class Delete_Custom_Code extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-delete-custom-code',
+			'name' => 'elementor/delete-custom-code',
 			'args' => array(
 				'label'               => __( 'Delete Elementor Pro Custom Code', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Trash (default) or permanently delete an Elementor Pro Custom Code snippet. Requires Elementor Pro.', 'acrossai-abilities-manager' ),

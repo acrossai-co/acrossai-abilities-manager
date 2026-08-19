@@ -20,7 +20,7 @@ class Restore_Template extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-restore-template',
+			'name' => 'elementor/restore-template',
 			'args' => array(
 				'label'               => __( 'Restore Elementor Template', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Restore a trashed Elementor template.', 'acrossai-abilities-manager' ),

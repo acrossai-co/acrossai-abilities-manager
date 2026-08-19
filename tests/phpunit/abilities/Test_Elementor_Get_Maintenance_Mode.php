@@ -26,7 +26,7 @@ class Test_Elementor_Get_Maintenance_Mode extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-get-maintenance-mode'", $this->src );
+		$this->assertStringContainsString( "'elementor/get-maintenance-mode'", $this->src );
 	}
 
 	public function test_reads_maintenance_options(): void {

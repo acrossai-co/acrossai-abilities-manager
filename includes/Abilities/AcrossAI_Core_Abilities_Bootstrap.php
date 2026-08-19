@@ -422,7 +422,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		add_action( SiteHealth\Set_Site_Maintenance_Mode::CRON_HOOK, array( SiteHealth\Set_Site_Maintenance_Mode::class, 'refresh_marker' ) );
 
 		// Feature 067 — Elementor ability suite (up to 88 abilities under
-		// acrossai/elementor-*). Gated on Elementor presence; the Pro-only
+		// elementor/*). Gated on Elementor presence; the Pro-only
 		// subset (Custom Code CRUD + Form Submissions) is additionally gated
 		// on Elementor Pro. See specs/067-elementor-abilities/plan.md.
 		if ( class_exists( '\Elementor\Plugin' ) ) {

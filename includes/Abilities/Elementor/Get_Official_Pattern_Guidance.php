@@ -26,7 +26,7 @@ class Get_Official_Pattern_Guidance extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-official-pattern-guidance',
+			'name' => 'elementor/get-official-pattern-guidance',
 			'args' => array(
 				'label'               => __( 'Get Elementor Pattern Guidance', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return canonical Elementor.com pattern and layout guidance (widgets, patterns, layouts). Grounded in Elementor documentation.', 'acrossai-abilities-manager' ),

@@ -97,7 +97,7 @@ class Test_Elementor_Design_Audits extends WP_UnitTestCase {
 		$src = (string) file_get_contents(
 			dirname( __DIR__, 3 ) . '/includes/Abilities/Elementor/Evaluate_Design.php'
 		);
-		$this->assertStringContainsString( "'acrossai/elementor-evaluate-design'", $src );
+		$this->assertStringContainsString( "'elementor/evaluate-design'", $src );
 		$this->assertStringContainsString( 'Design_Audit_Runner::run_all(', $src );
 	}
 
@@ -105,7 +105,7 @@ class Test_Elementor_Design_Audits extends WP_UnitTestCase {
 		$src = (string) file_get_contents(
 			dirname( __DIR__, 3 ) . '/includes/Abilities/Elementor/Suggest_Design_Fixes.php'
 		);
-		$this->assertStringContainsString( "'acrossai/elementor-suggest-design-fixes'", $src );
+		$this->assertStringContainsString( "'elementor/suggest-design-fixes'", $src );
 		$this->assertStringContainsString( 'Design_Audit_Runner::run_all(', $src );
 	}
 

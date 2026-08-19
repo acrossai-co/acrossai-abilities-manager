@@ -57,7 +57,7 @@ abstract class Base_Audit_Ability extends Ability_Definition { // phpcs:ignore
 		$readonly    = ! $this->is_destructive();
 		$destructive = $this->is_destructive();
 		return array(
-			'name' => 'acrossai/elementor-' . $this->audit_slug(),
+			'name' => 'elementor/' . $this->audit_slug(),
 			'args' => array(
 				'label'               => $this->audit_label(),
 				'description'         => $this->audit_description(),

@@ -26,7 +26,7 @@ class Test_Elementor_Get_Official_Widget_Catalog extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-get-official-widget-catalog'", $this->src );
+		$this->assertStringContainsString( "'elementor/get-official-widget-catalog'", $this->src );
 	}
 
 	public function test_delegates_to_guidance_catalog(): void {

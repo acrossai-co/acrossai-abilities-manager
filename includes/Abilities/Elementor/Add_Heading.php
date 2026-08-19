@@ -25,7 +25,7 @@ class Add_Heading extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-add-heading',
+			'name' => 'elementor/add-heading',
 			'args' => array(
 				'label'               => __( 'Add Elementor Heading', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Insert an Elementor heading widget with title, header size (h1-h6), alignment, and colour.', 'acrossai-abilities-manager' ),

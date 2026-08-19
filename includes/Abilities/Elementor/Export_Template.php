@@ -20,7 +20,7 @@ class Export_Template extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-export-template',
+			'name' => 'elementor/export-template',
 			'args' => array(
 				'label'               => __( 'Export Elementor Template', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Export an Elementor template as a JSON-encodable object for portability across sites.', 'acrossai-abilities-manager' ),

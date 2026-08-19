@@ -26,7 +26,7 @@ class Update_Theme_Builder_Conditions extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-update-theme-builder-conditions',
+			'name' => 'elementor/update-theme-builder-conditions',
 			'args' => array(
 				'label'               => __( 'Update Theme Builder Conditions', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Replace the display conditions attached to an Elementor template. Pass an empty array to clear all conditions.', 'acrossai-abilities-manager' ),

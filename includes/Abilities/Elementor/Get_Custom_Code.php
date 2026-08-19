@@ -19,7 +19,7 @@ class Get_Custom_Code extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-custom-code',
+			'name' => 'elementor/get-custom-code',
 			'args' => array(
 				'label'               => __( 'Get Elementor Pro Custom Code', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Read a single Elementor Pro Custom Code snippet including its code body. Requires Elementor Pro.', 'acrossai-abilities-manager' ),

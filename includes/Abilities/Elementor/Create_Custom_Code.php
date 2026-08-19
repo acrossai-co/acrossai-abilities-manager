@@ -19,7 +19,7 @@ class Create_Custom_Code extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-create-custom-code',
+			'name' => 'elementor/create-custom-code',
 			'args' => array(
 				'label'               => __( 'Create Elementor Pro Custom Code', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a new Elementor Pro Custom Code snippet with title, code, location, priority, and status. Requires Elementor Pro.', 'acrossai-abilities-manager' ),

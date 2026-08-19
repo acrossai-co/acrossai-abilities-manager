@@ -26,7 +26,7 @@ class Patch_Data extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-patch-data',
+			'name' => 'elementor/patch-data',
 			'args' => array(
 				'label'               => __( 'Patch Elementor Document Data', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Find and replace text within an Elementor document\'s serialised JSON. Operates on the raw string so it can update text in any control (headings, text-editors, buttons, image alt-text, etc.) in one pass. Case-sensitive.', 'acrossai-abilities-manager' ),

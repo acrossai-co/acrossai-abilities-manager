@@ -27,7 +27,7 @@ class List_Custom_Code extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-list-custom-code',
+			'name' => 'elementor/list-custom-code',
 			'args' => array(
 				'label'               => __( 'List Elementor Pro Custom Code', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List Elementor Pro Custom Code snippets. Filter by location and status. Requires Elementor Pro.', 'acrossai-abilities-manager' ),

@@ -24,7 +24,7 @@ class Add_Button extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-add-button',
+			'name' => 'elementor/add-button',
 			'args' => array(
 				'label'               => __( 'Add Elementor Button', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Insert an Elementor button widget with text, link, size, and alignment.', 'acrossai-abilities-manager' ),

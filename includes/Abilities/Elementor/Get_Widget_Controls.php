@@ -35,7 +35,7 @@ class Get_Widget_Controls extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-widget-controls',
+			'name' => 'elementor/get-widget-controls',
 			'args' => array(
 				'label'               => __( 'Get Elementor Widget Controls', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the schema-safe summary of the native Elementor controls exposed by a widget type on the current site. Use this before authoring add-widget or update-element calls to discover valid setting keys and types.', 'acrossai-abilities-manager' ),

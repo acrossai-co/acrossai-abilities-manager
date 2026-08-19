@@ -30,7 +30,7 @@ class Merge_Element_Settings extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-merge-element-settings',
+			'name' => 'elementor/merge-element-settings',
 			'args' => array(
 				'label'               => __( 'Merge Elementor Element Settings', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Deep-merge new settings into a single Elementor element by ID. Only the supplied setting keys are changed; siblings and unchanged settings are preserved.', 'acrossai-abilities-manager' ),

@@ -20,7 +20,7 @@ class Get_Template extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-template',
+			'name' => 'elementor/get-template',
 			'args' => array(
 				'label'               => __( 'Get Elementor Template', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return a single Elementor template with metadata, conditions, and optional _elementor_data payload.', 'acrossai-abilities-manager' ),

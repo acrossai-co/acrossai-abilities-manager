@@ -20,7 +20,7 @@ class Set_Active_Kit extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-set-active-kit',
+			'name' => 'elementor/set-active-kit',
 			'args' => array(
 				'label'               => __( 'Set Active Elementor Kit', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Switch the site-wide active Elementor kit. Invalidates Elementor CSS cache site-wide.', 'acrossai-abilities-manager' ),

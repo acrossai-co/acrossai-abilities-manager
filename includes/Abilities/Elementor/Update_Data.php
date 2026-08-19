@@ -32,7 +32,7 @@ class Update_Data extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-update-data',
+			'name' => 'elementor/update-data',
 			'args' => array(
 				'label'               => __( 'Update Elementor Document Data', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Overwrite the full Elementor document tree for a post with a caller-supplied element array. Optional page_settings. Guarded by force_replace=true when replacing a populated document with a smaller payload.', 'acrossai-abilities-manager' ),
