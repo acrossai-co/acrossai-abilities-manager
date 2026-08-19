@@ -26,7 +26,7 @@ class Delete_Term extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-term',
+			'name' => 'taxonomies/delete-term',
 			'args' => array(
 				'label'               => __( 'Delete Term', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete a term in a taxonomy via DELETE /wp/v2/{rest_base}/{id}. Terms do not support trash — force=true is sent implicitly.', 'acrossai-abilities-manager' ),

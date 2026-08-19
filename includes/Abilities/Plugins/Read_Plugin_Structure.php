@@ -26,7 +26,7 @@ class Read_Plugin_Structure extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/read-plugin-structure',
+			'name' => 'plugins/read-plugin-structure',
 			'args' => array(
 				'label'               => __( 'Read Plugin Structure', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Lists all files within a plugin directory. Provide a plugin slug (folder name) or leave empty to list top-level plugin directories.', 'acrossai-abilities-manager' ),

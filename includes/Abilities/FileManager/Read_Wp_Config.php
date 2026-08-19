@@ -43,7 +43,7 @@ class Read_Wp_Config extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/read-wp-config',
+			'name' => 'file-manager/read-wp-config',
 			'args' => array(
 				'label'               => __( 'Read wp-config.php', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns non-sensitive constants and the table prefix defined in wp-config.php. Credential and secret constants are redacted.', 'acrossai-abilities-manager' ),

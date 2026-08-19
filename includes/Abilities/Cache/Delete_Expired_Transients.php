@@ -29,7 +29,7 @@ class Delete_Expired_Transients extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-expired-transients',
+			'name' => 'cache/delete-expired-transients',
 			'args' => array(
 				'label'               => __( 'Delete Expired Transients', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Purge every expired transient (blog and site scope) in a single pass. Reports the count that were purged.', 'acrossai-abilities-manager' ),

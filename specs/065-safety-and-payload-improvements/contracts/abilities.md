@@ -4,13 +4,13 @@ Every ability listed below **retains** its existing name, category, and `permiss
 
 ---
 
-## `acrossai/deactivate-plugin`
+## `plugins/deactivate-plugin`
 
 **Input schema (unchanged)** — takes `plugin: string`.
 
 **Output schema (additive)** — new field `blocked_reason: string` when refused. Values: `"protected_plugin"` (new), plus any existing refusal values.
 
-## `acrossai/delete-media`
+## `media/delete-media`
 
 **Input schema (breaking)**:
 ```json
@@ -39,7 +39,7 @@ Every ability listed below **retains** its existing name, category, and `permiss
 
 `blocked_reason` values on refusal: `"confirmation_required"`, existing not-found reasons.
 
-## `acrossai/update-media`
+## `media/update-media`
 
 **Input schema (unchanged)**.
 
@@ -55,13 +55,13 @@ Every ability listed below **retains** its existing name, category, and `permiss
 
 `updated` values are field names from `["title", "caption", "description", "alt_text"]` in the order processed. Empty array when no update field was passed.
 
-## `acrossai/list-media`
+## `media/list-media`
 
 **Input schema (unchanged)**.
 
 **Output schema (unchanged)**. Behaviour change: `search` now also matches `_wp_attachment_image_alt` postmeta.
 
-## `acrossai/get-post`
+## `content/get-post`
 
 **Input schema (unchanged)**.
 
@@ -82,7 +82,7 @@ Every ability listed below **retains** its existing name, category, and `permiss
 
 `meta` skips protected keys (`_`-prefix or `is_protected_meta`) unless allow-listed by the `acrossai_allowed_protected_meta` filter.
 
-## `acrossai/update-post`
+## `content/update-post`
 
 **Input schema (unchanged)**.
 
@@ -100,7 +100,7 @@ Every ability listed below **retains** its existing name, category, and `permiss
 
 `blocked_reason` values on refusal: `"non_writable_post_type"`, `"publish_cap_required"`, `"edit_others_posts_required"`, existing not-found value.
 
-## `acrossai/delete-post`
+## `content/delete-post`
 
 **Input schema (unchanged)**.
 
@@ -123,7 +123,7 @@ Every ability listed below **retains** its existing name, category, and `permiss
 
 `suggested_redirect` present only when the deleted post was `publish` AND `force: true`.
 
-## `acrossai/read-file`
+## `file-manager/read-file`
 
 **Input schema (unchanged)**.
 
@@ -142,7 +142,7 @@ Every ability listed below **retains** its existing name, category, and `permiss
 
 `blocked_reason` values on refusal: `"protected_read"`, `"file_too_large"`, existing not-found / invalid-path.
 
-## `acrossai/delete-file`
+## `file-manager/delete-file`
 
 **Input schema (breaking)**:
 ```json

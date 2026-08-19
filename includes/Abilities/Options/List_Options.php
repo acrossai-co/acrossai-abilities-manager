@@ -28,7 +28,7 @@ class List_Options extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-options',
+			'name' => 'options/list-options',
 			'args' => array(
 				'label'               => __( 'List Options', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List wp_options rows. Defaults to names + autoload only; pass include_values=true to embed truncated option values.', 'acrossai-abilities-manager' ),

@@ -2,7 +2,7 @@
 /**
  * Structural tests for the Feature 062 Create_Role ability.
  *
- * Covers the acrossai/create-role ability under
+ * Covers the users/create-role ability under
  * includes/Abilities/Users/Create_Role.php plus bootstrap wiring.
  *
  * Source-inspection only, mirroring Test_Feature_057_Core_Reinstall — the
@@ -54,7 +54,7 @@ class Test_Create_Role extends WP_UnitTestCase {
 
 	public function test_ability_name_and_category(): void {
 		$src = $this->sources['create_role'];
-		$this->assertStringContainsString( "'acrossai/create-role'", $src );
+		$this->assertStringContainsString( "'users/create-role'", $src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-users'", $src );
 	}
 

@@ -27,7 +27,7 @@ class Update_Jet_Engine_Options_Page_Field extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-jet-engine-options-page-field',
+			'name' => 'content/update-jet-engine-options-page-field',
 			'args' => array(
 				'label'               => __( 'Update Options Page Field', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Write a single field value into a Jet Engine options page. The field value is stored inside the page\'s wp_options row.', 'acrossai-abilities-manager' ),

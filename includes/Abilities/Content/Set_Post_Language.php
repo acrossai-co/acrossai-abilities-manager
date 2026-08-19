@@ -27,7 +27,7 @@ class Set_Post_Language extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/set-post-language',
+			'name' => 'content/set-post-language',
 			'args' => array(
 				'label'               => __( 'Set Post Language', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Assign a language code to a post. Polylang uses pll_set_post_language(); WPML uses the wpml_set_element_language_details action.', 'acrossai-abilities-manager' ),

@@ -87,13 +87,13 @@ class Test_Feature_059_Recovery_Mode extends WP_UnitTestCase {
 	public static function ability_provider(): array {
 		return array(
 			//                        source-key,             slug,                                    readonly, destructive, idempotent
-			'get_status'          => array( 'get_status',          'acrossai/get-recovery-mode-status',   true,  false, true ),
-			'list_paused_plugins' => array( 'list_paused_plugins', 'acrossai/list-paused-plugins',        true,  false, true ),
-			'list_paused_themes'  => array( 'list_paused_themes',  'acrossai/list-paused-themes',         true,  false, true ),
-			'get_exit_url'        => array( 'get_exit_url',        'acrossai/get-recovery-exit-url',      true,  false, true ),
-			'unpause_plugin'      => array( 'unpause_plugin',      'acrossai/unpause-plugin',             false, true,  true ),
-			'unpause_theme'       => array( 'unpause_theme',       'acrossai/unpause-theme',              false, true,  true ),
-			'list_recent_fatal'   => array( 'list_recent_fatal',   'acrossai/list-recent-fatal-errors',   true,  false, true ),
+			'get_status'          => array( 'get_status',          'recovery/get-recovery-mode-status',   true,  false, true ),
+			'list_paused_plugins' => array( 'list_paused_plugins', 'recovery/list-paused-plugins',        true,  false, true ),
+			'list_paused_themes'  => array( 'list_paused_themes',  'recovery/list-paused-themes',         true,  false, true ),
+			'get_exit_url'        => array( 'get_exit_url',        'recovery/get-recovery-exit-url',      true,  false, true ),
+			'unpause_plugin'      => array( 'unpause_plugin',      'recovery/unpause-plugin',             false, true,  true ),
+			'unpause_theme'       => array( 'unpause_theme',       'recovery/unpause-theme',              false, true,  true ),
+			'list_recent_fatal'   => array( 'list_recent_fatal',   'recovery/list-recent-fatal-errors',   true,  false, true ),
 		);
 	}
 

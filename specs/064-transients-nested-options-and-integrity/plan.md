@@ -102,21 +102,21 @@ specs/064-transients-nested-options-and-integrity/
 includes/
 └── Abilities/
     ├── Cache/
-    │   ├── Get_Transient.php                 # NEW — acrossai/get-transient
-    │   ├── List_Transients.php               # NEW — acrossai/list-transients
-    │   ├── Delete_Transient.php              # NEW — acrossai/delete-transient
-    │   └── Delete_Expired_Transients.php     # NEW — acrossai/delete-expired-transients
+    │   ├── Get_Transient.php                 # NEW — cache/get-transient
+    │   ├── List_Transients.php               # NEW — cache/list-transients
+    │   ├── Delete_Transient.php              # NEW — cache/delete-transient
+    │   └── Delete_Expired_Transients.php     # NEW — cache/delete-expired-transients
     ├── Options/
-    │   ├── Get_Nested_Option_Value.php       # NEW — acrossai/get-nested-option-value
-    │   └── Patch_Option_Value.php            # NEW — acrossai/patch-option-value
+    │   ├── Get_Nested_Option_Value.php       # NEW — options/get-nested-option-value
+    │   └── Patch_Option_Value.php            # NEW — options/patch-option-value
     ├── Content/
-    │   └── Add_Post_Meta.php                 # NEW — acrossai/add-post-meta
+    │   └── Add_Post_Meta.php                 # NEW — content/add-post-meta
     ├── Plugins/
-    │   ├── Search_Wp_Plugin_Directory.php    # NEW — acrossai/search-wp-plugin-directory
-    │   ├── Uninstall_Plugin.php              # NEW — acrossai/uninstall-plugin
-    │   └── Verify_Plugin_Checksums.php       # NEW — acrossai/verify-plugin-checksums
+    │   ├── Search_Wp_Plugin_Directory.php    # NEW — plugins/search-wp-plugin-directory
+    │   ├── Uninstall_Plugin.php              # NEW — plugins/uninstall-plugin
+    │   └── Verify_Plugin_Checksums.php       # NEW — plugins/verify-plugin-checksums
     ├── Core/
-    │   └── Verify_Core_Checksums.php         # NEW — acrossai/verify-core-checksums
+    │   └── Verify_Core_Checksums.php         # NEW — core/verify-core-checksums
     └── AcrossAI_Core_Abilities_Bootstrap.php # MODIFIED — +11 instantiations
 
 tests/

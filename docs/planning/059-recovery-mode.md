@@ -21,17 +21,17 @@ The plugin today has:
 
 | Slug | Purpose | Core API |
 |---|---|---|
-| `acrossai/get-recovery-mode-status` | Detect if the site is currently in recovery mode + summary counters. | `wp_is_recovery_mode()`, `wp_paused_plugins()->get_all()`, `wp_paused_themes()->get_all()`, `wp_is_fatal_error_handler_enabled()` |
-| `acrossai/list-paused-plugins` | Enumerate every paused plugin with its captured error details. | `wp_paused_plugins()->get_all()` + enrichment via `Plugin_Helpers::resolve_plugin()` for the human plugin name |
-| `acrossai/list-paused-themes` | Symmetric for themes. | `wp_paused_themes()->get_all()` + `Theme_Helpers::resolve_theme()` |
-| `acrossai/get-recovery-exit-url` | Return the admin-clickable URL that exits recovery mode. Cannot programmatically exit (nonce + cookie guarded); this is the closest we can ship. | `wp_nonce_url( admin_url(), WP_Recovery_Mode::EXIT_ACTION )` — same pattern as `wp_recovery_mode_nag()` in `wp-admin/includes/update.php:1019` |
+| `recovery/get-recovery-mode-status` | Detect if the site is currently in recovery mode + summary counters. | `wp_is_recovery_mode()`, `wp_paused_plugins()->get_all()`, `wp_paused_themes()->get_all()`, `wp_is_fatal_error_handler_enabled()` |
+| `recovery/list-paused-plugins` | Enumerate every paused plugin with its captured error details. | `wp_paused_plugins()->get_all()` + enrichment via `Plugin_Helpers::resolve_plugin()` for the human plugin name |
+| `recovery/list-paused-themes` | Symmetric for themes. | `wp_paused_themes()->get_all()` + `Theme_Helpers::resolve_theme()` |
+| `recovery/get-recovery-exit-url` | Return the admin-clickable URL that exits recovery mode. Cannot programmatically exit (nonce + cookie guarded); this is the closest we can ship. | `wp_nonce_url( admin_url(), WP_Recovery_Mode::EXIT_ACTION )` — same pattern as `wp_recovery_mode_nag()` in `wp-admin/includes/update.php:1019` |
 
 ### Writes (2)
 
 | Slug | Purpose | Core API | Guards |
 |---|---|---|---|
-| `acrossai/unpause-plugin` | Clear the paused-storage entry so WP retries loading the plugin next request. Distinct from `deactivate-plugin` (which only flips `active_plugins`). | `wp_paused_plugins()->delete($slug)` + `Plugin_Helpers::resolve_plugin()` for fuzzy match | `manage_options` + `File_Mods_Guard::blocked_response()` |
-| `acrossai/unpause-theme` | Symmetric for themes. | `wp_paused_themes()->delete($slug)` + `Theme_Helpers::resolve_theme()` | same |
+| `recovery/unpause-plugin` | Clear the paused-storage entry so WP retries loading the plugin next request. Distinct from `deactivate-plugin` (which only flips `active_plugins`). | `wp_paused_plugins()->delete($slug)` + `Plugin_Helpers::resolve_plugin()` for fuzzy match | `manage_options` + `File_Mods_Guard::blocked_response()` |
+| `recovery/unpause-theme` | Symmetric for themes. | `wp_paused_themes()->delete($slug)` + `Theme_Helpers::resolve_theme()` | same |
 
 Annotations: `destructive: true, idempotent: true` (unpausing an already-unpaused extension is a no-op).
 
@@ -39,7 +39,7 @@ Annotations: `destructive: true, idempotent: true` (unpausing an already-unpause
 
 | Slug | Purpose | Notes |
 |---|---|---|
-| `acrossai/list-recent-fatal-errors` | Parse `debug.log` and return only PHP Fatal / Parse / Compile errors, grouped by signature (`type + file + line + message`), with `since_days` and `limit` inputs. | Streams the file line-by-line (don't `file_get_contents` — logs can be huge). Reuses log-path + `WP_DEBUG_LOG`-enabled guard from `Read_Debug_Log.php:90-101`. |
+| `recovery/list-recent-fatal-errors` | Parse `debug.log` and return only PHP Fatal / Parse / Compile errors, grouped by signature (`type + file + line + message`), with `since_days` and `limit` inputs. | Streams the file line-by-line (don't `file_get_contents` — logs can be huge). Reuses log-path + `WP_DEBUG_LOG`-enabled guard from `Read_Debug_Log.php:90-101`. |
 
 Inputs:
 - `since_days` (int, default 7, max 90)
@@ -67,8 +67,8 @@ Sorted by `last_seen` desc.
 
 Append one sentence to the `description` of four existing abilities so agents know they work in recovery mode:
 
-- `acrossai/activate-plugin`, `acrossai/deactivate-plugin`
-- `acrossai/activate-theme`, `acrossai/deactivate-theme`
+- `plugins/activate-plugin`, `plugins/deactivate-plugin`
+- `themes/activate-theme`, `acrossai/deactivate-theme`
 
 Text: *"Works in recovery mode; only updates the active-plugins/themes option, does not load the extension file."*
 

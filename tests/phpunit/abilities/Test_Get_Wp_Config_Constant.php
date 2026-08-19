@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/get-wp-config-constant ability.
+ * Structural tests for the Feature 063 file-manager/get-wp-config-constant ability.
  *
  * Verifies (a) the class scaffolding, (b) the nine hardcoded blocked
  * constants match the spec-required set exactly, (c) the block-list
@@ -40,7 +40,7 @@ class Test_Get_Wp_Config_Constant extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/get-wp-config-constant'", $this->src );
+		$this->assertStringContainsString( "'file-manager/get-wp-config-constant'", $this->src );
 	}
 
 	public function test_targets_the_file_manager_category(): void {

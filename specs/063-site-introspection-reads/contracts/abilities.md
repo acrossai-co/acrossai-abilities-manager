@@ -12,7 +12,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 
 ---
 
-## 1. `acrossai/get-wp-version`
+## 1. `core/get-wp-version`
 
 **Category**: `acrossai-abilities-manager-core`
 **Input**: `{}` (no properties, `additionalProperties: false`).
@@ -21,7 +21,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 { "success": bool, "version": string, "is_multisite": bool, "message": string }
 ```
 
-## 2. `acrossai/get-db-prefix`
+## 2. `database/get-db-prefix`
 
 **Category**: `acrossai-abilities-manager-db`
 **Input**: `{}`.
@@ -30,7 +30,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 { "success": bool, "prefix": string, "base_prefix": string, "message": string }
 ```
 
-## 3. `acrossai/get-wp-config-constant`
+## 3. `file-manager/get-wp-config-constant`
 
 **Category**: `acrossai-abilities-manager-files`
 **Input**:
@@ -60,7 +60,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 ```
 `blocked_reason = "sensitive_constant"` when the caller requests any name in the block-list.
 
-## 4. `acrossai/list-theme-mods`
+## 4. `themes/list-theme-mods`
 
 **Category**: `acrossai-abilities-manager-themes`
 **Input**: `{}`.
@@ -69,7 +69,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 { "success": bool, "theme": string, "mods": object, "message": string }
 ```
 
-## 5. `acrossai/list-rewrite-rules`
+## 5. `settings/list-rewrite-rules`
 
 **Category**: `acrossai-abilities-manager-settings`
 **Input**: `{}`.
@@ -78,7 +78,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 { "success": bool, "rules": object, "count": integer, "message": string }
 ```
 
-## 6. `acrossai/list-widgets`
+## 6. `widgets/list-widgets`
 
 **Category**: `acrossai-abilities-manager-widgets`
 **Input**: `{}`.
@@ -92,7 +92,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 }
 ```
 
-## 7. `acrossai/list-sidebars`
+## 7. `widgets/list-sidebars`
 
 **Category**: `acrossai-abilities-manager-widgets`
 **Input**: `{}`.
@@ -115,7 +115,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 }
 ```
 
-## 8. `acrossai/list-image-sizes`
+## 8. `media/list-image-sizes`
 
 **Category**: `acrossai-abilities-manager-media`
 **Input**: `{}`.
@@ -130,7 +130,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 }
 ```
 
-## 9. `acrossai/get-comment-count`
+## 9. `comments/get-comment-count`
 
 **Category**: `acrossai-abilities-manager-comments`
 **Input**:
@@ -159,7 +159,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 }
 ```
 
-## 10. `acrossai/get-maintenance-mode-status`
+## 10. `site-health/get-maintenance-mode-status`
 
 **Category**: `acrossai-abilities-manager-health`
 **Input**: `{}`.
@@ -175,7 +175,7 @@ Every ability declares `readonly: true, idempotent: true, destructive: false` in
 ```
 `since` and `is_stale` present only when `active: true`.
 
-## 11. `acrossai/test-wp-cron`
+## 11. `cron/test-wp-cron`
 
 **Category**: `acrossai-abilities-manager-cron`
 **Input**: `{}`.

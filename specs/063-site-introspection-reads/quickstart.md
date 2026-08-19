@@ -14,26 +14,26 @@ Steps to verify the feature end-to-end on the local WP install (`wordpress-7-0`)
 ```bash
 # WordPress version
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/get-wp-version/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/core/get-wp-version/run
 # Expected: { "success": true, "version": "7.0", "is_multisite": false, ... }
 
 # Database prefix
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/get-db-prefix/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/database/get-db-prefix/run
 # Expected: { "success": true, "prefix": "wp_", "base_prefix": "wp_", ... }
 
 # Defined wp-config constant
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"constant":"WP_DEBUG"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/get-wp-config-constant/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/file-manager/get-wp-config-constant/run
 # Expected: { "success": true, "defined": true, "value": true, ... }
 
 # Blocked constant — must be refused
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"constant":"AUTH_KEY"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/get-wp-config-constant/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/file-manager/get-wp-config-constant/run
 # Expected: { "success": false, "blocked_reason": "sensitive_constant", ... }
 ```
 
@@ -41,21 +41,21 @@ curl -u admin:APP_PASSWORD -X POST \
 
 ```bash
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/list-theme-mods/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/themes/list-theme-mods/run
 # Expected: { "success": true, "theme": "twentytwentyfive", "mods": { ... } }
 
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/list-rewrite-rules/run \
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/settings/list-rewrite-rules/run \
   | jq '.count'
 # Expected: a positive integer if permalinks have been flushed
 
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/list-sidebars/run \
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/widgets/list-sidebars/run \
   | jq '.sidebars | length'
 # Expected: the count of registered sidebars from the active theme
 
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/list-widgets/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/widgets/list-widgets/run
 # Expected: per-sidebar widget lists + registered widgets registry
 ```
 
@@ -63,12 +63,12 @@ curl -u admin:APP_PASSWORD \
 
 ```bash
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/list-image-sizes/run \
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/media/list-image-sizes/run \
   | jq '.sizes[] | select(.name=="thumbnail")'
 # Expected: { "name": "thumbnail", "width": 150, "height": 150, "crop": true }
 
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/get-comment-count/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/comments/get-comment-count/run
 # Expected site-wide: { "success": true, "counts": { "approved": …, "spam": …, "total_comments": … } }
 ```
 
@@ -77,14 +77,14 @@ curl -u admin:APP_PASSWORD \
 ```bash
 # When the site is NOT upgrading
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/get-maintenance-mode-status/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/site-health/get-maintenance-mode-status/run
 # Expected: { "success": true, "active": false, ... }
 
 # Simulate upgrade (from the plugin root, as WP-CLI or manual touch)
 echo "<?php \$upgrading = time(); ?>" > /path/to/wordpress-7-0/app/public/.maintenance
 
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/get-maintenance-mode-status/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/site-health/get-maintenance-mode-status/run
 # Expected: { "success": true, "active": true, "since": <unix>, "is_stale": false, ... }
 
 rm /path/to/wordpress-7-0/app/public/.maintenance
@@ -94,7 +94,7 @@ rm /path/to/wordpress-7-0/app/public/.maintenance
 
 ```bash
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/test-wp-cron/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/cron/test-wp-cron/run
 # Expected on Local: { "success": true, "reachable": true, "disable_wp_cron": false, ... }
 ```
 

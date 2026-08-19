@@ -26,7 +26,7 @@ class List_Menu_Items extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-menu-items',
+			'name' => 'menus/list-menu-items',
 			'args' => array(
 				'label'               => __( 'List Menu Items', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List menu items via GET /wp/v2/menu-items. Use menus={id} to scope to a single menu.', 'acrossai-abilities-manager' ),

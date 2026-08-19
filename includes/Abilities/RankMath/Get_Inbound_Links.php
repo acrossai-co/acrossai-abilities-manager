@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * Deliberately the OPPOSITE direction from everything else available. Rank Math's
  * rank-math/get-post-links lists links going out of a post and is PRO-dependent for
- * much of its data; the plugin's own acrossai/find-internal-links also parses outbound
+ * much of its data; the plugin's own content-search/find-internal-links also parses outbound
  * links. Neither answers "which pages link TO this one", which is the question that
  * matters for internal-linking work — and neither counts navigation-menu links at all.
  *
@@ -37,7 +37,7 @@ class Get_Inbound_Links extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Build an inbound internal-link graph: which published pages link TO a given page, including links from navigation menus. This is the opposite direction from Rank Math\'s rank-math/get-post-links and the plugin\'s acrossai/find-internal-links, which both list outbound links. Pass a target to inspect one page, or omit it to rank every linked page by inbound count and find orphans.', 'acrossai-abilities-manager' );
+		return __( 'Build an inbound internal-link graph: which published pages link TO a given page, including links from navigation menus. This is the opposite direction from Rank Math\'s rank-math/get-post-links and the plugin\'s content-search/find-internal-links, which both list outbound links. Pass a target to inspect one page, or omit it to rank every linked page by inbound count and find orphans.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

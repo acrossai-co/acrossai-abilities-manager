@@ -26,7 +26,7 @@ class List_Cpt_Items extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-cpt-items',
+			'name' => 'content/list-cpt-items',
 			'args' => array(
 				'label'               => __( 'Get CPT Items', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List custom post type records via WP_Query. post_type is required.', 'acrossai-abilities-manager' ),

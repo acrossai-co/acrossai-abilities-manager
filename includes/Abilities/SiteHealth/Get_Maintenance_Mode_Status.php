@@ -35,7 +35,7 @@ class Get_Maintenance_Mode_Status extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-maintenance-mode-status',
+			'name' => 'site-health/get-maintenance-mode-status',
 			'args' => array(
 				'label'               => __( 'Get Maintenance Mode Status', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Report whether the .maintenance marker file exists and, when active, its creation timestamp plus a stale flag matching WordPress core\'s 10-minute threshold.', 'acrossai-abilities-manager' ),

@@ -32,4 +32,4 @@
 
 - Breaking changes intentionally shipped: `delete-media` and `delete-file` now require `confirm: true`; `read-file` output `content` field is omitted when the file is binary or oversized (in favour of `binary: true` + `blocked_reason: 'file_too_large'`). Documented in Assumptions.
 - Extensibility of the protected-plugin list via a filter is deferred — hardcoded in this feature.
-- Rename / redesign of `acrossai/edit-file` is deferred — deserves its own spec.
+- Rename / redesign of `file-manager/edit-file` is deferred — deserves its own spec.

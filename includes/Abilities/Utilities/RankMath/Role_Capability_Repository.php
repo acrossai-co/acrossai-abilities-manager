@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
  * registered role and removes each Rank Math capability absent from the payload
  * (includes/helpers/class-wordpress.php:219), so a partial payload silently strips
  * capabilities from roles the caller never mentioned. The plugin already ships
- * acrossai/add-role-capability and acrossai/remove-role-capability, which write one
+ * users/add-role-capability and users/remove-role-capability, which write one
  * capability at a time and cannot trigger that — and rank_math_* capabilities are
  * ordinary WordPress capabilities, so those abilities work on them directly.
  *
@@ -124,7 +124,7 @@ final class Role_Capability_Repository {
 	/**
 	 * Restore Rank Math's default capability distribution for every role.
 	 *
-	 * Distinct from the plugin's acrossai/reset-role, which restores a role to its
+	 * Distinct from the plugin's users/reset-role, which restores a role to its
 	 * WordPress defaults and would therefore strip Rank Math capabilities rather
 	 * than restore them.
 	 *

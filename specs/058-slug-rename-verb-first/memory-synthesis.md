@@ -36,4 +36,4 @@ Modules touched: entire `includes/Abilities/**` tree (166 files), `includes/Modu
 ## Follow-ups Deferred to Future Features
 
 - **Redundant `db-` inside Database slugs** (e.g. `run-db-select-query`, `get-db-stats`, `list-db-tables`) — proposed follow-up in the design conversation. Not shipped in 058 because it would be another breaking change on top of an already-breaking release. Candidate for a 059+ pass if the plugin's user base grows and slug economy becomes worth another rev.
-- **Class file rename for the 56 unchanged-suffix abilities** — those files (e.g. `Approve_Comment.php` for slug `acrossai/approve-comment`) are already verb-first because their pre-058 slugs already were. No rename needed. Zero action item.
+- **Class file rename for the 56 unchanged-suffix abilities** — those files (e.g. `Approve_Comment.php` for slug `comments/approve-comment`) are already verb-first because their pre-058 slugs already were. No rename needed. Zero action item.

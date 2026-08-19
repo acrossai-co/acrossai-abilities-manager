@@ -26,7 +26,7 @@ class Unapprove_Comment extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/unapprove-comment',
+			'name' => 'comments/unapprove-comment',
 			'args' => array(
 				'label'               => __( 'Unapprove Comment', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Send a comment back to the moderation queue via POST /wp/v2/comments/{id} with status=hold.', 'acrossai-abilities-manager' ),

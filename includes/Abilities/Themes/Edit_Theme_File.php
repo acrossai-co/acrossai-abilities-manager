@@ -27,7 +27,7 @@ class Edit_Theme_File extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/edit-theme-file',
+			'name' => 'themes/edit-theme-file',
 			'args' => array(
 				'label'               => __( 'Create or Overwrite Theme File', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Creates a new file or overwrites an existing one inside a theme directory. Parent directory must already exist. Defaults to the active theme.', 'acrossai-abilities-manager' ),

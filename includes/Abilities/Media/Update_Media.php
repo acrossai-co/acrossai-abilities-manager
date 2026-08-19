@@ -26,7 +26,7 @@ class Update_Media extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-media',
+			'name' => 'media/update-media',
 			'args' => array(
 				'label'               => __( 'Update Media', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update an attachment\'s title, caption, description, or alt text via POST /wp/v2/media/{id}.', 'acrossai-abilities-manager' ),

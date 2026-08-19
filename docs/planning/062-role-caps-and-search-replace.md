@@ -19,13 +19,13 @@ Slug convention per `DEC-SLUG-CONVENTION-VERB-FIRST` (Feature 058): `acrossai/<v
 
 | Slug | Purpose | Core API | Guards |
 |---|---|---|---|
-| `acrossai/add-role-capability` | Grant one capability to a role. | `WP_Role::add_cap()` via `get_role( $role )` | Role must exist. |
-| `acrossai/remove-role-capability` | Revoke one capability from a role. | `WP_Role::remove_cap()` | Refuse if `role === 'administrator'` AND `capability` is in the WP-core administrator baseline (hardcode the well-known ~52-cap list from `wp-admin/includes/schema.php::populate_roles_270()` as `const CORE_ADMIN_CAPS`). Prevents accidentally locking the site owner out. |
-| `acrossai/create-role` | Create a new custom role, optionally seeded from an existing one. | `add_role( $slug, $display_name, $caps )` — when `clone_from` is set, seed caps from `get_role($clone_from)->capabilities`. | Slug must not already exist. |
-| `acrossai/delete-role` | Remove a role. | `remove_role( $slug )` | (a) Refuse if slug is in `DEFAULT_ROLES` (`administrator/editor/author/contributor/subscriber`); (b) refuse if any user currently holds the role (probe via `get_users(['role' => $slug, 'number' => 1, 'fields' => 'ID'])`). |
-| `acrossai/reset-role` | Restore a WP-core role's default capabilities. | `remove_role()` + `populate_roles()` (target-scoped by removing the role first, then re-populating; a single-role `populate_roles_<version>()` helper is not exposed by core, so the "remove-then-re-add via populate_roles()" pattern is the safe approach). | Only allowed for slugs in `DEFAULT_ROLES`. Reject otherwise. |
-| `acrossai/add-user-capability` | Grant one capability directly to a user. | `WP_User::add_cap()` | User must exist. |
-| `acrossai/remove-user-capability` | Revoke one capability directly from a user. | `WP_User::remove_cap()` | If capability is in `CORE_ADMIN_CAPS` AND the target user is the last remaining administrator, reject. Count via `get_users(['role' => 'administrator', 'fields' => 'ID'])`. |
+| `users/add-role-capability` | Grant one capability to a role. | `WP_Role::add_cap()` via `get_role( $role )` | Role must exist. |
+| `users/remove-role-capability` | Revoke one capability from a role. | `WP_Role::remove_cap()` | Refuse if `role === 'administrator'` AND `capability` is in the WP-core administrator baseline (hardcode the well-known ~52-cap list from `wp-admin/includes/schema.php::populate_roles_270()` as `const CORE_ADMIN_CAPS`). Prevents accidentally locking the site owner out. |
+| `users/create-role` | Create a new custom role, optionally seeded from an existing one. | `add_role( $slug, $display_name, $caps )` — when `clone_from` is set, seed caps from `get_role($clone_from)->capabilities`. | Slug must not already exist. |
+| `users/delete-role` | Remove a role. | `remove_role( $slug )` | (a) Refuse if slug is in `DEFAULT_ROLES` (`administrator/editor/author/contributor/subscriber`); (b) refuse if any user currently holds the role (probe via `get_users(['role' => $slug, 'number' => 1, 'fields' => 'ID'])`). |
+| `users/reset-role` | Restore a WP-core role's default capabilities. | `remove_role()` + `populate_roles()` (target-scoped by removing the role first, then re-populating; a single-role `populate_roles_<version>()` helper is not exposed by core, so the "remove-then-re-add via populate_roles()" pattern is the safe approach). | Only allowed for slugs in `DEFAULT_ROLES`. Reject otherwise. |
+| `users/add-user-capability` | Grant one capability directly to a user. | `WP_User::add_cap()` | User must exist. |
+| `users/remove-user-capability` | Revoke one capability directly from a user. | `WP_User::remove_cap()` | If capability is in `CORE_ADMIN_CAPS` AND the target user is the last remaining administrator, reject. Count via `get_users(['role' => 'administrator', 'fields' => 'ID'])`. |
 
 Annotations for all seven: `destructive: true`. `idempotent: true` for `add-*-capability` / `remove-*-capability` (WP core `add_cap`/`remove_cap` are idempotent); `false` for `create-role` / `delete-role` / `reset-role`.
 
@@ -33,7 +33,7 @@ Annotations for all seven: `destructive: true`. `idempotent: true` for `add-*-ca
 
 | Slug | Purpose | Core API | Guards |
 |---|---|---|---|
-| `acrossai/search-replace` | Site-wide serialized-data-safe string replacement across the database. Mirrors the input surface of the well-known WP-CLI operation. | `$wpdb->get_results()` per table + `maybe_unserialize()` recursive walk + `maybe_serialize()` + `$wpdb->update()`. | `dry_run: bool = true` (defaults to true — must be explicitly set to false to execute). Table allowlist via `$wpdb->get_col('SHOW TABLES')` mirroring `Update_Db_Rows.php:156–166`. `--skip-columns` / `--skip-tables` honored. `include_guids` defaults to false (safer default than WP-CLI). |
+| `database/search-replace` | Site-wide serialized-data-safe string replacement across the database. Mirrors the input surface of the well-known WP-CLI operation. | `$wpdb->get_results()` per table + `maybe_unserialize()` recursive walk + `maybe_serialize()` + `$wpdb->update()`. | `dry_run: bool = true` (defaults to true — must be explicitly set to false to execute). Table allowlist via `$wpdb->get_col('SHOW TABLES')` mirroring `Update_Db_Rows.php:156–166`. `--skip-columns` / `--skip-tables` honored. `include_guids` defaults to false (safer default than WP-CLI). |
 
 **Input schema:**
 ```json

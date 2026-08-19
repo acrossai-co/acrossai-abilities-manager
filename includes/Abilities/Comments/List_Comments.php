@@ -26,7 +26,7 @@ class List_Comments extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-comments',
+			'name' => 'comments/list-comments',
 			'args' => array(
 				'label'               => __( 'List Comments', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List comments via GET /wp/v2/comments. Supports search, post filter, status filter, and pagination.', 'acrossai-abilities-manager' ),

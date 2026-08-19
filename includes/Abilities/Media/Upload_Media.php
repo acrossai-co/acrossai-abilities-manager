@@ -32,7 +32,7 @@ class Upload_Media extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/upload-media',
+			'name' => 'media/upload-media',
 			'args' => array(
 				'label'               => __( 'Upload Media', 'acrossai-abilities-manager' ),
 				'description'         => __( "Sideload an attachment into the Media Library via media_handle_sideload(). Pass ONE of: \"url\" (remote HTTP(S) fetch), \"path\" (existing file relative to ABSPATH), or \"data\" (base64 bytes — supply \"filename\" or \"mime_type\" for a valid extension). Optionally attach to a post via \"post_id\".\n\nChunked \"data\" (for payloads too large for one tool call): pair \"data\" with a \"chunk\" object. Recipe:\n  1. Pick session_id matching [A-Za-z0-9_-]{8,64}.\n  2. base64-encode the file; split into pieces of ≤ 8 MB of base64 text each (~6 MB decoded). Total session ≤ 64 MB base64.\n  3. For k = 0..N-1, call upload-media with data=<piece_k> and chunk={session_id, index:k, is_final:(k == N-1)}.\n  4. Chunks MUST arrive in strict sequential order — out-of-order discards the session.\n  5. Pass filename / mime_type / post_id / title / alt_text / description / caption on the FINAL call only — mid-stream calls ignore them.\n\nNon-final responses: {success:true, session_id, chunk_received, bytes_staged}. Final response: {success:true, id, media}.", 'acrossai-abilities-manager' ),
@@ -492,7 +492,7 @@ class Upload_Media extends Ability_Definition {
 
 		$hint_ability = sprintf(
 			/* translators: 1: extension, 2: guessed MIME */
-			__( 'To fix: call acrossai/update-upload-mime-types with {"add":{"%1$s":"%2$s"}} and then retry this upload.', 'acrossai-abilities-manager' ),
+			__( 'To fix: call media/update-upload-mime-types with {"add":{"%1$s":"%2$s"}} and then retry this upload.', 'acrossai-abilities-manager' ),
 			$ext,
 			$this->guess_mime_for_ext( $ext )
 		);

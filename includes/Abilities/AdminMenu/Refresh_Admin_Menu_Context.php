@@ -27,7 +27,7 @@ class Refresh_Admin_Menu_Context extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/refresh-admin-menu-context',
+			'name' => 'admin-menu/refresh-admin-menu-context',
 			'args' => array(
 				'label'               => __( 'Refresh Admin Menu Context', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Refresh admin-menu-derived transient/user-meta signals: clears the "wp_get_active_and_valid_plugins" object-cache row, clears the current user\'s meta caches, and requests a rewrite flush. Cheap; safe to poll.', 'acrossai-abilities-manager' ),

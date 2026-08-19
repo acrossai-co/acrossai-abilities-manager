@@ -27,7 +27,7 @@ class Get_Navigation_Context extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-navigation-context',
+			'name' => 'menus/get-navigation-context',
 			'args' => array(
 				'label'               => __( 'Get Navigation Context', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return one envelope containing every nav menu (id, name, item count) and every theme-registered nav-menu location, with the location→menu assignments resolved.', 'acrossai-abilities-manager' ),

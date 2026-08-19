@@ -29,7 +29,7 @@ class Get_Wp_Version extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-wp-version',
+			'name' => 'core/get-wp-version',
 			'args' => array(
 				'label'               => __( 'Get WordPress Version', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the currently-installed WordPress core version string and a boolean indicating whether the install is multisite.', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Assign_Cpt_Terms extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/assign-cpt-terms',
+			'name' => 'taxonomies/assign-cpt-terms',
 			'args' => array(
 				'label'               => __( 'Assign Terms', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Set or append terms on a post in a given taxonomy via wp_set_object_terms(). Term IDs or slugs may be mixed.', 'acrossai-abilities-manager' ),

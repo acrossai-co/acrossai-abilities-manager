@@ -27,7 +27,7 @@ class Clear_Debug_Log extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/clear-debug-log',
+			'name' => 'file-manager/clear-debug-log',
 			'args' => array(
 				'label'               => __( 'Clear Debug Log', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Truncates wp-content/debug.log to zero bytes.', 'acrossai-abilities-manager' ),

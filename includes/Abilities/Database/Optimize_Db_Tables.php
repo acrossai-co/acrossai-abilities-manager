@@ -26,7 +26,7 @@ class Optimize_Db_Tables extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/optimize-db-tables',
+			'name' => 'database/optimize-db-tables',
 			'args' => array(
 				'label'               => __( 'Optimize Database Tables', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Runs OPTIMIZE TABLE on the specified tables. Defaults to all WordPress-prefixed tables when no tables are provided. Reclaims unused space and defragments data files.', 'acrossai-abilities-manager' ),

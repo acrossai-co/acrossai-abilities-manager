@@ -1,6 +1,6 @@
 <?php
 /**
- * Ability class for acrossai/add-user-capability (Feature 062).
+ * Ability class for users/add-user-capability (Feature 062).
  *
  * Grants a single capability directly to an individual user via
  * WP_User::add_cap(). Overrides the user's role-derived permissions
@@ -33,7 +33,7 @@ class Add_User_Capability extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/add-user-capability',
+			'name' => 'users/add-user-capability',
 			'args' => array(
 				'label'               => __( 'Add User Capability', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Grant a single capability directly to a specific user, overriding role-derived permissions for that capability only.', 'acrossai-abilities-manager' ),

@@ -39,7 +39,7 @@ An administrator inspecting the Custom Abilities admin page or a developer/AI-ag
 **Acceptance Scenarios**:
 
 1. **Given** a fresh 0.0.16 install, **When** the administrator loads the Custom Abilities page, **Then** every visible ability slug shows `acrossai/<verb>-<subject>` form.
-2. **Given** the ability with label "Get Site Title", **When** the client queries its slug, **Then** the returned name is `acrossai/get-site-title` (not `acrossai/site-title-get`).
+2. **Given** the ability with label "Get Site Title", **When** the client queries its slug, **Then** the returned name is `settings/get-site-title` (not `acrossai/site-title-get`).
 3. **Given** any category (e.g. Plugins, Themes, Content, Comments), **When** slugs within that category are enumerated, **Then** every slug in that category follows the same verb-first form — no outliers.
 
 ---
@@ -50,7 +50,7 @@ An AI agent enumerating ability tools over MCP receives a tool manifest whose na
 
 **Why this priority**: Token overhead on tool manifests is real but non-blocking. The namespace could have stayed long if the user preferred; shortening is an ergonomic + convention-alignment win. Ship-alone value: for a very-few-users release, saving a few KB per manifest and matching WP core's shorter-namespace pattern is worthwhile.
 
-**Independent Test**: `curl /wp-json/wp-abilities/v1/abilities/acrossai/get-site-title/run` returns the site title. All 219 slugs answer under the `acrossai/` prefix; zero answer under the old `acrossai-abilities-manager/` prefix.
+**Independent Test**: `curl /wp-json/wp-abilities/v1/abilities/settings/get-site-title/run` returns the site title. All 219 slugs answer under the `acrossai/` prefix; zero answer under the old `acrossai-abilities-manager/` prefix.
 
 **Acceptance Scenarios**:
 
@@ -65,26 +65,26 @@ An administrator opening the ability edit drawer sees the Slug input rendered as
 
 **Why this priority**: The pre-0.0.16 UI hardcoded `SLUG_PREFIX = 'acrossai-abilities/'` (wrong for every registered ability). Because the strip logic couldn't match the wrong prefix, it fell through and showed the entire slug in the input. Fixing the constant to `acrossai/` (matching the actual registered prefix) restores the intended UX.
 
-**Independent Test**: Open the edit drawer for `acrossai/get-admin-menu-context`. Confirm the prefix addon shows `acrossai/` and the input shows `get-admin-menu-context` (no `acrossai/` inside the input).
+**Independent Test**: Open the edit drawer for `admin-menu/get-admin-menu-context`. Confirm the prefix addon shows `acrossai/` and the input shows `get-admin-menu-context` (no `acrossai/` inside the input).
 
 **Acceptance Scenarios**:
 
-1. **Given** an ability whose slug is `acrossai/get-site-title`, **When** its edit drawer opens, **Then** the prefix addon shows `acrossai/` and the input shows `get-site-title`.
+1. **Given** an ability whose slug is `settings/get-site-title`, **When** its edit drawer opens, **Then** the prefix addon shows `acrossai/` and the input shows `get-site-title`.
 2. **Given** the administrator edits the suffix to `get-site-title-x` and saves, **Then** the persisted ability_slug is `acrossai/get-site-title-x` (prefix injected server-side, not duplicated).
 
 ---
 
 ### User Story 4 — Internal file structure matches slug word order (Priority: P3)
 
-A future maintainer opening `includes/Abilities/Settings/Get_Site_Title.php` finds a `class Get_Site_Title` that registers slug `acrossai/get-site-title`. Class name, file name, and slug all read the same word order — no cognitive gap between the internal implementation and the external API.
+A future maintainer opening `includes/Abilities/Settings/Get_Site_Title.php` finds a `class Get_Site_Title` that registers slug `settings/get-site-title`. Class name, file name, and slug all read the same word order — no cognitive gap between the internal implementation and the external API.
 
 **Why this priority**: Internal-only quality-of-life. External API is unaffected. Ship-alone value: makes code review + grep-by-slug easier for future work.
 
-**Independent Test**: For every renamed ability, verify the file name = class name = `<verb>-<subject>` capitalised with underscores (e.g. `Get_Site_Title.php` contains `class Get_Site_Title` registering `acrossai/get-site-title`).
+**Independent Test**: For every renamed ability, verify the file name = class name = `<verb>-<subject>` capitalised with underscores (e.g. `Get_Site_Title.php` contains `class Get_Site_Title` registering `settings/get-site-title`).
 
 **Acceptance Scenarios**:
 
-1. **Given** a slug `acrossai/activate-theme`, **When** its class file is located, **Then** the path is `includes/Abilities/Themes/Activate_Theme.php` and the class inside is `class Activate_Theme`.
+1. **Given** a slug `themes/activate-theme`, **When** its class file is located, **Then** the path is `includes/Abilities/Themes/Activate_Theme.php` and the class inside is `class Activate_Theme`.
 2. **Given** the codebase after this release, **When** `find includes/Abilities -name '*_Get.php' -o -name '*_Update.php'` is run, **Then** results only include files whose slugs happen to end with those verbs (e.g. `Update_Wp_Core.php`), not subject-first artefacts.
 
 ---
@@ -111,7 +111,7 @@ A future maintainer opening `includes/Abilities/Settings/Get_Site_Title.php` fin
 - **FR-006**: For each of the 163 renamed slugs, the corresponding PHP class file under `includes/Abilities/<Category>/` MUST be renamed to match the new slug (`Site_Title_Get.php` → `Get_Site_Title.php`) and the `class X` declaration inside MUST match the new file name. PSR-4 autoload picks up the new files automatically.
 - **FR-007**: `AcrossAI_Core_Abilities_Bootstrap::register_abilities()` MUST reference every ability class by its new verb-first name (`new Settings\Get_Site_Title()`).
 - **FR-008**: All PHPUnit test fixtures and helper files that reference an ability class by name MUST use the new class name.
-- **FR-009**: All PHPUnit / Jest test fixtures that embed a slug string literal MUST use the new form (`acrossai/get-site-title`).
+- **FR-009**: All PHPUnit / Jest test fixtures that embed a slug string literal MUST use the new form (`settings/get-site-title`).
 - **FR-010**: The plugin's REST admin namespace MUST change from `acrossai-abilities-manager/v1` to `acrossai/v1`; the client-side `abilitiesConfig.rest_namespace` in `admin/Main.php` MUST match; the constant `REST_NAMESPACE` in the two REST-controller classes MUST match.
 - **FR-011**: `admin/Main.php::plugin_action_links()` MUST compare the incoming `$file` against the plugin's actual `plugin_basename` value `'acrossai-abilities-manager/acrossai-abilities-manager.php'` (unchanged — this is a filesystem identifier, not a slug).
 - **FR-012**: The plugin version MUST bump to `0.0.16` in three places: `acrossai-abilities-manager.php` plugin header, `ACROSSAI_ABILITIES_MANAGER_VERSION` constant, and `README.txt` stable-tag.
@@ -137,7 +137,7 @@ A future maintainer opening `includes/Abilities/Settings/Get_Site_Title.php` fin
 - **SC-003**: PHPUnit 170/170 pass after every commit in the branch.
 - **SC-004**: Every ability class file's basename matches the class inside it (`grep -oE '^(?:final |abstract )?class \w+' includes/Abilities/**/*.php | awk -F: '{gsub("^class ", "", $2); split($1, a, "/"); n = a[length(a)]; sub(/\.php$/, "", n); if (n != $2 && n != "Category_Registrar" && n != "Ability_Definition") print $1}'` returns empty).
 - **SC-005**: The Slug input on the ability edit form renders `acrossai/` as the prefix addon and the suffix-only in the input field. Manual verification via browser.
-- **SC-006**: `curl /wp-json/wp-abilities/v1/abilities/acrossai/get-site-title/run` (with auth) returns the site title.
+- **SC-006**: `curl /wp-json/wp-abilities/v1/abilities/settings/get-site-title/run` (with auth) returns the site title.
 - **SC-007**: `grep -rn "Slug_Rename_Migration_058\|slug_rename_058_done" includes admin uninstall.php src tests README.txt` returns zero results (migration fully removed).
 
 ## Assumptions

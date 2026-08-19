@@ -29,7 +29,7 @@ class Get_Site_Health_Info extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-site-health-info',
+			'name' => 'site-health/get-site-health-info',
 			'args' => array(
 				'label'               => __( 'Get Site Health Info', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the Site Health Info report (WP_Debug_Data::debug_data()) — server, database, WordPress, themes, plugins, media, filesystem, constants and paths/sizes. Optionally filter to specific sections.', 'acrossai-abilities-manager' ),

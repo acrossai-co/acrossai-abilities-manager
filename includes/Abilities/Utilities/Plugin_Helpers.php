@@ -62,14 +62,14 @@ class Plugin_Helpers {
 				$actions[] = array(
 					'label'        => $plugin['name'],
 					'button_label' => __( 'Deactivate', 'acrossai-abilities-manager' ),
-					'action'       => 'acrossai/deactivate-plugin',
+					'action'       => 'plugins/deactivate-plugin',
 					'args'         => array( 'plugin' => $plugin['slug'] ),
 				);
 			} else {
 				$actions[] = array(
 					'label'        => $plugin['name'],
 					'button_label' => __( 'Activate', 'acrossai-abilities-manager' ),
-					'action'       => 'acrossai/activate-plugin',
+					'action'       => 'plugins/activate-plugin',
 					'args'         => array( 'plugin' => $plugin['slug'] ),
 				);
 			}
@@ -276,7 +276,7 @@ class Plugin_Helpers {
 			return self::build_candidate_response(
 				$resolved,
 				$plugin_identifier,
-				'acrossai/activate-plugin',
+				'plugins/activate-plugin',
 				__( 'Activate', 'acrossai-abilities-manager' )
 			);
 		}
@@ -351,7 +351,7 @@ class Plugin_Helpers {
 			return self::build_candidate_response(
 				$resolved,
 				$plugin_identifier,
-				'acrossai/deactivate-plugin',
+				'plugins/deactivate-plugin',
 				__( 'Deactivate', 'acrossai-abilities-manager' )
 			);
 		}
@@ -396,7 +396,7 @@ class Plugin_Helpers {
 	 *
 	 * @param array  $resolved       Result from resolve_plugin().
 	 * @param string $original_input The user's original input string.
-	 * @param string $action_id      Ability action ID (e.g. "acrossai/activate-plugin").
+	 * @param string $action_id      Ability action ID (e.g. "plugins/activate-plugin").
 	 * @param string $button_label   Button label (e.g. "Activate").
 	 * @return array
 	 */

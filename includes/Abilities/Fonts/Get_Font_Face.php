@@ -29,7 +29,7 @@ class Get_Font_Face extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-font-face',
+			'name' => 'fonts/get-font-face',
 			'args' => array(
 				'label'               => __( 'Get Font Face', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a single Font Library font face (wp_font_face CPT) under a given font family.', 'acrossai-abilities-manager' ),

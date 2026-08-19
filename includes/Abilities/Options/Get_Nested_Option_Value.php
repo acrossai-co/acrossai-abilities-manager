@@ -32,7 +32,7 @@ class Get_Nested_Option_Value extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-nested-option-value',
+			'name' => 'options/get-nested-option-value',
 			'args' => array(
 				'label'               => __( 'Get Nested Option Value', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Read one nested key inside a serialized-array option without transferring the whole option. path is an array of string keys walked in order (e.g. ["a","b","c"]).', 'acrossai-abilities-manager' ),

@@ -36,7 +36,7 @@ class Uninstall_Plugin extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/uninstall-plugin',
+			'name' => 'plugins/uninstall-plugin',
 			'args' => array(
 				'label'               => __( 'Uninstall Plugin', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Uninstall a plugin (fires its uninstall hook and deletes its files) via WordPress core uninstall_plugin(). Distinct from deactivate-plugin (which only flips active_plugins). Refuses on active plugins and honours DISALLOW_FILE_MODS.', 'acrossai-abilities-manager' ),
@@ -147,7 +147,7 @@ class Uninstall_Plugin extends Ability_Definition {
 				'plugin_name'    => $plugin_name,
 				'message'        => sprintf(
 					/* translators: %s: plugin name */
-					__( 'Plugin "%s" is currently active. Deactivate it via acrossai/deactivate-plugin before uninstalling.', 'acrossai-abilities-manager' ),
+					__( 'Plugin "%s" is currently active. Deactivate it via plugins/deactivate-plugin before uninstalling.', 'acrossai-abilities-manager' ),
 					$plugin_name
 				),
 			);

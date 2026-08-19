@@ -27,7 +27,7 @@ class Create_Internal_Link_Suggestions extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-internal-link-suggestions',
+			'name' => 'content-search/create-internal-link-suggestions',
 			'args' => array(
 				'label'               => __( 'Create Internal Link Suggestions', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Persist one or more internal-link suggestions for a given post via the option-backed suggestion store. Each suggestion carries a target URL + proposed anchor text. Store cap: 500 suggestions total.', 'acrossai-abilities-manager' ),

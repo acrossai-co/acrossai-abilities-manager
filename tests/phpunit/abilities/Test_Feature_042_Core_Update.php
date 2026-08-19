@@ -170,9 +170,9 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 		$src = $this->sources['wp_core_update_check'];
 		$this->assertStringContainsString( 'extends Ability_Definition', $src );
 		$this->assertStringContainsString(
-			"'acrossai/check-wp-core-update'",
+			"'core/check-wp-core-update'",
 			$src,
-			'Ability name must be acrossai/check-wp-core-update.'
+			'Ability name must be core/check-wp-core-update.'
 		);
 		$this->assertStringContainsString(
 			"'acrossai-abilities-manager-core'",
@@ -209,7 +209,7 @@ class Test_Feature_042_Core_Update extends WP_UnitTestCase {
 		$src = $this->sources['wp_core_update'];
 		$this->assertStringContainsString( 'extends Ability_Definition', $src );
 		$this->assertStringContainsString(
-			"'acrossai/update-wp-core'",
+			"'core/update-wp-core'",
 			$src
 		);
 		$this->assertStringContainsString(

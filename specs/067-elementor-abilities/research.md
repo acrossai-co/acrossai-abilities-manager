@@ -161,7 +161,7 @@ Cache scope defaults to `post`; `clear-cache` ability supports both `post` and `
 - Preserves the plugin-wide `acrossai/` prefix — clients can filter all AcrossAI abilities with a single namespace check.
 - `elementor-` prefix on the slug body disambiguates from Gutenberg equivalents that already exist:
   - `acrossai/list-templates` (would conflict — we own no such ability today, but naming convention protects future Gutenberg template CRUD)
-  - `acrossai/create-page` (already exists in `Content\Create_Page` — collision without prefix)
+  - `content/create-page` (already exists in `Content\Create_Page` — collision without prefix)
   - `acrossai/get-data` (too generic; the prefix names the subsystem)
 - Category filter still lets clients enumerate all Elementor abilities via `wp abilities list --category=acrossai-abilities-manager-elementor`.
 

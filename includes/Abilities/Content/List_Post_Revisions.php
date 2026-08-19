@@ -26,7 +26,7 @@ class List_Post_Revisions extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-post-revisions',
+			'name' => 'content/list-post-revisions',
 			'args' => array(
 				'label'               => __( 'Get Post Revisions', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List all stored revisions for a post by ID. Autosaves are hidden by default; pass include_autosaves=true to surface them.', 'acrossai-abilities-manager' ),

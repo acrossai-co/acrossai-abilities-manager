@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for Feature 064 acrossai/search-wp-plugin-directory.
+ * Structural tests for Feature 064 plugins/search-wp-plugin-directory.
  *
  * @package AcrossAI_Abilities_Manager
  * @since   0.0.23
@@ -35,7 +35,7 @@ class Test_Search_Wp_Plugin_Directory extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/search-wp-plugin-directory'", $this->src );
+		$this->assertStringContainsString( "'plugins/search-wp-plugin-directory'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-plugins'", $this->src );
 	}
 

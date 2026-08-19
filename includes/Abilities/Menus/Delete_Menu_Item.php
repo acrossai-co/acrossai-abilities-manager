@@ -26,7 +26,7 @@ class Delete_Menu_Item extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-menu-item',
+			'name' => 'menus/delete-menu-item',
 			'args' => array(
 				'label'               => __( 'Delete Menu Item', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete a menu item via DELETE /wp/v2/menu-items/{id}. force=true is sent implicitly.', 'acrossai-abilities-manager' ),

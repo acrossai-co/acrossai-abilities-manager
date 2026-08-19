@@ -26,7 +26,7 @@ class List_Menus extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-menus',
+			'name' => 'menus/list-menus',
 			'args' => array(
 				'label'               => __( 'List Menus', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List nav menus via GET /wp/v2/menus.', 'acrossai-abilities-manager' ),

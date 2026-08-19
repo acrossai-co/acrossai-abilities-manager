@@ -26,7 +26,7 @@ class Get_Cron_Schedule extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-cron-schedule',
+			'name' => 'cron/get-cron-schedule',
 			'args' => array(
 				'label'               => __( 'Get Schedule Details', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return a single schedule definition by name (interval + display) from wp_get_schedules().', 'acrossai-abilities-manager' ),

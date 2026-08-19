@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for Feature 064 acrossai/patch-option-value.
+ * Structural tests for Feature 064 options/patch-option-value.
  *
  * Source-inspection tests, mirroring the Feature 059 pattern.
  *
@@ -47,7 +47,7 @@ class Test_Patch_Option_Value extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/patch-option-value'", $this->src );
+		$this->assertStringContainsString( "'options/patch-option-value'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-options'", $this->src );
 	}
 

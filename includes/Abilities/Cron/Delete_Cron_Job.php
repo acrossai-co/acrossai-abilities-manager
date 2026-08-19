@@ -28,7 +28,7 @@ class Delete_Cron_Job extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-cron-job',
+			'name' => 'cron/delete-cron-job',
 			'args' => array(
 				'label'               => __( 'Delete Cron Job', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Unschedule a single event via wp_unschedule_event(). If timestamp is omitted, the next scheduled run for the hook+args is used.', 'acrossai-abilities-manager' ),

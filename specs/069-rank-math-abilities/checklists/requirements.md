@@ -10,7 +10,7 @@ Tick as each batch lands. A batch is not done until its rows are ticked.
 - [ ] Every slug is `acrossai/rank-math-<verb>-<noun>`, verb-first (FR-001)
 - [ ] 61 abilities registered; the count matches `contracts/abilities.md`
 - [ ] No raw Rank Math option read/write ability exists (superseded by the plugin's generic option abilities)
-- [ ] No bulk role-capability writer exists (superseded by `acrossai/add-role-capability` / `remove-role-capability`)
+- [ ] No bulk role-capability writer exists (superseded by `users/add-role-capability` / `remove-role-capability`)
 - [ ] No `.htaccess`, version-rollback or beta-optin ability exists (out of scope by decision)
 
 ## Registration and gating

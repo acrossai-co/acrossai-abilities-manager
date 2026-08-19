@@ -29,7 +29,7 @@ class Get_Db_Prefix extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-db-prefix',
+			'name' => 'database/get-db-prefix',
 			'args' => array(
 				'label'               => __( 'Get Database Prefix', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the current-blog database table prefix and the multisite base (network) prefix.', 'acrossai-abilities-manager' ),

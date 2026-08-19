@@ -97,27 +97,27 @@ specs/063-site-introspection-reads/
 includes/
 └── Abilities/
     ├── Core/
-    │   └── Get_Wp_Version.php                # NEW — acrossai/get-wp-version
+    │   └── Get_Wp_Version.php                # NEW — core/get-wp-version
     ├── Database/
-    │   └── Get_Db_Prefix.php                 # NEW — acrossai/get-db-prefix
+    │   └── Get_Db_Prefix.php                 # NEW — database/get-db-prefix
     ├── FileManager/
-    │   └── Get_Wp_Config_Constant.php        # NEW — acrossai/get-wp-config-constant
+    │   └── Get_Wp_Config_Constant.php        # NEW — file-manager/get-wp-config-constant
     ├── Themes/
-    │   └── List_Theme_Mods.php               # NEW — acrossai/list-theme-mods
+    │   └── List_Theme_Mods.php               # NEW — themes/list-theme-mods
     ├── Settings/
-    │   └── List_Rewrite_Rules.php            # NEW — acrossai/list-rewrite-rules
+    │   └── List_Rewrite_Rules.php            # NEW — settings/list-rewrite-rules
     ├── Widgets/                              # NEW DIRECTORY
     │   ├── Category_Registrar.php            # NEW — mirrors Menus/Category_Registrar
-    │   ├── List_Widgets.php                  # NEW — acrossai/list-widgets
-    │   └── List_Sidebars.php                 # NEW — acrossai/list-sidebars
+    │   ├── List_Widgets.php                  # NEW — widgets/list-widgets
+    │   └── List_Sidebars.php                 # NEW — widgets/list-sidebars
     ├── Media/
-    │   └── List_Image_Sizes.php              # NEW — acrossai/list-image-sizes
+    │   └── List_Image_Sizes.php              # NEW — media/list-image-sizes
     ├── Comments/
-    │   └── Get_Comment_Count.php             # NEW — acrossai/get-comment-count
+    │   └── Get_Comment_Count.php             # NEW — comments/get-comment-count
     ├── SiteHealth/
-    │   └── Get_Maintenance_Mode_Status.php   # NEW — acrossai/get-maintenance-mode-status
+    │   └── Get_Maintenance_Mode_Status.php   # NEW — site-health/get-maintenance-mode-status
     ├── Cron/
-    │   └── Test_Wp_Cron.php                  # NEW — acrossai/test-wp-cron
+    │   └── Test_Wp_Cron.php                  # NEW — cron/test-wp-cron
     └── AcrossAI_Core_Abilities_Bootstrap.php # MODIFIED — +1 category action, +11 instantiations
 
 tests/

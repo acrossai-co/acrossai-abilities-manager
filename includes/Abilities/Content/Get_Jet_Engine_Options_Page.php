@@ -27,7 +27,7 @@ class Get_Jet_Engine_Options_Page extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-jet-engine-options-page',
+			'name' => 'content/get-jet-engine-options-page',
 			'args' => array(
 				'label'               => __( 'Get Options Page', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return a Jet Engine options page by slug, including the stored field values from wp_options.', 'acrossai-abilities-manager' ),

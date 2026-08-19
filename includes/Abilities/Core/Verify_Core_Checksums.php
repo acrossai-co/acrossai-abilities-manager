@@ -38,7 +38,7 @@ class Verify_Core_Checksums extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/verify-core-checksums',
+			'name' => 'core/verify-core-checksums',
 			'args' => array(
 				'label'               => __( 'Verify Core Checksums', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Verify WordPress core files against the official checksums manifest returned by get_core_checksums(). Per-file status: ok / modified / missing / added. Skips root-level files by default (set include_root:true to include them).', 'acrossai-abilities-manager' ),

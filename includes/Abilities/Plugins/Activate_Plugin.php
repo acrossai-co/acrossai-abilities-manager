@@ -27,7 +27,7 @@ class Activate_Plugin extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/activate-plugin',
+			'name' => 'plugins/activate-plugin',
 			'args' => array(
 				'label'               => __( 'Activate Plugin', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Activate an installed WordPress plugin by name, slug, or partial match. Works in recovery mode; only updates the active-plugins option and does not load the plugin file.', 'acrossai-abilities-manager' ),

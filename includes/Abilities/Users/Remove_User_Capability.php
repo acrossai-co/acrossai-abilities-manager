@@ -1,6 +1,6 @@
 <?php
 /**
- * Ability class for acrossai/remove-user-capability (Feature 062).
+ * Ability class for users/remove-user-capability (Feature 062).
  *
  * Revokes a single capability directly from an individual user via
  * WP_User::remove_cap(). Refuses when the target is the last remaining
@@ -115,7 +115,7 @@ class Remove_User_Capability extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/remove-user-capability',
+			'name' => 'users/remove-user-capability',
 			'args' => array(
 				'label'               => __( 'Remove User Capability', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Revoke a single capability directly from a specific user. Refuses when the target is the last remaining site administrator and the capability is a WordPress-core administrator capability (would leave the site without an admin).', 'acrossai-abilities-manager' ),

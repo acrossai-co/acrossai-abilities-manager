@@ -30,7 +30,7 @@ class Get_Comment_Count extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-comment-count',
+			'name' => 'comments/get-comment-count',
 			'args' => array(
 				'label'               => __( 'Get Comment Count', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return per-status comment counters (approved, moderated, spam, trash, post-trashed) and total_comments. Optionally scoped to a single post id.', 'acrossai-abilities-manager' ),

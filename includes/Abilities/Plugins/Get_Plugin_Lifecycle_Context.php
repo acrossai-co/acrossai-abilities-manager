@@ -29,7 +29,7 @@ class Get_Plugin_Lifecycle_Context extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-plugin-lifecycle-context',
+			'name' => 'plugins/get-plugin-lifecycle-context',
 			'args' => array(
 				'label'               => __( 'Get Plugin Lifecycle Context', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the lifecycle-context envelope for a single plugin: header (name, version, author, description), active state, network-active state, autoupdate enrolment, update availability, and the last activated / deactivated / updated timestamps recorded since 0.0.13.', 'acrossai-abilities-manager' ),

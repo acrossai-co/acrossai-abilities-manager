@@ -27,7 +27,7 @@ class List_Paused_Themes extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-paused-themes',
+			'name' => 'recovery/list-paused-themes',
 			'args' => array(
 				'label'               => __( 'List Paused Themes', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns every theme WordPress has paused after a fatal error, with the captured error details (type, file, line, message). Returns an empty array when no themes are paused.', 'acrossai-abilities-manager' ),

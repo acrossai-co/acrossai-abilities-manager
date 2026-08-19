@@ -27,7 +27,7 @@ class List_Terms extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-terms',
+			'name' => 'taxonomies/list-terms',
 			'args' => array(
 				'label'               => __( 'List Terms', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List terms in a taxonomy via the core REST endpoint GET /wp/v2/{rest_base}.', 'acrossai-abilities-manager' ),

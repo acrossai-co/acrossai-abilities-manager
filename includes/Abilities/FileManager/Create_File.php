@@ -27,7 +27,7 @@ class Create_File extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-file',
+			'name' => 'file-manager/create-file',
 			'args' => array(
 				'label'               => __( 'Create File', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Creates a new file within the WordPress installation. Fails if the file already exists. Path must be relative to ABSPATH. Pass create_dirs=true to auto-create any missing parent directories.', 'acrossai-abilities-manager' ),

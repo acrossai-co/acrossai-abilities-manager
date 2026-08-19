@@ -2,7 +2,7 @@
 /**
  * Structural tests for the Feature 062 Remove_Role_Capability ability.
  *
- * Covers the acrossai/remove-role-capability ability under
+ * Covers the users/remove-role-capability ability under
  * includes/Abilities/Users/Remove_Role_Capability.php including the
  * CORE_ADMIN_CAPS safety block-list and bootstrap wiring.
  *
@@ -67,7 +67,7 @@ class Test_Remove_Role_Capability extends WP_UnitTestCase {
 	public function test_ability_name_and_category(): void {
 		$src = $this->sources['remove_role_cap'];
 		$this->assertStringContainsString(
-			"'acrossai/remove-role-capability'",
+			"'users/remove-role-capability'",
 			$src
 		);
 		$this->assertStringContainsString(

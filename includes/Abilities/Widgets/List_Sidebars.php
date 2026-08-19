@@ -30,7 +30,7 @@ class List_Sidebars extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-sidebars',
+			'name' => 'widgets/list-sidebars',
 			'args' => array(
 				'label'               => __( 'List Sidebars', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Enumerate every registered sidebar with its identifier, display name, description, and widget-wrapper HTML fragments (before_widget, after_widget, before_title, after_title).', 'acrossai-abilities-manager' ),

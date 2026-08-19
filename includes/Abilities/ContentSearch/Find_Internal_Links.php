@@ -28,7 +28,7 @@ class Find_Internal_Links extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/find-internal-links',
+			'name' => 'content-search/find-internal-links',
 			'args' => array(
 				'label'               => __( 'Find Internal Links', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Parse a post\'s rendered content for <a href> tags whose target resolves to a same-site URL. Returns each match with anchor text + resolved target post id (via url_to_postid()) when available.', 'acrossai-abilities-manager' ),

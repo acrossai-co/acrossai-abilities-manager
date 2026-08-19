@@ -128,7 +128,7 @@ in-process and `remove_all_actions()` corrupted global state.
 ### 5. Role-capability isolation
 
 ```
-→ acrossai/add-role-capability { role: "editor", capability: "rank_math_titles" }
+→ users/add-role-capability { role: "editor", capability: "rank_math_titles" }
 → acrossai/rank-math-get-role-capabilities
 ```
 

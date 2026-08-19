@@ -104,20 +104,20 @@ specs/062-role-caps-and-search-replace/
 includes/
 └── Abilities/
     ├── Users/
-    │   ├── Add_Role_Capability.php         # NEW — acrossai/add-role-capability
-    │   ├── Remove_Role_Capability.php      # NEW — acrossai/remove-role-capability
-    │   ├── Create_Role.php                 # NEW — acrossai/create-role
-    │   ├── Delete_Role.php                 # NEW — acrossai/delete-role
-    │   ├── Reset_Role.php                  # NEW — acrossai/reset-role
-    │   ├── Add_User_Capability.php         # NEW — acrossai/add-user-capability
-    │   ├── Remove_User_Capability.php      # NEW — acrossai/remove-user-capability
+    │   ├── Add_Role_Capability.php         # NEW — users/add-role-capability
+    │   ├── Remove_Role_Capability.php      # NEW — users/remove-role-capability
+    │   ├── Create_Role.php                 # NEW — users/create-role
+    │   ├── Delete_Role.php                 # NEW — users/delete-role
+    │   ├── Reset_Role.php                  # NEW — users/reset-role
+    │   ├── Add_User_Capability.php         # NEW — users/add-user-capability
+    │   ├── Remove_User_Capability.php      # NEW — users/remove-user-capability
     │   ├── Category_Registrar.php          # UNCHANGED
     │   ├── Get_Role_Capabilities.php       # UNCHANGED (reference pattern)
     │   ├── List_User_Roles.php             # UNCHANGED (reference pattern)
     │   ├── Update_User.php                 # UNCHANGED (reference pattern)
     │   └── ...                             # 5 other existing files unchanged
     ├── Database/
-    │   ├── Search_Replace.php              # NEW — acrossai/search-replace
+    │   ├── Search_Replace.php              # NEW — database/search-replace
     │   ├── Update_Db_Rows.php              # UNCHANGED (reference pattern for table allowlist)
     │   ├── Delete_Db_Rows.php              # UNCHANGED (reference pattern)
     │   └── ...                             # 6 other existing files unchanged

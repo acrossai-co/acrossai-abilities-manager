@@ -2,7 +2,7 @@
 /**
  * Structural tests for the Feature 062 Delete_Role ability.
  *
- * Covers the acrossai/delete-role ability under
+ * Covers the users/delete-role ability under
  * includes/Abilities/Users/Delete_Role.php plus bootstrap wiring.
  *
  * Source-inspection only, mirroring Test_Feature_057_Core_Reinstall — the
@@ -54,7 +54,7 @@ class Test_Delete_Role extends WP_UnitTestCase {
 
 	public function test_ability_name_and_category(): void {
 		$src = $this->sources['delete_role'];
-		$this->assertStringContainsString( "'acrossai/delete-role'", $src );
+		$this->assertStringContainsString( "'users/delete-role'", $src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-users'", $src );
 	}
 

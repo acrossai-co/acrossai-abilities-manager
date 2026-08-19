@@ -26,7 +26,7 @@ class Mark_As_Spam extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/mark-comment-spam',
+			'name' => 'comments/mark-comment-spam',
 			'args' => array(
 				'label'               => __( 'Mark Comment as Spam', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Flag a comment as spam via POST /wp/v2/comments/{id} with status=spam.', 'acrossai-abilities-manager' ),

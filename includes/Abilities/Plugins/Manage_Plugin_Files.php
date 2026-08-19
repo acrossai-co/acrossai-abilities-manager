@@ -27,7 +27,7 @@ class Manage_Plugin_Files extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/manage-plugin-files',
+			'name' => 'plugins/manage-plugin-files',
 			'args' => array(
 				'label'               => __( 'Copy or Move Plugin File', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Copy or move a file within the WordPress plugins directory. Both source and destination must remain inside WP_PLUGIN_DIR.', 'acrossai-abilities-manager' ),

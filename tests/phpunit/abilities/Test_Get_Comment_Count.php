@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/get-comment-count ability.
+ * Structural tests for the Feature 063 comments/get-comment-count ability.
  *
  * Source-inspection only — mirrors Test_Feature_042_Core_Update precedent.
  *
@@ -37,7 +37,7 @@ class Test_Get_Comment_Count extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/get-comment-count'", $this->src );
+		$this->assertStringContainsString( "'comments/get-comment-count'", $this->src );
 	}
 
 	public function test_targets_the_comments_category(): void {

@@ -26,7 +26,7 @@ class List_Page_Revisions extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-page-revisions',
+			'name' => 'content/list-page-revisions',
 			'args' => array(
 				'label'               => __( 'Get Page Revisions', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List all stored revisions for a page by ID. Autosaves are hidden by default; pass include_autosaves=true to surface them.', 'acrossai-abilities-manager' ),

@@ -27,7 +27,7 @@ class Link_Post_Translation extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/link-post-translation',
+			'name' => 'content/link-post-translation',
 			'args' => array(
 				'label'               => __( 'Link Post Translations', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Group two or more posts as translations of each other. Pass a map of language code → post ID. Polylang uses pll_save_post_translations(); WPML links each post to the same trid.', 'acrossai-abilities-manager' ),

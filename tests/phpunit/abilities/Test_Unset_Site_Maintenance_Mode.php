@@ -26,7 +26,7 @@ class Test_Unset_Site_Maintenance_Mode extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/unset-site-maintenance-mode'", $this->src );
+		$this->assertStringContainsString( "'site-health/unset-site-maintenance-mode'", $this->src );
 	}
 
 	public function test_lives_in_site_health_category(): void {

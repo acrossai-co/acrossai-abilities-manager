@@ -33,7 +33,7 @@ class Reinstall_Wp_Core extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/reinstall-wp-core',
+			'name' => 'core/reinstall-wp-core',
 			'args' => array(
 				'label'               => __( 'Reinstall WordPress Core', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reinstall the currently installed WordPress version by re-downloading and re-applying the same release via WP core\'s Core_Upgrader with response="reinstall". Equivalent to the wp-admin "Re-install version X" action at /wp-admin/update-core.php?action=do-core-reinstall. Honours DISALLOW_FILE_MODS. Idempotent — safe to re-run.', 'acrossai-abilities-manager' ),

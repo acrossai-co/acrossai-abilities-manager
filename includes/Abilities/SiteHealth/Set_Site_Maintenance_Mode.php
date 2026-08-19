@@ -36,7 +36,7 @@ class Set_Site_Maintenance_Mode extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/set-site-maintenance-mode',
+			'name' => 'site-health/set-site-maintenance-mode',
 			'args' => array(
 				'label'               => __( 'Set Site Maintenance Mode', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Activate WordPress core maintenance mode by writing the ABSPATH/.maintenance marker. A wp-cron event refreshes the marker every 5 minutes so the site stays down for the requested duration. WARNING: this blocks wp-admin as well as the frontend.', 'acrossai-abilities-manager' ),

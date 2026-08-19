@@ -26,7 +26,7 @@ class Flush_Rewrite_Rules extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/flush-rewrite-rules',
+			'name' => 'cache/flush-rewrite-rules',
 			'args' => array(
 				'label'               => __( 'Flush Rewrite Rules', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Flushes WordPress rewrite rules via flush_rewrite_rules(). Use hard=true (default) to also regenerate the .htaccess file, or hard=false for an in-memory-only rebuild.', 'acrossai-abilities-manager' ),

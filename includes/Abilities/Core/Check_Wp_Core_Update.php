@@ -32,7 +32,7 @@ class Check_Wp_Core_Update extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/check-wp-core-update',
+			'name' => 'core/check-wp-core-update',
 			'args' => array(
 				'label'               => __( 'Check WordPress Core Update', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Report whether a WordPress core update is available. Returns the current version, the offered new version + download URL, and the PHP / MySQL requirements of the offer. Read-only; safe to call from any admin context.', 'acrossai-abilities-manager' ),

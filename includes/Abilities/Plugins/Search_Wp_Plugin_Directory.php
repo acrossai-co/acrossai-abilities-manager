@@ -34,7 +34,7 @@ class Search_Wp_Plugin_Directory extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/search-wp-plugin-directory',
+			'name' => 'plugins/search-wp-plugin-directory',
 			'args' => array(
 				'label'               => __( 'Search WordPress.org Plugin Directory', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Search the WordPress.org plugin directory. Returns slug, name, short_description, rating, active_installs, homepage, and download_link for each hit, plus pagination metadata.', 'acrossai-abilities-manager' ),
