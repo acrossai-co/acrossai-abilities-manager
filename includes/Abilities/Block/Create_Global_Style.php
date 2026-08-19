@@ -42,7 +42,7 @@ class Create_Global_Style extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-global-style',
+			'name' => 'blocks/create-global-style',
 			'args' => array(
 				'label'               => __( 'Create Global Style', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Creates Global Styles for a theme. Defaults to the database (wp_global_styles). Pass source=child_theme / theme / plugin to write theme.json. Provide either "content" (full theme.json JSON object or string) or "section" + "data" to seed a single section.', 'acrossai-abilities-manager' ),

@@ -27,7 +27,7 @@ class Refresh_Site_Editor_Context extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/refresh-site-editor-context',
+			'name' => 'blocks/refresh-site-editor-context',
 			'args' => array(
 				'label'               => __( 'Refresh Site Editor Context', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Flush block-template + theme.json related caches so the next call to site-editor-get-context returns fresh state. Invalidates: `wp_theme_features`, `theme_json` cache group entries, and post cache for `wp_template` + `wp_template_part` post types.', 'acrossai-abilities-manager' ),

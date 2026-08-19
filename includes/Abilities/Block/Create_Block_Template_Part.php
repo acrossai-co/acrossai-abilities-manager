@@ -38,7 +38,7 @@ class Create_Block_Template_Part extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-block-template-part',
+			'name' => 'blocks/create-block-template-part',
 			'args' => array(
 				'label'               => __( 'Create Block Template Part', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Creates a block template part. Defaults to the database (wp_template_part). Pass source=child_theme to write to the child theme\'s /parts dir, source=theme (with theme_slug) to write to a specific theme folder, or source=plugin (with plugin_slug) to write to a plugin\'s /parts dir.', 'acrossai-abilities-manager' ),

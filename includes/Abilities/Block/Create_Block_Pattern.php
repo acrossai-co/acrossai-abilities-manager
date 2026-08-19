@@ -36,7 +36,7 @@ class Create_Block_Pattern extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-block-pattern',
+			'name' => 'blocks/create-block-pattern',
 			'args' => array(
 				'label'               => __( 'Create Block Pattern', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Creates a block pattern. Default storage is the database (wp_block CPT). Pass source=theme to write a file under the active theme\'s /patterns (child preferred), or source=plugin with plugin_slug to write under that plugin\'s /patterns. Empty content is refused. Slug clashes at the target source are refused; use block-pattern-update to edit.', 'acrossai-abilities-manager' ),

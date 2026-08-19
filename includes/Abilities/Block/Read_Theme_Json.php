@@ -29,7 +29,7 @@ class Read_Theme_Json extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/read-theme-json',
+			'name' => 'blocks/read-theme-json',
 			'args' => array(
 				'label'               => __( 'Read theme.json', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns the raw parsed contents of a theme.json file. Defaults to the active stylesheet; pass theme_slug to target a specific theme folder, or theme_type=parent to read the parent theme when a child is active.', 'acrossai-abilities-manager' ),

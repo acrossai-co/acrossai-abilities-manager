@@ -92,7 +92,7 @@ describe('bulkSetUserAccessRule — slug pass-through (I4 regression guard)', ()
 	});
 
 	test('slug with literal "/" reaches URL raw, NOT percent-encoded', async () => {
-		const slug = 'acrossai/delete-block-pattern';
+		const slug = 'blocks/delete-block-pattern';
 		const thunk = actions.bulkSetUserAccessRule(
 			[slug],
 			'wp_capability',
@@ -104,7 +104,7 @@ describe('bulkSetUserAccessRule — slug pass-through (I4 regression guard)', ()
 		// The path MUST contain the literal slash — %2F would be silently
 		// stripped by the composer sanitizer, producing a corrupt DB key.
 		expect(opts.path).toContain(
-			'acrossai/delete-block-pattern'
+			'blocks/delete-block-pattern'
 		);
 		expect(opts.path).not.toContain('%2F');
 		expect(opts.path).not.toContain('%2f');

@@ -31,7 +31,7 @@ class Read_Block_Pattern extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/read-block-pattern',
+			'name' => 'blocks/read-block-pattern',
 			'args' => array(
 				'label'               => __( 'Read Block Pattern', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reads a pattern by slug from one of: db (wp_block CPT), theme /patterns folder, or plugin /patterns folder. Omit "source" to auto-detect — if the slug exists in more than one location the call fails with error_code=multiple_locations and the list of locations.', 'acrossai-abilities-manager' ),

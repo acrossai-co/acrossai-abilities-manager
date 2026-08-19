@@ -27,7 +27,7 @@ class List_Block_Areas extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-block-areas',
+			'name' => 'blocks/list-block-areas',
 			'args' => array(
 				'label'               => __( 'List Block Areas', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return every registered block-template-part `area` (header / footer / sidebar / uncategorized / …) with the template parts that live in it. Reads get_allowed_block_template_part_areas() + get_block_templates() for wp_template_part.', 'acrossai-abilities-manager' ),
