@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #28 — acrossai/rank-math-set-module-state.
+ * Ability #28 — rank-math/set-module-state.
  *
  * Replicates Admin_Rest::save_module() in full, INCLUDING the rewrite-rule refresh
  * and the rank_math/module_changed action. A plain option write omits both, which
@@ -37,7 +37,7 @@ class Set_Module_State extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Enable or disable one Rank Math module. Also refreshes rewrite rules and fires Rank Math\'s module-changed action, which the sitemap and llms.txt modules depend on — without those steps their routes return 404 even though the module reports itself active. Discover the available slugs with acrossai/rank-math-list-modules. Disabling a module does not delete its data.', 'acrossai-abilities-manager' );
+		return __( 'Enable or disable one Rank Math module. Also refreshes rewrite rules and fires Rank Math\'s module-changed action, which the sitemap and llms.txt modules depend on — without those steps their routes return 404 even though the module reports itself active. Discover the available slugs with rank-math/list-modules. Disabling a module does not delete its data.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -56,7 +56,7 @@ class Set_Module_State extends Base_Rank_Math_Ability {
 		return array(
 			'module' => array(
 				'type'        => 'string',
-				'description' => __( 'Module slug, e.g. sitemap, redirections, 404-monitor, llms-txt, analytics. List them with acrossai/rank-math-list-modules.', 'acrossai-abilities-manager' ),
+				'description' => __( 'Module slug, e.g. sitemap, redirections, 404-monitor, llms-txt, analytics. List them with rank-math/list-modules.', 'acrossai-abilities-manager' ),
 			),
 			'state'  => array(
 				'type'        => 'string',

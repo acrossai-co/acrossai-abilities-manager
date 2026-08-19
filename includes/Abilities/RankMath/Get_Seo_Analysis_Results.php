@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #38 — acrossai/rank-math-get-seo-analysis-results.
+ * Ability #38 — rank-math/get-seo-analysis-results.
  *
  * Deliberately does NOT re-run the analyzer. Rank Math core already ships
  * rank-math/audit-site-seo for that, and running it makes remote API calls to

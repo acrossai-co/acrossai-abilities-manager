@@ -15,7 +15,7 @@ Every ability in this feature registers via `wp_register_ability( 'acrossai/<slu
 
 ---
 
-## 1. `acrossai/get-post-blocks`
+## 1. `blocks/get-post-blocks`
 
 **Purpose**: Return the parsed block tree of a post with each block annotated with its canonical path.
 
@@ -73,7 +73,7 @@ Every ability in this feature registers via `wp_register_ability( 'acrossai/<slu
 
 ---
 
-## 2. `acrossai/add-block`
+## 2. `blocks/add-block`
 
 **Purpose**: Insert a new block at a parent path + sibling index (append if index ≥ current sibling count).
 
@@ -129,7 +129,7 @@ Every ability in this feature registers via `wp_register_ability( 'acrossai/<slu
 
 ---
 
-## 3. `acrossai/remove-block`
+## 3. `blocks/remove-block`
 
 **Purpose**: Remove the block at a specified path.
 
@@ -172,7 +172,7 @@ Every ability in this feature registers via `wp_register_ability( 'acrossai/<slu
 
 ---
 
-## 4. `acrossai/update-post-block` (MODIFIED — extends existing ability)
+## 4. `blocks/update-post-block` (MODIFIED — extends existing ability)
 
 **Purpose**: Update block attributes and/or inner HTML at any nesting depth. Backward compatible with existing input shapes.
 
@@ -235,7 +235,7 @@ Any request that omits `path` behaves identically to the pre-066 version of this
 
 ---
 
-## 5. `acrossai/move-block`
+## 5. `blocks/move-block`
 
 **Purpose**: Atomically move a block from a source path to a destination (parent path + sibling index). Refuses moves into the source's own subtree.
 
@@ -283,7 +283,7 @@ Any request that omits `path` behaves identically to the pre-066 version of this
 
 ---
 
-## 6. `acrossai/duplicate-block`
+## 6. `blocks/duplicate-block`
 
 **Purpose**: Deep-clone the block at a specified path (including all inner blocks) and insert the clone as the next sibling.
 
@@ -323,7 +323,7 @@ Standard set + `invalid_path`.
 
 ---
 
-## 7. `acrossai/insert-pattern`
+## 7. `blocks/insert-pattern`
 
 **Purpose**: Resolve a saved pattern by slug (across db / theme / plugin sources) and insert its constituent blocks at a specified parent path and sibling index.
 

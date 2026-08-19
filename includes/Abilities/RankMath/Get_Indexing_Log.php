@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #8 — acrossai/rank-math-get-indexing-log.
+ * Ability #8 — rank-math/get-indexing-log.
  *
  * Read-only, idempotent.
  */

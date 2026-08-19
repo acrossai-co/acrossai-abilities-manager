@@ -24,7 +24,7 @@ class List_Global_Widgets extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-list-global-widgets',
+			'name' => 'elementor/list-global-widgets',
 			'args' => array(
 				'label'               => __( 'List Elementor Global Widgets', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List all Elementor global (reusable) widgets — elementor_library posts with template_type=widget.', 'acrossai-abilities-manager' ),

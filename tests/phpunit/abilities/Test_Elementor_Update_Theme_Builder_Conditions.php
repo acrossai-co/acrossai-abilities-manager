@@ -26,7 +26,7 @@ class Test_Elementor_Update_Theme_Builder_Conditions extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-update-theme-builder-conditions'", $this->src );
+		$this->assertStringContainsString( "'elementor/update-theme-builder-conditions'", $this->src );
 	}
 
 	public function test_requires_template_id_and_conditions(): void {

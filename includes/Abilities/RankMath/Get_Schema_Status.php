@@ -16,9 +16,9 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #62 — acrossai/rank-math-get-schema-status.
+ * Ability #62 — rank-math/get-schema-status.
  *
- * Distinct from acrossai/rank-math-get-settings panel=titles-local-seo, which returns
+ * Distinct from rank-math/get-settings panel=titles-local-seo, which returns
  * the RAW stored fields. This returns the RESOLVED output: which schema type will
  * actually be emitted, the @id it carries, and the sameAs list assembled from the
  * separate social fields — all computed at render time and therefore unreadable from
@@ -37,7 +37,7 @@ class Get_Schema_Status extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Return the publisher entity Rank Math will actually emit: the resolved schema type (Organization or Person), the @id it carries, the logo, the assembled sameAs profile list, and the Local SEO contact and opening-hours data. These are computed at render time rather than stored, so they cannot be read from the settings panel. Use acrossai/rank-math-update-title-settings with scope=local-seo or social to change them.', 'acrossai-abilities-manager' );
+		return __( 'Return the publisher entity Rank Math will actually emit: the resolved schema type (Organization or Person), the @id it carries, the logo, the assembled sameAs profile list, and the Local SEO contact and opening-hours data. These are computed at render time rather than stored, so they cannot be read from the settings panel. Use rank-math/update-title-settings with scope=local-seo or social to change them.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

@@ -28,7 +28,7 @@ class Replace_Urls extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-replace-urls',
+			'name' => 'elementor/replace-urls',
 			'args' => array(
 				'label'               => __( 'Replace URLs in Elementor Documents', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Bulk-replace URLs (or any string) inside every Elementor document across the site. Useful for post-migration domain rewrites. Supports dry_run for a preview count with no writes.', 'acrossai-abilities-manager' ),

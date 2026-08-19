@@ -37,7 +37,7 @@ class List_Block_Style_Variations extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-block-style-variations',
+			'name' => 'blocks/list-block-style-variations',
 			'args' => array(
 				'label'               => __( 'List Block Style Variations', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Lists Block Style Variations across the database (wp_global_styles) and theme/plugin /styles directories. Each variation reports its theme, slug, customised sections, and whether it is the active variation.', 'acrossai-abilities-manager' ),

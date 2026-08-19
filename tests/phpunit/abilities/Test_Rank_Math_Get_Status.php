@@ -1,6 +1,6 @@
 <?php
 /**
- * Feature 069 — source-inspection tests for acrossai/rank-math-get-status.
+ * Feature 069 — source-inspection tests for rank-math/get-status.
  *
  * @package AcrossAI_Abilities_Manager
  * @since   0.0.28

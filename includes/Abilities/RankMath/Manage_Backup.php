@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #25 — acrossai/rank-math-manage-backup.
+ * Ability #25 — rank-math/manage-backup.
  *
  * Restore and delete share one class because both take a key and both are
  * destructive; create is separate because it is not.
@@ -32,7 +32,7 @@ class Manage_Backup extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Restore a Rank Math settings backup, overwriting all current settings, or delete one permanently. Both are irreversible: restoring discards the present configuration, and deleting removes the only copy. List keys with acrossai/rank-math-list-backups, and consider acrossai/rank-math-create-backup first so the current state is recoverable.', 'acrossai-abilities-manager' );
+		return __( 'Restore a Rank Math settings backup, overwriting all current settings, or delete one permanently. Both are irreversible: restoring discards the present configuration, and deleting removes the only copy. List keys with rank-math/list-backups, and consider rank-math/create-backup first so the current state is recoverable.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -56,7 +56,7 @@ class Manage_Backup extends Base_Rank_Math_Ability {
 			),
 			'key'    => array(
 				'type'        => 'string',
-				'description' => __( 'Backup key from acrossai/rank-math-list-backups.', 'acrossai-abilities-manager' ),
+				'description' => __( 'Backup key from rank-math/list-backups.', 'acrossai-abilities-manager' ),
 			),
 		);
 	}

@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #58 — acrossai/rank-math-list-sitemap-urls.
+ * Ability #58 — rank-math/list-sitemap-urls.
  *
  * Fetches and parses the served sitemap rather than reading configuration, so it
  * answers "what is actually being advertised to search engines" — which can differ
@@ -35,7 +35,7 @@ class List_Sitemap_Urls extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Fetch the served sitemap index and, by default, follow its child sitemaps to enumerate the URLs actually advertised to search engines. This reflects what is being served, which can differ from the current settings when the sitemap file cache is stale — clear it with acrossai/rank-math-invalidate-sitemap-cache.', 'acrossai-abilities-manager' );
+		return __( 'Fetch the served sitemap index and, by default, follow its child sitemaps to enumerate the URLs actually advertised to search engines. This reflects what is being served, which can differ from the current settings when the sitemap file cache is stale — clear it with rank-math/invalidate-sitemap-cache.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

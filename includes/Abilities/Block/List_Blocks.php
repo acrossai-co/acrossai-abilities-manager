@@ -37,7 +37,7 @@ class List_Blocks extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-blocks',
+			'name' => 'blocks/list-blocks',
 			'args' => array(
 				'label'               => __( 'List Blocks', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Lists every block registered with WP_Block_Type_Registry. Filter by category, keyword, source, or any combination. Returns name, title, description, category, icon, keywords, and source for each block, sorted by name.', 'acrossai-abilities-manager' ),

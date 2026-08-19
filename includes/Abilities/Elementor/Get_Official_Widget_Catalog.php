@@ -27,7 +27,7 @@ class Get_Official_Widget_Catalog extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-official-widget-catalog',
+			'name' => 'elementor/get-official-widget-catalog',
 			'args' => array(
 				'label'               => __( 'Get Elementor Official Widget Catalog', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the canonical Elementor widget catalog (Basic / Pro / Theme / WooCommerce). Uses a 12-hour transient over the seeded catalog.', 'acrossai-abilities-manager' ),

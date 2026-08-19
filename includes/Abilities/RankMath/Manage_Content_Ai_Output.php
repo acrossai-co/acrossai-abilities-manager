@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #41 — acrossai/rank-math-manage-content-ai-output.
+ * Ability #41 — rank-math/manage-content-ai-output.
  *
  * Local storage only: no credits, no remote request. Deleting an output removes a
  * record of work already paid for, so re-creating it would cost credits again — but

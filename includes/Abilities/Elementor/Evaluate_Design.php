@@ -24,7 +24,7 @@ class Evaluate_Design extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-evaluate-design',
+			'name' => 'elementor/evaluate-design',
 			'args' => array(
 				'label'               => __( 'Evaluate Elementor Design', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Aggregate report across every registered Elementor design audit — score + findings + recommendations.', 'acrossai-abilities-manager' ),

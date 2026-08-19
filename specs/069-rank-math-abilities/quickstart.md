@@ -61,7 +61,7 @@ The entire settings design rests on this.
 
 ```
 $before = RankMath\Helper::get_settings( 'general' );
-→ acrossai/rank-math-update-general-settings { section: "breadcrumbs", settings: { breadcrumbs_separator: "›" } }
+→ rank-math/update-general-settings { section: "breadcrumbs", settings: { breadcrumbs_separator: "›" } }
 $after  = RankMath\Helper::get_settings( 'general' );
 ```
 
@@ -90,11 +90,11 @@ round-trip correctly even with a broken type map. The real test is a `textarea_s
 falls through to the lossy `default` branch unless the registry maps it to `textarea` (F2c).
 
 ```
-→ acrossai/rank-math-update-general-settings {
+→ rank-math/update-general-settings {
     section: "links",
     settings: { nofollow_domains: "example.com\nexample.org\nexample.net" }
   }
-→ acrossai/rank-math-get-settings { panel: "general-links" }
+→ rank-math/get-settings { panel: "general-links" }
 ```
 
 Assert the two `\n` characters survived. If the value comes back as
@@ -108,7 +108,7 @@ Repeat for `rss_before_content` (`section: "others"`) and `pt_post_image_customf
 ### 3. Maintenance tool dispatch (research F3)
 
 ```
-→ acrossai/rank-math-run-maintenance-tool { tool: "clear_transients", confirm: true }
+→ rank-math/run-maintenance-tool { tool: "clear_transients", confirm: true }
 ```
 
 Assert a real count is returned, **not** the string `Something went wrong.` — that string means the
@@ -118,8 +118,8 @@ actual `/toolsAction` REST request.
 ### 4. Loopback isolation (research F4)
 
 ```
-→ acrossai/rank-math-get-rendered-head { url: "<any post permalink>" }
-→ acrossai/rank-math-get-settings { panel: "general-links" }
+→ rank-math/get-rendered-head { url: "<any post permalink>" }
+→ rank-math/get-settings { panel: "general-links" }
 ```
 
 Both in the same PHP request. Assert the second still succeeds. If it fails, the head was fetched
@@ -129,7 +129,7 @@ in-process and `remove_all_actions()` corrupted global state.
 
 ```
 → users/add-role-capability { role: "editor", capability: "rank_math_titles" }
-→ acrossai/rank-math-get-role-capabilities
+→ rank-math/get-role-capabilities
 ```
 
 Assert `administrator` retains every Rank Math cap. (This is why no bulk writer ships —
@@ -140,7 +140,7 @@ Assert `administrator` retains every Rank Math cap. (This is why no bulk writer 
 Create a redirection whose source resolves to its own destination.
 
 ```
-→ acrossai/rank-math-create-redirection { sources: [{pattern: "/loop", comparison: "exact"}], url_to: "/loop" }
+→ rank-math/create-redirection { sources: [{pattern: "/loop", comparison: "exact"}], url_to: "/loop" }
 ```
 
 Assert `error_code: "infinite_loop_new"` and that Rank Math stored the rule with status `inactive`.
@@ -149,7 +149,7 @@ Then attempt the same shape via `update-redirection` and assert `infinite_loop_u
 ### 7. Repeatable-group round-trip
 
 ```
-→ acrossai/rank-math-update-title-settings {
+→ rank-math/update-title-settings {
     scope: "local-seo",
     settings: { opening_hours: [ { day: "Monday", time: "09:00-17:00" }, { day: "Tuesday", time: "10:00-16:00" } ] }
   }
@@ -161,10 +161,10 @@ not `array_values()`-reindexed before reaching `Sanitize_Settings::sanitize_grou
 ### 8. Module state leaves no stale rewrite rules
 
 ```
-→ acrossai/rank-math-set-module-state { module: "llms-txt", state: "off" }
-→ acrossai/rank-math-get-llms-status
-→ acrossai/rank-math-set-module-state { module: "llms-txt", state: "on" }
-→ acrossai/rank-math-get-llms-status
+→ rank-math/set-module-state { module: "llms-txt", state: "off" }
+→ rank-math/get-llms-status
+→ rank-math/set-module-state { module: "llms-txt", state: "on" }
+→ rank-math/get-llms-status
 ```
 
 Assert the llms.txt rewrite rule is absent after `off` and present after `on`, and that
@@ -175,7 +175,7 @@ Assert the llms.txt rewrite rule is absent after `off` and present after `on`, a
 With a zero Content AI balance:
 
 ```
-→ acrossai/rank-math-research-keyword { keyword: "test", confirm: true }
+→ rank-math/research-keyword { keyword: "test", confirm: true }
 ```
 
 Assert `error_code: "content_ai_no_credits"` and that no outbound HTTP request was made (hook

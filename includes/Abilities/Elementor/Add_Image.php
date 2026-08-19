@@ -24,7 +24,7 @@ class Add_Image extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-add-image',
+			'name' => 'elementor/add-image',
 			'args' => array(
 				'label'               => __( 'Add Elementor Image', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Insert an Elementor image widget from an attachment ID or URL, with optional size, alignment, caption, and link.', 'acrossai-abilities-manager' ),

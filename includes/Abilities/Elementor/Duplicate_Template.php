@@ -20,7 +20,7 @@ class Duplicate_Template extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-duplicate-template',
+			'name' => 'elementor/duplicate-template',
 			'args' => array(
 				'label'               => __( 'Duplicate Elementor Template', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Duplicate a saved Elementor template with fresh element IDs, preserving type + conditions + sub_type.', 'acrossai-abilities-manager' ),

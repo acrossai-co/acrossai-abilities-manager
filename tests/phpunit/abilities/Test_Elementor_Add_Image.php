@@ -26,7 +26,7 @@ class Test_Elementor_Add_Image extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-add-image'", $this->src );
+		$this->assertStringContainsString( "'elementor/add-image'", $this->src );
 	}
 
 	public function test_requires_post_id_and_image(): void {

@@ -27,7 +27,7 @@ class Evaluate_Render_Context extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-evaluate-render-context',
+			'name' => 'elementor/evaluate-render-context',
 			'args' => array(
 				'label'               => __( 'Evaluate Elementor Render Context', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Inspect the frontend wrapper and render context for a post: template file, canvas type (default / elementor_canvas / elementor_header_footer), and Elementor edit-mode flag.', 'acrossai-abilities-manager' ),

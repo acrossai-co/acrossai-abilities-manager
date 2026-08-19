@@ -197,7 +197,7 @@ final class Routes_Repository {
 		if ( empty( \RankMath\Helper::get_settings( 'general.headless_support' ) ) ) {
 			return new WP_Error(
 				'headless_support_disabled',
-				__( 'Rank Math headless support is off, so the getHead route is not registered. Enable it with acrossai/rank-math-update-general-settings using section=others and headless_support=true.', 'acrossai-abilities-manager' )
+				__( 'Rank Math headless support is off, so the getHead route is not registered. Enable it with rank-math/update-general-settings using section=others and headless_support=true.', 'acrossai-abilities-manager' )
 			);
 		}
 		if ( ! wp_http_validate_url( $url ) ) {

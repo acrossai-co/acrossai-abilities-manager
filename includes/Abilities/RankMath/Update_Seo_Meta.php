@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #45 — acrossai/rank-math-update-seo-meta.
+ * Ability #45 — rank-math/update-seo-meta.
  *
  * The only per-post SEO write in the suite: Rank Math core's own abilities read a
  * post's resolved meta but cannot change it.

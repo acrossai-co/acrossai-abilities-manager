@@ -26,7 +26,7 @@ class Test_Elementor_Update_Page_Settings extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-update-page-settings'", $this->src );
+		$this->assertStringContainsString( "'elementor/update-page-settings'", $this->src );
 	}
 
 	public function test_requires_post_id_and_page_settings(): void {

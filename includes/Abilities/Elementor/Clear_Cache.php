@@ -26,7 +26,7 @@ class Clear_Cache extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-clear-cache',
+			'name' => 'elementor/clear-cache',
 			'args' => array(
 				'label'               => __( 'Clear Elementor Cache', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Clear Elementor cache at post scope, site scope, or both. Optional regenerate_css=true to also invalidate the per-post CSS meta for one post.', 'acrossai-abilities-manager' ),

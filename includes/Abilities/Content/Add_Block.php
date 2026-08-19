@@ -28,7 +28,7 @@ class Add_Block extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/add-block',
+			'name' => 'blocks/add-block',
 			'args' => array(
 				'label'               => __( 'Add Block', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Insert a new Gutenberg block into a post at the given parent_path and sibling index. If index >= current sibling count, the block is appended.', 'acrossai-abilities-manager' ),

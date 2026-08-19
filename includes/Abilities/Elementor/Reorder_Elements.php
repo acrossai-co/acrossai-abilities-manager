@@ -26,7 +26,7 @@ class Reorder_Elements extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-reorder-elements',
+			'name' => 'elementor/reorder-elements',
 			'args' => array(
 				'label'               => __( 'Reorder Elementor Elements', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reorder the direct children of a parent (or root children when parent_id is null). Children not listed in ordered_element_ids retain their prior relative order and are appended after.', 'acrossai-abilities-manager' ),

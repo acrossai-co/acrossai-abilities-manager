@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #27 — acrossai/rank-math-invalidate-sitemap-cache.
+ * Ability #27 — rank-math/invalidate-sitemap-cache.
  *
  * Not destructive: the cache is derived data and regenerates on the next request.
  * Idempotent: invalidating twice has the same effect as once.

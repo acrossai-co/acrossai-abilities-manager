@@ -1,6 +1,6 @@
 <?php
 /**
- * Feature 066 — source-inspection tests for acrossai/remove-block.
+ * Feature 066 — source-inspection tests for blocks/remove-block.
  *
  * @package AcrossAI_Abilities_Manager
  * @since   0.0.24
@@ -27,7 +27,7 @@ class Test_Remove_Block extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/remove-block'", $this->src );
+		$this->assertStringContainsString( "'blocks/remove-block'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-content'", $this->src );
 	}
 

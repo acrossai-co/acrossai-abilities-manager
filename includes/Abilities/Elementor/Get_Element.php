@@ -26,7 +26,7 @@ class Get_Element extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-element',
+			'name' => 'elementor/get-element',
 			'args' => array(
 				'label'               => __( 'Get Elementor Element', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the Elementor element at the given 7-character hex ID for a post, plus its parent-ID path from the root.', 'acrossai-abilities-manager' ),

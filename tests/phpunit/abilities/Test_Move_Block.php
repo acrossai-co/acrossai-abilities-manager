@@ -1,6 +1,6 @@
 <?php
 /**
- * Feature 066 — source-inspection tests for acrossai/move-block.
+ * Feature 066 — source-inspection tests for blocks/move-block.
  *
  * @package AcrossAI_Abilities_Manager
  * @since   0.0.24
@@ -27,7 +27,7 @@ class Test_Move_Block extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/move-block'", $this->src );
+		$this->assertStringContainsString( "'blocks/move-block'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-content'", $this->src );
 	}
 

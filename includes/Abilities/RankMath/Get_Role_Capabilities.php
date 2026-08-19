@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #16 — acrossai/rank-math-get-role-capabilities.
+ * Ability #16 — rank-math/get-role-capabilities.
  *
  * The plugin already ships users/get-role-capabilities, which returns one role's
  * FULL WordPress capability map. What that cannot tell you is which sixteen

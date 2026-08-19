@@ -26,7 +26,7 @@ class Test_Elementor_Duplicate_Element extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-duplicate-element'", $this->src );
+		$this->assertStringContainsString( "'elementor/duplicate-element'", $this->src );
 	}
 
 	public function test_reassigns_subtree_ids(): void {

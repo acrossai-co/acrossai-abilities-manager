@@ -26,7 +26,7 @@ class Test_Elementor_Delete_Element extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-delete-element'", $this->src );
+		$this->assertStringContainsString( "'elementor/delete-element'", $this->src );
 	}
 
 	public function test_destructive_annotation(): void {

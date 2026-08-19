@@ -22,7 +22,7 @@ class Update_Experiment extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-update-experiment',
+			'name' => 'elementor/update-experiment',
 			'args' => array(
 				'label'               => __( 'Update Elementor Experiment', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update an Elementor experiment state (active | inactive | default). Writes to elementor_experiment_<name> option.', 'acrossai-abilities-manager' ),

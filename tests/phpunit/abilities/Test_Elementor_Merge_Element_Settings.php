@@ -26,7 +26,7 @@ class Test_Elementor_Merge_Element_Settings extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-merge-element-settings'", $this->src );
+		$this->assertStringContainsString( "'elementor/merge-element-settings'", $this->src );
 	}
 
 	public function test_input_requires_post_id_element_id_and_settings(): void {

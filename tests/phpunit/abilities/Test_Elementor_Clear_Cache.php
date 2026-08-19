@@ -26,7 +26,7 @@ class Test_Elementor_Clear_Cache extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-clear-cache'", $this->src );
+		$this->assertStringContainsString( "'elementor/clear-cache'", $this->src );
 	}
 
 	public function test_scope_enum(): void {

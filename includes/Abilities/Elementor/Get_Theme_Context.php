@@ -25,7 +25,7 @@ class Get_Theme_Context extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-theme-context',
+			'name' => 'elementor/get-theme-context',
 			'args' => array(
 				'label'               => __( 'Get Elementor Theme Context', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the active theme, Elementor version, active kit, and viewport settings — foundation snapshot used by other design abilities.', 'acrossai-abilities-manager' ),

@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #10 — acrossai/rank-math-reset-indexing-key.
+ * Ability #10 — rank-math/reset-indexing-key.
  *
  * Destructive despite writing rather than deleting: IndexNow verifies ownership by
  * fetching a key file at a URL derived from the key. Rotating it invalidates the

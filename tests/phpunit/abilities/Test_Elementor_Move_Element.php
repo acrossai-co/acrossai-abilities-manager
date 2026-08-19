@@ -26,7 +26,7 @@ class Test_Elementor_Move_Element extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-move-element'", $this->src );
+		$this->assertStringContainsString( "'elementor/move-element'", $this->src );
 	}
 
 	public function test_input_requires_post_id_element_id_position(): void {

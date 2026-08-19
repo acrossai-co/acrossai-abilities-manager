@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #33 — acrossai/rank-math-bulk-update-meta.
+ * Ability #33 — rank-math/bulk-update-meta.
  *
  * Rank Math's own bulk endpoint silently skips rows it cannot process and always
  * returns success, so this ability computes processed/skipped itself with a reason per

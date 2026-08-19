@@ -26,7 +26,7 @@ class Test_Elementor_Patch_Data extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-patch-data'", $this->src );
+		$this->assertStringContainsString( "'elementor/patch-data'", $this->src );
 	}
 
 	public function test_requires_post_id_find_replace(): void {

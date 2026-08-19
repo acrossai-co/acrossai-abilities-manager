@@ -22,7 +22,7 @@ class Create_Template extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-create-template',
+			'name' => 'elementor/create-template',
 			'args' => array(
 				'label'               => __( 'Create Elementor Template', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a new Elementor template. Supports type = page | section | popup | header | footer | single | archive.', 'acrossai-abilities-manager' ),

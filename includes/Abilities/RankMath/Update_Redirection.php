@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #11 — acrossai/rank-math-update-redirection.
+ * Ability #11 — rank-math/update-redirection.
  *
  * The gap this fills: nothing else can EDIT a redirection. Emulating an edit by
  * delete-then-recreate loses the rule's id, its hit counter and its creation date.
@@ -56,7 +56,7 @@ class Update_Redirection extends Base_Rank_Math_Ability {
 			'id'          => array(
 				'type'        => 'integer',
 				'minimum'     => 1,
-				'description' => __( 'Redirection id. Find it with acrossai/rank-math-list-redirections or -find-redirection.', 'acrossai-abilities-manager' ),
+				'description' => __( 'Redirection id. Find it with rank-math/list-redirections or -find-redirection.', 'acrossai-abilities-manager' ),
 			),
 			'sources'     => array(
 				'type'        => 'array',
@@ -87,7 +87,7 @@ class Update_Redirection extends Base_Rank_Math_Ability {
 			'status'      => array(
 				'type'        => 'string',
 				'enum'        => array( 'active', 'inactive' ),
-				'description' => __( 'New status. Omit to leave unchanged. For bulk transitions use acrossai/rank-math-change-redirection-status.', 'acrossai-abilities-manager' ),
+				'description' => __( 'New status. Omit to leave unchanged. For bulk transitions use rank-math/change-redirection-status.', 'acrossai-abilities-manager' ),
 			),
 		);
 	}

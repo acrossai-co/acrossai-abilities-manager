@@ -155,7 +155,7 @@ Cache scope defaults to `post`; `clear-cache` ability supports both `post` and `
 
 **Decision**:
 - Category slug: `acrossai-abilities-manager-elementor` (mirrors `acrossai-abilities-manager-block`, `acrossai-abilities-manager-content`).
-- Ability namespace: `acrossai/elementor-<verb>-<noun>` (e.g. `acrossai/elementor-get-widget-controls`).
+- Ability namespace: `elementor/<verb>-<noun>` (e.g. `elementor/get-widget-controls`).
 
 **Rationale**:
 - Preserves the plugin-wide `acrossai/` prefix — clients can filter all AcrossAI abilities with a single namespace check.
@@ -169,7 +169,7 @@ Cache scope defaults to `post`; `clear-cache` ability supports both `post` and `
 - **`elementor/<verb-noun>`** (source plugin convention): breaks AcrossAI's single-namespace rule. Rejected.
 - **`acrossai/<verb-noun>` + rely on category to disambiguate**: multiple existing collisions (`create-page`, etc.); brittle. Rejected.
 
-**Impact**: 88 abilities all have the `acrossai/elementor-` prefix. Clients can locate them either by slug prefix or by category.
+**Impact**: 88 abilities all have the `elementor/` prefix. Clients can locate them either by slug prefix or by category.
 
 ---
 
@@ -202,7 +202,7 @@ Cache scope defaults to `post`; `clear-cache` ability supports both `post` and `
 | R6 | Force-guard idiom | `force_replace=true` / `force_delete=true` required for populated-document destructive writes |
 | R7 | Elementor version target | 3.x+ (container era); v2 documents remain readable but authoring primitives assume v3+ |
 | R8 | Cache invalidation | `Document_Repository::invalidate_cache()` — Elementor files manager + WP post cache + `_elementor_css` meta delete |
-| R9 | Slug + category convention | Category `acrossai-abilities-manager-elementor`; abilities `acrossai/elementor-<verb-noun>` |
+| R9 | Slug + category convention | Category `acrossai-abilities-manager-elementor`; abilities `elementor/<verb-noun>` |
 | R10 | Pattern-scoring algorithm | Port source plugin's title + meta + content-signature keyword scoring |
 
 **All NEEDS CLARIFICATION resolved. Ready for Phase 1 design.**

@@ -26,7 +26,7 @@ class Get_Data extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-data',
+			'name' => 'elementor/get-data',
 			'args' => array(
 				'label'               => __( 'Get Elementor Document Data', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the parsed Elementor document tree + page settings for a post.', 'acrossai-abilities-manager' ),

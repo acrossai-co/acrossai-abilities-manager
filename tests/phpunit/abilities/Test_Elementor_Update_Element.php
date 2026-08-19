@@ -26,7 +26,7 @@ class Test_Elementor_Update_Element extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-update-element'", $this->src );
+		$this->assertStringContainsString( "'elementor/update-element'", $this->src );
 	}
 
 	public function test_destructive_annotations(): void {

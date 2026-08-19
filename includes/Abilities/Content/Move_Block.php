@@ -28,7 +28,7 @@ class Move_Block extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/move-block',
+			'name' => 'blocks/move-block',
 			'args' => array(
 				'label'               => __( 'Move Block', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Atomically move a Gutenberg block from a source path to a destination (to_parent_path + to_index). Refuses to move a block into its own subtree.', 'acrossai-abilities-manager' ),

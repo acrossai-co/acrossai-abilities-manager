@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #17 — acrossai/rank-math-reset-role-capabilities.
+ * Ability #17 — rank-math/reset-role-capabilities.
  *
  * Distinct from the plugin's users/reset-role, which restores a role to its
  * WordPress defaults and would therefore STRIP Rank Math capabilities rather than
@@ -41,7 +41,7 @@ class Reset_Role_Capabilities extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Restore Rank Math\'s default capability distribution for every role at once, discarding all customisation. There is no undo, so the response includes the before and after matrices to allow manual reconstruction. Read the current state first with acrossai/rank-math-get-role-capabilities. This is not the same as the plugin\'s users/reset-role, which restores WordPress defaults and would remove Rank Math capabilities entirely.', 'acrossai-abilities-manager' );
+		return __( 'Restore Rank Math\'s default capability distribution for every role at once, discarding all customisation. There is no undo, so the response includes the before and after matrices to allow manual reconstruction. Read the current state first with rank-math/get-role-capabilities. This is not the same as the plugin\'s users/reset-role, which restores WordPress defaults and would remove Rank Math capabilities entirely.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

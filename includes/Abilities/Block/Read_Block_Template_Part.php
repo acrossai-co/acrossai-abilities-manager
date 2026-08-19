@@ -35,7 +35,7 @@ class Read_Block_Template_Part extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/read-block-template-part',
+			'name' => 'blocks/read-block-template-part',
 			'args' => array(
 				'label'               => __( 'Read Block Template Part', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reads a single block template part by slug from the database, theme, or plugin. When the slug exists in multiple locations, returns "multiple_locations" with the candidate list — pick one with source / theme_type / plugin_slug.', 'acrossai-abilities-manager' ),

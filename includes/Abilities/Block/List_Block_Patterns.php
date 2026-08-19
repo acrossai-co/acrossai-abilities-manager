@@ -37,7 +37,7 @@ class List_Block_Patterns extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-block-patterns',
+			'name' => 'blocks/list-block-patterns',
 			'args' => array(
 				'label'               => __( 'List Block Patterns', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Lists block patterns across all storage layers — database (wp_block CPT), theme /patterns folders (child + parent), and plugin /patterns folders. Pass "slug" to find every location that holds a specific pattern (detection step for Update / Delete).', 'acrossai-abilities-manager' ),

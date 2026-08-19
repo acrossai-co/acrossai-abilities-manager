@@ -58,12 +58,12 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ## Phase 3: US1 — Widget-schema discovery (P1) 🎯 MVP
 
-**Goal**: `acrossai/elementor-get-widget-controls` returns any registered widget's control schema at runtime.
+**Goal**: `elementor/get-widget-controls` returns any registered widget's control schema at runtime.
 
 **Independent Test**: On a site with Elementor, request the schema for `heading`. Verify `count > 0` and `controls` includes `title`, `header_size`, `align`, `title_color`.
 
 - [ ] T017 [P] [US1] Create `includes/Abilities/Elementor/Get_Widget_Controls.php` per contracts/abilities.md § 3.1 — extends `Ability_Definition`, category `acrossai-abilities-manager-elementor`, uses `Widget_Controls::get_type` + `summarize`
-- [ ] T018 [P] [US1] Create `tests/phpunit/abilities/Test_Elementor_Get_Widget_Controls.php` — assert registration, slug `acrossai/elementor-get-widget-controls`, category, schema shape, error branches
+- [ ] T018 [P] [US1] Create `tests/phpunit/abilities/Test_Elementor_Get_Widget_Controls.php` — assert registration, slug `elementor/get-widget-controls`, category, schema shape, error branches
 - [ ] T019 [US1] Register `Get_Widget_Controls` in bootstrap (T010's free-Elementor block)
 
 **Checkpoint**: US1 fully functional.

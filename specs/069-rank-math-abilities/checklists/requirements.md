@@ -7,7 +7,7 @@ Tick as each batch lands. A batch is not done until its rows are ticked.
 ## Coverage discipline
 
 - [ ] No ability duplicates any of Rank Math core's 13 baseline abilities (FR-005)
-- [ ] Every slug is `acrossai/rank-math-<verb>-<noun>`, verb-first (FR-001)
+- [ ] Every slug is `rank-math/<verb>-<noun>`, verb-first (FR-001)
 - [ ] 61 abilities registered; the count matches `contracts/abilities.md`
 - [ ] No raw Rank Math option read/write ability exists (superseded by the plugin's generic option abilities)
 - [ ] No bulk role-capability writer exists (superseded by `users/add-role-capability` / `remove-role-capability`)

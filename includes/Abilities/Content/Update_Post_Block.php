@@ -33,7 +33,7 @@ class Update_Post_Block extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-post-block',
+			'name' => 'blocks/update-post-block',
 			'args' => array(
 				'label'               => __( 'Update Block', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Parse a post\'s block tree, find one block, merge the supplied attributes, replace innerHTML, and save the post. Targeting priority: (1) path — a canonical integer-array path targeting a block at any nesting depth; (2) block_index — 0-based top-level index; (3) block_name (+ optional occurrence).', 'acrossai-abilities-manager' ),

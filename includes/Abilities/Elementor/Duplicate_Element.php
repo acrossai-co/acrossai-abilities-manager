@@ -26,7 +26,7 @@ class Duplicate_Element extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-duplicate-element',
+			'name' => 'elementor/duplicate-element',
 			'args' => array(
 				'label'               => __( 'Duplicate Elementor Element', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Deep-clone an Elementor element (including all nested children) and insert the clone as the next sibling of the source. IDs are regenerated throughout the cloned subtree.', 'acrossai-abilities-manager' ),

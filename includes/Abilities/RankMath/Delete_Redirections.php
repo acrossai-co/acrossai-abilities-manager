@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #54 — acrossai/rank-math-delete-redirections.
+ * Ability #54 — rank-math/delete-redirections.
  *
  * Separate from change-redirection-status precisely so that ability can declare
  * destructive:false for its four reversible transitions while this one carries the
@@ -36,7 +36,7 @@ class Delete_Redirections extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Permanently delete redirections by id. The rules and their hit history are unrecoverable, and any URL currently relying on one will stop redirecting. Prefer acrossai/rank-math-change-redirection-status with action=trash, which is reversible.', 'acrossai-abilities-manager' );
+		return __( 'Permanently delete redirections by id. The rules and their hit history are unrecoverable, and any URL currently relying on one will stop redirecting. Prefer rank-math/change-redirection-status with action=trash, which is reversible.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

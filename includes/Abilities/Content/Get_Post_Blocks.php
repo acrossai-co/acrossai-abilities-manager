@@ -29,7 +29,7 @@ class Get_Post_Blocks extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-post-blocks',
+			'name' => 'blocks/get-post-blocks',
 			'args' => array(
 				'label'               => __( 'Get Post Blocks', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the parsed Gutenberg block tree of a post with each block annotated with its canonical integer-array path (e.g. [0, 2, 1] = 2nd grandchild of the 3rd child of the 1st top-level block).', 'acrossai-abilities-manager' ),

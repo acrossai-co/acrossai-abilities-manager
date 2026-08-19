@@ -22,7 +22,7 @@ class List_Experiments extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-list-experiments',
+			'name' => 'elementor/list-experiments',
 			'args' => array(
 				'label'               => __( 'List Elementor Experiments', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List Elementor experiment feature flags with their current state (active | inactive | default) and default state.', 'acrossai-abilities-manager' ),

@@ -58,9 +58,9 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ## Phase 3: User Story 1 — Read post's block tree with paths (Priority: P1) 🎯 MVP
 
-**Goal**: Deliver `acrossai/get-post-blocks` — the foundational read primitive every write ability depends on.
+**Goal**: Deliver `blocks/get-post-blocks` — the foundational read primitive every write ability depends on.
 
-**Independent Test**: Create a post with `<!-- wp:columns --><!-- wp:column --><!-- wp:paragraph -->Left<!-- /wp:paragraph --><!-- wp:paragraph -->Also left<!-- /wp:paragraph --><!-- /wp:column --><!-- /wp:columns -->` in `post_content`. Invoke `acrossai/get-post-blocks` with that post's ID. Verify response contains the columns block at path `[0]`, the column at `[0, 0]`, and both paragraphs at `[0, 0, 0]` and `[0, 0, 1]`.
+**Independent Test**: Create a post with `<!-- wp:columns --><!-- wp:column --><!-- wp:paragraph -->Left<!-- /wp:paragraph --><!-- wp:paragraph -->Also left<!-- /wp:paragraph --><!-- /wp:column --><!-- /wp:columns -->` in `post_content`. Invoke `blocks/get-post-blocks` with that post's ID. Verify response contains the columns block at path `[0]`, the column at `[0, 0]`, and both paragraphs at `[0, 0, 0]` and `[0, 0, 1]`.
 
 ### Tests for User Story 1
 
@@ -69,7 +69,7 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Create `includes/Abilities/Content/Get_Post_Blocks.php` — extends `Ability_Definition`, registers `acrossai/get-post-blocks` under `acrossai-abilities-manager-content` category, input/output schema per contracts/abilities.md § 1
+- [ ] T014 [US1] Create `includes/Abilities/Content/Get_Post_Blocks.php` — extends `Ability_Definition`, registers `blocks/get-post-blocks` under `acrossai-abilities-manager-content` category, input/output schema per contracts/abilities.md § 1
 - [ ] T015 [US1] Implement `Get_Post_Blocks::execute($input)` — calls `Block_Tree::parse_post_blocks` + `Block_Tree::annotate_with_paths`, uses `read_post` capability (not `edit_post` — read-only per research.md R9), returns response envelope per contracts/abilities.md
 - [ ] T016 [US1] Register `Get_Post_Blocks` in `includes/Abilities/AcrossAI_Core_Abilities_Bootstrap.php` alongside existing content abilities
 - [ ] T017 [US1] Run `composer test -- --filter=Test_Get_Post_Blocks` and verify all cases pass
@@ -80,9 +80,9 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ## Phase 4: User Story 2 — Insert a new block at any position (Priority: P1)
 
-**Goal**: Deliver `acrossai/add-block` — the primary write primitive for content authoring.
+**Goal**: Deliver `blocks/add-block` — the primary write primitive for content authoring.
 
-**Independent Test**: Given a post with a container at `[0]` containing one child, invoke `acrossai/add-block` with `parent_path=[0], index=0, block={name: "core/paragraph", attrs: {content: "test"}}`. Re-read via `get-post-blocks` and verify the new paragraph is at `[0, 0]` and the prior child moved to `[0, 1]`.
+**Independent Test**: Given a post with a container at `[0]` containing one child, invoke `blocks/add-block` with `parent_path=[0], index=0, block={name: "core/paragraph", attrs: {content: "test"}}`. Re-read via `get-post-blocks` and verify the new paragraph is at `[0, 0]` and the prior child moved to `[0, 1]`.
 
 ### Tests for User Story 2
 
@@ -91,7 +91,7 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Create `includes/Abilities/Content/Add_Block.php` — extends `Ability_Definition`, registers `acrossai/add-block`, input/output schema per contracts/abilities.md § 2
+- [ ] T020 [US2] Create `includes/Abilities/Content/Add_Block.php` — extends `Ability_Definition`, registers `blocks/add-block`, input/output schema per contracts/abilities.md § 2
 - [ ] T021 [US2] Implement `Add_Block::execute($input)` — parses tree via `Block_Tree`, validates block name + attributes, calls `Block_Tree::insert_at_path`, serializes and writes via `wp_update_post`, returns response with the inserted block's new `path`
 - [ ] T022 [US2] Register `Add_Block` in `AcrossAI_Core_Abilities_Bootstrap.php`
 - [ ] T023 [US2] Run `composer test -- --filter=Test_Add_Block` — all cases pass
@@ -102,9 +102,9 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ## Phase 5: User Story 3 — Remove a block from any position (Priority: P1)
 
-**Goal**: Deliver `acrossai/remove-block` — the destroy primitive.
+**Goal**: Deliver `blocks/remove-block` — the destroy primitive.
 
-**Independent Test**: Given a post with a container containing two children, invoke `acrossai/remove-block` with `path=[0, 0]`. Re-read and verify the container has one child (the former second child, now at `[0, 0]`).
+**Independent Test**: Given a post with a container containing two children, invoke `blocks/remove-block` with `path=[0, 0]`. Re-read and verify the container has one child (the former second child, now at `[0, 0]`).
 
 ### Tests for User Story 3
 
@@ -124,7 +124,7 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ## Phase 6: User Story 4 — Update at any nesting depth (Priority: P1)
 
-**Goal**: Extend `acrossai/update-post-block` to accept the canonical `path` input, preserving full backward compatibility with existing `block_index` / `block_name`+`occurrence` inputs.
+**Goal**: Extend `blocks/update-post-block` to accept the canonical `path` input, preserving full backward compatibility with existing `block_index` / `block_name`+`occurrence` inputs.
 
 **Independent Test**: Given a post with a paragraph at `[0, 0, 0]`, invoke `update-post-block` with `path=[0, 0, 0]` and new attributes. Re-read and verify only that block changed. Also verify a legacy call `{ post_id, block_index: 0, attributes }` behaves identically to the pre-066 version (no path, no behaviour change).
 
@@ -148,7 +148,7 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ## Phase 7: User Story 5 — Move a block (Priority: P2)
 
-**Goal**: Deliver `acrossai/move-block` — reorder or reparent atomically.
+**Goal**: Deliver `blocks/move-block` — reorder or reparent atomically.
 
 **Independent Test**: Given two top-level blocks, invoke `move-block` from `[1]` into `[0]` at index `0`. Verify source is gone and the block is now first child of former `[0]`.
 
@@ -170,7 +170,7 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ## Phase 8: User Story 6 — Duplicate a block (Priority: P2)
 
-**Goal**: Deliver `acrossai/duplicate-block` — deep-clone in place.
+**Goal**: Deliver `blocks/duplicate-block` — deep-clone in place.
 
 **Independent Test**: Given a container with 2 nested children, invoke `duplicate-block` at `[0]`. Verify a deep clone appears at `[1]` with 2 nested children of its own, and the original is unchanged.
 
@@ -192,7 +192,7 @@ WordPress plugin single-project layout (from plan.md § Project Structure):
 
 ## Phase 9: User Story 7 — Insert a saved pattern at any position (Priority: P3)
 
-**Goal**: Deliver `acrossai/insert-pattern` — resolve pattern by slug and expand into blocks at a target position.
+**Goal**: Deliver `blocks/insert-pattern` — resolve pattern by slug and expand into blocks at a target position.
 
 **Independent Test**: Given a known pattern slug in the active theme, invoke `insert-pattern` at `parent_path=[0], index=0, slug="<known>"`. Verify the pattern's constituent blocks appear at that location in order, with all their nested content intact.
 

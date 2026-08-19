@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #39 — acrossai/rank-math-get-content-ai-status.
+ * Ability #39 — rank-math/get-content-ai-status.
  *
  * The probe that makes the other Content AI abilities safe to attempt: it reads
  * locally, spends nothing, and tells a caller whether an account is connected and how
@@ -35,7 +35,7 @@ class Get_Content_Ai_Status extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Report whether Content AI is usable: module state, whether a Rank Math account is connected, the current plan, and the remaining credit balance with usage details. Reads locally and spends no credits, so call this before acrossai/rank-math-research-keyword to know whether that request can succeed.', 'acrossai-abilities-manager' );
+		return __( 'Report whether Content AI is usable: module state, whether a Rank Math account is connected, the current plan, and the remaining credit balance with usage details. Reads locally and spends no credits, so call this before rank-math/research-keyword to know whether that request can succeed.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -79,7 +79,7 @@ class Get_Content_Ai_Status extends Base_Rank_Math_Ability {
 		}
 
 		if ( ! $status['module_active'] ) {
-			$status['message'] = __( 'The Content AI module is inactive. Enable it with acrossai/rank-math-set-module-state.', 'acrossai-abilities-manager' );
+			$status['message'] = __( 'The Content AI module is inactive. Enable it with rank-math/set-module-state.', 'acrossai-abilities-manager' );
 		} elseif ( ! $status['connected'] ) {
 			$status['message'] = __( 'Content AI needs a connected Rank Math account. Connect the site at Rank Math → Dashboard.', 'acrossai-abilities-manager' );
 		} elseif ( 0 === (int) $status['credits'] ) {

@@ -26,7 +26,7 @@ class Get_Maintenance_Mode extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-maintenance-mode',
+			'name' => 'elementor/get-maintenance-mode',
 			'args' => array(
 				'label'               => __( 'Get Elementor Maintenance Mode', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the current Elementor maintenance mode settings: mode, active template, exclude rules.', 'acrossai-abilities-manager' ),

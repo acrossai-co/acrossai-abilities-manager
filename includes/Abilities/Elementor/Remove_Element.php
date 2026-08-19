@@ -26,7 +26,7 @@ class Remove_Element extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-remove-element',
+			'name' => 'elementor/remove-element',
 			'args' => array(
 				'label'               => __( 'Remove Elementor Element', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Remove the Elementor element at the given ID. Semantically identical to delete-element; force_delete required for populated or top-level elements.', 'acrossai-abilities-manager' ),

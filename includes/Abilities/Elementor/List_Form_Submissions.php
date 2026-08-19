@@ -27,7 +27,7 @@ class List_Form_Submissions extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-list-form-submissions',
+			'name' => 'elementor/list-form-submissions',
 			'args' => array(
 				'label'               => __( 'List Elementor Pro Form Submissions', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List Elementor Pro Form widget submissions with optional form_id filter and include_values flag. Requires Elementor Pro.', 'acrossai-abilities-manager' ),

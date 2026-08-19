@@ -20,7 +20,7 @@ class List_Templates extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-list-templates',
+			'name' => 'elementor/list-templates',
 			'args' => array(
 				'label'               => __( 'List Elementor Templates', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List saved Elementor templates (elementor_library CPT). Filter by template_type and status.', 'acrossai-abilities-manager' ),

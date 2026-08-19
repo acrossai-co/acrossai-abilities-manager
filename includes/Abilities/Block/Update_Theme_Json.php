@@ -36,7 +36,7 @@ class Update_Theme_Json extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-theme-json',
+			'name' => 'blocks/update-theme-json',
 			'args' => array(
 				'label'               => __( 'Update theme.json', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Writes a theme.json file directly. Defaults to the active child theme (or single theme); refuses to edit the parent theme. By default deep-merges into the existing file; pass merge=false to replace.', 'acrossai-abilities-manager' ),

@@ -24,7 +24,7 @@ class Add_Text_Editor extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-add-text-editor',
+			'name' => 'elementor/add-text-editor',
 			'args' => array(
 				'label'               => __( 'Add Elementor Text Editor', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Insert an Elementor text-editor widget with HTML content and alignment.', 'acrossai-abilities-manager' ),

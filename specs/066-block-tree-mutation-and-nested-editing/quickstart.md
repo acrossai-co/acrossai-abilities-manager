@@ -40,7 +40,7 @@ At the start, `post_content` is empty, so `get-post-blocks` returns `blocks: []`
 ## Step 1 — Insert the columns container at root
 
 ```json
-Ability: acrossai/add-block
+Ability: blocks/add-block
 Input:  { "post_id": 42, "parent_path": [], "index": 0,
           "block": { "name": "core/columns" } }
 ```
@@ -52,14 +52,14 @@ Input:  { "post_id": 42, "parent_path": [], "index": 0,
 ## Step 2 — Insert the two columns as children of `[0]`
 
 ```json
-Ability: acrossai/add-block
+Ability: blocks/add-block
 Input:  { "post_id": 42, "parent_path": [0], "index": 0,
           "block": { "name": "core/column" } }
 ```
 → `block.path = [0, 0]`
 
 ```json
-Ability: acrossai/add-block
+Ability: blocks/add-block
 Input:  { "post_id": 42, "parent_path": [0], "index": 1,
           "block": { "name": "core/column" } }
 ```
@@ -70,7 +70,7 @@ Input:  { "post_id": 42, "parent_path": [0], "index": 1,
 ## Step 3 — Populate the left column
 
 ```json
-Ability: acrossai/add-block
+Ability: blocks/add-block
 Input:  { "post_id": 42, "parent_path": [0, 0], "index": 0,
           "block": { "name": "core/heading",
                      "attrs": { "level": 2, "content": "Left column heading" } } }
@@ -78,7 +78,7 @@ Input:  { "post_id": 42, "parent_path": [0, 0], "index": 0,
 → `block.path = [0, 0, 0]`
 
 ```json
-Ability: acrossai/add-block
+Ability: blocks/add-block
 Input:  { "post_id": 42, "parent_path": [0, 0], "index": 1,
           "block": { "name": "core/paragraph",
                      "attrs": { "content": "Left body copy" } } }
@@ -90,7 +90,7 @@ Input:  { "post_id": 42, "parent_path": [0, 0], "index": 1,
 ## Step 4 — Populate the right column
 
 ```json
-Ability: acrossai/add-block
+Ability: blocks/add-block
 Input:  { "post_id": 42, "parent_path": [0, 1], "index": 0,
           "block": { "name": "core/paragraph",
                      "attrs": { "content": "Right body copy" } } }
@@ -102,7 +102,7 @@ Input:  { "post_id": 42, "parent_path": [0, 1], "index": 0,
 ## Step 5 — Read the tree to verify
 
 ```json
-Ability: acrossai/get-post-blocks
+Ability: blocks/get-post-blocks
 Input:  { "post_id": 42 }
 ```
 
@@ -143,7 +143,7 @@ Input:  { "post_id": 42 }
 ## Step 6 — Update a nested paragraph (nested `update-post-block`)
 
 ```json
-Ability: acrossai/update-post-block
+Ability: blocks/update-post-block
 Input:  { "post_id": 42, "path": [0, 0, 1],
           "attributes": { "content": "Left body copy (revised)" } }
 ```
@@ -155,7 +155,7 @@ Input:  { "post_id": 42, "path": [0, 0, 1],
 ## Step 7 — Duplicate the left column
 
 ```json
-Ability: acrossai/duplicate-block
+Ability: blocks/duplicate-block
 Input:  { "post_id": 42, "path": [0, 0] }
 ```
 
@@ -166,7 +166,7 @@ Input:  { "post_id": 42, "path": [0, 0] }
 ## Step 8 — Remove the duplicate
 
 ```json
-Ability: acrossai/remove-block
+Ability: blocks/remove-block
 Input:  { "post_id": 42, "path": [0, 1] }
 ```
 
@@ -177,7 +177,7 @@ Input:  { "post_id": 42, "path": [0, 1] }
 ## Step 9 — Move the right column's paragraph into the left column
 
 ```json
-Ability: acrossai/move-block
+Ability: blocks/move-block
 Input:  { "post_id": 42,
           "from_path": [0, 1, 0],
           "to_parent_path": [0, 0], "to_index": 2 }
@@ -192,7 +192,7 @@ Input:  { "post_id": 42,
 Assume a theme pattern with slug `my-theme/promo` exists.
 
 ```json
-Ability: acrossai/insert-pattern
+Ability: blocks/insert-pattern
 Input:  { "post_id": 42,
           "parent_path": [0, 1], "index": 0,
           "slug": "my-theme/promo" }
@@ -207,7 +207,7 @@ Input:  { "post_id": 42,
 Verify a pre-066 consumer call still works — pass ONLY `block_index`, no `path`:
 
 ```json
-Ability: acrossai/update-post-block
+Ability: blocks/update-post-block
 Input:  { "post_id": 42, "block_index": 0,
           "attributes": { "align": "wide" } }
 ```

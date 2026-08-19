@@ -44,7 +44,7 @@ class Test_Rank_Math_Base_Ability extends WP_UnitTestCase {
 	}
 
 	public function test_slug_prefix_is_applied_centrally(): void {
-		$this->assertStringContainsString( "'acrossai/rank-math-' . \$this->slug()", $this->src );
+		$this->assertStringContainsString( "'rank-math/' . \$this->slug()", $this->src );
 	}
 
 	public function test_declares_required_meta_block(): void {
@@ -66,7 +66,7 @@ class Test_Rank_Math_Base_Ability extends WP_UnitTestCase {
 			$this->assertMatchesRegularExpression( "/'{$key}'\s*=>/", $this->src, "Missing arg key: {$key}" );
 		}
 		// 'name' and 'args' are the two top-level spec keys, not args keys.
-		$this->assertStringContainsString( "'name' => 'acrossai/rank-math-'", $this->src );
+		$this->assertStringContainsString( "'name' => 'rank-math/'", $this->src );
 	}
 
 	/**

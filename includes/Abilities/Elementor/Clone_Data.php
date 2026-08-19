@@ -27,7 +27,7 @@ class Clone_Data extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-clone-data',
+			'name' => 'elementor/clone-data',
 			'args' => array(
 				'label'               => __( 'Clone Elementor Document Data', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Copy the full Elementor tree from one post to another with fresh element IDs throughout. Optionally include page settings. Guarded by force_replace when the target already has content.', 'acrossai-abilities-manager' ),

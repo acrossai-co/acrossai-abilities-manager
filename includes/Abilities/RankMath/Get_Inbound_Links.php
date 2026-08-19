@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #49 — acrossai/rank-math-get-inbound-links.
+ * Ability #49 — rank-math/get-inbound-links.
  *
  * Deliberately the OPPOSITE direction from everything else available. Rank Math's
  * rank-math/get-post-links lists links going out of a post and is PRO-dependent for

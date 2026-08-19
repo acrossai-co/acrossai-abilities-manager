@@ -155,11 +155,11 @@ No data is sent to any external server without an explicit administrator action.
 = 0.0.28 - 2026-08-17 =
 **Feature 069 — Rank Math ability suite: 61 new abilities under a new "Rank Math" tab.** Gated on Rank Math SEO being active; absent entirely without it. Plugin version bumped 0.0.27 → 0.0.28.
 
-Coverage baseline was deliberately narrow: Rank Math core ships **13** abilities of its own under `rank-math/`, and only those 13 counted as existing coverage. The third-party `mcp-abilities-rankmath` companion plugin was **not** treated as coverage — it is not ours to maintain, its writes go through raw `update_option()` blobs that bypass Rank Math's sanitizer, and it gates every ability on blanket `manage_options` regardless of the Role Manager. Slugs do not collide (`rank-math/` vs `rankmath/` vs `acrossai/rank-math-`).
+Coverage baseline was deliberately narrow: Rank Math core ships **13** abilities of its own under `rank-math/`, and only those 13 counted as existing coverage. The third-party `mcp-abilities-rankmath` companion plugin was **not** treated as coverage — it is not ours to maintain, its writes go through raw `update_option()` blobs that bypass Rank Math's sanitizer, and it gates every ability on blanket `manage_options` regardless of the Role Manager. Slugs do not collide (`rank-math/` vs `rankmath/` vs `rank-math/`).
 
 **Batch 1 — plumbing.** `RankMath\Category_Registrar` registers `acrossai-abilities-manager-rank-math`, guarded on `class_exists('\RankMath\Helper')`. `Base_Rank_Math_Ability` is the sole assembler of `ability()` and sole enforcer of the `execute()` guard order, which is what guarantees `tab_group => 'rank-math'` on all 61 — the Feature 078 regression class. `Rank_Math_Guard` holds every guard plus the response envelope.
 
-**Batch 2 — typed settings (6 abilities).** `acrossai/rank-math-get-settings` reads any of 20 panels with each field's type, allowed values, bounds and current value, which makes the writers' accepted keys discoverable at runtime. `-update-general-settings`, `-update-title-settings` and `-update-sitemap-settings` take a section/scope enum, replacing ~20 near-identical per-panel classes. `-update-instant-indexing-settings` and `-update-robots-txt` are separate because the first writes a different option and the second is conditional on state the caller cannot see. Titles & Meta templates — the global per-post-type and per-taxonomy layer — had no read or write anywhere before this.
+**Batch 2 — typed settings (6 abilities).** `rank-math/get-settings` reads any of 20 panels with each field's type, allowed values, bounds and current value, which makes the writers' accepted keys discoverable at runtime. `-update-general-settings`, `-update-title-settings` and `-update-sitemap-settings` take a section/scope enum, replacing ~20 near-identical per-panel classes. `-update-instant-indexing-settings` and `-update-robots-txt` are separate because the first writes a different option and the second is conditional on state the caller cannot see. Titles & Meta templates — the global per-post-type and per-taxonomy layer — had no read or write anywhere before this.
 
 **Batch 3 — Instant Indexing, modules, sitemap, routes (10 abilities).** `-submit-urls`, `-get-indexing-log`, `-clear-indexing-log`, `-reset-indexing-key`; `-list-modules` and `-set-module-state`; `-get-sitemap-status`, `-list-sitemap-urls`, `-invalidate-sitemap-cache`; `-get-llms-status` and `-refresh-llms-route`. `-set-module-state` replicates Rank Math's own `save_module()` in full including the rewrite-rule refresh and `rank_math/module_changed` action — omitting either leaves stale rewrite rules, so the sitemap and llms.txt routes 404 while the module reports itself active.
 
@@ -181,7 +181,7 @@ Coverage baseline was deliberately narrow: Rank Math core ships **13** abilities
 **Patch release — UI polish + admin-surface rename following the 0.0.26 Feature 067 rollup.** No new abilities; both entries below are UX-affecting changes to the admin surface. Plugin version bumped 0.0.26 → 0.0.27.
 
 * **Rename — "Ability Library" admin page is now "Ability Integrations".** The submenu label ("Library" → "Integrations"), page title ("Ability Library" → "Ability Integrations"), main heading, and URL slug (`page=acrossai-abilities-library` → `page=acrossai-abilities-integrations`) all updated. Bookmarks / external links to the old slug will 404 in wp-admin — update saved links to the new URL. Internal class names, hook names, REST endpoint namespace (`/wp-json/acrossai-abilities-library/v1/`), and the DOM mount id are unchanged (deliberately scoped rename — extending to the REST namespace would break external MCP callers).
-* **UI fix — Elementor abilities now render under their own "Elementor" tab in the Ability Integrations screen, not "Core".** Every Elementor ability (all 88 under `acrossai/elementor-*`) had its meta `tab_group` set to `'core'`, causing the group to appear in the Core tab with only a sub-heading identifying it as Elementor. Flipped every declaration to `tab_group => 'elementor'` (63 files including `Base_Audit_Ability`, which drives the 25 audit subclasses via inheritance). The Ability Integrations UI auto-derives tab names from distinct `tab_group` values, so a new "Elementor" tab appears without any frontend/asset rebuild.
+* **UI fix — Elementor abilities now render under their own "Elementor" tab in the Ability Integrations screen, not "Core".** Every Elementor ability (all 88 under `elementor/*`) had its meta `tab_group` set to `'core'`, causing the group to appear in the Core tab with only a sub-heading identifying it as Elementor. Flipped every declaration to `tab_group => 'elementor'` (63 files including `Base_Audit_Ability`, which drives the 25 audit subclasses via inheritance). The Ability Integrations UI auto-derives tab names from distinct `tab_group` values, so a new "Elementor" tab appears without any frontend/asset rebuild.
 
 = 0.0.26 - 2026-08-14 =
 **Release rollup — 89 abilities total: 87 unreleased Elementor abilities (Feature 067 completion) + 2 native site maintenance-mode abilities.** Plugin version bumped 0.0.25 → 0.0.26. Elementor abilities gate on `class_exists('\Elementor\Plugin')` (with 8 additionally gated on Elementor Pro); site maintenance-mode toggle has no plugin dependency.
@@ -191,18 +191,18 @@ Coverage baseline was deliberately narrow: Rank Math core ships **13** abilities
   * `site-health/unset-site-maintenance-mode` — deactivate: delete the marker, clear the refresh cron, drop the expiry option. Idempotent — safe to call when maintenance mode is already inactive. Reports `was_active` in the response.
   * Both live under the existing `acrossai-abilities-manager-site-health` category alongside `site-health/get-maintenance-mode-status` (Feature 063 read). No Elementor / plugin dependency — works on every WP install.
 
-* **Feature 067 COMPLETE — 87 additional Elementor abilities ship in this release.** Combined with the 2 foundation abilities from 0.0.25, the full 88 planned abilities are now available under the `acrossai/elementor-*` namespace. Design-audit ability logic is skeletal (`Base_Audit_Ability` skeleton returning empty findings) — real audit heuristics to be filled in follow-up work.
+* **Feature 067 COMPLETE — 87 additional Elementor abilities ship in this release.** Combined with the 2 foundation abilities from 0.0.25, the full 88 planned abilities are now available under the `elementor/*` namespace. Design-audit ability logic is skeletal (`Base_Audit_Ability` skeleton returning empty findings) — real audit heuristics to be filled in follow-up work.
 
 **Batch 10 — full-document replacement (closes the parity gap):**
-  * `acrossai/elementor-update-data` — overwrite the entire `_elementor_data` tree for a post with a caller-supplied element array; optional `page_settings` merge; `force_replace=true` required when the new payload is materially smaller than the existing document. Returns `element_count` + cache scope report.
+  * `elementor/update-data` — overwrite the entire `_elementor_data` tree for a post with a caller-supplied element array; optional `page_settings` merge; `force_replace=true` required when the new payload is materially smaller than the existing document. Returns `element_count` + cache scope report.
 
 **Batch 9 — 29 design-audit abilities (this commit):**
 
 Aggregators + scorers (4):
-  * `acrossai/elementor-evaluate-design` — aggregate report from every registered design audit (score + findings + recommendations).
-  * `acrossai/elementor-suggest-design-fixes` — turn aggregated findings into concrete fix recommendations.
-  * `acrossai/elementor-score-distinctiveness` — neutral distinctiveness score for structural repetition.
-  * `acrossai/elementor-extract-design-tokens` — extract recurring colors / typography / spacing / dimensional tokens.
+  * `elementor/evaluate-design` — aggregate report from every registered design audit (score + findings + recommendations).
+  * `elementor/suggest-design-fixes` — turn aggregated findings into concrete fix recommendations.
+  * `elementor/score-distinctiveness` — neutral distinctiveness score for structural repetition.
+  * `elementor/extract-design-tokens` — extract recurring colors / typography / spacing / dimensional tokens.
 
 Individual audits (14):
   * Column: `audit-column-alignment-rhythm`, `audit-column-balance`, `audit-column-dominance`, `audit-column-necessity`, `audit-column-patterns`
@@ -218,77 +218,77 @@ Copy / sync / convert helpers — destructive (4):
 New utility class `includes/Abilities/Elementor/Base_Audit_Ability.php` provides the shared skeleton for 27 of the 29 audit abilities — subclasses supply `audit_slug`, `audit_label`, `audit_description`, and `analyze()`. `Evaluate_Design` and `Suggest_Design_Fixes` are self-contained aggregators.
 
 **Batch 8 — 8 Elementor Pro-gated abilities:**
-  * `acrossai/elementor-list-custom-code` — list Custom Code snippets from `elementor_snippet` CPT; optional location filter.
-  * `acrossai/elementor-get-custom-code` — read one snippet including its code body.
-  * `acrossai/elementor-create-custom-code` — create snippet with title, code, location (head / body_start / body_end / footer), priority, status.
-  * `acrossai/elementor-update-custom-code` — update snippet fields.
-  * `acrossai/elementor-delete-custom-code` — trash (default) or permanently delete with `force=true`.
-  * `acrossai/elementor-list-form-submissions` — list Form widget submissions from the `e_submissions` table; optional `form_id` filter + `include_values` flag. Graceful degradation when the Pro submissions table is missing.
-  * `acrossai/elementor-get-form-submission` — read one submission by ID; optional field values.
-  * `acrossai/elementor-delete-form-submission` — permanently delete submission + its `e_submissions_values` rows; requires `confirm=true`.
+  * `elementor/list-custom-code` — list Custom Code snippets from `elementor_snippet` CPT; optional location filter.
+  * `elementor/get-custom-code` — read one snippet including its code body.
+  * `elementor/create-custom-code` — create snippet with title, code, location (head / body_start / body_end / footer), priority, status.
+  * `elementor/update-custom-code` — update snippet fields.
+  * `elementor/delete-custom-code` — trash (default) or permanently delete with `force=true`.
+  * `elementor/list-form-submissions` — list Form widget submissions from the `e_submissions` table; optional `form_id` filter + `include_values` flag. Graceful degradation when the Pro submissions table is missing.
+  * `elementor/get-form-submission` — read one submission by ID; optional field values.
+  * `elementor/delete-form-submission` — permanently delete submission + its `e_submissions_values` rows; requires `confirm=true`.
 
 All 8 Pro abilities gated on **both** `class_exists( '\Elementor\Plugin' )` **and** `class_exists( '\ElementorPro\Plugin' ) || defined( 'ELEMENTOR_PRO_VERSION' )` — silently absent on sites without Elementor Pro. Runtime deactivation returns `error_code: elementor_pro_missing`.
 
 **Batch 7 — 7 kits & site-settings abilities:**
-  * `acrossai/elementor-list-kits` — list all Elementor kits; marks active kit.
-  * `acrossai/elementor-get-kit-settings` — read kit settings (defaults to active kit).
-  * `acrossai/elementor-update-kit-settings` — merge new settings; `force_replace` for full overwrite; site-wide cache invalidation.
-  * `acrossai/elementor-set-active-kit` — switch site-wide active kit; invalidates cache.
-  * `acrossai/elementor-list-global-widgets` — list global (reusable) widgets from elementor_library CPT.
-  * `acrossai/elementor-list-experiments` — list feature flags with current + default state.
-  * `acrossai/elementor-update-experiment` — toggle experiment state (active | inactive | default).
+  * `elementor/list-kits` — list all Elementor kits; marks active kit.
+  * `elementor/get-kit-settings` — read kit settings (defaults to active kit).
+  * `elementor/update-kit-settings` — merge new settings; `force_replace` for full overwrite; site-wide cache invalidation.
+  * `elementor/set-active-kit` — switch site-wide active kit; invalidates cache.
+  * `elementor/list-global-widgets` — list global (reusable) widgets from elementor_library CPT.
+  * `elementor/list-experiments` — list feature flags with current + default state.
+  * `elementor/update-experiment` — toggle experiment state (active | inactive | default).
 
 **Batch 6 — 11 template abilities:**
-  * `acrossai/elementor-list-templates` — list saved templates with filters on `template_type` + `status` + pagination.
-  * `acrossai/elementor-get-template` — return one template's metadata + conditions + optional `_elementor_data`.
-  * `acrossai/elementor-create-template` — create a new template of type page / section / popup / header / footer / single / archive; sets taxonomy term + Elementor meta.
-  * `acrossai/elementor-update-template` — update title / page_settings / full data with `force_replace` guard.
-  * `acrossai/elementor-delete-template` — trash (default) or permanently delete with `force=true`.
-  * `acrossai/elementor-restore-template` — restore a trashed template.
-  * `acrossai/elementor-duplicate-template` — clone template preserving type + conditions + sub_type; regenerates element IDs.
-  * `acrossai/elementor-empty-trash` — permanently delete every trashed template; requires `confirm=true`.
-  * `acrossai/elementor-export-template` — export template as JSON-encodable object (title, template_type, sub_type, page_settings, content, conditions).
-  * `acrossai/elementor-import-template` — import from JSON export; regenerates element IDs; optional `overwrite_id` to replace an existing template.
-  * `acrossai/elementor-find-template-for-pattern` — rank saved templates by keyword match (title + tax term + widget-types in content); returns top N with scores.
+  * `elementor/list-templates` — list saved templates with filters on `template_type` + `status` + pagination.
+  * `elementor/get-template` — return one template's metadata + conditions + optional `_elementor_data`.
+  * `elementor/create-template` — create a new template of type page / section / popup / header / footer / single / archive; sets taxonomy term + Elementor meta.
+  * `elementor/update-template` — update title / page_settings / full data with `force_replace` guard.
+  * `elementor/delete-template` — trash (default) or permanently delete with `force=true`.
+  * `elementor/restore-template` — restore a trashed template.
+  * `elementor/duplicate-template` — clone template preserving type + conditions + sub_type; regenerates element IDs.
+  * `elementor/empty-trash` — permanently delete every trashed template; requires `confirm=true`.
+  * `elementor/export-template` — export template as JSON-encodable object (title, template_type, sub_type, page_settings, content, conditions).
+  * `elementor/import-template` — import from JSON export; regenerates element IDs; optional `overwrite_id` to replace an existing template.
+  * `elementor/find-template-for-pattern` — rank saved templates by keyword match (title + tax term + widget-types in content); returns top N with scores.
 
 **Batch 5 — 11 site-management abilities:**
-  * `acrossai/elementor-clear-cache` — clear Elementor cache at post / site / all scope; optional `regenerate_css=true` for a specific post.
-  * `acrossai/elementor-replace-urls` — bulk find/replace URLs across every Elementor document on the site with `dry_run=true` default preview.
-  * `acrossai/elementor-get-maintenance-mode` — read current maintenance mode settings (mode, template, exclude rules).
-  * `acrossai/elementor-update-maintenance-mode` — enable/disable maintenance mode with mode selection (maintenance | coming_soon).
-  * `acrossai/elementor-get-theme-builder-conditions` — read display conditions attached to an Elementor template.
-  * `acrossai/elementor-update-theme-builder-conditions` — replace display conditions; pass empty array to clear. Invalidates Elementor's condition cache.
-  * `acrossai/elementor-get-official-widget-catalog` — canonical widget catalog (Basic / Pro / Theme / WooCommerce) with 12-hour transient.
-  * `acrossai/elementor-get-official-pattern-guidance` — pattern & layout guidance (widgets / patterns / layouts topics) grounded in Elementor documentation.
-  * `acrossai/elementor-get-theme-context` — active theme + Elementor version + active kit + viewport settings snapshot.
-  * `acrossai/elementor-get-style-guide` — style-guide summary from active kit (colors, typography, buttons, forms, layout, custom CSS).
-  * `acrossai/elementor-evaluate-render-context` — inspect frontend template + canvas type + edit-mode flag for a post.
+  * `elementor/clear-cache` — clear Elementor cache at post / site / all scope; optional `regenerate_css=true` for a specific post.
+  * `elementor/replace-urls` — bulk find/replace URLs across every Elementor document on the site with `dry_run=true` default preview.
+  * `elementor/get-maintenance-mode` — read current maintenance mode settings (mode, template, exclude rules).
+  * `elementor/update-maintenance-mode` — enable/disable maintenance mode with mode selection (maintenance | coming_soon).
+  * `elementor/get-theme-builder-conditions` — read display conditions attached to an Elementor template.
+  * `elementor/update-theme-builder-conditions` — replace display conditions; pass empty array to clear. Invalidates Elementor's condition cache.
+  * `elementor/get-official-widget-catalog` — canonical widget catalog (Basic / Pro / Theme / WooCommerce) with 12-hour transient.
+  * `elementor/get-official-pattern-guidance` — pattern & layout guidance (widgets / patterns / layouts topics) grounded in Elementor documentation.
+  * `elementor/get-theme-context` — active theme + Elementor version + active kit + viewport settings snapshot.
+  * `elementor/get-style-guide` — style-guide summary from active kit (colors, typography, buttons, forms, layout, custom CSS).
+  * `elementor/evaluate-render-context` — inspect frontend template + canvas type + edit-mode flag for a post.
 
 **Batch 4 — 9 page-composition abilities:**
-  * `acrossai/elementor-create-page` — insert a new post/page pre-configured for Elementor (sets `_elementor_edit_mode`, `_elementor_template_type`, `_elementor_version`; seeds empty `_elementor_data`). Returns edit URL.
-  * `acrossai/elementor-update-page-settings` — merge new page-level settings into `_elementor_page_settings`. `force_replace` guard on materially-smaller payloads.
-  * `acrossai/elementor-patch-data` — find/replace text within the raw Elementor JSON string; updates every widget containing the match in one pass.
-  * `acrossai/elementor-clone-data` — copy the full Elementor tree from one post to another with fresh element IDs throughout. Optionally include page settings. `force_replace` guard on populated targets.
-  * `acrossai/elementor-add-heading` — widget shortcut (title, header_size h1-h6, align, title_color).
-  * `acrossai/elementor-add-text-editor` — widget shortcut (editor HTML, align).
-  * `acrossai/elementor-add-image` — widget shortcut (image ID or URL, size, align, caption, link).
-  * `acrossai/elementor-add-button` — widget shortcut (text, link, size xs-xl, align).
-  * `acrossai/elementor-add-post-tabs` — higher-order shortcut: Nested Tabs widget where each tab contains a native Posts widget (optionally filtered by taxonomy term or query args).
+  * `elementor/create-page` — insert a new post/page pre-configured for Elementor (sets `_elementor_edit_mode`, `_elementor_template_type`, `_elementor_version`; seeds empty `_elementor_data`). Returns edit URL.
+  * `elementor/update-page-settings` — merge new page-level settings into `_elementor_page_settings`. `force_replace` guard on materially-smaller payloads.
+  * `elementor/patch-data` — find/replace text within the raw Elementor JSON string; updates every widget containing the match in one pass.
+  * `elementor/clone-data` — copy the full Elementor tree from one post to another with fresh element IDs throughout. Optionally include page settings. `force_replace` guard on populated targets.
+  * `elementor/add-heading` — widget shortcut (title, header_size h1-h6, align, title_color).
+  * `elementor/add-text-editor` — widget shortcut (editor HTML, align).
+  * `elementor/add-image` — widget shortcut (image ID or URL, size, align, caption, link).
+  * `elementor/add-button` — widget shortcut (text, link, size xs-xl, align).
+  * `elementor/add-post-tabs` — higher-order shortcut: Nested Tabs widget where each tab contains a native Posts widget (optionally filtered by taxonomy term or query args).
 
 **Batch 3 — 6 element-lifecycle abilities (previously in this section):**
-  * `acrossai/elementor-merge-element-settings` — deep-merge new settings into an element by ID. Additive (no force_replace guard needed); reports `changed_keys` in the response.
-  * `acrossai/elementor-delete-element` — remove an element by ID. Guarded by `force_delete=true` for top-level or populated (with-children) elements.
-  * `acrossai/elementor-remove-element` — safer alias for `delete-element` with identical semantics.
-  * `acrossai/elementor-move-element` — atomic move to a new parent/position with descendant-guard preventing cycle-creating moves into own subtree.
-  * `acrossai/elementor-duplicate-element` — deep-clone an element (all nested children included) with fresh IDs generated throughout the cloned subtree; inserted as the next sibling.
-  * `acrossai/elementor-reorder-elements` — reorder direct children of a parent (or root); children omitted from `ordered_element_ids` retain their prior relative order and are appended after.
+  * `elementor/merge-element-settings` — deep-merge new settings into an element by ID. Additive (no force_replace guard needed); reports `changed_keys` in the response.
+  * `elementor/delete-element` — remove an element by ID. Guarded by `force_delete=true` for top-level or populated (with-children) elements.
+  * `elementor/remove-element` — safer alias for `delete-element` with identical semantics.
+  * `elementor/move-element` — atomic move to a new parent/position with descendant-guard preventing cycle-creating moves into own subtree.
+  * `elementor/duplicate-element` — deep-clone an element (all nested children included) with fresh IDs generated throughout the cloned subtree; inserted as the next sibling.
+  * `elementor/reorder-elements` — reorder direct children of a parent (or root); children omitted from `ordered_element_ids` retain their prior relative order and are appended after.
 
 **Batch 2 — 5 abilities merged earlier:**
-  * `acrossai/elementor-get-element` — read a single element by 7-char hex ID.
-  * `acrossai/elementor-find-elements` — search by `element_type` / `widget_type` / contains-text.
-  * `acrossai/elementor-update-element` — replace by ID with `force_replace` guard.
-  * `acrossai/elementor-add-container` — insert Elementor v3+ container.
-  * `acrossai/elementor-add-widget` — insert any registered widget (validated via `Widget_Controls`).
+  * `elementor/get-element` — read a single element by 7-char hex ID.
+  * `elementor/find-elements` — search by `element_type` / `widget_type` / contains-text.
+  * `elementor/update-element` — replace by ID with `force_replace` guard.
+  * `elementor/add-container` — insert Elementor v3+ container.
+  * `elementor/add-widget` — insert any registered widget (validated via `Widget_Controls`).
 
 **Test coverage:** 43 (b2) + 40 (b3) + 53 (b4) + 64 (b5) + 53 (b6) + 33 (b7) + 45 (b8) + 8 (b9 manifest) = 339 new source-inspection tests across 58 test files. Full suite: 975 tests, 1991 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
 
@@ -310,9 +310,9 @@ All 8 Pro abilities gated on **both** `class_exists( '\Elementor\Plugin' )` **an
   * Inner Pro gate: `class_exists( '\ElementorPro\Plugin' ) || defined( 'ELEMENTOR_PRO_VERSION' )` for the future Custom Code + Form Submissions abilities.
   * Split into two private methods `register_elementor_free_abilities()` + `register_elementor_pro_abilities()` — new `new Elementor\<Class>()` lines added as each ability class lands.
 
-**Two shipped abilities under `acrossai/elementor-*` namespace:**
-  * `acrossai/elementor-get-widget-controls` — schema-lookup primitive. Returns the schema-safe control summary for any registered Elementor widget on the current site (free + Pro + third-party). Enables clients to author valid add-widget / update-element payloads without hard-coded per-widget wrappers. Optional case-insensitive search filter.
-  * `acrossai/elementor-get-data` — the read primitive. Returns the parsed Elementor document tree + page settings for a post, plus recursive element count.
+**Two shipped abilities under `elementor/*` namespace:**
+  * `elementor/get-widget-controls` — schema-lookup primitive. Returns the schema-safe control summary for any registered Elementor widget on the current site (free + Pro + third-party). Enables clients to author valid add-widget / update-element payloads without hard-coded per-widget wrappers. Optional case-insensitive search filter.
+  * `elementor/get-data` — the read primitive. Returns the parsed Elementor document tree + page settings for a post, plus recursive element count.
 
 **Test coverage:** 44 new utility tests + 15 new ability tests = 59 additional PHPUnit assertions. Full suite: 636 tests, 1530 assertions, 0 failures. phpcs (WPCS strict) and phpstan (level 8) both clean.
 
@@ -324,13 +324,13 @@ All 8 Pro abilities gated on **both** `class_exists( '\Elementor\Plugin' )` **an
 * **New — 6 abilities and 1 enhancement for full Gutenberg block-tree control (feature 066).** Closes the gap between the plugin's existing block-registry surface and per-post block-tree manipulation. All abilities live under the existing `acrossai-abilities-manager-content` category.
 
 **Feature 066 — Block tree mutation & nested editing (6 new abilities + 1 modified).**
-  * `acrossai/get-post-blocks` — return a post's parsed Gutenberg block tree with each block annotated with its canonical integer-array path (e.g. `[0, 2, 1]` = 2nd grandchild of the 3rd child of the 1st top-level block). Read-only, idempotent.
-  * `acrossai/add-block` — insert a new block into a post at `parent_path` + `index`. Appends when the requested index exceeds the current sibling count.
-  * `acrossai/remove-block` — remove the block at a canonical path; returns the removed payload so callers can undo/log.
-  * `acrossai/duplicate-block` — deep-clone the block at a path (including all inner blocks) and insert the clone as the next sibling.
-  * `acrossai/move-block` — atomically move a block from `from_path` to `to_parent_path` + `to_index`. Refuses moves into the source's own subtree (would create a cycle).
-  * `acrossai/insert-pattern` — resolve a saved block pattern by slug across database / active theme / installed plugins, then insert its constituent blocks at `parent_path` + `index`. Ambiguous slugs return `multiple_locations` so callers can disambiguate via `source` / `theme_type` / `plugin_slug`.
-  * `acrossai/update-post-block` (modified) — now accepts an optional `path` input for nested editing at any depth. Existing consumers using `block_index` or `block_name` + `occurrence` see **zero behaviour change** — the path branch is a strict addition.
+  * `blocks/get-post-blocks` — return a post's parsed Gutenberg block tree with each block annotated with its canonical integer-array path (e.g. `[0, 2, 1]` = 2nd grandchild of the 3rd child of the 1st top-level block). Read-only, idempotent.
+  * `blocks/add-block` — insert a new block into a post at `parent_path` + `index`. Appends when the requested index exceeds the current sibling count.
+  * `blocks/remove-block` — remove the block at a canonical path; returns the removed payload so callers can undo/log.
+  * `blocks/duplicate-block` — deep-clone the block at a path (including all inner blocks) and insert the clone as the next sibling.
+  * `blocks/move-block` — atomically move a block from `from_path` to `to_parent_path` + `to_index`. Refuses moves into the source's own subtree (would create a cycle).
+  * `blocks/insert-pattern` — resolve a saved block pattern by slug across database / active theme / installed plugins, then insert its constituent blocks at `parent_path` + `index`. Ambiguous slugs return `multiple_locations` so callers can disambiguate via `source` / `theme_type` / `plugin_slug`.
+  * `blocks/update-post-block` (modified) — now accepts an optional `path` input for nested editing at any depth. Existing consumers using `block_index` or `block_name` + `occurrence` see **zero behaviour change** — the path branch is a strict addition.
   * All write abilities share the same guards as the existing `update-post-block`: `manage_options` + `edit_posts` globally, `edit_post` per-post, post-type whitelist against internal CPTs (revision / nav_menu_item / custom_css / customize_changeset / oembed_cache / user_request), block-name regex validation, and soft-fail attribute-schema validation against the registered block type.
   * Shared `Block_Tree` utility (`includes/Abilities/Utilities/Block_Tree.php`) centralises tree-path primitives — walk, get-at-path, insert / remove / replace / move, block-name and attribute-schema validation. Extracts what was previously private inline logic in `Update_Post_Block::execute`.
   * Test coverage: 82 new PHPUnit assertions across 8 test files.

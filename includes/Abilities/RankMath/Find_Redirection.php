@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #52 — acrossai/rank-math-find-redirection.
+ * Ability #52 — rank-math/find-redirection.
  *
  * Evaluates Rank Math's own source-matching rules (exact, contains, start, end,
  * regex) against a URL, rather than doing a text search. That is what answers "why

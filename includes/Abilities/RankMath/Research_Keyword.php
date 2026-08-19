@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #42 — acrossai/rank-math-research-keyword.
+ * Ability #42 — rank-math/research-keyword.
  *
  * The only credit-consuming Content AI ability in the suite. Credits are money and
  * cannot be refunded, so:
@@ -44,7 +44,7 @@ class Research_Keyword extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Run Rank Math Content AI keyword research and return the recommended keywords, questions and related terms. CONSUMES CREDITS from the connected Rank Math account, which cannot be refunded — the balance is checked first and the request fails without spending anything if none remain. Check the balance beforehand with acrossai/rank-math-get-content-ai-status.', 'acrossai-abilities-manager' );
+		return __( 'Run Rank Math Content AI keyword research and return the recommended keywords, questions and related terms. CONSUMES CREDITS from the connected Rank Math account, which cannot be refunded — the balance is checked first and the request fails without spending anything if none remain. Check the balance beforehand with rank-math/get-content-ai-status.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

@@ -26,7 +26,7 @@ class Test_Elementor_Get_Official_Pattern_Guidance extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-get-official-pattern-guidance'", $this->src );
+		$this->assertStringContainsString( "'elementor/get-official-pattern-guidance'", $this->src );
 	}
 
 	public function test_topic_enum(): void {

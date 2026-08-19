@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #35 — acrossai/rank-math-delete-post-schemas.
+ * Ability #35 — rank-math/delete-post-schemas.
  *
  * Deletes the whole schema set including the type index, which the plugin's generic
  * content/delete-post-meta cannot do in one call — it would leave the index behind

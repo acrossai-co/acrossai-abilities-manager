@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #55 — acrossai/rank-math-list-404-logs.
+ * Ability #55 — rank-math/list-404-logs.
  *
  * The natural companion to the redirection abilities: a frequently-hit 404 is a
  * redirection waiting to be created. Sort by times_accessed to find those first.
@@ -34,7 +34,7 @@ class List_404_Logs extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Return logged 404 requests with the URI, hit count, timestamp and — in advanced monitor mode — referer, user agent and IP. Sort by times_accessed to surface the URLs worth redirecting, then create rules with acrossai/rank-math-create-redirection.', 'acrossai-abilities-manager' );
+		return __( 'Return logged 404 requests with the URI, hit count, timestamp and — in advanced monitor mode — referer, user agent and IP. Sort by times_accessed to surface the URLs worth redirecting, then create rules with rank-math/create-redirection.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

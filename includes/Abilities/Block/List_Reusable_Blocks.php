@@ -29,7 +29,7 @@ class List_Reusable_Blocks extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-reusable-blocks',
+			'name' => 'blocks/list-reusable-blocks',
 			'args' => array(
 				'label'               => __( 'List Reusable Blocks', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Enumerate reusable blocks (post_type=wp_block). Distinct from block patterns: reusable blocks are editable posts backed by the wp_block CPT, whereas patterns are code-registered.', 'acrossai-abilities-manager' ),
