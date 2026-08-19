@@ -28,7 +28,7 @@ class Duplicate_Block extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/duplicate-block',
+			'name' => 'blocks/duplicate-block',
 			'args' => array(
 				'label'               => __( 'Duplicate Block', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a deep clone of the Gutenberg block at the given path and insert it as the next sibling.', 'acrossai-abilities-manager' ),

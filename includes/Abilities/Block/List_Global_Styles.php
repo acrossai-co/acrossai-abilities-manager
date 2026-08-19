@@ -38,7 +38,7 @@ class List_Global_Styles extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-global-styles',
+			'name' => 'blocks/list-global-styles',
 			'args' => array(
 				'label'               => __( 'List Global Styles', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Lists Global Styles records across the database (wp_global_styles) and theme.json files in themes and plugins. Each record reports its theme association, which sections are customised, and whether it is the copy WordPress is currently serving.', 'acrossai-abilities-manager' ),

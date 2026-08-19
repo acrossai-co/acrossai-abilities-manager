@@ -1,6 +1,6 @@
 <?php
 /**
- * Feature 066 — source-inspection tests for acrossai/get-post-blocks.
+ * Feature 066 — source-inspection tests for blocks/get-post-blocks.
  *
  * @package AcrossAI_Abilities_Manager
  * @since   0.0.24
@@ -27,7 +27,7 @@ class Test_Get_Post_Blocks extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/get-post-blocks'", $this->src );
+		$this->assertStringContainsString( "'blocks/get-post-blocks'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-content'", $this->src );
 	}
 

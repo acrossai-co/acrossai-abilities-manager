@@ -41,7 +41,7 @@ class Read_Block extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/read-block',
+			'name' => 'blocks/read-block',
 			'args' => array(
 				'label'               => __( 'Read Block', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns full details for a single registered block. Pass "section" (settings, supports, attributes, example, variations, styles, transforms) to fetch one slice instead of the whole record. Block name must be in namespace/name form (e.g. core/paragraph).', 'acrossai-abilities-manager' ),

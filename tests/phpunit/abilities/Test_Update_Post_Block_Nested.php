@@ -1,7 +1,7 @@
 <?php
 /**
  * Feature 066 — source-inspection tests for the nested-path branch added to
- * acrossai/update-post-block. Ensures the legacy branches remain intact and
+ * blocks/update-post-block. Ensures the legacy branches remain intact and
  * the new path branch is wired to Block_Tree.
  *
  * @package AcrossAI_Abilities_Manager

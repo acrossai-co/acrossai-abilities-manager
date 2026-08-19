@@ -32,7 +32,7 @@ class Insert_Pattern extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/insert-pattern',
+			'name' => 'blocks/insert-pattern',
 			'args' => array(
 				'label'               => __( 'Insert Pattern', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Resolve a block pattern by slug (across database, active theme, and installed plugins) and insert its constituent blocks at the given parent_path and sibling index. Refuses ambiguous slugs unless a "source" (and optionally "theme_type" or "plugin_slug") is provided.', 'acrossai-abilities-manager' ),

@@ -1756,7 +1756,7 @@ Cross-reference: the reference `download-plugin/app/Plugins/Base.php` (per-segme
 **Status**: Active
 
 **Symptoms**
-Rows in `{prefix}abilities_access_control` stored with the ability slug's `/` character stripped: `acrossai-abilities-managerblock-pattern-delete` instead of `acrossai/delete-block-pattern`. The resulting key cannot be found by subsequent GET / DELETE calls; the rule is orphaned in the DB.
+Rows in `{prefix}abilities_access_control` stored with the ability slug's `/` character stripped: `acrossai-abilities-managerblock-pattern-delete` instead of `blocks/delete-block-pattern`. The resulting key cannot be found by subsequent GET / DELETE calls; the rule is orphaned in the DB.
 
 **Root Cause**
 Client-side JS passed the ability slug through `encodeURIComponent()` before interpolating into the composer's `PUT /wpb-ac/v1/{slug}/rules/{namespace}/{key}` URL. WordPress's REST layer + the composer's key sanitizer strip the resulting `%2F` rather than decoding it back to `/`, producing a truncated key.

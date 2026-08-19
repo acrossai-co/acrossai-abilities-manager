@@ -28,7 +28,7 @@ class Remove_Block extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/remove-block',
+			'name' => 'blocks/remove-block',
 			'args' => array(
 				'label'               => __( 'Remove Block', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Remove the Gutenberg block at the given canonical path from a post.', 'acrossai-abilities-manager' ),
