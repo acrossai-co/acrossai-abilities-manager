@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for Feature 064 acrossai/add-post-meta.
+ * Structural tests for Feature 064 content/add-post-meta.
  *
  * Source-inspection tests, mirroring the Feature 059 pattern.
  *
@@ -37,7 +37,7 @@ class Test_Add_Post_Meta extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/add-post-meta'", $this->src );
+		$this->assertStringContainsString( "'content/add-post-meta'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-content'", $this->src );
 	}
 

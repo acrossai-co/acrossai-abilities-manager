@@ -26,7 +26,7 @@ class Update_Menu extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-menu',
+			'name' => 'menus/update-menu',
 			'args' => array(
 				'label'               => __( 'Update Menu', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update a nav menu via POST /wp/v2/menus/{id}. Only the supplied fields are touched.', 'acrossai-abilities-manager' ),

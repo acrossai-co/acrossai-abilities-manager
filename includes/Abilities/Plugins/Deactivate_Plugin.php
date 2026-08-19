@@ -41,7 +41,7 @@ class Deactivate_Plugin extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/deactivate-plugin',
+			'name' => 'plugins/deactivate-plugin',
 			'args' => array(
 				'label'               => __( 'Deactivate Plugin', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Deactivate an active WordPress plugin by name, slug, or partial match. Works in recovery mode; only updates the active-plugins option and does not load the plugin file.', 'acrossai-abilities-manager' ),
@@ -132,7 +132,7 @@ class Deactivate_Plugin extends Ability_Definition {
 			return Plugin_Helpers::build_candidate_response(
 				$resolved,
 				$identifier,
-				'acrossai/deactivate-plugin',
+				'plugins/deactivate-plugin',
 				__( 'Deactivate', 'acrossai-abilities-manager' )
 			);
 		}

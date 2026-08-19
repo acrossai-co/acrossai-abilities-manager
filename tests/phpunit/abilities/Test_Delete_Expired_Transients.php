@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for Feature 064 acrossai/delete-expired-transients.
+ * Structural tests for Feature 064 cache/delete-expired-transients.
  *
  * Source-inspection tests, mirroring the Feature 059 pattern.
  *
@@ -37,7 +37,7 @@ class Test_Delete_Expired_Transients extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/delete-expired-transients'", $this->src );
+		$this->assertStringContainsString( "'cache/delete-expired-transients'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-cache'", $this->src );
 	}
 

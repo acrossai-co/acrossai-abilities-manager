@@ -27,7 +27,7 @@ class Delete_User extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-user',
+			'name' => 'users/delete-user',
 			'args' => array(
 				'label'               => __( 'Delete User', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete a WordPress user. Optionally reassign their content to another user.', 'acrossai-abilities-manager' ),

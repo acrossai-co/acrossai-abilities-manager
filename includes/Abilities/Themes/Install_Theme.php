@@ -28,7 +28,7 @@ class Install_Theme extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/install-theme',
+			'name' => 'themes/install-theme',
 			'args' => array(
 				'label'               => __( 'Install Theme', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Install a theme from the WordPress.org theme directory by name or slug.', 'acrossai-abilities-manager' ),

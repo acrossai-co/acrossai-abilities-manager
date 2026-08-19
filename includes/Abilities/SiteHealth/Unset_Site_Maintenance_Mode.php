@@ -26,7 +26,7 @@ class Unset_Site_Maintenance_Mode extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/unset-site-maintenance-mode',
+			'name' => 'site-health/unset-site-maintenance-mode',
 			'args' => array(
 				'label'               => __( 'Unset Site Maintenance Mode', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Deactivate WordPress core maintenance mode: delete the ABSPATH/.maintenance marker and clear the refresh cron. Idempotent — safe to call when maintenance mode is already inactive.', 'acrossai-abilities-manager' ),

@@ -30,7 +30,7 @@ class Update_Site_Icon extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-site-icon',
+			'name' => 'settings/update-site-icon',
 			'args' => array(
 				'label'               => __( 'Update Site Icon', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Sets the site icon to a media library attachment_id. Pass 0 to remove. WordPress recommends a 512×512 image.', 'acrossai-abilities-manager' ),

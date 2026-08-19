@@ -26,7 +26,7 @@ class Create_Post extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-post',
+			'name' => 'content/create-post',
 			'args' => array(
 				'label'               => __( 'Create Post', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a post (or any post-type record) via wp_insert_post(). Defaults post_type to "post".', 'acrossai-abilities-manager' ),

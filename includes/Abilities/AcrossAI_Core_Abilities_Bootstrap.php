@@ -511,7 +511,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 
 		// Batch 4 — role capabilities. Read and reset only: no bulk writer, because
 		// Helper::set_capabilities() strips capabilities from omitted roles. Grants
-		// go through the plugin's existing acrossai/add-role-capability.
+		// go through the plugin's existing users/add-role-capability.
 		new RankMath\Get_Role_Capabilities();
 		new RankMath\Reset_Role_Capabilities();
 

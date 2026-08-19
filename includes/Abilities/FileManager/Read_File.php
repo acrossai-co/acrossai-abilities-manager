@@ -47,7 +47,7 @@ class Read_File extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/read-file',
+			'name' => 'file-manager/read-file',
 			'args' => array(
 				'label'               => __( 'Read File', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reads the contents of a file within the WordPress installation. Path must be relative to ABSPATH. Refuses wp-config.php and .htaccess, refuses files larger than 5 MB, and reports binary content without returning raw bytes.', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Get_Media extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-media',
+			'name' => 'media/get-media',
 			'args' => array(
 				'label'               => __( 'Get Media', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a media item via GET /wp/v2/media/{id}.', 'acrossai-abilities-manager' ),

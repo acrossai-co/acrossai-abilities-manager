@@ -26,7 +26,7 @@ class Get_Post extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-post',
+			'name' => 'content/get-post',
 			'args' => array(
 				'label'               => __( 'Get Post', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a post (any post type) by ID via get_post(). Returns the raw post row plus derived fields (terms, non-protected meta, featured image, permalink, edit link, author).', 'acrossai-abilities-manager' ),

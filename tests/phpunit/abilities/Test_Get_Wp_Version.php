@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/get-wp-version ability.
+ * Structural tests for the Feature 063 core/get-wp-version ability.
  *
  * Source-inspection only — mirrors Test_Feature_042_Core_Update. The
  * plugin's stub bootstrap cannot safely load a full WordPress runtime,
@@ -40,7 +40,7 @@ class Test_Get_Wp_Version extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/get-wp-version'", $this->src );
+		$this->assertStringContainsString( "'core/get-wp-version'", $this->src );
 	}
 
 	public function test_targets_the_core_category(): void {

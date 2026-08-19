@@ -2,7 +2,7 @@
 /**
  * Structural tests for the Feature 062 Add_User_Capability ability.
  *
- * Covers the acrossai/add-user-capability ability under
+ * Covers the users/add-user-capability ability under
  * includes/Abilities/Users/Add_User_Capability.php plus bootstrap wiring.
  *
  * Source-inspection only, mirroring Test_Feature_057_Core_Reinstall — the
@@ -54,7 +54,7 @@ class Test_Add_User_Capability extends WP_UnitTestCase {
 
 	public function test_ability_name_and_category(): void {
 		$src = $this->sources['add_user_cap'];
-		$this->assertStringContainsString( "'acrossai/add-user-capability'", $src );
+		$this->assertStringContainsString( "'users/add-user-capability'", $src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-users'", $src );
 	}
 

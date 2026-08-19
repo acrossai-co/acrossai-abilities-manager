@@ -1,6 +1,6 @@
 <?php
 /**
- * Ability class for acrossai/search-replace (Feature 062).
+ * Ability class for database/search-replace (Feature 062).
  *
  * Walks every applicable table in the WordPress database and replaces
  * every occurrence of a source string with a target string, handling
@@ -34,7 +34,7 @@ class Search_Replace extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/search-replace',
+			'name' => 'database/search-replace',
 			'args' => array(
 				'label'               => __( 'Search Replace', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Replace every occurrence of a source string with a target string across every applicable table in the WordPress database, handling PHP-serialized values safely. Defaults to dry-run mode — pass dry_run=false to execute the actual replacement. Skips wp_posts.guid unless include_guids=true.', 'acrossai-abilities-manager' ),

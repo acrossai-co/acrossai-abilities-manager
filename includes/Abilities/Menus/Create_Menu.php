@@ -26,7 +26,7 @@ class Create_Menu extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-menu',
+			'name' => 'menus/create-menu',
 			'args' => array(
 				'label'               => __( 'Create Menu', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a new nav menu via POST /wp/v2/menus.', 'acrossai-abilities-manager' ),

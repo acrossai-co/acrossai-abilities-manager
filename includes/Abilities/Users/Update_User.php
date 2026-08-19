@@ -28,7 +28,7 @@ class Update_User extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-user',
+			'name' => 'users/update-user',
 			'args' => array(
 				'label'               => __( 'Update User', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update an existing WordPress user. Only provided fields are changed. Pass "meta" to set user_meta values (JSON strings auto-decoded) and "delete_meta_keys" to remove keys. Pass "add_roles" / "remove_roles" to mutate role membership, or "set_roles" to replace all current roles with the given list — set_roles takes precedence over add/remove. Pass "force_logout: true" to destroy every active login session after the update (useful when changing password or revoking access).', 'acrossai-abilities-manager' ),

@@ -60,9 +60,9 @@ class Test_Feature_043_Core_Rollback extends WP_UnitTestCase {
 		$src = $this->sources['wp_core_rollback'];
 		$this->assertStringContainsString( 'extends Ability_Definition', $src );
 		$this->assertStringContainsString(
-			"'acrossai/rollback-wp-core'",
+			"'core/rollback-wp-core'",
 			$src,
-			'Ability name must be acrossai/rollback-wp-core.'
+			'Ability name must be core/rollback-wp-core.'
 		);
 		$this->assertStringContainsString(
 			"'acrossai-abilities-manager-core'",

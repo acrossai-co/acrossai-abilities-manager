@@ -27,7 +27,7 @@ class Get_Recovery_Mode_Status extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-recovery-mode-status',
+			'name' => 'recovery/get-recovery-mode-status',
 			'args' => array(
 				'label'               => __( 'Get Recovery Mode Status', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Detects whether the site is currently in WordPress Recovery Mode (active only when a fatal error has been captured on a protected endpoint) and returns summary counters: paused-plugin count, paused-theme count, and whether the WP fatal-error handler is enabled.', 'acrossai-abilities-manager' ),

@@ -1,6 +1,6 @@
 <?php
 /**
- * Ability class for acrossai/reset-role (Feature 062).
+ * Ability class for users/reset-role (Feature 062).
  *
  * Resets any of the five WordPress built-in roles back to its
  * WordPress-core default capabilities by removing the role and
@@ -47,7 +47,7 @@ class Reset_Role extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/reset-role',
+			'name' => 'users/reset-role',
 			'args' => array(
 				'label'               => __( 'Reset Role', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reset any of the five WordPress-core built-in roles (administrator, editor, author, contributor, subscriber) back to its shipped default capability set.', 'acrossai-abilities-manager' ),

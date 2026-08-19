@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/list-sidebars ability.
+ * Structural tests for the Feature 063 widgets/list-sidebars ability.
  *
  * @package AcrossAI_Abilities_Manager
  * @since   0.1.0
@@ -35,7 +35,7 @@ class Test_List_Sidebars extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/list-sidebars'", $this->src );
+		$this->assertStringContainsString( "'widgets/list-sidebars'", $this->src );
 	}
 
 	public function test_targets_the_widgets_category(): void {

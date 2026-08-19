@@ -7,8 +7,8 @@
 
 Reference numbers are the stable design IDs from the approved plan. Two IDs were dropped after the
 overlap audit against the plugin's existing 328 abilities, so the sequence is non-contiguous:
-`update-role-capabilities` (superseded by `acrossai/add-role-capability` /
-`remove-role-capability`) and `get-rewrite-status` (superseded by `acrossai/list-rewrite-rules`
+`update-role-capabilities` (superseded by `users/add-role-capability` /
+`remove-role-capability`) and `get-rewrite-status` (superseded by `settings/list-rewrite-rules`
 plus #59).
 
 ## Cross-cutting behaviour
@@ -111,8 +111,8 @@ emitted commented-out in Apache and omitted from Nginx, and listed in `warnings[
 | 17 | `reset-role-capabilities` | `confirm` | `roles_reset` (int) |
 
 No bulk writer ships: `Helper::set_capabilities()` strips every registered cap absent from the
-payload across **all** roles. Use the plugin's existing `acrossai/add-role-capability` /
-`acrossai/remove-role-capability` for grants — `rank_math_*` caps are ordinary WP caps.
+payload across **all** roles. Use the plugin's existing `users/add-role-capability` /
+`users/remove-role-capability` for grants — `rank_math_*` caps are ordinary WP caps.
 
 ---
 
@@ -203,7 +203,7 @@ these abilities pre-compute `processed[]` / `skipped[]` with reasons via
 **#37** is an HTTP loopback to `/wp-json/rankmath/v1/getHead`. Precondition
 `general.headless_support` → else `headless_support_disabled`.
 **#45** encodes `robots` as an array and the flags as `'on'` / absent, which the generic
-`acrossai/update-post-meta` would not.
+`content/update-post-meta` would not.
 **#48** with `only_issues: false` is the bulk metadata reader; there is no separate bulk-read ability.
 
 ---
@@ -297,5 +297,5 @@ Clear-all is #20 `run-maintenance-tool(tool=delete_log)`; there is no third abil
 | 59 | `get-llms-status` | `preview_lines` (int, default 12, max 100) | `module_active`, `route_url`, `rewrite{}`, `settings{}`, `live_preview{}` |
 | 60 | `refresh-llms-route` | — | `rule_present_before`, `flushed`, `rule_present_after` |
 
-`get-rewrite-status` was dropped: `acrossai/list-rewrite-rules` already returns the full persisted
+`get-rewrite-status` was dropped: `settings/list-rewrite-rules` already returns the full persisted
 rewrite map, and #59 already reports the llms.txt rule's presence.

@@ -2,7 +2,7 @@
 /**
  * Structural tests for the Feature 062 Search_Replace ability.
  *
- * Covers the acrossai/search-replace ability under
+ * Covers the database/search-replace ability under
  * includes/Abilities/Database/Search_Replace.php including the
  * dry-run default, the empty_old and unknown_table guards, the
  * serialized-value walk, the guid protection, the skip_columns
@@ -57,7 +57,7 @@ class Test_Search_Replace extends WP_UnitTestCase {
 
 	public function test_ability_name_and_category(): void {
 		$src = $this->sources['search_replace'];
-		$this->assertStringContainsString( "'acrossai/search-replace'", $src );
+		$this->assertStringContainsString( "'database/search-replace'", $src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-database'", $src );
 	}
 

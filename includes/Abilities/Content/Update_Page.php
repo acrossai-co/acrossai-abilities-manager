@@ -26,7 +26,7 @@ class Update_Page extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-page',
+			'name' => 'content/update-page',
 			'args' => array(
 				'label'               => __( 'Update Page', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update an existing page (post_type=page) via wp_update_post(). Only the supplied fields are changed.', 'acrossai-abilities-manager' ),

@@ -29,7 +29,7 @@ class Update_Cron_Job extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-cron-job',
+			'name' => 'cron/update-cron-job',
 			'args' => array(
 				'label'               => __( 'Update Cron Job', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Reschedule an existing event: unschedule the original (identified by hook + old_args) and create a new one with the supplied schedule, timestamp, and args.', 'acrossai-abilities-manager' ),

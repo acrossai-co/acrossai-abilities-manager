@@ -143,7 +143,7 @@ final class Routes_Repository {
 	 * Check the llms.txt rewrite rule and flush only when it is missing.
 	 *
 	 * The diagnosis is the value here: the plugin already ships a generic
-	 * acrossai/flush-rewrite-rules. This reports whether the rule was actually
+	 * cache/flush-rewrite-rules. This reports whether the rule was actually
 	 * absent and whether flushing fixed it.
 	 *
 	 * @return array<string,mixed>

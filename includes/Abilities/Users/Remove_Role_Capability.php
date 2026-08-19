@@ -1,6 +1,6 @@
 <?php
 /**
- * Ability class for acrossai/remove-role-capability (Feature 062).
+ * Ability class for users/remove-role-capability (Feature 062).
  *
  * Revokes a single capability from an existing WordPress role via
  * WP_Role::remove_cap(). Refuses to strip a WordPress-core administrator
@@ -118,7 +118,7 @@ class Remove_Role_Capability extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/remove-role-capability',
+			'name' => 'users/remove-role-capability',
 			'args' => array(
 				'label'               => __( 'Remove Role Capability', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Revoke a single capability from an existing WordPress role. Refuses when the target is a WordPress-core administrator capability on the administrator role (to prevent site lockout).', 'acrossai-abilities-manager' ),

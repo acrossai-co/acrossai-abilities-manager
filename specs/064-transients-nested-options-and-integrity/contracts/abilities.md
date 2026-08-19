@@ -14,7 +14,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 
 ## Cache (4)
 
-### 1. `acrossai/get-transient`
+### 1. `cache/get-transient`
 
 `readonly: true, idempotent: true, destructive: false`
 
@@ -33,7 +33,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 { "success": bool, "exists": bool, "value": any, "expires_at": integer|null, "message": string }
 ```
 
-### 2. `acrossai/list-transients`
+### 2. `cache/list-transients`
 
 `readonly: true, idempotent: true, destructive: false`
 
@@ -64,7 +64,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 }
 ```
 
-### 3. `acrossai/delete-transient`
+### 3. `cache/delete-transient`
 
 `readonly: false, idempotent: true, destructive: true`
 
@@ -80,7 +80,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 
 **Output**: `{ success, deleted: bool, message }`
 
-### 4. `acrossai/delete-expired-transients`
+### 4. `cache/delete-expired-transients`
 
 `readonly: false, idempotent: true, destructive: true`
 
@@ -91,7 +91,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 
 ## Options (2)
 
-### 5. `acrossai/get-nested-option-value`
+### 5. `options/get-nested-option-value`
 
 `readonly: true, idempotent: true, destructive: false`
 
@@ -110,7 +110,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 
 **Output**: `{ success, exists: bool, value: any, message }`
 
-### 6. `acrossai/patch-option-value`
+### 6. `options/patch-option-value`
 
 `readonly: false, idempotent: false, destructive: true`
 
@@ -137,7 +137,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 
 ## Content (1)
 
-### 7. `acrossai/add-post-meta`
+### 7. `content/add-post-meta`
 
 `readonly: false, idempotent: false, destructive: false` (append is additive, not destructive)
 
@@ -167,7 +167,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 
 ## Plugins (3)
 
-### 8. `acrossai/search-wp-plugin-directory`
+### 8. `plugins/search-wp-plugin-directory`
 
 `readonly: true, idempotent: true, destructive: false`
 
@@ -201,7 +201,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 }
 ```
 
-### 9. `acrossai/uninstall-plugin`
+### 9. `plugins/uninstall-plugin`
 
 `readonly: false, idempotent: true, destructive: true`
 
@@ -222,7 +222,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 
 `blocked_reason` values: `"plugin_active"`, `"file_mods_disallowed"`, `"plugin_not_found"`.
 
-### 10. `acrossai/verify-plugin-checksums`
+### 10. `plugins/verify-plugin-checksums`
 
 `readonly: true, idempotent: true, destructive: false`
 
@@ -256,7 +256,7 @@ Meta shape: `show_in_rest: true, mcp: { public: false, type: 'tool' }`, plus a p
 
 ## Core (1)
 
-### 11. `acrossai/verify-core-checksums`
+### 11. `core/verify-core-checksums`
 
 `readonly: true, idempotent: true, destructive: false`
 

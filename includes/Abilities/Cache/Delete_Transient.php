@@ -29,7 +29,7 @@ class Delete_Transient extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-transient',
+			'name' => 'cache/delete-transient',
 			'args' => array(
 				'label'               => __( 'Delete Transient', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete one transient by name via delete_transient() (or delete_site_transient() when site:true). Idempotent — succeeds even if the transient is already gone.', 'acrossai-abilities-manager' ),

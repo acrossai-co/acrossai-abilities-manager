@@ -26,7 +26,7 @@ class Read_Theme_Structure extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/read-theme-structure',
+			'name' => 'themes/read-theme-structure',
 			'args' => array(
 				'label'               => __( 'Read Theme Structure', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Lists all files within a theme directory. Defaults to the active theme when no slug is provided.', 'acrossai-abilities-manager' ),

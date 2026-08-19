@@ -30,7 +30,7 @@ class Add_Post_Meta extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/add-post-meta',
+			'name' => 'content/add-post-meta',
 			'args' => array(
 				'label'               => __( 'Add Post Meta', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Append a new post-meta row via add_post_meta() — additive, does not replace existing rows for the same key. Set unique:true to refuse the append if any row already exists for the (post_id, key) pair (matches WordPress core add_post_meta( ..., true ) behaviour).', 'acrossai-abilities-manager' ),

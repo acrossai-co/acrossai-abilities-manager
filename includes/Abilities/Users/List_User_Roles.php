@@ -29,7 +29,7 @@ class List_User_Roles extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-user-roles',
+			'name' => 'users/list-user-roles',
 			'args' => array(
 				'label'               => __( 'List User Roles', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List all registered WordPress roles, optionally with their capability maps. Use these slugs as input to user-create / user-update.', 'acrossai-abilities-manager' ),

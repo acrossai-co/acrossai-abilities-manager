@@ -23,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
  * and focus_keyword is a comma-joined list whose first element is the primary. A
  * generic meta writer will happily store the wrong shape and Rank Math will then
  * silently misread it, which is why these writes belong here rather than going through
- * the plugin's acrossai/update-post-meta.
+ * the plugin's content/update-post-meta.
  */
 final class Post_Meta_Repository {
 

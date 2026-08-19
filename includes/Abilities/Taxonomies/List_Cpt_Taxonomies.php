@@ -26,7 +26,7 @@ class List_Cpt_Taxonomies extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-cpt-taxonomies',
+			'name' => 'taxonomies/list-cpt-taxonomies',
 			'args' => array(
 				'label'               => __( 'Get CPT Taxonomies', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the taxonomies attached to a given post type via get_object_taxonomies( $post_type, "objects" ).', 'acrossai-abilities-manager' ),

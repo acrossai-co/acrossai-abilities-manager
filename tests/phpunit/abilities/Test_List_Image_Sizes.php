@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/list-image-sizes ability.
+ * Structural tests for the Feature 063 media/list-image-sizes ability.
  *
  * Verifies the class enumerates via get_intermediate_image_sizes(),
  * enriches from wp_get_additional_image_sizes(), and falls back to the
@@ -39,7 +39,7 @@ class Test_List_Image_Sizes extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/list-image-sizes'", $this->src );
+		$this->assertStringContainsString( "'media/list-image-sizes'", $this->src );
 	}
 
 	public function test_targets_the_media_category(): void {

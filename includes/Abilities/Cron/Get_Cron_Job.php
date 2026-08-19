@@ -29,7 +29,7 @@ class Get_Cron_Job extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-cron-job',
+			'name' => 'cron/get-cron-job',
 			'args' => array(
 				'label'               => __( 'Get Cron Job Details', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return all scheduled WP-Cron events for a given hook name (multiple instances possible — different args, recurring + one-off, etc.).', 'acrossai-abilities-manager' ),

@@ -35,7 +35,7 @@ class Patch_Option_Value extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/patch-option-value',
+			'name' => 'options/patch-option-value',
 			'args' => array(
 				'label'               => __( 'Patch Option Value', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Insert, update, or delete a single value inside a serialized-array option at a caller-supplied key path — without touching any other key. Refuses to operate on options in the shared block-list of protected core options.', 'acrossai-abilities-manager' ),

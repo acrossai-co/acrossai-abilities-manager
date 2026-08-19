@@ -38,7 +38,7 @@ class List_Image_Sizes extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-image-sizes',
+			'name' => 'media/list-image-sizes',
 			'args' => array(
 				'label'               => __( 'List Image Sizes', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Enumerate every registered image size (WordPress core defaults plus theme/plugin-registered sizes) with declared width, height, and crop mode.', 'acrossai-abilities-manager' ),

@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
  * Ability #35 — rank-math/delete-post-schemas.
  *
  * Deletes the whole schema set including the type index, which the plugin's generic
- * acrossai/delete-post-meta cannot do in one call — it would leave the index behind
+ * content/delete-post-meta cannot do in one call — it would leave the index behind
  * pointing at removed data.
  */
 class Delete_Post_Schemas extends Base_Rank_Math_Ability {

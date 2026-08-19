@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/test-wp-cron ability.
+ * Structural tests for the Feature 063 cron/test-wp-cron ability.
  *
  * Verifies the class fires a non-blocking wp_remote_get() with a tiny
  * timeout at site_url('wp-cron.php?doing_wp_cron') and surfaces the
@@ -39,7 +39,7 @@ class Test_Test_Wp_Cron extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/test-wp-cron'", $this->src );
+		$this->assertStringContainsString( "'cron/test-wp-cron'", $this->src );
 	}
 
 	public function test_targets_the_cron_category(): void {

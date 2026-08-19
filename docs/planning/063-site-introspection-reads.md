@@ -16,22 +16,22 @@ Slug convention per `DEC-SLUG-CONVENTION-VERB-FIRST` (Feature 058): `acrossai/<v
 
 | # | Slug | Category | Core API | Output |
 |---|---|---|---|---|
-| 1 | `acrossai/get-wp-version` | `Core` | `get_bloginfo('version')`, `is_multisite()` | `{ success, version, is_multisite }` |
-| 2 | `acrossai/get-db-prefix` | `Database` | `$wpdb->prefix`, `$wpdb->base_prefix` | `{ success, prefix, base_prefix }` |
-| 3 | `acrossai/get-wp-config-constant` | `FileManager` | `defined()` + `constant()` | `{ success, constant, defined: bool, value }` |
-| 4 | `acrossai/list-theme-mods` | `Themes` | `get_theme_mods()` for `get_stylesheet()` | `{ success, theme, mods: object }` |
-| 5 | `acrossai/list-rewrite-rules` | `Settings` | `get_option('rewrite_rules')` | `{ success, rules: object, count }` |
-| 6 | `acrossai/list-widgets` | **Widgets (new)** | `wp_get_sidebars_widgets()` + `$wp_registered_widgets` | `{ success, sidebars: object<string,string[]>, widgets: object }` |
-| 7 | `acrossai/list-sidebars` | **Widgets (new)** | `$GLOBALS['wp_registered_sidebars']` | `{ success, sidebars: [{ id, name, description, before_widget, after_widget, before_title, after_title }] }` |
-| 8 | `acrossai/list-image-sizes` | `Media` | `get_intermediate_image_sizes()` + `wp_get_additional_image_sizes()` + core `get_option('thumbnail_size_w')` etc. | `{ success, sizes: [{ name, width, height, crop }] }` |
-| 9 | `acrossai/get-comment-count` | `Comments` | `wp_count_comments( $post_id ?? 0 )` | `{ success, counts: { approved, moderated, spam, trash, post-trashed, total_comments } }` |
-| 10 | `acrossai/get-maintenance-mode-status` | `SiteHealth` | file_exists(ABSPATH . '.maintenance') + parse the `$upgrading` timestamp | `{ success, active: bool, since?: int (unix), is_stale?: bool }` — stale means the timestamp is > 10 minutes old (WP's own threshold) |
-| 11 | `acrossai/test-wp-cron` | `Cron` | `wp_remote_get( site_url('wp-cron.php?doing_wp_cron'), ['blocking' => false, 'timeout' => 0.01] )` + `defined('DISABLE_WP_CRON') && DISABLE_WP_CRON` | `{ success, reachable: bool, disable_wp_cron: bool, message }` |
+| 1 | `core/get-wp-version` | `Core` | `get_bloginfo('version')`, `is_multisite()` | `{ success, version, is_multisite }` |
+| 2 | `database/get-db-prefix` | `Database` | `$wpdb->prefix`, `$wpdb->base_prefix` | `{ success, prefix, base_prefix }` |
+| 3 | `file-manager/get-wp-config-constant` | `FileManager` | `defined()` + `constant()` | `{ success, constant, defined: bool, value }` |
+| 4 | `themes/list-theme-mods` | `Themes` | `get_theme_mods()` for `get_stylesheet()` | `{ success, theme, mods: object }` |
+| 5 | `settings/list-rewrite-rules` | `Settings` | `get_option('rewrite_rules')` | `{ success, rules: object, count }` |
+| 6 | `widgets/list-widgets` | **Widgets (new)** | `wp_get_sidebars_widgets()` + `$wp_registered_widgets` | `{ success, sidebars: object<string,string[]>, widgets: object }` |
+| 7 | `widgets/list-sidebars` | **Widgets (new)** | `$GLOBALS['wp_registered_sidebars']` | `{ success, sidebars: [{ id, name, description, before_widget, after_widget, before_title, after_title }] }` |
+| 8 | `media/list-image-sizes` | `Media` | `get_intermediate_image_sizes()` + `wp_get_additional_image_sizes()` + core `get_option('thumbnail_size_w')` etc. | `{ success, sizes: [{ name, width, height, crop }] }` |
+| 9 | `comments/get-comment-count` | `Comments` | `wp_count_comments( $post_id ?? 0 )` | `{ success, counts: { approved, moderated, spam, trash, post-trashed, total_comments } }` |
+| 10 | `site-health/get-maintenance-mode-status` | `SiteHealth` | file_exists(ABSPATH . '.maintenance') + parse the `$upgrading` timestamp | `{ success, active: bool, since?: int (unix), is_stale?: bool }` — stale means the timestamp is > 10 minutes old (WP's own threshold) |
+| 11 | `cron/test-wp-cron` | `Cron` | `wp_remote_get( site_url('wp-cron.php?doing_wp_cron'), ['blocking' => false, 'timeout' => 0.01] )` + `defined('DISABLE_WP_CRON') && DISABLE_WP_CRON` | `{ success, reachable: bool, disable_wp_cron: bool, message }` |
 
 ### Input specifics
 
-- `acrossai/get-wp-config-constant` — `{ constant: string (required) }`. Guardrail: reject any constant in `const BLOCKED_CONSTANTS = ['AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY', 'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT', 'DB_PASSWORD']` — return `success: false` with `code: 'blocked_constant'`. Value of every other constant returned as-is.
-- `acrossai/get-comment-count` — `{ post_id?: int (default 0 = whole site) }`.
+- `file-manager/get-wp-config-constant` — `{ constant: string (required) }`. Guardrail: reject any constant in `const BLOCKED_CONSTANTS = ['AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY', 'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT', 'DB_PASSWORD']` — return `success: false` with `code: 'blocked_constant'`. Value of every other constant returned as-is.
+- `comments/get-comment-count` — `{ post_id?: int (default 0 = whole site) }`.
 - Everything else takes no input.
 
 All 11 have `readonly: true, idempotent: true, destructive: false` annotations.

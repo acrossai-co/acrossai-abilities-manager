@@ -26,7 +26,7 @@ class Create_Comment extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-comment',
+			'name' => 'comments/create-comment',
 			'args' => array(
 				'label'               => __( 'Create Comment', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a comment via POST /wp/v2/comments. Requires post and content.', 'acrossai-abilities-manager' ),

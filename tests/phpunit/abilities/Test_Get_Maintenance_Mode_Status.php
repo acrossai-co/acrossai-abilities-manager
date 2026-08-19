@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/get-maintenance-mode-status ability.
+ * Structural tests for the Feature 063 site-health/get-maintenance-mode-status ability.
  *
  * Source-inspection only — mirrors Test_Feature_042_Core_Update precedent.
  *
@@ -37,7 +37,7 @@ class Test_Get_Maintenance_Mode_Status extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/get-maintenance-mode-status'", $this->src );
+		$this->assertStringContainsString( "'site-health/get-maintenance-mode-status'", $this->src );
 	}
 
 	public function test_targets_the_site_health_category(): void {

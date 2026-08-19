@@ -32,7 +32,7 @@ class Update_Theme extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-theme',
+			'name' => 'themes/update-theme',
 			'args' => array(
 				'label'               => __( 'Update Theme', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Apply the pending update for one or more installed themes. Accepts stylesheet directory names (e.g. "twentytwentyfour") or theme names (resolved via Theme_Helpers). Re-running when no update is available is a no-op.', 'acrossai-abilities-manager' ),

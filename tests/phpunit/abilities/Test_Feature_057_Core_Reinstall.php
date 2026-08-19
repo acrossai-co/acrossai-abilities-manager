@@ -64,9 +64,9 @@ class Test_Feature_057_Core_Reinstall extends WP_UnitTestCase {
 		$src = $this->sources['wp_core_reinstall'];
 		$this->assertStringContainsString( 'extends Ability_Definition', $src );
 		$this->assertStringContainsString(
-			"'acrossai/reinstall-wp-core'",
+			"'core/reinstall-wp-core'",
 			$src,
-			'Ability name must be acrossai/reinstall-wp-core.'
+			'Ability name must be core/reinstall-wp-core.'
 		);
 		$this->assertStringContainsString(
 			"'acrossai-abilities-manager-core'",

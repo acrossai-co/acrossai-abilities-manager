@@ -28,7 +28,7 @@ class Search_Options extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/search-options',
+			'name' => 'options/search-options',
 			'args' => array(
 				'label'               => __( 'Search Options', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Search wp_options.option_name with a LIKE pattern. Pass exact_match=true to require an exact match.', 'acrossai-abilities-manager' ),

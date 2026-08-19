@@ -30,7 +30,7 @@ class List_Widgets extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-widgets',
+			'name' => 'widgets/list-widgets',
 			'args' => array(
 				'label'               => __( 'List Widgets', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the per-sidebar widget-instance-id map and the registered-widgets metadata registry, sufficient for callers to resolve identifiers to widget classes.', 'acrossai-abilities-manager' ),

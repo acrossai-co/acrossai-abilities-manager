@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for Feature 064 acrossai/get-transient.
+ * Structural tests for Feature 064 cache/get-transient.
  *
  * Source-inspection tests, mirroring the Feature 059 pattern — the plugin's
  * PHPUnit bootstrap is a minimal WP stub, not a full WP environment.
@@ -43,7 +43,7 @@ class Test_Get_Transient extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/get-transient'", $this->src );
+		$this->assertStringContainsString( "'cache/get-transient'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-cache'", $this->src );
 	}
 

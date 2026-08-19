@@ -26,7 +26,7 @@ class Get_Option extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-option',
+			'name' => 'options/get-option',
 			'args' => array(
 				'label'               => __( 'Get Option', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Read a wp_options row via get_option().', 'acrossai-abilities-manager' ),

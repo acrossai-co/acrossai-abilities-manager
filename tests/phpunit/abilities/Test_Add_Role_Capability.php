@@ -2,7 +2,7 @@
 /**
  * Structural tests for the Feature 062 Add_Role_Capability ability.
  *
- * Covers the acrossai/add-role-capability ability under
+ * Covers the users/add-role-capability ability under
  * includes/Abilities/Users/Add_Role_Capability.php plus its bootstrap wiring.
  *
  * Source-inspection only, mirroring Test_Feature_057_Core_Reinstall — the
@@ -66,9 +66,9 @@ class Test_Add_Role_Capability extends WP_UnitTestCase {
 	public function test_ability_name_and_category(): void {
 		$src = $this->sources['add_role_cap'];
 		$this->assertStringContainsString(
-			"'acrossai/add-role-capability'",
+			"'users/add-role-capability'",
 			$src,
-			'Ability name must be acrossai/add-role-capability.'
+			'Ability name must be users/add-role-capability.'
 		);
 		$this->assertStringContainsString(
 			"'acrossai-abilities-manager-users'",

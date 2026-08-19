@@ -26,7 +26,7 @@ class Delete_Db_Rows extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-db-rows',
+			'name' => 'database/delete-db-rows',
 			'args' => array(
 				'label'               => __( 'Delete Rows', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Deletes rows matching the where clause using $wpdb->delete() (values are auto-escaped). Requires a non-empty where to prevent accidental full-table deletion.', 'acrossai-abilities-manager' ),

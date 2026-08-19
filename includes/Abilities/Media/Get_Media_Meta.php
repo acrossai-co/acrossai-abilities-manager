@@ -27,7 +27,7 @@ class Get_Media_Meta extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-media-meta',
+			'name' => 'media/get-media-meta',
 			'args' => array(
 				'label'               => __( 'Get Media Meta', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch the REST-exposed meta map for a media item (only keys registered with register_meta show_in_rest=true are returned).', 'acrossai-abilities-manager' ),

@@ -27,7 +27,7 @@ class List_Posts extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-posts',
+			'name' => 'content/list-posts',
 			'args' => array(
 				'label'               => __( 'Get Posts', 'acrossai-abilities-manager' ),
 				'description'         => __( 'List posts of any post type via WP_Query — supports search, pagination, status filter, ordering, and a simple meta key/value filter.', 'acrossai-abilities-manager' ),

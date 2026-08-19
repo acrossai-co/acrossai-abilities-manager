@@ -30,7 +30,7 @@ Every ability uses the same category-agnostic `meta` prefix:
 
 ---
 
-## 1. `acrossai/add-role-capability`
+## 1. `users/add-role-capability`
 
 **Category**: `acrossai-abilities-manager-users`
 **Annotations**: `readonly: false, destructive: true, idempotent: true`
@@ -66,7 +66,7 @@ Every ability uses the same category-agnostic `meta` prefix:
 
 ---
 
-## 2. `acrossai/remove-role-capability`
+## 2. `users/remove-role-capability`
 
 **Category**: `acrossai-abilities-manager-users`
 **Annotations**: `readonly: false, destructive: true, idempotent: true`
@@ -88,7 +88,7 @@ Every ability uses the same category-agnostic `meta` prefix:
 
 ---
 
-## 3. `acrossai/create-role`
+## 3. `users/create-role`
 
 **Category**: `acrossai-abilities-manager-users`
 **Annotations**: `readonly: false, destructive: true, idempotent: false`
@@ -124,7 +124,7 @@ Every ability uses the same category-agnostic `meta` prefix:
 
 ---
 
-## 4. `acrossai/delete-role`
+## 4. `users/delete-role`
 
 **Category**: `acrossai-abilities-manager-users`
 **Annotations**: `readonly: false, destructive: true, idempotent: false`
@@ -161,7 +161,7 @@ Every ability uses the same category-agnostic `meta` prefix:
 
 ---
 
-## 5. `acrossai/reset-role`
+## 5. `users/reset-role`
 
 **Category**: `acrossai-abilities-manager-users`
 **Annotations**: `readonly: false, destructive: true, idempotent: false`
@@ -195,7 +195,7 @@ Every ability uses the same category-agnostic `meta` prefix:
 
 ---
 
-## 6. `acrossai/add-user-capability`
+## 6. `users/add-user-capability`
 
 **Category**: `acrossai-abilities-manager-users`
 **Annotations**: `readonly: false, destructive: true, idempotent: true`
@@ -231,7 +231,7 @@ Every ability uses the same category-agnostic `meta` prefix:
 
 ---
 
-## 7. `acrossai/remove-user-capability`
+## 7. `users/remove-user-capability`
 
 **Category**: `acrossai-abilities-manager-users`
 **Annotations**: `readonly: false, destructive: true, idempotent: true`
@@ -242,7 +242,7 @@ Every ability uses the same category-agnostic `meta` prefix:
 
 ---
 
-## 8. `acrossai/search-replace`
+## 8. `database/search-replace`
 
 **Category**: `acrossai-abilities-manager-db`
 **Annotations**: `readonly: false, destructive: true, idempotent: false` — but idempotent effectively becomes `true` when `dry_run: true` because the write path is not taken.

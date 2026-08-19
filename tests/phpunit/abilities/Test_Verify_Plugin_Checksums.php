@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for Feature 064 acrossai/verify-plugin-checksums.
+ * Structural tests for Feature 064 plugins/verify-plugin-checksums.
  *
  * @package AcrossAI_Abilities_Manager
  * @since   0.0.23
@@ -35,7 +35,7 @@ class Test_Verify_Plugin_Checksums extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/verify-plugin-checksums'", $this->src );
+		$this->assertStringContainsString( "'plugins/verify-plugin-checksums'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-plugins'", $this->src );
 	}
 

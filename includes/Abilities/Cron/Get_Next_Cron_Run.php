@@ -26,7 +26,7 @@ class Get_Next_Cron_Run extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-next-cron-run',
+			'name' => 'cron/get-next-cron-run',
 			'args' => array(
 				'label'               => __( 'Get Next Run Time', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the next scheduled run timestamp for a hook (and optional args) via wp_next_scheduled().', 'acrossai-abilities-manager' ),

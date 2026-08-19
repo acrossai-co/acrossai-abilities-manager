@@ -17,13 +17,13 @@ Steps to verify the feature end-to-end on the local WP install (`wordpress-7-0`)
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"role":"editor","capability":"manage_options"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/add-role-capability/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/add-role-capability/run
 
 # Expected: { "success": true, "role": "editor", "capability": "manage_options", ... }
 
 # Verify by hitting the existing read ability
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/get-role-capabilities/run?role=editor \
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/get-role-capabilities/run?role=editor \
   | jq '.capabilities.manage_options'
 # Expected: true
 
@@ -31,13 +31,13 @@ curl -u admin:APP_PASSWORD \
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"role":"editor","capability":"manage_options"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/remove-role-capability/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/remove-role-capability/run
 
 # Attempt to revoke a WP-core admin cap FROM the administrator role — must be refused
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"role":"administrator","capability":"manage_options"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/remove-role-capability/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/remove-role-capability/run
 
 # Expected: { "success": false, "blocked_reason": "core_admin_cap", ... }
 ```
@@ -49,7 +49,7 @@ curl -u admin:APP_PASSWORD -X POST \
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"role":"support_agent","display_name":"Support Agent","clone_from":"editor"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/create-role/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/create-role/run
 
 # Verify in the admin UI: WP admin → Users → Add New → role dropdown should include "Support Agent"
 
@@ -57,7 +57,7 @@ curl -u admin:APP_PASSWORD -X POST \
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"role":"support_agent"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/delete-role/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/delete-role/run
 
 # Expected: { "success": false, "blocked_reason": "role_has_users", "user_count": 1, ... }
 
@@ -71,17 +71,17 @@ curl -u admin:APP_PASSWORD -X POST \
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"role":"editor","capability":"edit_posts"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/remove-role-capability/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/remove-role-capability/run
 
 # Reset
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"role":"editor"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/reset-role/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/reset-role/run
 
 # Verify edit_posts is back
 curl -u admin:APP_PASSWORD \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/get-role-capabilities/run?role=editor \
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/get-role-capabilities/run?role=editor \
   | jq '.capabilities.edit_posts'
 # Expected: true
 ```
@@ -93,7 +93,7 @@ curl -u admin:APP_PASSWORD \
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"user_id":2,"capability":"upload_files"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/add-user-capability/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/add-user-capability/run
 
 # Log in as user #2 in a separate browser session; the Upload Media button should now be visible.
 
@@ -101,13 +101,13 @@ curl -u admin:APP_PASSWORD -X POST \
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"user_id":2,"capability":"upload_files"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/remove-user-capability/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/remove-user-capability/run
 
 # Attempt to revoke a WP-core admin cap from the ONLY admin user (there must be exactly one admin on the site for this test)
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"user_id":1,"capability":"manage_options"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/remove-user-capability/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/users/remove-user-capability/run
 
 # Expected: { "success": false, "blocked_reason": "last_admin_core_cap", ... }
 ```
@@ -123,7 +123,7 @@ wp post create --post_title="Test SR" --post_content="Visit http://old-domain.co
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"old":"old-domain.com","new":"new-domain.com"}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/search-replace/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/database/search-replace/run
 
 # Expected:
 #   {
@@ -141,7 +141,7 @@ wp post get $POSTID --field=post_content
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"old":"old-domain.com","new":"new-domain.com","dry_run":false}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/search-replace/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/database/search-replace/run
 
 # Verify
 wp post get $POSTID --field=post_content
@@ -151,7 +151,7 @@ wp post get $POSTID --field=post_content
 curl -u admin:APP_PASSWORD -X POST \
   -H 'Content-Type: application/json' \
   -d '{"old":"foo","new":"bar","tables":["wp_nonexistent"],"dry_run":false}' \
-  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/acrossai/search-replace/run
+  http://wordpress-7-0.local/wp-json/wp-abilities/v1/abilities/database/search-replace/run
 
 # Expected: { "success": false, "blocked_reason": "unknown_table", ... }
 ```

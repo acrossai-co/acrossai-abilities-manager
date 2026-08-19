@@ -2,7 +2,7 @@
 /**
  * Structural tests for the Feature 062 Remove_User_Capability ability.
  *
- * Covers the acrossai/remove-user-capability ability under
+ * Covers the users/remove-user-capability ability under
  * includes/Abilities/Users/Remove_User_Capability.php including the
  * CORE_ADMIN_CAPS safety block-list, the last-admin guard, and
  * bootstrap wiring.
@@ -56,7 +56,7 @@ class Test_Remove_User_Capability extends WP_UnitTestCase {
 
 	public function test_ability_name_and_category(): void {
 		$src = $this->sources['remove_user_cap'];
-		$this->assertStringContainsString( "'acrossai/remove-user-capability'", $src );
+		$this->assertStringContainsString( "'users/remove-user-capability'", $src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-users'", $src );
 	}
 

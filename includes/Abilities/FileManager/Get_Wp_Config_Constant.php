@@ -51,7 +51,7 @@ class Get_Wp_Config_Constant extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-wp-config-constant',
+			'name' => 'file-manager/get-wp-config-constant',
 			'args' => array(
 				'label'               => __( 'Get wp-config Constant', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the value of a named PHP constant (typically defined in wp-config.php). Refuses to disclose auth keys, salts, or DB_PASSWORD.', 'acrossai-abilities-manager' ),

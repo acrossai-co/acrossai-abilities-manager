@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
  * post's resolved meta but cannot change it.
  *
  * Named -update-seo-meta rather than -update-post-meta so it does not read as a
- * variant of the plugin's generic acrossai/update-post-meta — which can technically
+ * variant of the plugin's generic content/update-post-meta — which can technically
  * write these keys but will happily store the wrong shape, since robots must be an
  * array and the content flags must be the literal 'on' or absent.
  *

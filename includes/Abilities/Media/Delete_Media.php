@@ -26,7 +26,7 @@ class Delete_Media extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-media',
+			'name' => 'media/delete-media',
 			'args' => array(
 				'label'               => __( 'Delete Media', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete a media attachment. Requires confirm:true. Honours MEDIA_TRASH when defined; pass force:true to skip trash and delete permanently.', 'acrossai-abilities-manager' ),

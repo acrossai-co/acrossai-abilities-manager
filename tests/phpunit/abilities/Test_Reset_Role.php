@@ -2,7 +2,7 @@
 /**
  * Structural tests for the Feature 062 Reset_Role ability.
  *
- * Covers the acrossai/reset-role ability under
+ * Covers the users/reset-role ability under
  * includes/Abilities/Users/Reset_Role.php plus bootstrap wiring.
  *
  * Source-inspection only, mirroring Test_Feature_057_Core_Reinstall — the
@@ -54,7 +54,7 @@ class Test_Reset_Role extends WP_UnitTestCase {
 
 	public function test_ability_name_and_category(): void {
 		$src = $this->sources['reset_role'];
-		$this->assertStringContainsString( "'acrossai/reset-role'", $src );
+		$this->assertStringContainsString( "'users/reset-role'", $src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-users'", $src );
 	}
 

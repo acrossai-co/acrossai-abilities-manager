@@ -26,7 +26,7 @@ class Check_Plugin_Updates extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/check-plugin-updates',
+			'name' => 'plugins/check-plugin-updates',
 			'args' => array(
 				'label'               => __( 'Check Updates', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Check for available WordPress core, plugin, and theme updates.', 'acrossai-abilities-manager' ),

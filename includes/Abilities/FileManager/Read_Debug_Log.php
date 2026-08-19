@@ -26,7 +26,7 @@ class Read_Debug_Log extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/read-debug-log',
+			'name' => 'file-manager/read-debug-log',
 			'args' => array(
 				'label'               => __( 'Read Debug Log', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns the contents of wp-content/debug.log. Use the lines parameter to limit output to the last N lines.', 'acrossai-abilities-manager' ),

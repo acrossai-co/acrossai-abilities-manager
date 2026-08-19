@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/list-theme-mods ability.
+ * Structural tests for the Feature 063 themes/list-theme-mods ability.
  *
  * Source-inspection only — mirrors Test_Feature_042_Core_Update precedent.
  *
@@ -37,7 +37,7 @@ class Test_List_Theme_Mods extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/list-theme-mods'", $this->src );
+		$this->assertStringContainsString( "'themes/list-theme-mods'", $this->src );
 	}
 
 	public function test_targets_the_themes_category(): void {

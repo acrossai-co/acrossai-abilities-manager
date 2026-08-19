@@ -1,6 +1,6 @@
 <?php
 /**
- * Ability class for acrossai/delete-role (Feature 062).
+ * Ability class for users/delete-role (Feature 062).
  *
  * Deletes a WordPress role via remove_role(). Refuses to delete any of
  * the five WordPress built-in roles (administrator/editor/author/
@@ -46,7 +46,7 @@ class Delete_Role extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-role',
+			'name' => 'users/delete-role',
 			'args' => array(
 				'label'               => __( 'Delete Role', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete an existing WordPress role. Refuses when the role is one of the five WordPress built-in roles, or when the role is currently held by one or more users.', 'acrossai-abilities-manager' ),

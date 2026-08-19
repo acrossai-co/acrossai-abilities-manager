@@ -30,7 +30,7 @@ class Get_Font_Family extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-font-family',
+			'name' => 'fonts/get-font-family',
 			'args' => array(
 				'label'               => __( 'Get Font Family', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Fetch a single Font Library font family record (wp_font_family CPT) by its post ID.', 'acrossai-abilities-manager' ),

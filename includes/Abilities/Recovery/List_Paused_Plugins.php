@@ -27,7 +27,7 @@ class List_Paused_Plugins extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/list-paused-plugins',
+			'name' => 'recovery/list-paused-plugins',
 			'args' => array(
 				'label'               => __( 'List Paused Plugins', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Returns every plugin WordPress has paused after a fatal error, with the captured error details (type, file, line, message). Returns an empty array when no plugins are paused.', 'acrossai-abilities-manager' ),

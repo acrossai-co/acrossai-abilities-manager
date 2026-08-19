@@ -28,7 +28,7 @@ class Install_Plugin extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/install-plugin',
+			'name' => 'plugins/install-plugin',
 			'args' => array(
 				'label'               => __( 'Install Plugin', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Install a plugin from the WordPress.org plugin directory by name or slug.', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Create_User extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-user',
+			'name' => 'users/create-user',
 			'args' => array(
 				'label'               => __( 'Create User', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a new WordPress user. If no password is provided, a strong one is generated and returned.', 'acrossai-abilities-manager' ),

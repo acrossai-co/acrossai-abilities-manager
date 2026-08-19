@@ -135,7 +135,7 @@ Key decisions taken during the interactive session and their rationale:
 2. **Verb-first suffix** — matches the ability's `label` word order ("Get Site Title" ↔ `get-site-title`), matches the WP core MCP adapter built-ins (`mcp-adapter/discover-abilities`, `mcp-adapter/get-ability-info`, `mcp-adapter/execute-ability`), matches every major function-calling / MCP tool-use spec convention.
 3. **Class file rename + PHP class rename** — chosen after two-choice presentation to user (keep class names OR flip both slug + class). User picked "point 3" (both), so class names now align with slugs → grep-by-slug finds the registering class immediately.
 4. **No data migration ships** — original commit bc23e6e included one; user reversed the decision in commit 88dd7c0 because the plugin is small-user and the mental overhead of a one-shot migration outweighs its value. Users with saved overrides clear them manually.
-5. **REST namespace shortened in lockstep** (`acrossai/v1`) — automatic consequence of the perl sweep, kept intentional because it matches the new slug prefix and avoids the awkwardness of `/wp-json/acrossai-abilities-manager/v1/abilities/acrossai/get-site-title/run`.
+5. **REST namespace shortened in lockstep** (`acrossai/v1`) — automatic consequence of the perl sweep, kept intentional because it matches the new slug prefix and avoids the awkwardness of `/wp-json/acrossai-abilities-manager/v1/abilities/settings/get-site-title/run`.
 6. **ACL library namespace preserved** (`acrossai-abilities` in `/wpb-ac/v1/*/rules/acrossai-abilities/{slug}`) — a separate concept from slug prefix, stored in `wp_abilities_access_control.namespace`. Preserved via perl `(?<!/)` look-behind.
 
 ## Phase 1 — Design

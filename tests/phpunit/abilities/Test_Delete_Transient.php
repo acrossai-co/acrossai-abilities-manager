@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for Feature 064 acrossai/delete-transient.
+ * Structural tests for Feature 064 cache/delete-transient.
  *
  * Source-inspection tests, mirroring the Feature 059 pattern.
  *
@@ -37,7 +37,7 @@ class Test_Delete_Transient extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug_and_category(): void {
-		$this->assertStringContainsString( "'acrossai/delete-transient'", $this->src );
+		$this->assertStringContainsString( "'cache/delete-transient'", $this->src );
 		$this->assertStringContainsString( "'acrossai-abilities-manager-cache'", $this->src );
 	}
 

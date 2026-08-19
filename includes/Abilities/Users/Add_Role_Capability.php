@@ -1,6 +1,6 @@
 <?php
 /**
- * Ability class for acrossai/add-role-capability (Feature 062).
+ * Ability class for users/add-role-capability (Feature 062).
  *
  * Grants a single capability to an existing WordPress role via
  * WP_Role::add_cap(). Refuses when the target role does not exist so
@@ -33,7 +33,7 @@ class Add_Role_Capability extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/add-role-capability',
+			'name' => 'users/add-role-capability',
 			'args' => array(
 				'label'               => __( 'Add Role Capability', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Grant a single capability to an existing WordPress role. Idempotent — regranting a capability the role already holds is a no-op success.', 'acrossai-abilities-manager' ),

@@ -28,7 +28,7 @@ class Get_Role_Capabilities extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/get-role-capabilities',
+			'name' => 'users/get-role-capabilities',
 			'args' => array(
 				'label'               => __( 'Get Role Capabilities', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the full capability map for a single registered role. Useful before granting a role via user-create / user-update.', 'acrossai-abilities-manager' ),

@@ -27,7 +27,7 @@ class Review_Internal_Link_Suggestion extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/review-internal-link-suggestion',
+			'name' => 'content-search/review-internal-link-suggestion',
 			'args' => array(
 				'label'               => __( 'Review Internal Link Suggestion', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Mark a suggestion as approved or rejected with optional reviewer notes. Applied suggestions cannot be re-reviewed.', 'acrossai-abilities-manager' ),

@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Ability #16 — rank-math/get-role-capabilities.
  *
- * The plugin already ships acrossai/get-role-capabilities, which returns one role's
+ * The plugin already ships users/get-role-capabilities, which returns one role's
  * FULL WordPress capability map. What that cannot tell you is which sixteen
  * capabilities Rank Math defines, or how they are distributed across roles. This
  * returns exactly that, including the suffix each ability in this suite composes onto
@@ -37,7 +37,7 @@ class Get_Role_Capabilities extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Return the Rank Math capability matrix: the sixteen capabilities it defines with their labels, and which roles currently hold each one. Use this to diagnose an insufficient_capability or permission failure from another Rank Math ability. Grant or revoke individual capabilities with the plugin\'s acrossai/add-role-capability and acrossai/remove-role-capability — rank_math_* are ordinary WordPress capabilities.', 'acrossai-abilities-manager' );
+		return __( 'Return the Rank Math capability matrix: the sixteen capabilities it defines with their labels, and which roles currently hold each one. Use this to diagnose an insufficient_capability or permission failure from another Rank Math ability. Grant or revoke individual capabilities with the plugin\'s users/add-role-capability and users/remove-role-capability — rank_math_* are ordinary WordPress capabilities.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

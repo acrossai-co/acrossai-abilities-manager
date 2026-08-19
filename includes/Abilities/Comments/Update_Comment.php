@@ -26,7 +26,7 @@ class Update_Comment extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/update-comment',
+			'name' => 'comments/update-comment',
 			'args' => array(
 				'label'               => __( 'Update Comment', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update a comment via POST /wp/v2/comments/{id}. Only the supplied fields are touched.', 'acrossai-abilities-manager' ),

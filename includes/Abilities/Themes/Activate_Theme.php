@@ -27,7 +27,7 @@ class Activate_Theme extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/activate-theme',
+			'name' => 'themes/activate-theme',
 			'args' => array(
 				'label'               => __( 'Activate Theme', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Activate an installed WordPress theme by name, stylesheet, or partial match. Works in recovery mode; only updates the active-theme option and does not load the theme file. Note: WordPress does not have a separate "deactivate-theme" ability — switching to a different theme via this ability is the way to remove an active theme.', 'acrossai-abilities-manager' ),

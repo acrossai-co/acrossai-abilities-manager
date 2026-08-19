@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/list-rewrite-rules ability.
+ * Structural tests for the Feature 063 settings/list-rewrite-rules ability.
  *
  * Source-inspection only — mirrors Test_Feature_042_Core_Update precedent.
  *
@@ -37,7 +37,7 @@ class Test_List_Rewrite_Rules extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/list-rewrite-rules'", $this->src );
+		$this->assertStringContainsString( "'settings/list-rewrite-rules'", $this->src );
 	}
 
 	public function test_targets_the_settings_category(): void {

@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Ability #60 — rank-math/refresh-llms-route.
  *
- * The plugin already ships a generic acrossai/flush-rewrite-rules. What this adds
+ * The plugin already ships a generic cache/flush-rewrite-rules. What this adds
  * is the diagnosis: it checks whether Rank Math's llms.txt rule is actually absent,
  * flushes only if so, and reports whether the flush fixed it. A flush that does not
  * restore the rule points at the module being off rather than at stale rules, which

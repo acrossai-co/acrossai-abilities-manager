@@ -1,6 +1,6 @@
 <?php
 /**
- * Structural tests for the Feature 063 acrossai/list-widgets ability.
+ * Structural tests for the Feature 063 widgets/list-widgets ability.
  *
  * Also verifies the Widgets Category_Registrar exists and the bootstrap
  * wires both.
@@ -42,7 +42,7 @@ class Test_List_Widgets extends WP_UnitTestCase {
 
 	public function test_extends_ability_definition_and_uses_expected_ability_name(): void {
 		$this->assertStringContainsString( 'extends Ability_Definition', $this->src );
-		$this->assertStringContainsString( "'acrossai/list-widgets'", $this->src );
+		$this->assertStringContainsString( "'widgets/list-widgets'", $this->src );
 	}
 
 	public function test_targets_the_widgets_category(): void {

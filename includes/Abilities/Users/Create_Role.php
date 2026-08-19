@@ -1,6 +1,6 @@
 <?php
 /**
- * Ability class for acrossai/create-role (Feature 062).
+ * Ability class for users/create-role (Feature 062).
  *
  * Creates a new WordPress role, optionally cloning capabilities from
  * an existing role. Refuses with blocked_reason=role_exists when the
@@ -33,7 +33,7 @@ class Create_Role extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/create-role',
+			'name' => 'users/create-role',
 			'args' => array(
 				'label'               => __( 'Create Role', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a new WordPress role with a caller-supplied slug and display name. Optionally clone capabilities from an existing role via the clone_from field.', 'acrossai-abilities-manager' ),

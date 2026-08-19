@@ -26,7 +26,7 @@ class Delete_Comment extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/delete-comment',
+			'name' => 'comments/delete-comment',
 			'args' => array(
 				'label'               => __( 'Delete Comment', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Delete a comment via DELETE /wp/v2/comments/{id}. Defaults to trash; pass force=true to delete permanently.', 'acrossai-abilities-manager' ),
