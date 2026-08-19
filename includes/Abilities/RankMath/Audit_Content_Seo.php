@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #48 — acrossai/rank-math-audit-content-seo.
+ * Ability #48 — rank-math/audit-content-seo.
  *
  * Complements rather than duplicates Rank Math core: its rank-math/audit-site-seo runs
  * TECHNICAL site-wide tests, and its rank-math/get-seo-scores returns scores and grades

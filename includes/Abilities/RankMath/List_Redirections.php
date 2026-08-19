@@ -16,10 +16,10 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #51 — acrossai/rank-math-list-redirections.
+ * Ability #51 — rank-math/list-redirections.
  *
  * The status filter must include 'trashed': without it there is no way to see what
- * is in the trash, and acrossai/rank-math-delete-trashed-redirections becomes a
+ * is in the trash, and rank-math/delete-trashed-redirections becomes a
  * blind destructive call.
  *
  * Read-only, idempotent.
@@ -35,7 +35,7 @@ class List_Redirections extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Return a paginated list of Rank Math redirections with their sources, target, status code, status and hit count. Filter by status, including trashed — inspect the trash here before calling acrossai/rank-math-delete-trashed-redirections.', 'acrossai-abilities-manager' );
+		return __( 'Return a paginated list of Rank Math redirections with their sources, target, status code, status and hit count. Filter by status, including trashed — inspect the trash here before calling rank-math/delete-trashed-redirections.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

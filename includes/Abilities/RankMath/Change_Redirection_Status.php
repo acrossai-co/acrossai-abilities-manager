@@ -16,14 +16,14 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #12 — acrossai/rank-math-change-redirection-status.
+ * Ability #12 — rank-math/change-redirection-status.
  *
  * Declares destructive:false, deliberately. All four transitions are reversible —
  * including trash, which is undone by restore. Putting a confirm gate on reversible
  * operations trains agents to pass confirm reflexively, which devalues the gate on
  * the operations that genuinely need it.
  *
- * Hard delete is a SEPARATE ability (acrossai/rank-math-delete-redirections) for
+ * Hard delete is a SEPARATE ability (rank-math/delete-redirections) for
  * exactly this reason: one ability can only carry one annotation triple honestly.
  */
 class Change_Redirection_Status extends Base_Rank_Math_Ability {
@@ -37,7 +37,7 @@ class Change_Redirection_Status extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Activate, deactivate, trash or restore redirections in bulk. Every transition is reversible and nothing is deleted, so no confirmation is needed. To delete permanently use acrossai/rank-math-delete-redirections, or acrossai/rank-math-delete-trashed-redirections to empty the trash.', 'acrossai-abilities-manager' );
+		return __( 'Activate, deactivate, trash or restore redirections in bulk. Every transition is reversible and nothing is deleted, so no confirmation is needed. To delete permanently use rank-math/delete-redirections, or rank-math/delete-trashed-redirections to empty the trash.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -58,7 +58,7 @@ class Change_Redirection_Status extends Base_Rank_Math_Ability {
 				'type'        => 'array',
 				'items'       => array( 'type' => 'integer' ),
 				'minItems'    => 1,
-				'description' => __( 'Redirection ids. Find them with acrossai/rank-math-list-redirections.', 'acrossai-abilities-manager' ),
+				'description' => __( 'Redirection ids. Find them with rank-math/list-redirections.', 'acrossai-abilities-manager' ),
 			),
 			'action' => array(
 				'type'        => 'string',

@@ -17,7 +17,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #5 — acrossai/rank-math-update-instant-indexing-settings.
+ * Ability #5 — rank-math/update-instant-indexing-settings.
  *
  * Separate from the three panel writers because Instant Indexing stores its
  * settings in a DIFFERENT option (rank-math-options-instant-indexing) that is not
@@ -48,7 +48,7 @@ class Update_Instant_Indexing_Settings extends Base_Rank_Math_Ability {
 	 * @return string
 	 */
 	protected function ability_description(): string {
-		return __( 'Write the Rank Math Instant Indexing (IndexNow) settings: which post types are auto-submitted on publish, and the IndexNow API key. The key location URL is derived from the site address and cannot be set. To submit URLs immediately use acrossai/rank-math-submit-urls; to rotate the key use acrossai/rank-math-reset-indexing-key.', 'acrossai-abilities-manager' );
+		return __( 'Write the Rank Math Instant Indexing (IndexNow) settings: which post types are auto-submitted on publish, and the IndexNow API key. The key location URL is derived from the site address and cannot be set. To submit URLs immediately use rank-math/submit-urls; to rotate the key use rank-math/reset-indexing-key.', 'acrossai-abilities-manager' );
 	}
 
 	/**
@@ -79,7 +79,7 @@ class Update_Instant_Indexing_Settings extends Base_Rank_Math_Ability {
 		return array(
 			'settings' => array(
 				'type'                 => 'object',
-				'description'          => __( 'Field id => value. Writable fields are bing_post_types (a list of post type names) and indexnow_api_key (a string). Read the current values with acrossai/rank-math-get-settings panel=general-instant-indexing.', 'acrossai-abilities-manager' ),
+				'description'          => __( 'Field id => value. Writable fields are bing_post_types (a list of post type names) and indexnow_api_key (a string). Read the current values with rank-math/get-settings panel=general-instant-indexing.', 'acrossai-abilities-manager' ),
 				'additionalProperties' => true,
 			),
 		);

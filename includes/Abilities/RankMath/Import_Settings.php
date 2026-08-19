@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #22 — acrossai/rank-math-import-settings.
+ * Ability #22 — rank-math/import-settings.
  *
  * Genuinely destructive: Rank Math's do_import_data() writes each panel with
  * update_option() and NO merge, so it REPLACES whole option blobs rather than
@@ -37,7 +37,7 @@ class Import_Settings extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Import a Rank Math settings payload produced by acrossai/rank-math-export-settings. Each included panel REPLACES the current settings for that panel wholesale — it does not merge — so any setting absent from the payload reverts to its stored default. Rank Math creates a backup first and its key is returned, so the change can be undone with acrossai/rank-math-manage-backup.', 'acrossai-abilities-manager' );
+		return __( 'Import a Rank Math settings payload produced by rank-math/export-settings. Each included panel REPLACES the current settings for that panel wholesale — it does not merge — so any setting absent from the payload reverts to its stored default. Rank Math creates a backup first and its key is returned, so the change can be undone with rank-math/manage-backup.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -56,7 +56,7 @@ class Import_Settings extends Base_Rank_Math_Ability {
 		return array(
 			'data' => array(
 				'type'                 => 'object',
-				'description'          => __( 'Payload from acrossai/rank-math-export-settings. Keys are panel names.', 'acrossai-abilities-manager' ),
+				'description'          => __( 'Payload from rank-math/export-settings. Keys are panel names.', 'acrossai-abilities-manager' ),
 				'additionalProperties' => true,
 			),
 		);
@@ -97,7 +97,7 @@ class Import_Settings extends Base_Rank_Math_Ability {
 		$result['message'] = '' !== $result['backup_key']
 			? sprintf(
 				/* translators: 1: comma-separated panel names, 2: backup key */
-				__( 'Imported settings for %1$s. A backup was created first with key "%2$s" — restore it with acrossai/rank-math-manage-backup to undo.', 'acrossai-abilities-manager' ),
+				__( 'Imported settings for %1$s. A backup was created first with key "%2$s" — restore it with rank-math/manage-backup to undo.', 'acrossai-abilities-manager' ),
 				implode( ', ', $result['panels_imported'] ),
 				$result['backup_key']
 			)

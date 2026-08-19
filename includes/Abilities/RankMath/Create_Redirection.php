@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #53 — acrossai/rank-math-create-redirection.
+ * Ability #53 — rank-math/create-redirection.
  *
  * Not idempotent: calling twice with the same input creates two rules.
  *
@@ -35,7 +35,7 @@ class Create_Redirection extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Create a redirection with one or more source rules. Each source needs a pattern and a comparison of exact, contains, start, end or regex. If the source would resolve to the destination, Rank Math saves the rule but forces it inactive to avoid a loop, and the response says so. Calling twice creates two rules — check first with acrossai/rank-math-find-redirection.', 'acrossai-abilities-manager' );
+		return __( 'Create a redirection with one or more source rules. Each source needs a pattern and a comparison of exact, contains, start, end or regex. If the source would resolve to the destination, Rank Math saves the rule but forces it inactive to avoid a loop, and the response says so. Calling twice creates two rules — check first with rank-math/find-redirection.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -145,7 +145,7 @@ class Create_Redirection extends Base_Rank_Math_Ability {
 		$result['message'] = $result['auto_deactivated']
 			? sprintf(
 				/* translators: %d: redirection id */
-				__( 'Created redirection %d, but Rank Math forced it inactive because the source resolves to the destination. Fix the source, then activate it with acrossai/rank-math-change-redirection-status.', 'acrossai-abilities-manager' ),
+				__( 'Created redirection %d, but Rank Math forced it inactive because the source resolves to the destination. Fix the source, then activate it with rank-math/change-redirection-status.', 'acrossai-abilities-manager' ),
 				$result['id']
 			)
 			: sprintf(

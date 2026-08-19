@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #32 — acrossai/rank-math-inspect-url.
+ * Ability #32 — rank-math/inspect-url.
  *
  * mode=now calls Google's URL Inspection API synchronously and CONSUMES that site's
  * daily inspection quota, which is small and resets on Google's schedule — hence
@@ -36,7 +36,7 @@ class Inspect_Url extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Ask Google Search Console to inspect a URL. mode=schedule (the default) queues the inspection in the background. mode=now runs it immediately and consumes one of the site\'s limited daily URL Inspection quota units, so use it sparingly. Read results afterwards with acrossai/rank-math-get-index-status.', 'acrossai-abilities-manager' );
+		return __( 'Ask Google Search Console to inspect a URL. mode=schedule (the default) queues the inspection in the background. mode=now runs it immediately and consumes one of the site\'s limited daily URL Inspection quota units, so use it sparingly. Read results afterwards with rank-math/get-index-status.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -107,7 +107,7 @@ class Inspect_Url extends Base_Rank_Math_Ability {
 			)
 			: sprintf(
 				/* translators: %s: inspected URL */
-				__( 'Queued %s for inspection. Read the result later with acrossai/rank-math-get-index-status.', 'acrossai-abilities-manager' ),
+				__( 'Queued %s for inspection. Read the result later with rank-math/get-index-status.', 'acrossai-abilities-manager' ),
 				$url
 			);
 

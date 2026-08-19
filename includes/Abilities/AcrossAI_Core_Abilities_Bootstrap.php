@@ -433,7 +433,7 @@ final class AcrossAI_Core_Abilities_Bootstrap {
 		}
 
 		// Feature 069 — Rank Math ability suite (up to 61 abilities under
-		// acrossai/rank-math-*). Gated on Rank Math presence only.
+		// rank-math/*). Gated on Rank Math presence only.
 		//
 		// DELIBERATE DIVERGENCE from the Elementor block above: there is no
 		// second entitlement-gated registration method. Rank Math's Content AI

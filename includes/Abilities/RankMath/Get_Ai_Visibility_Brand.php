@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #43 — acrossai/rank-math-get-ai-visibility-brand.
+ * Ability #43 — rank-math/get-ai-visibility-brand.
  *
  * Rank Math core already ships get-ai-visibility-overview (the brand LIST) and
  * -brand-insights (the analysis). The gap is fetching a single brand's own record —
@@ -36,7 +36,7 @@ class Get_Ai_Visibility_Brand extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Return one AI Visibility brand\'s own record — its name, URL, competitors and monitoring configuration. Rank Math\'s own abilities cover the brand list and the analysis results; this is the single-brand configuration read, which is what you need before changing it with acrossai/rank-math-update-ai-visibility-object.', 'acrossai-abilities-manager' );
+		return __( 'Return one AI Visibility brand\'s own record — its name, URL, competitors and monitoring configuration. Rank Math\'s own abilities cover the brand list and the analysis results; this is the single-brand configuration read, which is what you need before changing it with rank-math/update-ai-visibility-object.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

@@ -18,7 +18,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #1 — acrossai/rank-math-get-settings.
+ * Ability #1 — rank-math/get-settings.
  *
  * One reader for all 20 panels. Reads carry no validation risk, and returning the
  * field specification alongside the values is what makes each writer's accepted

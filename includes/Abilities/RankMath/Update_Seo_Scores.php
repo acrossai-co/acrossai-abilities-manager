@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #36 — acrossai/rank-math-update-seo-scores.
+ * Ability #36 — rank-math/update-seo-scores.
  *
  * Rank Math's on-page scoring engine runs client-side only, so an agent that computes
  * scores via rank-math/analyze-post-content has nowhere to store them. This is that

@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #50 — acrossai/rank-math-audit-faq-links.
+ * Ability #50 — rank-math/audit-faq-links.
  *
  * Catches a specific silent failure: FAQ answers must be plain text, so a link inside
  * an answer is stripped from the emitted JSON-LD while remaining visible on the page.

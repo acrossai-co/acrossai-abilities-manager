@@ -16,9 +16,9 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #63 — acrossai/rank-math-list-modules.
+ * Ability #63 — rank-math/list-modules.
  *
- * The discovery read for acrossai/rank-math-set-module-state: many abilities in
+ * The discovery read for rank-math/set-module-state: many abilities in
  * this suite fail with rank_math_module_inactive, and this is how a client finds
  * out which module to enable.
  *

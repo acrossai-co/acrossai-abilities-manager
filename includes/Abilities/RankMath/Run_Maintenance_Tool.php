@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #20 — acrossai/rank-math-run-maintenance-tool.
+ * Ability #20 — rank-math/run-maintenance-tool.
  *
  * Twelve tools behind one enum: twelve classes differing only in which method they
  * call would be pure boilerplate.
@@ -36,7 +36,7 @@ class Run_Maintenance_Tool extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Run one Rank Math maintenance tool: clear transients or caches, rebuild database tables, delete the link index, clear the 404 log, delete all redirections, convert legacy Yoast or AIOSEO blocks, or reindex analytics. Every tool changes or removes data irreversibly. Discover which are currently runnable with acrossai/rank-math-get-status panel=tools. Some tools continue in the background after responding — check the async flag rather than assuming success means finished.', 'acrossai-abilities-manager' );
+		return __( 'Run one Rank Math maintenance tool: clear transients or caches, rebuild database tables, delete the link index, clear the 404 log, delete all redirections, convert legacy Yoast or AIOSEO blocks, or reindex analytics. Every tool changes or removes data irreversibly. Discover which are currently runnable with rank-math/get-status panel=tools. Some tools continue in the background after responding — check the async flag rather than assuming success means finished.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #40 — acrossai/rank-math-manage-content-ai-prompts.
+ * Ability #40 — rank-math/manage-content-ai-prompts.
  *
  * Three endpoints behind one action enum. All are LOCAL option writes: no credits are
  * spent and no remote request is made, which is why this is not confirm-gated.

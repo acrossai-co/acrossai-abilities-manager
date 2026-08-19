@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #29 — acrossai/rank-math-get-analytics-summary.
+ * Ability #29 — rank-math/get-analytics-summary.
  *
  * Six reports behind one enum: all read-only, all needing the same capability and the
  * same date-range setup, differing only in which method they call.

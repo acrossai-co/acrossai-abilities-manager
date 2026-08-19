@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #26 — acrossai/rank-math-detect-seo-plugins.
+ * Ability #26 — rank-math/detect-seo-plugins.
  *
  * Detection only. Rank Math's importer runs in chunks over potentially tens of
  * thousands of posts, which does not fit a single ability call — that belongs to a

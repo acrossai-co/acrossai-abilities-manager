@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #7 — acrossai/rank-math-submit-urls.
+ * Ability #7 — rank-math/submit-urls.
  *
  * Not idempotent: each call is a fresh outbound submission and a new log entry.
  * Not destructive: nothing is lost by submitting twice, so no confirm gate — that

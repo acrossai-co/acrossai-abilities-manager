@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #6 — acrossai/rank-math-update-robots-txt.
+ * Ability #6 — rank-math/update-robots-txt.
  *
  * Separate from update-general-settings even though the field lives in the same
  * option blob, because the write is conditional on state the caller cannot see:
@@ -44,7 +44,7 @@ class Update_Robots_Txt extends Base_Rank_Math_Ability {
 	 * @return string
 	 */
 	protected function ability_description(): string {
-		return __( 'Replace the contents of Rank Math\'s virtual robots.txt. Refuses the write and reports why when a physical robots.txt exists on disk (which overrides the virtual one) or when the site is not public. Read the current content and state first with acrossai/rank-math-get-settings panel=general-robots-txt.', 'acrossai-abilities-manager' );
+		return __( 'Replace the contents of Rank Math\'s virtual robots.txt. Refuses the write and reports why when a physical robots.txt exists on disk (which overrides the virtual one) or when the site is not public. Read the current content and state first with rank-math/get-settings panel=general-robots-txt.', 'acrossai-abilities-manager' );
 	}
 
 	/**

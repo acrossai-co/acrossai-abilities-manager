@@ -16,9 +16,9 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #57 — acrossai/rank-math-get-sitemap-status.
+ * Ability #57 — rank-math/get-sitemap-status.
  *
- * Complements acrossai/rank-math-get-settings panel=sitemap-*, which returns
+ * Complements rank-math/get-settings panel=sitemap-*, which returns
  * configuration. This returns LIVE state: is the module on, is the rewrite rule
  * actually persisted, does the index URL respond, is the file cache on. A sitemap
  * can be perfectly configured and still 404 if rules were never flushed.
@@ -36,7 +36,7 @@ class Get_Sitemap_Status extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Return live Rank Math sitemap state: module status, which post types and taxonomies are included, whether the sitemap_index.xml rewrite rule is actually persisted, whether the file cache is enabled, and a live fetch of the index. Use this when the sitemap 404s despite looking correctly configured — a missing rewrite rule is the usual cause, fixable with acrossai/rank-math-set-module-state.', 'acrossai-abilities-manager' );
+		return __( 'Return live Rank Math sitemap state: module status, which post types and taxonomies are included, whether the sitemap_index.xml rewrite rule is actually persisted, whether the file cache is enabled, and a live fetch of the index. Use this when the sitemap 404s despite looking correctly configured — a missing rewrite rule is the usual cause, fixable with rank-math/set-module-state.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -82,7 +82,7 @@ class Get_Sitemap_Status extends Base_Rank_Math_Ability {
 
 		$status['message'] = $status['module_active']
 			? __( 'Returned live Rank Math sitemap status.', 'acrossai-abilities-manager' )
-			: __( 'The Rank Math sitemap module is inactive, so no sitemap is served. Enable it with acrossai/rank-math-set-module-state.', 'acrossai-abilities-manager' );
+			: __( 'The Rank Math sitemap module is inactive, so no sitemap is served. Enable it with rank-math/set-module-state.', 'acrossai-abilities-manager' );
 
 		return $status;
 	}

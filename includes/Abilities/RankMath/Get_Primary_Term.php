@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #46 — acrossai/rank-math-get-primary-term.
+ * Ability #46 — rank-math/get-primary-term.
  *
  * Read-only, idempotent. Returns the assigned terms alongside the primary, because
  * setting a primary term Rank Math will ignore is the common mistake and the assigned

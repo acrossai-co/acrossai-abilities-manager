@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #24 — acrossai/rank-math-create-backup.
+ * Ability #24 — rank-math/create-backup.
  *
  * Split from manage-backup because creating is non-destructive while restoring and
  * deleting are — and an ability can only carry one annotation triple honestly.

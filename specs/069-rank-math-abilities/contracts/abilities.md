@@ -2,7 +2,7 @@
 
 **Feature**: 069-rank-math-abilities
 
-61 abilities. Slug prefix `acrossai/rank-math-`; category `acrossai-abilities-manager-rank-math`;
+61 abilities. Slug prefix `rank-math/`; category `acrossai-abilities-manager-rank-math`;
 `meta.acrossai.tab_group = 'rank-math'` on all.
 
 Reference numbers are the stable design IDs from the approved plan. Two IDs were dropped after the

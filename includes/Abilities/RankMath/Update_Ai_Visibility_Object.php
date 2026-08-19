@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #44 — acrossai/rank-math-update-ai-visibility-object.
+ * Ability #44 — rank-math/update-ai-visibility-object.
  *
  * Three mutations behind one target enum: all hit the same controller with the same
  * capability, differing only in which method they call.
@@ -44,7 +44,7 @@ class Update_Ai_Visibility_Object extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Update an AI Visibility brand\'s configuration, update one monitored query, or generate new baseline queries for a brand. Brand and query updates are safely repeatable; generate-queries APPENDS queries and CONSUMES CREDITS each time it runs, which is why confirmation is required. Check the credit balance first with acrossai/rank-math-get-content-ai-status.', 'acrossai-abilities-manager' );
+		return __( 'Update an AI Visibility brand\'s configuration, update one monitored query, or generate new baseline queries for a brand. Brand and query updates are safely repeatable; generate-queries APPENDS queries and CONSUMES CREDITS each time it runs, which is why confirmation is required. Check the credit balance first with rank-math/get-content-ai-status.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {

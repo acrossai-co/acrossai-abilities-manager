@@ -16,10 +16,10 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #56 — acrossai/rank-math-delete-404-logs.
+ * Ability #56 — rank-math/delete-404-logs.
  *
  * Deletes by id only. Clearing the whole log is
- * acrossai/rank-math-run-maintenance-tool with tool=delete_log — exposing it here as
+ * rank-math/run-maintenance-tool with tool=delete_log — exposing it here as
  * well would give two paths to one destructive operation.
  */
 class Delete_404_Logs extends Base_Rank_Math_Ability {
@@ -33,7 +33,7 @@ class Delete_404_Logs extends Base_Rank_Math_Ability {
 	}
 
 	protected function ability_description(): string {
-		return __( 'Permanently delete specific 404 log entries by id, typically after creating a redirection for them. The entries and their hit counts cannot be recovered. To clear the entire log use acrossai/rank-math-run-maintenance-tool with tool=delete_log.', 'acrossai-abilities-manager' );
+		return __( 'Permanently delete specific 404 log entries by id, typically after creating a redirection for them. The entries and their hit counts cannot be recovered. To clear the entire log use rank-math/run-maintenance-tool with tool=delete_log.', 'acrossai-abilities-manager' );
 	}
 
 	protected function sub_group(): string {
@@ -58,7 +58,7 @@ class Delete_404_Logs extends Base_Rank_Math_Ability {
 				'type'        => 'array',
 				'items'       => array( 'type' => 'integer' ),
 				'minItems'    => 1,
-				'description' => __( 'Log entry ids. Find them with acrossai/rank-math-list-404-logs.', 'acrossai-abilities-manager' ),
+				'description' => __( 'Log entry ids. Find them with rank-math/list-404-logs.', 'acrossai-abilities-manager' ),
 			),
 		);
 	}

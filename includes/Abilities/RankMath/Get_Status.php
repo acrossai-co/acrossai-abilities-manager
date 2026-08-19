@@ -16,7 +16,7 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Ability #19 — acrossai/rank-math-get-status.
+ * Ability #19 — rank-math/get-status.
  *
  * Consolidates five reads behind a panel enum, mirroring Rank Math's own
  * dispatch hash at includes/modules/status/class-rest.php:141-147. Five separate
@@ -47,7 +47,7 @@ class Get_Status extends Base_Rank_Math_Ability {
 	 * @return string
 	 */
 	protected function ability_description(): string {
-		return __( 'Return one Rank Math diagnostic panel: system status, the live maintenance-tool catalogue, import/export state, version-control state, or Google Search Console connection state. Use panel=tools to discover which maintenance tools are currently runnable before calling acrossai/rank-math-run-maintenance-tool.', 'acrossai-abilities-manager' );
+		return __( 'Return one Rank Math diagnostic panel: system status, the live maintenance-tool catalogue, import/export state, version-control state, or Google Search Console connection state. Use panel=tools to discover which maintenance tools are currently runnable before calling rank-math/run-maintenance-tool.', 'acrossai-abilities-manager' );
 	}
 
 	/**
