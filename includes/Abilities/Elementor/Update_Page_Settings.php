@@ -26,7 +26,7 @@ class Update_Page_Settings extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-update-page-settings',
+			'name' => 'elementor/update-page-settings',
 			'args' => array(
 				'label'               => __( 'Update Elementor Page Settings', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update the Elementor document-level page settings (layout, title, background, custom CSS). Merges new keys into existing settings; use force_replace=true to overwrite the full settings object.', 'acrossai-abilities-manager' ),

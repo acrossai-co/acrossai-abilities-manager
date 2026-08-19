@@ -26,7 +26,7 @@ class Create_Page extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-create-page',
+			'name' => 'elementor/create-page',
 			'args' => array(
 				'label'               => __( 'Create Elementor Page', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Create a new post or page with Elementor builder mode enabled. Returns the new post ID and edit URL.', 'acrossai-abilities-manager' ),

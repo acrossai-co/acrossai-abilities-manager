@@ -26,7 +26,7 @@ class Test_Elementor_Evaluate_Render_Context extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-evaluate-render-context'", $this->src );
+		$this->assertStringContainsString( "'elementor/evaluate-render-context'", $this->src );
 	}
 
 	public function test_requires_post_id(): void {

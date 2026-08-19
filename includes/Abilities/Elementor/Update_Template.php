@@ -20,7 +20,7 @@ class Update_Template extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-update-template',
+			'name' => 'elementor/update-template',
 			'args' => array(
 				'label'               => __( 'Update Elementor Template', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update an Elementor template — change title, page_settings, or replace the full data tree. force_replace=true required for destructive full-data overwrites.', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Get_Theme_Builder_Conditions extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-theme-builder-conditions',
+			'name' => 'elementor/get-theme-builder-conditions',
 			'args' => array(
 				'label'               => __( 'Get Theme Builder Conditions', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Return the display conditions attached to an Elementor template (Theme Builder / popup targeting).', 'acrossai-abilities-manager' ),

@@ -190,7 +190,7 @@ A client on a site with Elementor Pro installed needs to manage Elementor's Cust
 **Registration and gating**
 
 - **FR-001**: All 88 new abilities MUST live under a new category with the slug `acrossai-abilities-manager-elementor`.
-- **FR-002**: All ability slugs MUST use the prefix `acrossai/elementor-` (e.g. `acrossai/elementor-get-widget-controls`) to disambiguate from existing content abilities.
+- **FR-002**: All ability slugs MUST use the prefix `elementor/` (e.g. `elementor/get-widget-controls`) to disambiguate from existing content abilities.
 - **FR-003**: All 88 abilities MUST be gated on the presence of Elementor. When Elementor is not installed, none of the abilities register and the category is not advertised.
 - **FR-004**: 8 abilities (5 Custom Code + 3 Form Submissions) MUST additionally be gated on Elementor Pro being installed.
 - **FR-005**: The gating check MUST happen at both registration time (bootstrap) and execution time (per-ability defense-in-depth). Runtime deactivation of Elementor must not cause fatal errors.

@@ -26,7 +26,7 @@ class Get_Style_Guide extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-get-style-guide',
+			'name' => 'elementor/get-style-guide',
 			'args' => array(
 				'label'               => __( 'Get Elementor Style Guide', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Build a style-guide summary from the active Elementor kit: global colors, typography, buttons, form defaults, layout, custom CSS.', 'acrossai-abilities-manager' ),

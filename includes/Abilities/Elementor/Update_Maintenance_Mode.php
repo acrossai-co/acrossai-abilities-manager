@@ -25,7 +25,7 @@ class Update_Maintenance_Mode extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-update-maintenance-mode',
+			'name' => 'elementor/update-maintenance-mode',
 			'args' => array(
 				'label'               => __( 'Update Elementor Maintenance Mode', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Enable or disable Elementor maintenance mode. Set mode (maintenance | coming_soon), template ID, and exclude rules.', 'acrossai-abilities-manager' ),

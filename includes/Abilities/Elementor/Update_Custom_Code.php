@@ -19,7 +19,7 @@ class Update_Custom_Code extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-update-custom-code',
+			'name' => 'elementor/update-custom-code',
 			'args' => array(
 				'label'               => __( 'Update Elementor Pro Custom Code', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Update fields on an existing Elementor Pro Custom Code snippet. Requires Elementor Pro.', 'acrossai-abilities-manager' ),

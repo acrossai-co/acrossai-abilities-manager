@@ -26,7 +26,7 @@ class Test_Elementor_Update_Data extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-update-data'", $this->src );
+		$this->assertStringContainsString( "'elementor/update-data'", $this->src );
 	}
 
 	public function test_requires_post_id_and_data(): void {

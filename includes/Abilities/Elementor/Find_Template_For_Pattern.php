@@ -20,7 +20,7 @@ class Find_Template_For_Pattern extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-find-template-for-pattern',
+			'name' => 'elementor/find-template-for-pattern',
 			'args' => array(
 				'label'               => __( 'Find Elementor Template For Pattern', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Rank saved Elementor templates by keyword match (title / template_type / widget-types present in content). Use before raw authoring to reuse existing patterns.', 'acrossai-abilities-manager' ),

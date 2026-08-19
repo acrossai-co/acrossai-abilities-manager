@@ -3,7 +3,7 @@
  * Feature 067 — insert an Elementor widget element.
  *
  * Validates the widget type against Elementor's live widget registry
- * before writing. Combined with acrossai/elementor-get-widget-controls
+ * before writing. Combined with elementor/get-widget-controls
  * this ability supports every registered widget without per-widget
  * wrappers.
  *
@@ -31,7 +31,7 @@ class Add_Widget extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-add-widget',
+			'name' => 'elementor/add-widget',
 			'args' => array(
 				'label'               => __( 'Add Elementor Widget', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Insert any registered Elementor widget (free, Pro, or third-party) at root or nested inside a parent element. Widget type is validated against the live registry before writing. Use get-widget-controls first to discover valid settings keys.', 'acrossai-abilities-manager' ),

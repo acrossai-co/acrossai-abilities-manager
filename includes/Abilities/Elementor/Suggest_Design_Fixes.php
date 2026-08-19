@@ -20,7 +20,7 @@ class Suggest_Design_Fixes extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-suggest-design-fixes',
+			'name' => 'elementor/suggest-design-fixes',
 			'args' => array(
 				'label'               => __( 'Suggest Elementor Design Fixes', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Turn aggregated design-audit findings into concrete fix recommendations.', 'acrossai-abilities-manager' ),

@@ -26,7 +26,7 @@ class Test_Elementor_Remove_Element extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-remove-element'", $this->src );
+		$this->assertStringContainsString( "'elementor/remove-element'", $this->src );
 	}
 
 	public function test_destructive_annotation(): void {

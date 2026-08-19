@@ -20,7 +20,7 @@ class Import_Template extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-import-template',
+			'name' => 'elementor/import-template',
 			'args' => array(
 				'label'               => __( 'Import Elementor Template', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Import an Elementor template from a JSON export (as produced by export-template). Regenerates element IDs to avoid collisions.', 'acrossai-abilities-manager' ),

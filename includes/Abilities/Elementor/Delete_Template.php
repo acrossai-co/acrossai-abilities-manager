@@ -20,7 +20,7 @@ class Delete_Template extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-delete-template',
+			'name' => 'elementor/delete-template',
 			'args' => array(
 				'label'               => __( 'Delete Elementor Template', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Move an Elementor template to trash (default) or permanently delete when force=true.', 'acrossai-abilities-manager' ),

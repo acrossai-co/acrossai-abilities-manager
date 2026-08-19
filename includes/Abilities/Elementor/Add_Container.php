@@ -25,7 +25,7 @@ class Add_Container extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-add-container',
+			'name' => 'elementor/add-container',
 			'args' => array(
 				'label'               => __( 'Add Elementor Container', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Insert a new Elementor v3+ container element at root or nested inside another element. Returns the new element with its generated ID.', 'acrossai-abilities-manager' ),

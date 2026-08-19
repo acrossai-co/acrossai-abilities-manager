@@ -19,7 +19,7 @@ class Update_Kit_Settings extends Ability_Definition {
 
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-update-kit-settings',
+			'name' => 'elementor/update-kit-settings',
 			'args' => array(
 				'label'               => __( 'Update Elementor Kit Settings', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Merge new kit settings into the active kit (or specified kit_id). force_replace=true replaces the full settings object.', 'acrossai-abilities-manager' ),

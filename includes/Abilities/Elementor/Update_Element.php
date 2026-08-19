@@ -27,7 +27,7 @@ class Update_Element extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-update-element',
+			'name' => 'elementor/update-element',
 			'args' => array(
 				'label'               => __( 'Update Elementor Element', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Replace the Elementor element at the given ID with a new element payload. Guarded by force_replace to prevent silent wipes.', 'acrossai-abilities-manager' ),

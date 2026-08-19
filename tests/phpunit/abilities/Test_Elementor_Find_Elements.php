@@ -26,7 +26,7 @@ class Test_Elementor_Find_Elements extends WP_UnitTestCase {
 	}
 
 	public function test_registers_correct_slug(): void {
-		$this->assertStringContainsString( "'acrossai/elementor-find-elements'", $this->src );
+		$this->assertStringContainsString( "'elementor/find-elements'", $this->src );
 	}
 
 	public function test_supports_element_type_widget_type_and_contains_filters(): void {

@@ -26,7 +26,7 @@ class Find_Elements extends Ability_Definition {
 	 */
 	protected function ability(): array {
 		return array(
-			'name' => 'acrossai/elementor-find-elements',
+			'name' => 'elementor/find-elements',
 			'args' => array(
 				'label'               => __( 'Find Elementor Elements', 'acrossai-abilities-manager' ),
 				'description'         => __( 'Search Elementor elements in a post by element type, widget type, or text contained in the serialised settings. Returns matches with their parent-ID paths.', 'acrossai-abilities-manager' ),
