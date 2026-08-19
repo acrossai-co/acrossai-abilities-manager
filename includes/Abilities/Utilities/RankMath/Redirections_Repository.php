@@ -471,7 +471,7 @@ final class Redirections_Repository {
 		$warnings = array();
 		$lines    = array(
 			'# Created by Rank Math',
-			'# Exported via acrossai/rank-math-export-redirections',
+			'# Exported via rank-math/export-redirections',
 			'',
 		);
 

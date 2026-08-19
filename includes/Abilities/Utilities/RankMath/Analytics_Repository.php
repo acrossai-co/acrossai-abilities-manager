@@ -290,7 +290,7 @@ final class Analytics_Repository {
 		if ( null === $results ) {
 			return new WP_Error(
 				'inspections_table_missing',
-				__( 'The URL Inspection storage table does not exist. Create it with acrossai/rank-math-run-maintenance-tool using tool=recreate_tables, then try again.', 'acrossai-abilities-manager' )
+				__( 'The URL Inspection storage table does not exist. Create it with rank-math/run-maintenance-tool using tool=recreate_tables, then try again.', 'acrossai-abilities-manager' )
 			);
 		}
 

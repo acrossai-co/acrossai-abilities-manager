@@ -190,7 +190,7 @@ final class Status_Tools_Repository {
 				'not_found',
 				sprintf(
 					/* translators: %s: backup key */
-					__( 'No Rank Math settings backup with key "%s". List them with acrossai/rank-math-list-backups.', 'acrossai-abilities-manager' ),
+					__( 'No Rank Math settings backup with key "%s". List them with rank-math/list-backups.', 'acrossai-abilities-manager' ),
 					$key
 				)
 			);
